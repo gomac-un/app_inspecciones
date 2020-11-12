@@ -1,4 +1,4 @@
-name: bloc_example
+name: inspecciones
 description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
@@ -23,12 +23,38 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  rxdart:
+  moor: ^3.3.1
   equatable:
-  flutter_bloc:
-  bloc:
-  form_bloc:
-  flutter_form_bloc:
+  flutter_bloc: ^6.0.0
+  bloc: ^6.0.0
+  form_bloc: ^0.19.1
+  flutter_form_bloc: ^0.19.0
+  # Functional programming thingies
+  #dartz: ^0.8.6
+  #networking
+  data_connection_checker:
+  # freezed
+  #freezed_annotation:
+  #kt_dart:
+  #images
+  image_picker:
+  #flutter_form_builder: ^3.13.4
+
+  # add injectable to your dependencies
+  injectable:
+  # add get_it
+  get_it:
+
+  # Helper to find the database path on mobile
+  path_provider: ^1.6.18
+  path: ^1.7.0
+
+  # Also use the latest version.
+  sqlite3_flutter_libs: ^0.2.0
+
+  enum_to_string: ^1.0.13
+  # ONLY FOR DEVELOPING
+  moor_db_viewer: ^2.0.3
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -38,6 +64,17 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  build_runner:
+  #freezed: 
+  #auto_route_generator: 
+  #injectable_generator: 
+  moor_generator: ^3.3.1
+  json_serializable: 
+  # add the generator to your dev_dependencies
+  injectable_generator:
+
+dependency_overrides:
+  analyzer: '0.39.14'
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'counter_screen.dart';
-import 'blocs/counter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:inspecciones/application/crear_cuestionario_form/crear_cuestionario_form_bloc.dart';
+import 'package:inspecciones/application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
+import 'package:inspecciones/injection.dart';
+import 'package:inspecciones/presentation/pages/borradores_screen.dart';
+
+import 'package:inspecciones/presentation/pages/llenar_cuestionario_form_page.dart';
+import 'package:moor_db_viewer/moor_db_viewer.dart';
+import '../../infrastructure/moor_database_llenado.dart';
+import 'crear_cuestionario_form_page.dart';
 import 'login_screen.dart';
-import 'create_inspection.dart';
-import 'list_of_inspections.dart';
-import 'inspeccion_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   void _pushScreen(BuildContext context, Widget screen) {
@@ -52,11 +57,43 @@ class HomeScreen extends StatelessWidget {
           ),
           ListTile(
             title: Chip(label: Text('Creación de Inspecciones')),
-            onTap: () => _pushScreen(context, CreateInspectionScreen()),
+            onTap: () => _pushScreen(
+              context,
+              BlocProvider(
+                create: (context) =>
+                    CrearCuestionarioFormBloc(getIt<Database>()),
+                child: CrearCuestionarioFormPage(),
+              ),
+            ),
           ),
           ListTile(
             title: Chip(label: Text('Llenado de Inspecciones')),
-            onTap: () => _pushScreen(context, ListOfInspectionsScreen()),
+            onTap: () => _pushScreen(
+              context,
+              BlocProvider(
+                create: (context) =>
+                    LlenarCuestionarioFormBloc(getIt<Database>()),
+                child: LLenarCuestionarioFormPage(),
+              ),
+            ),
+          ),
+          ListTile(
+            title: Chip(label: Text('Borradores')),
+            onTap: () =>
+                _pushScreen(context, BorradoresPage(getIt<Database>())),
+          ),
+          RaisedButton(
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => MoorDbViewer(GetIt.I<Database>())));
+            },
+            child: Text("ver BD"),
+          ),
+          RaisedButton(
+            onPressed: () {
+              GetIt.I<Database>().dbdePrueba();
+            },
+            child: Text("Reiniciar BD"),
           ),
         ],
       ),

@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
-import 'blocs/counter_bloc.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'inspeccion_screen.dart';
+import 'presentation/pages/home_screen.dart';
+import 'injection.dart';
 
-void main() {
-  runApp(
-    BlocProvider<CounterBloc>(
-      create: (context) {
-        return CounterBloc();
-      },
-      child: MaterialApp(
-        theme: ThemeData.light(),
-        home: HomeScreen(), //InspeccionScreen(),
-      ),
-    ),
-  );
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await configureDependencies();
+  runApp(MaterialApp(
+    theme: ThemeData.light(),
+    home: HomeScreen(), //InspeccionScreen(),
+  ));
 }
