@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/crear_cuestionario_form_bloc.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
+import 'package:inspecciones/application/crear_cuestionario_form/seleccion_activo_inspeccion_bloc.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/pages/borradores_screen.dart';
 
@@ -71,8 +73,7 @@ class HomeScreen extends StatelessWidget {
             onTap: () => _pushScreen(
               context,
               BlocProvider(
-                create: (context) =>
-                    LlenarCuestionarioFormBloc(getIt<Database>()),
+                create: (context) => getIt<LlenarCuestionarioFormBloc>(),
                 child: LLenarCuestionarioFormPage(),
               ),
             ),
@@ -85,7 +86,7 @@ class HomeScreen extends StatelessWidget {
           RaisedButton(
             onPressed: () {
               Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => MoorDbViewer(GetIt.I<Database>())));
+                  builder: (context) => MoorDbViewer(getIt<Database>())));
             },
             child: Text("ver BD"),
           ),
@@ -97,6 +98,80 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton: BlocProvider(
+        create: (BuildContext context) =>
+            getIt<SeleccionActivoInspeccionBloc>(),
+        child: Builder(
+          builder: (BuildContext context) {
+            return FloatingActionButton.extended(
+              onPressed: () => _showMyDialog(context),
+              icon: Icon(Icons.add),
+              label: Text("Inspeccion"),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showMyDialog(contextHome) async {
+    return showDialog<void>(
+      context: contextHome,
+      builder: (BuildContext context) {
+        final formBloc =
+            BlocProvider.of<SeleccionActivoInspeccionBloc>(contextHome);
+        return AlertDialog(
+          title: Text('Inicio de inspección'),
+          content:
+              FormBlocListener<SeleccionActivoInspeccionBloc, String, String>(
+            formBloc: formBloc,
+            onSuccess: (context, state) {
+              Scaffold.of(contextHome).showSnackBar(SnackBar(
+                content: Text(state.successResponse ?? "ok"),
+                duration: Duration(seconds: 3),
+              ));
+              _pushScreen(
+                context,
+                BlocProvider(
+                  create: (context) => getIt<LlenarCuestionarioFormBloc>(),
+                  child: LLenarCuestionarioFormPage(),
+                ),
+              );
+              /*Navigator.of(contextHome).push(
+                MaterialPageRoute(builder: (_) => SuccessScreen())
+              );*/
+            },
+            child: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  TextFieldBlocBuilder(
+                    textFieldBloc: formBloc.vehiculo,
+                    decoration: InputDecoration(
+                      labelText: 'Escriba el ID del vehiculo',
+                      prefixIcon: Icon(Icons.directions_car),
+                    ),
+                  ),
+                  RadioButtonGroupFieldBlocBuilder<CuestionarioDeModelo>(
+                    selectFieldBloc: formBloc.tiposDeInspeccion,
+                    decoration: InputDecoration(
+                      labelText: 'Tipo de inspección',
+                      prefixIcon: SizedBox(),
+                      border: InputBorder.none,
+                    ),
+                    itemBuilder: (context, item) => item.tipoDeInspeccion,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Inspeccionar'),
+              onPressed: formBloc.submit,
+            ),
+          ],
+        );
+      },
     );
   }
 }

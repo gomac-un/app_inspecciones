@@ -39,8 +39,12 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
 
   final respuestas = ListFieldBloc<RespuestaFieldBloc>(name: 'respuestas');
 
-  LlenarCuestionarioFormBloc(this._db, [this.borrador])
-      : super(isLoading: true) {
+  LlenarCuestionarioFormBloc(this._db, [this.borrador]) {
+    addFieldBlocs(fieldBlocs: [
+      vehiculo,
+      tiposDeInspeccion,
+      respuestas,
+    ]);
     /*
     distinct(
       (previous, current) =>
@@ -49,6 +53,12 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
       // TODO: Autoguardado automático.
       //print(state.toJson());
     });*/
+
+    //machete para cargar un borrador
+    Future.delayed(const Duration(microseconds: 0), () {
+      vehiculo.updateValue(borrador?.activo?.identificador);
+      tiposDeInspeccion.updateValue(borrador?.cuestionarioDeModelo);
+    });
 
     vehiculo.onValueChanges(
       onData: (previous, current) async* {
@@ -87,56 +97,16 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
   }
 
   @override
-  void onLoading() async {
-    /*final res = await Future.wait([
-      _inspeccionesRepository.getTiposDeInspecciones(),
-      _inspeccionesRepository.getModelos(),
-      _inspeccionesRepository.getContratistas(),
-      _inspeccionesRepository.getSistemas(),
-    ]);
-    // datos para el formulario
-    final inspecciones = res[0];
-    final modelos = res[1];
-    final contratistas = res[2];
-
-    // datos para las preguntas
-    this.sistemas = res[3];
-
-    tiposDeInspeccion..updateItems(inspecciones);
-    clasesDeModelos..updateItems(modelos);
-    contratista..updateItems(contratistas);
-
-    addFieldBlocs(fieldBlocs: [
-      tiposDeInspeccion,
-      clasesDeModelos,
-      contratista,
-      periodicidad,
-      bloques
-    ]);*/
-    //await Future.delayed(const Duration(seconds: 1), () {});
-    addFieldBlocs(fieldBlocs: [
-      vehiculo,
-      tiposDeInspeccion,
-      respuestas,
-    ]);
-
-    emitLoaded();
-    //machete
-    Future.delayed(const Duration(microseconds: 0), () {
-      vehiculo.updateValue(borrador?.activo?.identificador);
-      tiposDeInspeccion.updateValue(borrador?.cuestionarioDeModelo);
-    });
-  }
-
-  @override
   void onSubmitting() async {
     try {
+      state;
       await guardarBorrador();
       emitSuccess(
-          canSubmitAgain: true,
-          successResponse: JsonEncoder.withIndent('    ').convert(
+        canSubmitAgain: true,
+        /*successResponse: JsonEncoder.withIndent('    ').convert(
             state.toJson(),
-          ));
+          )*/
+      );
     } catch (e) {
       emitFailure(failureResponse: e.toString());
     }

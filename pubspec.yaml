@@ -43,7 +43,7 @@ dependencies:
   # add injectable to your dependencies
   injectable:
   # add get_it
-  get_it:
+  get_it: ^5.0.1
 
   # Helper to find the database path on mobile
   path_provider: ^1.6.18
@@ -55,7 +55,6 @@ dependencies:
   enum_to_string: ^1.0.13
   # ONLY FOR DEVELOPING
   moor_db_viewer: ^2.0.3
-
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

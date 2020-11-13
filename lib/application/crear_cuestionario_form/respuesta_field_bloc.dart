@@ -59,7 +59,7 @@ class RespuestaFieldBloc extends ListFieldBloc {
               SelectFieldBloc<OpcionDeRespuesta, BloqueConPreguntaRespondida>(
             name: 'respuesta',
             items: bloque.pregunta.opcionesDeRespuesta,
-            //para poner el valor inicial de la lista, se busca el objeto que tenga el mismo texto en la respuesta (si ya existe)
+            //para poner el valor inicial de la lista, se busca el objeto que tenga el mismo texto en la respuesta, si no hay respuesta devuelve null
             initialValue: bloque.pregunta.opcionesDeRespuesta.firstWhere(
                 (e) =>
                     e.texto == bloque.respuesta.respuestas.value?.first?.texto,
@@ -76,8 +76,9 @@ class RespuestaFieldBloc extends ListFieldBloc {
             //para poner el valor inicial de la lista, se buscan los objetos que esten en las respuestas
             initialValue: bloque.pregunta.opcionesDeRespuesta
                 .where((opc) =>
-                    (bloque.respuesta.respuestas.value
-                        ?.any((res) => opc.texto == res.texto)) ??
+                    (bloque.respuesta.respuestas.value?.any((res) =>
+                        opc.texto ==
+                        res.texto)) ?? // si no hay respuesta, devuelve false
                     false)
                 .toList(),
           );

@@ -16,6 +16,7 @@ import 'infrastructure/remote_datasource.dart';
 import 'application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
 import 'infrastructure/core/network_info.dart';
 import 'infrastructure/database/mobile.dart';
+import 'application/crear_cuestionario_form/seleccion_activo_inspeccion_bloc.dart';
 import 'infrastructure/core/third_party_injections.dart';
 
 /// adds generated dependencies
@@ -41,6 +42,8 @@ GetIt $initGetIt(
       () => LlenarCuestionarioFormBloc(get<Database>(), get<Borrador>()));
   gh.lazySingleton<NetworkInfo>(
       () => NetworkInfoImpl(get<DataConnectionChecker>()));
+  gh.factory<SeleccionActivoInspeccionBloc>(
+      () => SeleccionActivoInspeccionBloc(get<Database>()));
   gh.factory<BorradoresPage>(() => BorradoresPage(get<Database>()));
   return get;
 }

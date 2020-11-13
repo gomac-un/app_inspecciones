@@ -10,8 +10,8 @@ import 'package:inspecciones/presentation/widgets/widgets.dart';
 import 'package:inspecciones/presentation/widgets/llenado_widgets.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
 
-class LLenarCuestionarioFormPage extends StatelessWidget {
-  LLenarCuestionarioFormPage({Key key}) : super(key: key);
+class SeleccionActivoInspeccionPage extends StatelessWidget {
+  SeleccionActivoInspeccionPage({Key key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     final formBloc = BlocProvider.of<LlenarCuestionarioFormBloc>(context);

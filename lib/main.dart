@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'presentation/pages/home_screen.dart';
 import 'injection.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await configureDependencies();
+  configureDependencies();
   runApp(MaterialApp(
     theme: ThemeData.light(),
     home: HomeScreen(), //InspeccionScreen(),
