@@ -39,6 +39,9 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
 
   final respuestas = ListFieldBloc<RespuestaFieldBloc>(name: 'respuestas');
 
+  @factoryMethod
+  LlenarCuestionarioFormBloc.sinborrador(Database db) : this(db, null);
+
   LlenarCuestionarioFormBloc(this._db, [this.borrador]) {
     addFieldBlocs(fieldBlocs: [
       vehiculo,

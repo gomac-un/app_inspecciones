@@ -116,6 +116,7 @@ class HomeScreen extends StatelessWidget {
 
   Future<void> _showMyDialog(contextHome) async {
     return showDialog<void>(
+      //El showDialog no hace parte del arbol principal por lo cual toca guardar el contexto del home
       context: contextHome,
       builder: (BuildContext context) {
         final formBloc =

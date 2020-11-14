@@ -39,7 +39,7 @@ GetIt $initGetIt(
   gh.lazySingleton<InspeccionesRemoteDataSource>(
       () => InspeccionesRemoteDataSourceImpl(client: get<Client>()));
   gh.factory<LlenarCuestionarioFormBloc>(
-      () => LlenarCuestionarioFormBloc(get<Database>(), get<Borrador>()));
+      () => LlenarCuestionarioFormBloc.sinborrador(get<Database>()));
   gh.lazySingleton<NetworkInfo>(
       () => NetworkInfoImpl(get<DataConnectionChecker>()));
   gh.factory<SeleccionActivoInspeccionBloc>(

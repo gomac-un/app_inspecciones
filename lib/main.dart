@@ -5,8 +5,10 @@ import 'injection.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   configureDependencies();
-  runApp(MaterialApp(
-    theme: ThemeData.light(),
-    home: HomeScreen(), //InspeccionScreen(),
-  ));
+  runApp(
+    MaterialApp(
+      theme: ThemeData.light(),
+      home: HomeScreen(), //InspeccionScreen(),
+    ),
+  );
 }
