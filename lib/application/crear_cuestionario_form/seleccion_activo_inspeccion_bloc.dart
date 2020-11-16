@@ -1,22 +1,10 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:injectable/injectable.dart';
-import 'package:inspecciones/application/crear_cuestionario_form/respuesta_field_bloc.dart';
-import 'package:inspecciones/domain/core/enums.dart';
-import 'package:inspecciones/domain/core/i_inspecciones_repository.dart';
-import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:inspecciones/domain/clasesbasicas/idYnombre.dart';
 import 'package:inspecciones/infrastructure/moor_database_llenado.dart';
-import 'package:moor/moor.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 
-import 'bloque_field_bloc.dart';
-import 'crear_cuestionario_app.dart';
+import 'package:injectable/injectable.dart';
+import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 
 @injectable
 class SeleccionActivoInspeccionBloc extends FormBloc<String, String> {
-  //final IInspeccionesRepository _inspeccionesRepository;
   final Database _db;
 
   //blocs
@@ -31,19 +19,13 @@ class SeleccionActivoInspeccionBloc extends FormBloc<String, String> {
   SeleccionActivoInspeccionBloc(this._db) {
     addFieldBlocs(fieldBlocs: [
       vehiculo,
-      tiposDeInspeccion,
     ]);
-    /*
-    distinct(
-      (previous, current) =>
-          previous.toJson().toString() == current.toString().toString(),
-    ).listen((state) {
-      // TODO: Autoguardado automático.
-      //print(state.toJson());
-    });*/
 
     vehiculo.onValueChanges(
       onData: (previous, current) async* {
+        if (current.value != "") {
+          addFieldBloc(fieldBloc: tiposDeInspeccion);
+        }
         final inspecciones = await _db.cuestionariosParaVehiculo(current.value);
         tiposDeInspeccion..updateItems(inspecciones);
       },

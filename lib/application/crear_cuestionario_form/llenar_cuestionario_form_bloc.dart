@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/respuesta_field_bloc.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:inspecciones/infrastructure/moor_database_llenado.dart';
@@ -12,28 +10,12 @@ import 'bloque_field_bloc.dart';
 import 'crear_cuestionario_app.dart';
 
 class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
-  /*public static <T> void setTopItem(List<T> t, int position){
-    t.add(0, t.remove(position));
-};*/
-
-  //final IInspeccionesRepository _inspeccionesRepository;
   final Database _db;
 
   //helpful list for render
   final Map<int, RespuestaFieldBloc> blocsRespuestas = {};
 
-  final ValueNotifier<List<BloqueConPreguntaRespondida>> bloques =
-      ValueNotifier([]);
-
-  //blocs
-/*
-  final vehiculo = TextFieldBloc(name: 'vehiculo');
-
-  final tiposDeInspeccion =
-      SelectFieldBloc<CuestionarioDeModelo, List<BloqueConPreguntaRespondida>>(
-    name: 'tipoDeInspeccion',
-    //validators: [FieldBlocValidators.required],
-  );*/
+  List<BloqueConPreguntaRespondida> bloques = [];
 
   final String _vehiculo;
   final int _cuestionarioId;
@@ -51,66 +33,24 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
       respuestas,
     ]);
 
-    /*
-    distinct(
+    // TODO: Autoguardado automático.
+
+    /*distinct(
       (previous, current) =>
           previous.toJson().toString() == current.toString().toString(),
     ).listen((state) {
-      // TODO: Autoguardado automático.
+      
       //print(state.toJson());
     });*/
-
-    //machete para cargar un borrador
-    /*
-    Future.delayed(const Duration(microseconds: 0), () {
-      vehiculo.updateValue(borrador?.activo?.identificador);
-      tiposDeInspeccion.updateValue(borrador?.cuestionarioDeModelo);
-    });
-
-    vehiculo.onValueChanges(
-      onData: (previous, current) async* {
-        final inspecciones = await _db.cuestionariosParaVehiculo(current.value);
-
-        tiposDeInspeccion..updateItems(inspecciones);
-      },
-    );
-
-    tiposDeInspeccion.onValueChanges(
-      onData: (previous, current) async* {
-        //limpieza
-        blocsRespuestas.clear();
-        respuestas.removeFieldBlocsWhere((_) => true);
-
-        final bloques = await _db.cargarInspeccion(
-          _cuestionarioId,
-          _vehiculo,
-        );
-
-        //hack para iterar en la ui
-        tiposDeInspeccion.updateExtraData(bloques);
-
-        bloques?.asMap()?.forEach((i, bloque) {
-          if (bloque.pregunta != null) {
-            blocsRespuestas[i] = RespuestaFieldBloc(bloque);
-            respuestas.addFieldBloc(blocsRespuestas[i]);
-          }
-        });
-      },
-    );
-*/
-    /*
-    vehiculo.updateValue(borrador.activo.identificador);
-    tiposDeInspeccion.updateValue(borrador.cuestionarioDeModelo);*/
   }
   @override
   void onLoading() async {
-    //super.onLoading(); // !ojo
     final cargabloques = await _db.cargarInspeccion(
       _cuestionarioId,
       _vehiculo,
     );
 
-    bloques.value = cargabloques;
+    bloques = cargabloques;
 
     cargabloques?.asMap()?.forEach((i, bloque) {
       if (bloque.pregunta != null) {

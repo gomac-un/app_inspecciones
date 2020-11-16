@@ -18,10 +18,6 @@ class RespuestaCard extends StatelessWidget {
 
     return Card(
       //margin: const EdgeInsets.all(8.0),
-      /*decoration: BoxDecoration(
-        border: Border.all(),
-        borderRadius: BorderRadius.all(Radius.circular(10.0)),
-      ),*/
       child: Column(
         children: [
           Padding(
@@ -63,20 +59,10 @@ class RespuestaCard extends StatelessWidget {
             keyboardType: TextInputType.multiline,
             maxLines: null,
           ),
-          /*
-          TODO: recargar imagenes
-          FormBuilderImagePicker(
-            imagenesFieldBlocs: bloc.imagenes,
-            decoration: const InputDecoration(
-              labelText: 'Foto de la novedad',
-            ),
-            onChanged: (image) {
-              print(image);
-              /*preguntaField.imagen.updateValue(image[0]);*/
-            },
-          ),*/
           CheckboxFieldBlocBuilder(
-              booleanFieldBloc: bloc.novedad, body: Text('Novedad')),
+            booleanFieldBloc: bloc.novedad,
+            body: Text('Novedad'),
+          ),
           //TODO: mostrar esto solo despues de terminar la inspeccion
           BlocBuilder(
             cubit: bloc.novedad,
@@ -123,15 +109,17 @@ class TituloCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).primaryTextTheme;
     return Card(
-      color: Theme.of(context).primaryColorDark,
+      color: Theme.of(context).dividerColor,
       margin: const EdgeInsets.all(8.0),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               bloque.bloque.titulo,
-              style: textTheme.headline4,
+              style: textTheme.headline5,
             ),
             Text(
               bloque.bloque.descripcion,
