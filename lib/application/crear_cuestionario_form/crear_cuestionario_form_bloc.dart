@@ -1,17 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:enum_to_string/enum_to_string.dart';
-import 'package:inspecciones/application/crear_cuestionario_form/pregunta_field_bloc.dart';
-import 'package:inspecciones/domain/core/enums.dart';
-import 'package:inspecciones/domain/core/i_inspecciones_repository.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:inspecciones/domain/clasesbasicas/idYnombre.dart';
+
+import 'package:inspecciones/application/crear_cuestionario_form/pregunta_field_bloc.dart';
 import 'package:inspecciones/infrastructure/moor_database_llenado.dart';
 
 import 'bloque_field_bloc.dart';
-import 'crear_cuestionario_app.dart';
 
 class CrearCuestionarioFormBloc extends FormBloc<String, String> {
+  //TODO: reordenado de las preguntas
   /*public static <T> void setTopItem(List<T> t, int position){
     t.add(0, t.remove(position));
 };*/

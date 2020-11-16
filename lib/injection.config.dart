@@ -13,7 +13,6 @@ import 'presentation/pages/borradores_screen.dart';
 import 'infrastructure/moor_database_llenado.dart';
 import 'infrastructure/local_datasource.dart';
 import 'infrastructure/remote_datasource.dart';
-import 'application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
 import 'infrastructure/core/network_info.dart';
 import 'infrastructure/database/mobile.dart';
 import 'application/crear_cuestionario_form/seleccion_activo_inspeccion_bloc.dart';
@@ -38,8 +37,6 @@ GetIt $initGetIt(
       () => InspeccionesLocalDataSourceImplSqlite());
   gh.lazySingleton<InspeccionesRemoteDataSource>(
       () => InspeccionesRemoteDataSourceImpl(client: get<Client>()));
-  gh.factory<LlenarCuestionarioFormBloc>(
-      () => LlenarCuestionarioFormBloc(get<Database>(), get<Borrador>()));
   gh.lazySingleton<NetworkInfo>(
       () => NetworkInfoImpl(get<DataConnectionChecker>()));
   gh.factory<SeleccionActivoInspeccionBloc>(

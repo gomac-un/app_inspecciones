@@ -53,12 +53,11 @@ class BorradoresPage extends StatelessWidget {
                 trailing: Icon(Icons.delete),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => BlocProvider(
-                      create: (context) => LlenarCuestionarioFormBloc(
+                    builder: (_) => LlenarCuestionarioFormPage(
+                      LlenarCuestionarioFormBloc.withBorrador(
                         getIt<Database>(),
                         borradores[index],
                       ),
-                      child: LLenarCuestionarioFormPage(),
                     ),
                   ),
                 ),

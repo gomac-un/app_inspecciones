@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -9,6 +10,7 @@ import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/pages/borradores_screen.dart';
 
 import 'package:inspecciones/presentation/pages/llenar_cuestionario_form_page.dart';
+import 'package:inspecciones/router.gr.dart';
 import 'package:moor_db_viewer/moor_db_viewer.dart';
 import '../../infrastructure/moor_database_llenado.dart';
 import 'crear_cuestionario_form_page.dart';
@@ -30,29 +32,6 @@ class HomeScreen extends StatelessWidget {
       ),
       body: ListView(
         children: <Widget>[
-          /*ListTile(
-            leading: Icon(Icons.add_circle_outline),
-            title: Text('Counter'),
-            trailing: Chip(
-              label: Text('Local state'),
-              backgroundColor: Colors.blue[800],
-            ),
-            onTap: () => _pushScreen(context, CounterScreenWithLocalState()),
-          ),
-          ListTile(
-            leading: Icon(Icons.add_circle_outline),
-            title: Text('Counter'),
-            subtitle: BlocBuilder(
-              builder: (context, state) => Text('$state'),
-              cubit: counterBloc,
-            ),
-            trailing: Chip(
-              label: Text('Global state'),
-              backgroundColor: Colors.blue[800],
-            ),
-            onTap: () => _pushScreen(context, CounterScreenWithGlobalState()),
-            onLongPress: () => counterBloc.add(CounterEvent.increment),
-          ),*/
           ListTile(
             title: Chip(label: Text('Ingreso')),
             onTap: () => _pushScreen(context, LoginScreen()),
@@ -69,19 +48,11 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           ListTile(
-            title: Chip(label: Text('Llenado de Inspecciones')),
-            onTap: () => _pushScreen(
-              context,
-              BlocProvider(
-                create: (context) => getIt<LlenarCuestionarioFormBloc>(),
-                child: LLenarCuestionarioFormPage(),
-              ),
-            ),
-          ),
-          ListTile(
             title: Chip(label: Text('Borradores')),
-            onTap: () =>
-                _pushScreen(context, BorradoresPage(getIt<Database>())),
+            onTap: () => ExtendedNavigator.of(context).push(
+              Routes.borradoresPage,
+              arguments: BorradoresPageArguments(db: getIt<Database>()),
+            ),
           ),
           RaisedButton(
             onPressed: () {
@@ -92,54 +63,43 @@ class HomeScreen extends StatelessWidget {
           ),
           RaisedButton(
             onPressed: () {
-              GetIt.I<Database>().dbdePrueba();
+              getIt<Database>().dbdePrueba();
             },
             child: Text("Reiniciar BD"),
           ),
         ],
       ),
-      floatingActionButton: BlocProvider(
-        create: (BuildContext context) =>
-            getIt<SeleccionActivoInspeccionBloc>(),
-        child: Builder(
-          builder: (BuildContext context) {
-            return FloatingActionButton.extended(
-              onPressed: () => _showMyDialog(context),
-              icon: Icon(Icons.add),
-              label: Text("Inspeccion"),
-            );
-          },
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _inicioInspeccion(context),
+        icon: Icon(Icons.add),
+        label: Text("Inspeccion"),
       ),
     );
   }
 
-  Future<void> _showMyDialog(contextHome) async {
+  Future<void> _inicioInspeccion(contextHome) async {
+    final formBloc = getIt<SeleccionActivoInspeccionBloc>();
     return showDialog<void>(
+      //El showDialog no hace parte del arbol principal por lo cual toca guardar el contexto del home
       context: contextHome,
       builder: (BuildContext context) {
-        final formBloc =
-            BlocProvider.of<SeleccionActivoInspeccionBloc>(contextHome);
         return AlertDialog(
           title: Text('Inicio de inspección'),
           content:
               FormBlocListener<SeleccionActivoInspeccionBloc, String, String>(
             formBloc: formBloc,
             onSuccess: (context, state) {
-              Scaffold.of(contextHome).showSnackBar(SnackBar(
-                content: Text(state.successResponse ?? "ok"),
-                duration: Duration(seconds: 3),
-              ));
-              _pushScreen(
-                context,
-                BlocProvider(
-                  create: (context) => getIt<LlenarCuestionarioFormBloc>(),
-                  child: LLenarCuestionarioFormPage(),
+              ExtendedNavigator.of(contextHome).push(
+                Routes.llenarCuestionarioFormPage,
+                arguments: LlenarCuestionarioFormPageArguments(
+                  formBloc: LlenarCuestionarioFormBloc(
+                    getIt<Database>(),
+                    formBloc.vehiculo.value,
+                    formBloc.tiposDeInspeccion.value.cuestionarioId,
+                  ),
                 ),
               );
-              /*Navigator.of(contextHome).push(
-                MaterialPageRoute(builder: (_) => SuccessScreen())
-              );*/
+              ExtendedNavigator.of(context).pop();
             },
             child: SingleChildScrollView(
               child: ListBody(

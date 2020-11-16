@@ -404,22 +404,17 @@ class Database extends _$Database {
   }
 
   Future<List<BloqueConPreguntaRespondida>> cargarInspeccion(
-      CuestionarioDeModelo cm, String vehiculo) async {
+      int cuestionarioId, String vehiculo) async {
     //revisar si hay una inspeccion de ese cuestionario empezada
-    if (cm == null) return null;
-    final query1 = select(inspecciones).join([
-      innerJoin(
-          cuestionarioDeModelos,
-          cuestionarioDeModelos.cuestionarioId
-              .equalsExp(inspecciones.cuestionarioId)),
-    ])
-      ..where(cuestionarioDeModelos.modelo.equals(cm.modelo) &
-          cuestionarioDeModelos.tipoDeInspeccion.equals(cm.tipoDeInspeccion) &
-          inspecciones.identificadorActivo.equals(vehiculo));
+    if (cuestionarioId == null || vehiculo == null) return null;
+    final query1 = select(inspecciones)
+      ..where(
+        (ins) =>
+            ins.cuestionarioId.equals(cuestionarioId) &
+            ins.identificadorActivo.equals(vehiculo),
+      );
 
-    final res = await query1.map((row) {
-      return row.readTable(inspecciones);
-    }).get();
+    final res = await query1.get();
 
     Inspeccion borrador;
     if (res.length > 0) borrador = res.first;
@@ -432,19 +427,22 @@ class Database extends _$Database {
           respuestas.preguntaId.equalsExp(preguntas.id) &
               respuestas.inspeccionId.equals(borrador?.id)),
     ])
-      ..where(bloques.cuestionarioId.equals(cm.cuestionarioId))
+      ..where(bloques.cuestionarioId.equals(cuestionarioId))
       ..orderBy([OrderingTerm(expression: bloques.nOrden)]);
 
-    return query2.map((row) {
-      return BloqueConPreguntaRespondida(
-        bloque: row.readTable(bloques),
-        pregunta: row.readTable(preguntas),
-        respuesta: row.readTable(respuestas)?.toCompanion(
-                true) ?? //si no hay respuesta devuelve una vacía con inspeccion nula que se debe llenar despues
-            RespuestasCompanion.insert(
-                inspeccionId: null, preguntaId: row.readTable(preguntas)?.id),
-      );
-    }).get();
+    return query2
+        .map(
+          (row) => BloqueConPreguntaRespondida(
+            bloque: row.readTable(bloques),
+            pregunta: row.readTable(preguntas),
+            respuesta: row.readTable(respuestas)?.toCompanion(
+                    true) ?? //si no hay respuesta devuelve una vacía con inspeccion nula que se debe llenar despues
+                RespuestasCompanion.insert(
+                    inspeccionId: null,
+                    preguntaId: row.readTable(preguntas)?.id),
+          ),
+        )
+        .get();
   }
 
   Future<Inspeccion> crearInspeccion(int cuestionarioId, String activo) async {
@@ -499,13 +497,15 @@ class Database extends _$Database {
           cuestionarioDeModelos.cuestionarioId.equalsExp(cuestionarios.id)),
     ]);
 
-    return query.map((row) {
-      return Borrador(
-        row.readTable(inspecciones),
-        row.readTable(cuestionarioDeModelos),
-        row.readTable(activos),
-      );
-    }).watch();
+    return query
+        .map(
+          (row) => Borrador(
+            row.readTable(inspecciones),
+            row.readTable(cuestionarioDeModelos),
+            row.readTable(activos),
+          ),
+        )
+        .watch();
   }
 }
 

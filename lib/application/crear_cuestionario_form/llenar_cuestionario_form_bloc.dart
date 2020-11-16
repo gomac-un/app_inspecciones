@@ -1,11 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
-import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/respuesta_field_bloc.dart';
-import 'package:inspecciones/domain/core/enums.dart';
-import 'package:inspecciones/domain/core/i_inspecciones_repository.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:inspecciones/domain/clasesbasicas/idYnombre.dart';
 import 'package:inspecciones/infrastructure/moor_database_llenado.dart';
 import 'package:moor/moor.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,86 +9,57 @@ import 'package:path/path.dart' as path;
 import 'bloque_field_bloc.dart';
 import 'crear_cuestionario_app.dart';
 
-@injectable
 class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
-  /*public static <T> void setTopItem(List<T> t, int position){
-    t.add(0, t.remove(position));
-};*/
-
-  //final IInspeccionesRepository _inspeccionesRepository;
   final Database _db;
-  final Borrador borrador;
 
   //helpful list for render
   final Map<int, RespuestaFieldBloc> blocsRespuestas = {};
 
-  //blocs
+  List<BloqueConPreguntaRespondida> bloques = [];
 
-  final vehiculo = TextFieldBloc(name: 'vehiculo');
-
-  final tiposDeInspeccion =
-      SelectFieldBloc<CuestionarioDeModelo, List<BloqueConPreguntaRespondida>>(
-    name: 'tipoDeInspeccion',
-    //validators: [FieldBlocValidators.required],
-  );
+  final String _vehiculo;
+  final int _cuestionarioId;
 
   final respuestas = ListFieldBloc<RespuestaFieldBloc>(name: 'respuestas');
 
-  LlenarCuestionarioFormBloc(this._db, [this.borrador]) {
+  //@factoryMethod
+  LlenarCuestionarioFormBloc.withBorrador(Database db, Borrador borrador)
+      : this(db, borrador.activo.identificador,
+            borrador.inspeccion.cuestionarioId);
+
+  LlenarCuestionarioFormBloc(this._db, this._vehiculo, this._cuestionarioId)
+      : super(isLoading: true) {
     addFieldBlocs(fieldBlocs: [
-      vehiculo,
-      tiposDeInspeccion,
       respuestas,
     ]);
-    /*
-    distinct(
+
+    // TODO: Autoguardado automático.
+
+    /*distinct(
       (previous, current) =>
           previous.toJson().toString() == current.toString().toString(),
     ).listen((state) {
-      // TODO: Autoguardado automático.
+      
       //print(state.toJson());
     });*/
+  }
+  @override
+  void onLoading() async {
+    final cargabloques = await _db.cargarInspeccion(
+      _cuestionarioId,
+      _vehiculo,
+    );
 
-    //machete para cargar un borrador
-    Future.delayed(const Duration(microseconds: 0), () {
-      vehiculo.updateValue(borrador?.activo?.identificador);
-      tiposDeInspeccion.updateValue(borrador?.cuestionarioDeModelo);
+    bloques = cargabloques;
+
+    cargabloques?.asMap()?.forEach((i, bloque) {
+      if (bloque.pregunta != null) {
+        blocsRespuestas[i] = RespuestaFieldBloc(bloque);
+        respuestas.addFieldBloc(blocsRespuestas[i]);
+      }
     });
 
-    vehiculo.onValueChanges(
-      onData: (previous, current) async* {
-        final inspecciones = await _db.cuestionariosParaVehiculo(current.value);
-
-        tiposDeInspeccion..updateItems(inspecciones);
-      },
-    );
-
-    tiposDeInspeccion.onValueChanges(
-      onData: (previous, current) async* {
-        //limpieza
-        blocsRespuestas.clear();
-        respuestas.removeFieldBlocsWhere((_) => true);
-
-        final bloques = await _db.cargarInspeccion(
-          current.value,
-          vehiculo.value,
-        );
-
-        //hack para iterar en la ui
-        tiposDeInspeccion.updateExtraData(bloques);
-
-        bloques?.asMap()?.forEach((i, bloque) {
-          if (bloque.pregunta != null) {
-            blocsRespuestas[i] = RespuestaFieldBloc(bloque);
-            respuestas.addFieldBloc(blocsRespuestas[i]);
-          }
-        });
-      },
-    );
-
-    /*
-    vehiculo.updateValue(borrador.activo.identificador);
-    tiposDeInspeccion.updateValue(borrador.cuestionarioDeModelo);*/
+    emitLoaded();
   }
 
   @override
@@ -138,8 +104,8 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
     });
     await _db.guardarInspeccion(
         blocsRespuestas.entries.map((e) => e.value.bloque.respuesta).toList(),
-        tiposDeInspeccion.value.cuestionarioId,
-        vehiculo.value);
+        _cuestionarioId,
+        _vehiculo);
   }
 
   Iterable<Future<String>> procesarFotos(
