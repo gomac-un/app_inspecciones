@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -9,6 +10,7 @@ import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/pages/borradores_screen.dart';
 
 import 'package:inspecciones/presentation/pages/llenar_cuestionario_form_page.dart';
+import 'package:inspecciones/router.gr.dart';
 import 'package:moor_db_viewer/moor_db_viewer.dart';
 import '../../infrastructure/moor_database_llenado.dart';
 import 'crear_cuestionario_form_page.dart';
@@ -68,20 +70,24 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
+          /*
           ListTile(
             title: Chip(label: Text('Llenado de Inspecciones')),
             onTap: () => _pushScreen(
               context,
               BlocProvider(
                 create: (context) => getIt<LlenarCuestionarioFormBloc>(),
-                child: LLenarCuestionarioFormPage(),
+                child: LlenarCuestionarioFormPage(),
               ),
             ),
-          ),
+          ),*/
           ListTile(
             title: Chip(label: Text('Borradores')),
-            onTap: () =>
-                _pushScreen(context, BorradoresPage(getIt<Database>())),
+            onTap: () => ExtendedNavigator.of(context).push(
+              Routes.borradoresPage,
+              arguments: BorradoresPageArguments(db: getIt<Database>()),
+            ),
+            //_pushScreen(context, BorradoresPage(getIt<Database>())),
           ),
           RaisedButton(
             onPressed: () {
@@ -98,9 +104,17 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: BlocProvider(
-        create: (BuildContext context) =>
-            getIt<SeleccionActivoInspeccionBloc>(),
+      floatingActionButton: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (BuildContext context) =>
+                getIt<SeleccionActivoInspeccionBloc>(),
+          ),
+          BlocProvider(
+            create: (BuildContext context) =>
+                getIt<LlenarCuestionarioFormBloc>(),
+          ),
+        ],
         child: Builder(
           builder: (BuildContext context) {
             return FloatingActionButton.extended(
@@ -127,17 +141,24 @@ class HomeScreen extends StatelessWidget {
               FormBlocListener<SeleccionActivoInspeccionBloc, String, String>(
             formBloc: formBloc,
             onSuccess: (context, state) {
-              Scaffold.of(contextHome).showSnackBar(SnackBar(
-                content: Text(state.successResponse ?? "ok"),
-                duration: Duration(seconds: 3),
-              ));
-              _pushScreen(
+              ExtendedNavigator.of(contextHome).push(
+                Routes.llenarCuestionarioFormPage,
+                arguments: LlenarCuestionarioFormPageArguments(
+                  formBloc: LlenarCuestionarioFormBloc(
+                    getIt<Database>(),
+                    formBloc.vehiculo.value,
+                    formBloc.tiposDeInspeccion.value.cuestionarioId,
+                  ),
+                ),
+              );
+              ExtendedNavigator.of(context).pop();
+              /*_pushScreen(
                 context,
                 BlocProvider(
                   create: (context) => getIt<LlenarCuestionarioFormBloc>(),
                   child: LLenarCuestionarioFormPage(),
                 ),
-              );
+              );*/
               /*Navigator.of(contextHome).push(
                 MaterialPageRoute(builder: (_) => SuccessScreen())
               );*/
