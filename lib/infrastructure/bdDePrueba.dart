@@ -112,9 +112,10 @@ void _initialize0(batch, db) {
       bloqueId: 3,
       tipo: TipoDePregunta.unicaRespuesta,
       criticidad: 1,
-      opcionesDeRespuesta: Value(
-        ["alta", "baja"].map((e) => OpcionDeRespuesta(e, 0)).toList(),
-      ),
+      opcionesDeRespuesta: Value([
+        OpcionDeRespuesta("alta", 4),
+        OpcionDeRespuesta("baja", 0),
+      ]),
       sistemaId: 2,
       subSistemaId: 2,
       posicion: "no aplica",
@@ -144,7 +145,7 @@ void _initialize0(batch, db) {
     RespuestasCompanion.insert(
       inspeccionId: 1,
       preguntaId: 2,
-      respuestas: Value([OpcionDeRespuesta("alta", 0)]),
+      respuestas: Value([OpcionDeRespuesta("alta", 4)]),
       observacion: Value("mal"),
       reparado: Value(true),
       observacionReparacion: Value("se cuadro"),

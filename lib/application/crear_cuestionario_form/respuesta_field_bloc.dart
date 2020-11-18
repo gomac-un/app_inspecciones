@@ -13,29 +13,29 @@ class RespuestaFieldBloc extends ListFieldBloc {
 
   final SingleFieldBloc respuestas;
   final TextFieldBloc observacion;
-  final BooleanFieldBloc novedad;
-  final BooleanFieldBloc reparado;
-  final TextFieldBloc observacionReparacion;
   final ListFieldBloc<InputFieldBloc<File, Object>> fotosBase;
-  final ListFieldBloc<InputFieldBloc<File, Object>> fotosReparacion;
+  final BooleanFieldBloc novedad;
 
+  final BooleanFieldBloc reparado;
+  final ListFieldBloc<InputFieldBloc<File, Object>> fotosReparacion;
+  final TextFieldBloc observacionReparacion;
+
+  // Constructor privado ya que el factory es el que crea las instancias de los bloques que componen la respuesta
   RespuestaFieldBloc._({
     @required this.bloque,
     @required this.respuestas,
+    @required this.observacion,
+    @required this.fotosBase,
     @required this.novedad,
     @required this.reparado,
-    @required this.observacion,
-    @required this.observacionReparacion,
-    @required this.fotosBase,
     @required this.fotosReparacion,
+    @required this.observacionReparacion,
     String name,
   }) : super(name: name) {
     addFieldBloc(respuestas);
     addFieldBloc(observacion);
-    addFieldBloc(reparado);
-    addFieldBloc(observacionReparacion);
     addFieldBloc(fotosBase);
-    addFieldBloc(fotosReparacion);
+    addFieldBloc(novedad);
 
     /*reparado.onValueChanges(
       onData: (previous, current) async* {
@@ -93,7 +93,6 @@ class RespuestaFieldBloc extends ListFieldBloc {
     return RespuestaFieldBloc._(
       bloque: bloque,
       respuestas: resbloc
-        ..updateExtraData(bloque) //quitar?
         ..onValueChanges(
           onData: (previous, current) async* {
             bloque.respuesta = bloque.respuesta.copyWith(
@@ -161,5 +160,11 @@ class RespuestaFieldBloc extends ListFieldBloc {
             ?.toList(),
       ),
     );
+  }
+
+  void inicioRevision() {
+    addFieldBloc(reparado);
+    addFieldBloc(fotosReparacion);
+    addFieldBloc(observacionReparacion);
   }
 }

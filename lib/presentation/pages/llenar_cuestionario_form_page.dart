@@ -46,6 +46,51 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
             builder: (context, state) {
               if (state is FormBlocLoading) {
                 return Center(child: CircularProgressIndicator());
+              } else if (state is FormBlocRevisando) {
+                return SingleChildScrollView(
+                  physics: ClampingScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: <Widget>[
+                        Center(
+                          child: Text("Revision"),
+                        ),
+                        if (_formBloc.bloques != null &&
+                            _formBloc.bloques.isNotEmpty)
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _formBloc.bloques.length,
+                            itemBuilder: (context, i) {
+                              int sumres = 0;
+                              if ((_formBloc.bloques[i]).pregunta != null) {
+                                (_formBloc.bloques[i])
+                                    .respuesta
+                                    .respuestas
+                                    .value
+                                    .forEach((e) {
+                                  sumres += e.criticidad;
+                                });
+                                final criticidad =
+                                    (_formBloc.bloques[i]).pregunta.criticidad *
+                                        sumres;
+                                if (criticidad > 0) {
+                                  return RespuestaCard(
+                                      bloc: _formBloc.blocsRespuestas[i]);
+                                } else {
+                                  return Container();
+                                }
+                              } else {
+                                return Container();
+                              }
+                            },
+                          ),
+                        SizedBox(height: 60),
+                      ],
+                    ),
+                  ),
+                );
               } else {
                 return SingleChildScrollView(
                   physics: ClampingScrollPhysics(),
@@ -53,23 +98,6 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
                       children: <Widget>[
-                        //Estados del form
-                        /*
-                BlocBuilder<LlenarCuestionarioFormBloc,
-                    FormBlocState<String, String>>(
-                  /*listenWhen: (previousState, state) =>
-                        state is FormBlocLoading,*/
-                  builder: (context, state) {
-                    if (state is FormBlocLoading) {
-                      return Text('Loading...');
-                    } else if (state is FormBlocLoaded) {
-                      return Text('Loaded: \n' + state.toString());
-                    } else {
-                      return Text('other state\n' + state.toString());
-                    }
-                  },
-                ),*/
-
                         if (_formBloc.bloques != null &&
                             _formBloc.bloques.isNotEmpty)
                           ListView.builder(
@@ -85,7 +113,6 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
                               }
                             },
                           ),
-
                         SizedBox(height: 60),
                       ],
                     ),

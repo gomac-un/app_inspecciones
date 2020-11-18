@@ -131,6 +131,9 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
   }
 
   void finalizarInspeccion() {
+    add(UpdateFormBlocState<String, String>(
+        FormBlocRevisando.fromState(state)));
+
     print("TODO: implementar");
   }
 
@@ -138,4 +141,33 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
   Future<void> close() {
     return super.close();
   }
+}
+
+class FormBlocRevisando<SuccessResponse, FailureResponse>
+    extends FormBlocLoaded<SuccessResponse, FailureResponse> {
+  FormBlocRevisando(
+    Map<int, bool> isValidByStep, {
+    bool isEditing = false,
+    Map<int, Map<String, FieldBloc>> fieldBlocs,
+    int currentStep,
+  }) : super(
+          isValidByStep,
+          isEditing: isEditing,
+          fieldBlocs: fieldBlocs,
+          currentStep: currentStep ?? 0,
+        );
+
+  @override
+  List<Object> get props => [
+        isValid(0),
+        isEditing,
+        toJson(),
+        currentStep,
+      ];
+  factory FormBlocRevisando.fromState(FormBlocState state) => FormBlocRevisando(
+        {0: state.isValid(0)},
+        isEditing: state.isEditing,
+        fieldBlocs: {0: state.fieldBlocs(0)},
+        currentStep: state.currentStep ?? 0,
+      );
 }
