@@ -101,26 +101,29 @@ class HomeScreen extends StatelessWidget {
               );
               ExtendedNavigator.of(context).pop();
             },
-            child: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  TextFieldBlocBuilder(
-                    textFieldBloc: formBloc.vehiculo,
-                    decoration: InputDecoration(
-                      labelText: 'Escriba el ID del vehiculo',
-                      prefixIcon: Icon(Icons.directions_car),
+            child: Container(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    TextFieldBlocBuilder(
+                      textFieldBloc: formBloc.vehiculo,
+                      decoration: InputDecoration(
+                        labelText: 'Escriba el ID del vehiculo',
+                        prefixIcon: Icon(Icons.directions_car),
+                      ),
                     ),
-                  ),
-                  RadioButtonGroupFieldBlocBuilder<CuestionarioDeModelo>(
-                    selectFieldBloc: formBloc.tiposDeInspeccion,
-                    decoration: InputDecoration(
-                      labelText: 'Tipo de inspección',
-                      prefixIcon: SizedBox(),
-                      border: InputBorder.none,
+                    RadioButtonGroupFieldBlocBuilder<CuestionarioDeModelo>(
+                      selectFieldBloc: formBloc.tiposDeInspeccion,
+                      decoration: InputDecoration(
+                        labelText: 'Tipo de inspección',
+                        prefixIcon: SizedBox(),
+                        border: InputBorder.none,
+                      ),
+                      itemBuilder: (context, item) => item.tipoDeInspeccion,
                     ),
-                    itemBuilder: (context, item) => item.tipoDeInspeccion,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
