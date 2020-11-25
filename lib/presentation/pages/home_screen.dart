@@ -12,7 +12,7 @@ import 'package:inspecciones/presentation/pages/borradores_screen.dart';
 import 'package:inspecciones/presentation/pages/llenar_cuestionario_form_page.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:moor_db_viewer/moor_db_viewer.dart';
-import '../../infrastructure/moor_database_llenado.dart';
+import '../../infrastructure/moor_database.dart';
 import 'crear_cuestionario_form_page.dart';
 import 'login_screen.dart';
 

@@ -5,7 +5,7 @@ import 'package:inspecciones/application/crear_cuestionario_form/bloque_field_bl
 import 'package:inspecciones/application/crear_cuestionario_form/crear_cuestionario_app.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/crear_cuestionario_form_bloc.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/pregunta_field_bloc.dart';
-import 'package:inspecciones/infrastructure/moor_database_llenado.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 
 import 'package:inspecciones/presentation/widgets/pregunta_quemada.dart';
 

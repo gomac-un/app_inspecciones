@@ -1,7 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/respuesta_field_bloc.dart';
-import 'package:inspecciones/infrastructure/moor_database_llenado.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'images_picker.dart';
 
 class RespuestaCard extends StatelessWidget {
@@ -31,6 +33,7 @@ class RespuestaCard extends StatelessWidget {
             descripcion,
             style: textTheme.bodyText2,
           ),
+          Image.file(File(bloc.bloque.pregunta.fotosGuia.first)),
           if (bloc.respuestas is SelectFieldBloc)
             DropdownFieldBlocBuilder(
               selectFieldBloc: bloc.respuestas,

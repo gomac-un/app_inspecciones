@@ -1,10 +1,18 @@
-part of 'moor_database_llenado.dart';
+part of 'moor_database.dart';
+
+/* otra posible forma del closure
+Function initialize(db) {
+  return (batch) => (Batch batch, db) {
+        batch.insertAll(db.activos, [
+          ...*/
 
 Function initialize(db) {
-  return (batch) => _initialize0(batch, db);
+  return (batch) {
+    return _initialize0(batch, db);
+  };
 }
 
-void _initialize0(batch, db) {
+void _initialize0(Batch batch, db) {
   batch.insertAll(db.activos, [
     ActivosCompanion.insert(modelo: 'moto1t', identificador: '1'),
     ActivosCompanion.insert(modelo: 'automovil1', identificador: '2'),

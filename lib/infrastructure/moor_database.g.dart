@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'moor_database_llenado.dart';
+part of 'moor_database.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

@@ -10,7 +10,7 @@ import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 
 import 'presentation/pages/borradores_screen.dart';
-import 'infrastructure/moor_database_llenado.dart';
+import 'infrastructure/moor_database.dart';
 import 'infrastructure/local_datasource.dart';
 import 'infrastructure/remote_datasource.dart';
 import 'infrastructure/core/network_info.dart';
