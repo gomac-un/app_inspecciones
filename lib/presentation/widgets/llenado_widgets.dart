@@ -38,6 +38,12 @@ class RespuestaCard extends StatelessWidget {
             ...bloc.bloque.pregunta.fotosGuia
                 .map((e) => Image.file(File(e)))
                 .toList(),
+          FormBuilderImagePicker(
+            imagenesFieldBlocs: bloc.fotosReparacion,
+            decoration: const InputDecoration(
+              labelText: 'Fotos Reparacion',
+            ),
+          ),
           if (bloc.respuestas is SelectFieldBloc)
             DropdownFieldBlocBuilder(
               selectFieldBloc: bloc.respuestas,
@@ -67,12 +73,12 @@ class RespuestaCard extends StatelessWidget {
             maxLines: null,
           ),
           CheckboxFieldBlocBuilder(
-            booleanFieldBloc: bloc.novedad,
-            body: Text('Novedad'),
+            booleanFieldBloc: bloc.reparado,
+            body: Text('Reparado'),
           ),
           //TODO: mostrar esto solo despues de terminar la inspeccion
           BlocBuilder(
-            cubit: bloc.novedad,
+            cubit: bloc.reparado,
             builder: (ctx, state) {
               if (state.value) {
                 return TextFieldBlocBuilder(

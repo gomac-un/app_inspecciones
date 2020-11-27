@@ -14,7 +14,6 @@ class RespuestaFieldBloc extends ListFieldBloc {
   final SingleFieldBloc respuestas;
   final TextFieldBloc observacion;
   final ListFieldBloc<InputFieldBloc<File, Object>> fotosBase;
-  final BooleanFieldBloc novedad;
 
   final BooleanFieldBloc reparado;
   final ListFieldBloc<InputFieldBloc<File, Object>> fotosReparacion;
@@ -26,7 +25,6 @@ class RespuestaFieldBloc extends ListFieldBloc {
     @required this.respuestas,
     @required this.observacion,
     @required this.fotosBase,
-    @required this.novedad,
     @required this.reparado,
     @required this.fotosReparacion,
     @required this.observacionReparacion,
@@ -35,7 +33,6 @@ class RespuestaFieldBloc extends ListFieldBloc {
     addFieldBloc(respuestas);
     addFieldBloc(observacion);
     addFieldBloc(fotosBase);
-    addFieldBloc(novedad);
 
     /*reparado.onValueChanges(
       onData: (previous, current) async* {
@@ -65,7 +62,7 @@ class RespuestaFieldBloc extends ListFieldBloc {
                     e.texto ==
                     bloque.respuesta.respuestas.value?.firstOrNull?.texto,
                 orElse: () => null),
-            //validators: [FieldBlocValidators.required],
+            validators: [FieldBlocValidators.required],
           );
         }
         break;
@@ -83,7 +80,7 @@ class RespuestaFieldBloc extends ListFieldBloc {
                         res.texto)) ?? // si no hay respuesta, devuelve false
                     false)
                 .toList(),
-            //validators: [FieldBlocValidators.required],
+            validators: [FieldBlocValidators.required],
           );
         }
         break;
@@ -113,14 +110,6 @@ class RespuestaFieldBloc extends ListFieldBloc {
           onData: (previous, current) async* {
             bloque.respuesta =
                 bloque.respuesta.copyWith(reparado: Value(current.value));
-          },
-        ),
-      novedad: BooleanFieldBloc(
-          name: 'novedad', initialValue: bloque.respuesta.novedad.value)
-        ..onValueChanges(
-          onData: (previous, current) async* {
-            bloque.respuesta =
-                bloque.respuesta.copyWith(novedad: Value(current.value));
           },
         ),
       observacion: TextFieldBloc(
@@ -171,6 +160,23 @@ class RespuestaFieldBloc extends ListFieldBloc {
     addFieldBloc(reparado);
     addFieldBloc(fotosReparacion);
     addFieldBloc(observacionReparacion);
+  }
+
+  get criticidad {
+    int sumres = 0;
+    if (respuestas.value is Iterable) {
+      /*TODO: calcular la criticidad de las multiples con las reglas de
+      * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
+      * solo para la pantalla de arreglos
+      */
+      respuestas.value.forEach((e) {
+        sumres += e.criticidad;
+      });
+    } else {
+      sumres = respuestas.value.criticidad;
+    }
+
+    return bloque.pregunta.criticidad * sumres;
   }
 }
 

@@ -6,15 +6,13 @@ import 'package:moor/moor.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
-import 'bloque_field_bloc.dart';
-import 'crear_cuestionario_app.dart';
-
 class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
   final Database _db;
 
-  //helpful list for render
+  //lista que almacena los blocs de respuestas
+  // TODO: mirar como meanejar esto mejor en el objeto de estado del bloc
   final Map<int, RespuestaFieldBloc> blocsRespuestas = {};
-
+  //lista que almacena todos los bloques que se muestran en la inspeccion, incluyendo titulos y preguntas
   List<BloqueConPreguntaRespondida> bloques = [];
 
   final String _vehiculo;
@@ -45,15 +43,14 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
   }
   @override
   void onLoading() async {
-    final cargabloques = await _db.cargarInspeccion(
+    bloques = await _db.cargarInspeccion(
       _cuestionarioId,
       _vehiculo,
     );
 
-    bloques = cargabloques;
-
-    cargabloques?.asMap()?.forEach((i, bloque) {
+    bloques?.asMap()?.forEach((i, bloque) {
       if (bloque.pregunta != null) {
+        //si contiene pregunta entonces no es un titulo
         blocsRespuestas[i] = RespuestaFieldBloc(bloque);
         respuestas.addFieldBloc(blocsRespuestas[i]);
       }
@@ -64,11 +61,12 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
 
   @override
   void onSubmitting() async {
+    print(state.toString());
+
     try {
-      state;
-      await guardarBorrador();
+      await guardarEnLocal(esBorrador: false);
       emitSuccess(
-        canSubmitAgain: true,
+        canSubmitAgain: false,
         /*successResponse: JsonEncoder.withIndent('    ').convert(
             state.toJson(),
           )*/
@@ -78,7 +76,7 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
     }
   }
 
-  Future guardarBorrador() async {
+  Future guardarEnLocal({bool esBorrador}) async {
     final appDir = await getApplicationDocumentsDirectory();
     final subDir = "inspecciones";
     final idform =
@@ -105,7 +103,8 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
     await _db.guardarInspeccion(
         blocsRespuestas.entries.map((e) => e.value.bloque.respuesta).toList(),
         _cuestionarioId,
-        _vehiculo);
+        _vehiculo,
+        esBorrador);
   }
 
   Iterable<Future<String>> procesarFotos(
@@ -130,11 +129,20 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
     });
   }
 
-  void finalizarInspeccion() {
-    add(UpdateFormBlocState<String, String>(
-        FormBlocRevisando.fromState(state)));
-
-    print("TODO: implementar");
+  void enviar() {
+    if (state is FormBlocLoaded) {
+      if (state.isValid()) {
+        // TODO: scroll al lugar del error
+        blocsRespuestas.forEach((key, value) {
+          value.inicioRevision();
+        });
+        add(UpdateFormBlocState<String, String>(
+            FormBlocRevisando.fromState(state)));
+        guardarEnLocal(esBorrador: true);
+      }
+    } else if (state is FormBlocRevisando) {
+      submit();
+    }
   }
 
   @override

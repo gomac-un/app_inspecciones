@@ -1,5 +1,3 @@
-import 'package:path_provider/path_provider.dart' as paths; //temp borrar
-
 export 'package:moor_flutter/moor_flutter.dart' show Value;
 
 import 'dart:convert';
@@ -285,17 +283,22 @@ class Database extends _$Database {
         .get();
   }
 
-  Future<Inspeccion> crearInspeccion(int cuestionarioId, String activo) async {
+  Future<Inspeccion> crearInspeccion(
+      int cuestionarioId, String activo, bool esBorrador) async {
     final ins = InspeccionesCompanion.insert(
       cuestionarioId: cuestionarioId,
-      estado: EstadoDeInspeccion.enBorrador,
+      estado: esBorrador
+          ? EstadoDeInspeccion.enBorrador
+          : EstadoDeInspeccion.enviada,
       identificadorActivo: activo,
     );
     final id = await into(inspecciones).insert(ins);
     return Inspeccion(
       id: id,
       cuestionarioId: cuestionarioId,
-      estado: EstadoDeInspeccion.enBorrador,
+      estado: esBorrador
+          ? EstadoDeInspeccion.enBorrador
+          : EstadoDeInspeccion.enviada,
       identificadorActivo: activo,
     );
   }
@@ -303,10 +306,10 @@ class Database extends _$Database {
   //esta funcion para actualizar primero borra todo lo anterior y lo reemplaza con datos actualizados, no es lo mas eficiente
   //TODO: Actualizar en lugar de borrar y recrear
   Future guardarInspeccion(List<RespuestasCompanion> respuestasForm,
-      int cuestionarioId, String activo) async {
+      int cuestionarioId, String activo, bool esBorrador) async {
     if (respuestasForm.first.inspeccionId.value == null) {
-      //si la primera respuesta no tiene inspeccion asociada, asocia todas a la inspeccion actual
-      Inspeccion i = await crearInspeccion(cuestionarioId, activo);
+      //si la primera respuesta no tiene inspeccion asociada, asocia todas a una nueva inspeccion
+      Inspeccion i = await crearInspeccion(cuestionarioId, activo, esBorrador);
       respuestasForm = respuestasForm
           .map((r) => r.copyWith(inspeccionId: Value(i.id)))
           .toList();

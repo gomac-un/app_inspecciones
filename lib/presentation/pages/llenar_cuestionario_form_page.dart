@@ -16,7 +16,8 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).backgroundColor, //Colors.lightBlue,
+      backgroundColor:
+          Theme.of(context).scaffoldBackgroundColor, //Colors.lightBlue,
       appBar: AppBar(title: Text('Llenado de inspección')),
       body: FormBlocListener<LlenarCuestionarioFormBloc, String, String>(
         formBloc: _formBloc,
@@ -47,51 +48,6 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
             builder: (context, state) {
               if (state is FormBlocLoading) {
                 return Center(child: CircularProgressIndicator());
-              } else if (state is FormBlocRevisando) {
-                return SingleChildScrollView(
-                  physics: ClampingScrollPhysics(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: <Widget>[
-                        Center(
-                          child: Text("Revision"),
-                        ),
-                        if (_formBloc.bloques != null &&
-                            _formBloc.bloques.isNotEmpty)
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _formBloc.bloques.length,
-                            itemBuilder: (context, i) {
-                              int sumres = 0;
-                              if ((_formBloc.bloques[i]).pregunta != null) {
-                                (_formBloc.bloques[i])
-                                    .respuesta
-                                    .respuestas
-                                    .value
-                                    .forEach((e) {
-                                  sumres += e.criticidad;
-                                });
-                                final criticidad =
-                                    (_formBloc.bloques[i]).pregunta.criticidad *
-                                        sumres;
-                                if (criticidad > 0) {
-                                  return RespuestaCard(
-                                      bloc: _formBloc.blocsRespuestas[i]);
-                                } else {
-                                  return Container();
-                                }
-                              } else {
-                                return Container();
-                              }
-                            },
-                          ),
-                        SizedBox(height: 60),
-                      ],
-                    ),
-                  ),
-                );
               } else {
                 return Scrollbar(
                   child: SingleChildScrollView(
@@ -101,19 +57,35 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
                       child: Column(
                         children: <Widget>[
                           if (_formBloc.bloques != null &&
-                              _formBloc.bloques.isNotEmpty)
+                              _formBloc.bloques.isNotEmpty &&
+                              !(state is FormBlocRevisando))
                             ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: _formBloc.bloques.length,
                               itemBuilder: (context, i) {
-                                if ((_formBloc.bloques[i]).pregunta == null) {
+                                if ((_formBloc.bloques[i]).pregunta != null) {
+                                  return RespuestaCard(
+                                      bloc: _formBloc.blocsRespuestas[i]);
+                                } else {
                                   return TituloCard(
                                       bloque: _formBloc.bloques[i]);
-                                } else {
+                                }
+                              },
+                            ),
+                          if (state is FormBlocRevisando)
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _formBloc.bloques.length,
+                              itemBuilder: (context, i) {
+                                if (_formBloc.bloques[i].pregunta != null &&
+                                    _formBloc.blocsRespuestas[i].criticidad >
+                                        0) {
                                   return RespuestaCard(
                                       bloc: _formBloc.blocsRespuestas[i]);
                                 }
+                                return Container();
                               },
                             ),
                           SizedBox(height: 60),
@@ -136,7 +108,7 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
               label: 'Guardar borrador',
               onPressed: () async {
                 LoadingDialog.show(context);
-                await _formBloc.guardarBorrador();
+                await _formBloc.guardarEnLocal(esBorrador: true);
                 LoadingDialog.hide(context);
                 Navigator.of(context).pop();
 
@@ -150,7 +122,7 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
             ActionButton(
               iconData: Icons.send,
               label: 'Enviar',
-              onPressed: _formBloc.finalizarInspeccion,
+              onPressed: _formBloc.enviar,
             ),
           ],
         ),

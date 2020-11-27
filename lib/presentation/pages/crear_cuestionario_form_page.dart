@@ -22,7 +22,7 @@ class CrearCuestionarioFormPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final formBloc = BlocProvider.of<CrearCuestionarioFormBloc>(context);
     return Scaffold(
-      backgroundColor: Colors.lightBlue,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(title: Text('Creación de inspección')),
       body: FormBlocListener<CrearCuestionarioFormBloc, String, String>(
         onSubmitting: (context, state) {
