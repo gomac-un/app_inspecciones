@@ -5,7 +5,7 @@ import 'package:inspecciones/application/crear_cuestionario_form/bloque_field_bl
 import 'package:inspecciones/application/crear_cuestionario_form/crear_cuestionario_app.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/crear_cuestionario_form_bloc.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/pregunta_field_bloc.dart';
-import 'package:inspecciones/infrastructure/moor_database_llenado.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 
 import 'package:inspecciones/presentation/widgets/pregunta_quemada.dart';
 
@@ -22,7 +22,7 @@ class CrearCuestionarioFormPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final formBloc = BlocProvider.of<CrearCuestionarioFormBloc>(context);
     return Scaffold(
-      backgroundColor: Colors.lightBlue,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(title: Text('Creación de inspección')),
       body: FormBlocListener<CrearCuestionarioFormBloc, String, String>(
         onSubmitting: (context, state) {

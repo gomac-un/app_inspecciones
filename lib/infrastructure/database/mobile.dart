@@ -7,7 +7,7 @@ import 'package:moor/moor.dart';
 import 'package:path_provider/path_provider.dart' as paths;
 import 'package:path/path.dart' as p;
 
-import '../moor_database_llenado.dart';
+import '../moor_database.dart';
 
 @module
 abstract class RegisterModule {

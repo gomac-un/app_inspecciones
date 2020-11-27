@@ -10,8 +10,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 import 'application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
-import 'infrastructure/moor_database_llenado.dart';
+import 'infrastructure/moor_database.dart';
 import 'presentation/pages/borradores_screen.dart';
+import 'presentation/pages/crear_cuestionario_form_page.dart';
 import 'presentation/pages/home_screen.dart';
 import 'presentation/pages/llenar_cuestionario_form_page.dart';
 
@@ -20,10 +21,13 @@ class Routes {
   static const String borradoresPage = '/borradores-page';
   static const String llenarCuestionarioFormPage =
       '/llenar-cuestionario-form-page';
+  static const String crearCuestionarioFormPage =
+      '/crear-cuestionario-form-page';
   static const all = <String>{
     homeScreen,
     borradoresPage,
     llenarCuestionarioFormPage,
+    crearCuestionarioFormPage,
   };
 }
 
@@ -35,6 +39,7 @@ class AutoRouter extends RouterBase {
     RouteDef(Routes.borradoresPage, page: BorradoresPage),
     RouteDef(Routes.llenarCuestionarioFormPage,
         page: LlenarCuestionarioFormPage),
+    RouteDef(Routes.crearCuestionarioFormPage, page: CrearCuestionarioFormPage),
   ];
   @override
   Map<Type, AutoRouteFactory> get pagesMap => _pagesMap;
@@ -60,6 +65,12 @@ class AutoRouter extends RouterBase {
           args.formBloc,
           key: args.key,
         ),
+        settings: data,
+      );
+    },
+    CrearCuestionarioFormPage: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => const CrearCuestionarioFormPage(),
         settings: data,
       );
     },

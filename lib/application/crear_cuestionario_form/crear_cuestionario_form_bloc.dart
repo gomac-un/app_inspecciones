@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 
 import 'package:inspecciones/application/crear_cuestionario_form/pregunta_field_bloc.dart';
-import 'package:inspecciones/infrastructure/moor_database_llenado.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 
 import 'bloque_field_bloc.dart';
 
@@ -20,7 +20,7 @@ class CrearCuestionarioFormBloc extends FormBloc<String, String> {
 
   final tiposDeInspeccion = SelectFieldBloc<String, dynamic>(
     name: 'tipoDeInspeccion',
-    //validators: [FieldBlocValidators.required],
+    validators: [FieldBlocValidators.required],
   );
 
   final clasesDeModelos = MultiSelectFieldBloc<String, dynamic>(
@@ -30,15 +30,15 @@ class CrearCuestionarioFormBloc extends FormBloc<String, String> {
   final SelectFieldBloc<Contratista, dynamic> contratista =
       SelectFieldBloc<Contratista, dynamic>(
     name: 'contratista',
-    //validators: [FieldBlocValidators.required],
+    validators: [FieldBlocValidators.required],
   );
 
   final periodicidad = TextFieldBloc(
     name: 'periodicidad',
-    /*validators: [
+    validators: [
       (String n) =>
           double.parse(n, (e) => null) != null ? null : "debe ser numerico"
-    ],*/
+    ],
   );
 
   final bloques = ListFieldBloc<BloqueFieldBloc>(name: 'bloques');

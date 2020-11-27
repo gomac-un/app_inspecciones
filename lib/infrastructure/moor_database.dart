@@ -1,4 +1,4 @@
-import 'dart:convert';
+export 'package:moor_flutter/moor_flutter.dart' show Value;
 
 import 'dart:convert';
 import 'dart:io';
@@ -6,183 +6,15 @@ import 'dart:io';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:json_annotation/json_annotation.dart' as j;
 import 'package:moor/moor.dart';
-
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
+import 'package:inspecciones/domain/core/enums.dart';
 export 'database/shared.dart';
 
-import 'package:inspecciones/domain/core/enums.dart';
-part 'moor_database_llenado.g.dart';
+part 'moor_database.g.dart';
 part 'bdDePrueba.dart';
-
-class Activos extends Table {
-  TextColumn get modelo => text()();
-
-  TextColumn get identificador => text()();
-
-  @override
-  Set<Column> get primaryKey => {identificador};
-}
-
-class CuestionarioDeModelos extends Table {
-  TextColumn get modelo =>
-      text().customConstraint('REFERENCES activo(modelo)')();
-
-  TextColumn get tipoDeInspeccion => text()();
-
-  IntColumn get periodicidad => integer()();
-
-  IntColumn get cuestionarioId => integer()
-      .customConstraint('REFERENCES cuestionario(id) ON DELETE CASCADE')();
-
-  IntColumn get contratistaId =>
-      integer().customConstraint('REFERENCES contratista(id)')();
-
-  @override
-  Set<Column> get primaryKey => {modelo, tipoDeInspeccion};
-}
-
-class Cuestionarios extends Table {
-  IntColumn get id => integer()();
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class Bloques extends Table {
-  IntColumn get id => integer()();
-
-  IntColumn get cuestionarioId => integer()
-      .customConstraint('REFERENCES cuestionario(id) ON DELETE CASCADE')();
-
-  IntColumn get nOrden => integer()();
-
-  TextColumn get titulo => text().withLength(min: 1, max: 50)();
-
-  TextColumn get descripcion => text().withLength(min: 0, max: 50)();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class Preguntas extends Table {
-  IntColumn get id => integer()();
-
-  IntColumn get bloqueId =>
-      integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();
-
-  IntColumn get sistemaId =>
-      integer().customConstraint('REFERENCES sistemas(id)')();
-
-  IntColumn get subSistemaId =>
-      integer().customConstraint('REFERENCES subsistemas(id)')();
-
-  TextColumn get posicion => text().withLength(min: 0, max: 50)();
-
-  TextColumn get fotosGuia => text()
-      .map(const ListInColumnConverter())
-      .withDefault(const Constant("[]"))();
-
-  IntColumn get tipo => intEnum<TipoDePregunta>()();
-
-  TextColumn get opcionesDeRespuesta => text()
-      .map(const OpcionDeRespuestaConverter())
-      .withDefault(const Constant("[]"))();
-
-  IntColumn get criticidad => integer()();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-@j.JsonSerializable()
-class OpcionDeRespuesta {
-  String texto;
-  int criticidad;
-
-  OpcionDeRespuesta(this.texto, this.criticidad);
-
-  factory OpcionDeRespuesta.fromJson(Map<String, dynamic> json) =>
-      _$OpcionDeRespuestaFromJson(json);
-
-  Map<String, dynamic> toJson() => _$OpcionDeRespuestaToJson(this);
-}
-
-@DataClassName('Inspeccion')
-class Inspecciones extends Table {
-  IntColumn get id => integer().autoIncrement()();
-
-  IntColumn get estado => intEnum<EstadoDeInspeccion>()();
-
-  IntColumn get cuestionarioId =>
-      integer().customConstraint('REFERENCES cuestionario(id)')();
-
-  TextColumn get identificadorActivo =>
-      text().customConstraint('REFERENCES activo(identificador)')();
-
-  DateTimeColumn get fechaHoraInicio => dateTime().nullable()();
-
-  DateTimeColumn get fechaHoraEnvio => dateTime().nullable()();
-}
-
-class Respuestas extends Table {
-  IntColumn get id => integer()();
-
-  IntColumn get inspeccionId => integer()
-      .customConstraint('REFERENCES inspeccion(id) ON DELETE CASCADE')();
-
-  IntColumn get preguntaId =>
-      integer().customConstraint('REFERENCES pregunta(id)')();
-
-  TextColumn get respuestas => text()
-      .map(const OpcionDeRespuestaConverter())
-      .withDefault(const Constant("[]"))();
-
-  TextColumn get fotosBase => text()
-      .map(const ListInColumnConverter())
-      .withDefault(const Constant("[]"))();
-
-  TextColumn get fotosReparacion => text()
-      .map(const ListInColumnConverter())
-      .withDefault(const Constant("[]"))();
-
-  TextColumn get observacion => text().withDefault(const Constant(""))();
-
-  BoolColumn get novedad => boolean().withDefault(const Constant(false))();
-
-  BoolColumn get reparado => boolean().withDefault(const Constant(false))();
-
-  TextColumn get observacionReparacion =>
-      text().withDefault(const Constant(""))();
-
-  DateTimeColumn get fechaHoraRespuesta => dateTime().nullable()();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class Contratistas extends Table {
-  IntColumn get id => integer()();
-  TextColumn get nombre => text()();
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class Sistemas extends Table {
-  IntColumn get id => integer()();
-  TextColumn get nombre => text()();
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class SubSistemas extends Table {
-  IntColumn get id => integer()();
-  TextColumn get nombre => text()();
-  IntColumn get sistemaId =>
-      integer().customConstraint('REFERENCES sistema(id) ON DELETE CASCADE')();
-  @override
-  Set<Column> get primaryKey => {id};
-}
+part 'tablas.dart';
 
 class BloqueConPregunta {
   final Bloque bloque;
@@ -252,15 +84,21 @@ class Database extends _$Database {
             fechaDeInicio: Value(DateTime.now()),
           ));*/
         }
+        await customStatement('PRAGMA foreign_keys = ON');
       },
     );
   }
 
   //Llenado de bd con datos de prueba
   Future dbdePrueba() async {
-    final m = this.createMigrator(); // changed to this
+    /*final dataDir = await paths.getApplicationDocumentsDirectory();
+    final dbFile = File(path.join(dataDir.path, 'db.sqlite'));
+    dbFile.deleteSync();*/
+    final m = this.createMigrator();
+    // changed to this
     for (final table in allTables) {
       await m.deleteTable(table.actualTableName);
+
       await m.createTable(table);
     }
 
@@ -445,27 +283,33 @@ class Database extends _$Database {
         .get();
   }
 
-  Future<Inspeccion> crearInspeccion(int cuestionarioId, String activo) async {
+  Future<Inspeccion> crearInspeccion(
+      int cuestionarioId, String activo, bool esBorrador) async {
     final ins = InspeccionesCompanion.insert(
       cuestionarioId: cuestionarioId,
-      estado: EstadoDeInspeccion.enBorrador,
+      estado: esBorrador
+          ? EstadoDeInspeccion.enBorrador
+          : EstadoDeInspeccion.enviada,
       identificadorActivo: activo,
     );
     final id = await into(inspecciones).insert(ins);
     return Inspeccion(
       id: id,
       cuestionarioId: cuestionarioId,
-      estado: EstadoDeInspeccion.enBorrador,
+      estado: esBorrador
+          ? EstadoDeInspeccion.enBorrador
+          : EstadoDeInspeccion.enviada,
       identificadorActivo: activo,
     );
   }
 
   //esta funcion para actualizar primero borra todo lo anterior y lo reemplaza con datos actualizados, no es lo mas eficiente
+  //TODO: Actualizar en lugar de borrar y recrear
   Future guardarInspeccion(List<RespuestasCompanion> respuestasForm,
-      int cuestionarioId, String activo) async {
+      int cuestionarioId, String activo, bool esBorrador) async {
     if (respuestasForm.first.inspeccionId.value == null) {
-      //si la primera respuesta no tiene inspeccion asociada, asocia todas a la inspeccion actual
-      Inspeccion i = await crearInspeccion(cuestionarioId, activo);
+      //si la primera respuesta no tiene inspeccion asociada, asocia todas a una nueva inspeccion
+      Inspeccion i = await crearInspeccion(cuestionarioId, activo, esBorrador);
       respuestasForm = respuestasForm
           .map((r) => r.copyWith(inspeccionId: Value(i.id)))
           .toList();
@@ -506,6 +350,12 @@ class Database extends _$Database {
           ),
         )
         .watch();
+  }
+
+  Future eliminarBorrador(Borrador borrador) async {
+    await (delete(inspecciones)
+          ..where((r) => r.id.equals(borrador.inspeccion.id)))
+        .go();
   }
 }
 

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:inspecciones/domain/core/enums.dart';
-import 'package:inspecciones/infrastructure/moor_database_llenado.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:moor/moor.dart';
@@ -13,29 +13,26 @@ class RespuestaFieldBloc extends ListFieldBloc {
 
   final SingleFieldBloc respuestas;
   final TextFieldBloc observacion;
-  final BooleanFieldBloc novedad;
-  final BooleanFieldBloc reparado;
-  final TextFieldBloc observacionReparacion;
   final ListFieldBloc<InputFieldBloc<File, Object>> fotosBase;
-  final ListFieldBloc<InputFieldBloc<File, Object>> fotosReparacion;
 
+  final BooleanFieldBloc reparado;
+  final ListFieldBloc<InputFieldBloc<File, Object>> fotosReparacion;
+  final TextFieldBloc observacionReparacion;
+
+  // Constructor privado ya que el factory es el que crea las instancias de los bloques que componen la respuesta
   RespuestaFieldBloc._({
     @required this.bloque,
     @required this.respuestas,
-    @required this.novedad,
-    @required this.reparado,
     @required this.observacion,
-    @required this.observacionReparacion,
     @required this.fotosBase,
+    @required this.reparado,
     @required this.fotosReparacion,
+    @required this.observacionReparacion,
     String name,
   }) : super(name: name) {
     addFieldBloc(respuestas);
     addFieldBloc(observacion);
-    addFieldBloc(reparado);
-    addFieldBloc(observacionReparacion);
     addFieldBloc(fotosBase);
-    addFieldBloc(fotosReparacion);
 
     /*reparado.onValueChanges(
       onData: (previous, current) async* {
@@ -62,8 +59,10 @@ class RespuestaFieldBloc extends ListFieldBloc {
             //para poner el valor inicial de la lista, se busca el objeto que tenga el mismo texto en la respuesta, si no hay respuesta devuelve null
             initialValue: bloque.pregunta.opcionesDeRespuesta.firstWhere(
                 (e) =>
-                    e.texto == bloque.respuesta.respuestas.value?.first?.texto,
+                    e.texto ==
+                    bloque.respuesta.respuestas.value?.firstOrNull?.texto,
                 orElse: () => null),
+            validators: [FieldBlocValidators.required],
           );
         }
         break;
@@ -81,6 +80,7 @@ class RespuestaFieldBloc extends ListFieldBloc {
                         res.texto)) ?? // si no hay respuesta, devuelve false
                     false)
                 .toList(),
+            validators: [FieldBlocValidators.required],
           );
         }
         break;
@@ -89,11 +89,12 @@ class RespuestaFieldBloc extends ListFieldBloc {
         {}
         break;
     }
-    //cuando al bloc se le notifica un cambio de valor, este actualiza el valor de la respuesta en el objeto original, por lo tanto el objeto original (bloque) solo puede setear el valor al principio
+    //cuando al bloc se le notifica un cambio de valor, este actualiza el valor
+    // de la respuesta en el objeto original, por lo tanto el objeto original
+    // (bloque) solo puede setear el valor al principio
     return RespuestaFieldBloc._(
       bloque: bloque,
       respuestas: resbloc
-        ..updateExtraData(bloque) //quitar?
         ..onValueChanges(
           onData: (previous, current) async* {
             bloque.respuesta = bloque.respuesta.copyWith(
@@ -109,14 +110,6 @@ class RespuestaFieldBloc extends ListFieldBloc {
           onData: (previous, current) async* {
             bloque.respuesta =
                 bloque.respuesta.copyWith(reparado: Value(current.value));
-          },
-        ),
-      novedad: BooleanFieldBloc(
-          name: 'novedad', initialValue: bloque.respuesta.novedad.value)
-        ..onValueChanges(
-          onData: (previous, current) async* {
-            bloque.respuesta =
-                bloque.respuesta.copyWith(novedad: Value(current.value));
           },
         ),
       observacion: TextFieldBloc(
@@ -162,4 +155,31 @@ class RespuestaFieldBloc extends ListFieldBloc {
       ),
     );
   }
+
+  void inicioRevision() {
+    addFieldBloc(reparado);
+    addFieldBloc(fotosReparacion);
+    addFieldBloc(observacionReparacion);
+  }
+
+  get criticidad {
+    int sumres = 0;
+    if (respuestas.value is Iterable) {
+      /*TODO: calcular la criticidad de las multiples con las reglas de
+      * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
+      * solo para la pantalla de arreglos
+      */
+      respuestas.value.forEach((e) {
+        sumres += e.criticidad;
+      });
+    } else {
+      sumres = respuestas.value.criticidad;
+    }
+
+    return bloque.pregunta.criticidad * sumres;
+  }
+}
+
+extension MyList<T> on List<T> {
+  T get firstOrNull => this.isEmpty ? null : this.first;
 }

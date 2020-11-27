@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/respuesta_field_bloc.dart';
-import 'package:inspecciones/infrastructure/moor_database_llenado.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/presentation/widgets/image_shower.dart';
 import 'images_picker.dart';
 
 class RespuestaCard extends StatelessWidget {
@@ -31,6 +34,11 @@ class RespuestaCard extends StatelessWidget {
             descripcion,
             style: textTheme.bodyText2,
           ),
+          if (bloc.bloque.pregunta.fotosGuia.length > 0)
+            ImageShower(
+              imagenes:
+                  bloc.bloque.pregunta.fotosGuia.map((e) => File(e)).toList(),
+            ),
           if (bloc.respuestas is SelectFieldBloc)
             DropdownFieldBlocBuilder(
               selectFieldBloc: bloc.respuestas,
@@ -60,12 +68,12 @@ class RespuestaCard extends StatelessWidget {
             maxLines: null,
           ),
           CheckboxFieldBlocBuilder(
-            booleanFieldBloc: bloc.novedad,
-            body: Text('Novedad'),
+            booleanFieldBloc: bloc.reparado,
+            body: Text('Reparado'),
           ),
           //TODO: mostrar esto solo despues de terminar la inspeccion
           BlocBuilder(
-            cubit: bloc.novedad,
+            cubit: bloc.reparado,
             builder: (ctx, state) {
               if (state.value) {
                 return TextFieldBlocBuilder(

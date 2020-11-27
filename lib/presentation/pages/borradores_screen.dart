@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
 
 import 'package:inspecciones/presentation/pages/llenar_cuestionario_form_page.dart';
-import '../../infrastructure/moor_database_llenado.dart';
+import '../../infrastructure/moor_database.dart';
 import '../../injection.dart';
 import 'login_screen.dart';
 
@@ -50,7 +48,10 @@ class BorradoresPage extends StatelessWidget {
                 subtitle: Text(
                     borradores[index].cuestionarioDeModelo.tipoDeInspeccion),
                 leading: Icon(Icons.edit),
-                trailing: Icon(Icons.delete),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () => eliminarBorrador(borradores[index], context),
+                ),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => LlenarCuestionarioFormPage(
@@ -66,6 +67,41 @@ class BorradoresPage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void eliminarBorrador(Borrador borrador, BuildContext context) {
+    // set up the buttons
+    Widget cancelButton = FlatButton(
+      child: Text("Cancelar"),
+      onPressed: () => Navigator.of(context).pop(), // OJO con el context
+    );
+    Widget continueButton = FlatButton(
+      child: Text("Eliminar"),
+      onPressed: () async {
+        Navigator.of(context).pop();
+        await _db.eliminarBorrador(borrador);
+        Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text("Borrador eliminado"),
+          duration: Duration(seconds: 3),
+        ));
+      },
+    );
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("Alerta"),
+      content: Text("¿Está seguro que desea eliminar este borrador?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
     );
   }
 }

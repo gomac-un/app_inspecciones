@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'moor_database_llenado.dart';
+part of 'moor_database.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -465,8 +465,11 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
   @override
   GeneratedTextColumn get modelo => _modelo ??= _constructModelo();
   GeneratedTextColumn _constructModelo() {
-    return GeneratedTextColumn('modelo', $tableName, false,
-        $customConstraints: 'REFERENCES activo(modelo)');
+    return GeneratedTextColumn(
+      'modelo',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _tipoDeInspeccionMeta =
@@ -505,7 +508,7 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
       _cuestionarioId ??= _constructCuestionarioId();
   GeneratedIntColumn _constructCuestionarioId() {
     return GeneratedIntColumn('cuestionario_id', $tableName, false,
-        $customConstraints: 'REFERENCES cuestionario(id) ON DELETE CASCADE');
+        $customConstraints: 'REFERENCES cuestionarios(id) ON DELETE CASCADE');
   }
 
   final VerificationMeta _contratistaIdMeta =
@@ -516,7 +519,7 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
       _contratistaId ??= _constructContratistaId();
   GeneratedIntColumn _constructContratistaId() {
     return GeneratedIntColumn('contratista_id', $tableName, false,
-        $customConstraints: 'REFERENCES contratista(id)');
+        $customConstraints: 'REFERENCES contratistas(id)');
   }
 
   @override
@@ -980,7 +983,7 @@ class $BloquesTable extends Bloques with TableInfo<$BloquesTable, Bloque> {
       _cuestionarioId ??= _constructCuestionarioId();
   GeneratedIntColumn _constructCuestionarioId() {
     return GeneratedIntColumn('cuestionario_id', $tableName, false,
-        $customConstraints: 'REFERENCES cuestionario(id) ON DELETE CASCADE');
+        $customConstraints: 'REFERENCES cuestionarios(id) ON DELETE CASCADE');
   }
 
   final VerificationMeta _nOrdenMeta = const VerificationMeta('nOrden');
@@ -1001,7 +1004,7 @@ class $BloquesTable extends Bloques with TableInfo<$BloquesTable, Bloque> {
   GeneratedTextColumn get titulo => _titulo ??= _constructTitulo();
   GeneratedTextColumn _constructTitulo() {
     return GeneratedTextColumn('titulo', $tableName, false,
-        minTextLength: 1, maxTextLength: 50);
+        minTextLength: 1, maxTextLength: 100);
   }
 
   final VerificationMeta _descripcionMeta =
@@ -1012,7 +1015,7 @@ class $BloquesTable extends Bloques with TableInfo<$BloquesTable, Bloque> {
       _descripcion ??= _constructDescripcion();
   GeneratedTextColumn _constructDescripcion() {
     return GeneratedTextColumn('descripcion', $tableName, false,
-        minTextLength: 0, maxTextLength: 50);
+        minTextLength: 0, maxTextLength: 200);
   }
 
   @override
@@ -1472,7 +1475,7 @@ class $PreguntasTable extends Preguntas
       _subSistemaId ??= _constructSubSistemaId();
   GeneratedIntColumn _constructSubSistemaId() {
     return GeneratedIntColumn('sub_sistema_id', $tableName, false,
-        $customConstraints: 'REFERENCES subsistemas(id)');
+        $customConstraints: 'REFERENCES sub_sistemas(id)');
   }
 
   final VerificationMeta _posicionMeta = const VerificationMeta('posicion');
@@ -1904,7 +1907,7 @@ class $InspeccionesTable extends Inspecciones
       _cuestionarioId ??= _constructCuestionarioId();
   GeneratedIntColumn _constructCuestionarioId() {
     return GeneratedIntColumn('cuestionario_id', $tableName, false,
-        $customConstraints: 'REFERENCES cuestionario(id)');
+        $customConstraints: 'REFERENCES cuestionarios(id)');
   }
 
   final VerificationMeta _identificadorActivoMeta =
@@ -1915,7 +1918,7 @@ class $InspeccionesTable extends Inspecciones
       _identificadorActivo ??= _constructIdentificadorActivo();
   GeneratedTextColumn _constructIdentificadorActivo() {
     return GeneratedTextColumn('identificador_activo', $tableName, false,
-        $customConstraints: 'REFERENCES activo(identificador)');
+        $customConstraints: 'REFERENCES activos(identificador)');
   }
 
   final VerificationMeta _fechaHoraInicioMeta =
@@ -2462,7 +2465,7 @@ class $RespuestasTable extends Respuestas
       _inspeccionId ??= _constructInspeccionId();
   GeneratedIntColumn _constructInspeccionId() {
     return GeneratedIntColumn('inspeccion_id', $tableName, false,
-        $customConstraints: 'REFERENCES inspeccion(id) ON DELETE CASCADE');
+        $customConstraints: 'REFERENCES inspecciones(id) ON DELETE CASCADE');
   }
 
   final VerificationMeta _preguntaIdMeta = const VerificationMeta('preguntaId');
@@ -2471,7 +2474,7 @@ class $RespuestasTable extends Respuestas
   GeneratedIntColumn get preguntaId => _preguntaId ??= _constructPreguntaId();
   GeneratedIntColumn _constructPreguntaId() {
     return GeneratedIntColumn('pregunta_id', $tableName, false,
-        $customConstraints: 'REFERENCES pregunta(id)');
+        $customConstraints: 'REFERENCES preguntas(id)');
   }
 
   final VerificationMeta _respuestasMeta = const VerificationMeta('respuestas');
@@ -3225,7 +3228,7 @@ class $SubSistemasTable extends SubSistemas
   GeneratedIntColumn get sistemaId => _sistemaId ??= _constructSistemaId();
   GeneratedIntColumn _constructSistemaId() {
     return GeneratedIntColumn('sistema_id', $tableName, false,
-        $customConstraints: 'REFERENCES sistema(id) ON DELETE CASCADE');
+        $customConstraints: 'REFERENCES sistemas(id) ON DELETE CASCADE');
   }
 
   @override

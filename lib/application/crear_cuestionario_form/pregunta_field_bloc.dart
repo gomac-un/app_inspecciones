@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:inspecciones/domain/core/enums.dart';
-import 'package:inspecciones/infrastructure/moor_database_llenado.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 
 import 'package:meta/meta.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';

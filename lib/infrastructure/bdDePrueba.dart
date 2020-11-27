@@ -1,19 +1,25 @@
-part of 'moor_database_llenado.dart';
+part of 'moor_database.dart';
+
+/* otra posible forma del closure
+Function initialize(db) {
+  return (batch) => (Batch batch, db) {
+        batch.insertAll(db.activos, [
+          ...*/
 
 Function initialize(db) {
-  return (batch) => _initialize0(batch, db);
+  return (batch) {
+    return _initialize0(batch, db);
+  };
 }
 
-void _initialize0(batch, db) {
+void _initialize0(Batch batch, db) {
   batch.insertAll(db.activos, [
-    ActivosCompanion.insert(modelo: 'moto1t', identificador: '1'),
-    ActivosCompanion.insert(modelo: 'automovil1', identificador: '2'),
-    ActivosCompanion.insert(modelo: 'moto1t', identificador: '3'),
+    ActivosCompanion.insert(modelo: 'DT-Kenworth', identificador: '1'),
+    ActivosCompanion.insert(modelo: 'sencillo-Kenworth', identificador: '2'),
   ]);
   batch.insertAll(db.cuestionarios, [
     CuestionariosCompanion.insert(id: Value(1)),
     CuestionariosCompanion.insert(id: Value(2)),
-    CuestionariosCompanion.insert(id: Value(3)),
   ]);
 
   batch.insertAll(db.contratistas, [
@@ -22,78 +28,100 @@ void _initialize0(batch, db) {
   ]);
 
   batch.insertAll(db.sistemas, [
-    SistemasCompanion.insert(id: Value(1), nombre: "carroceria"),
-    SistemasCompanion.insert(id: Value(2), nombre: "motor"),
+    SistemasCompanion.insert(id: Value(1), nombre: "Estructura"),
+    SistemasCompanion.insert(id: Value(2), nombre: "Transmisión"),
+    SistemasCompanion.insert(id: Value(3), nombre: "Eléctrico"),
+    SistemasCompanion.insert(id: Value(4), nombre: "Frenos"),
+    SistemasCompanion.insert(id: Value(5), nombre: "Hidráulico"),
+    SistemasCompanion.insert(id: Value(6), nombre: "No aplica"),
   ]);
 
   batch.insertAll(db.subSistemas, [
-    SubSistemasCompanion.insert(nombre: "parachoques", sistemaId: 1),
-    SubSistemasCompanion.insert(nombre: "pistones", sistemaId: 2),
+    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 1),
+    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 2),
+    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 3),
+    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 4),
+    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 5),
+    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 6),
   ]);
 
   batch.insertAll(db.cuestionarioDeModelos, [
     CuestionarioDeModelosCompanion.insert(
-        modelo: 'moto1t',
+        modelo: 'DT-Kenworth',
         tipoDeInspeccion: "preoperacional",
         cuestionarioId: 1,
-        periodicidad: 2,
+        periodicidad: 100,
         contratistaId: 1),
     CuestionarioDeModelosCompanion.insert(
-        modelo: 'automovil1',
+        modelo: 'sencillo-Kenworth',
         tipoDeInspeccion: "preoperacional",
         cuestionarioId: 2,
-        periodicidad: 4,
-        contratistaId: 1),
-    CuestionarioDeModelosCompanion.insert(
-        modelo: 'automovil1',
-        tipoDeInspeccion: "motor",
-        cuestionarioId: 3,
-        periodicidad: 5,
-        contratistaId: 2)
-  ]);
-
-  batch.insertAll(db.inspecciones, [
-    InspeccionesCompanion.insert(
-        cuestionarioId: 1,
-        estado: EstadoDeInspeccion.enBorrador,
-        identificadorActivo: "1"),
-    InspeccionesCompanion.insert(
-        cuestionarioId: 2,
-        estado: EstadoDeInspeccion.enBorrador,
-        identificadorActivo: "2"),
+        periodicidad: 100,
+        contratistaId: 2),
   ]);
 
   batch.insertAll(db.bloques, [
     BloquesCompanion.insert(
         cuestionarioId: 1,
         nOrden: 1,
-        titulo: "Inicio del cuestionario",
-        descripcion: "prueba"),
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 3,
-        titulo: "estado del motor",
-        descripcion: "en que estado se encuentra el motor"),
+        titulo: "Parte delantera del vehículo DT Kenworth",
+        descripcion:
+            "Inspeccionar el estado de cada parte en mención y evaluar su funcionamiento."),
     BloquesCompanion.insert(
         cuestionarioId: 1,
         nOrden: 2,
-        titulo: "temperatura del motor",
+        titulo: "Silla del conductor",
+        descripcion: ""),
+    BloquesCompanion.insert(
+        cuestionarioId: 1,
+        nOrden: 3,
+        titulo: "Silla del tripulante",
         descripcion: ""),
     BloquesCompanion.insert(
         cuestionarioId: 1,
         nOrden: 4,
-        titulo: "estado de las ruedas",
+        titulo: "Palanca de cambios",
         descripcion: ""),
     BloquesCompanion.insert(
-        cuestionarioId: 2,
-        nOrden: 1,
-        titulo: "prueba del segundo",
-        descripcion: "prueba"),
+        cuestionarioId: 1,
+        nOrden: 5,
+        titulo: "Mando de la transmisión (Pera fuller)",
+        descripcion: ""),
     BloquesCompanion.insert(
-        cuestionarioId: 3,
-        nOrden: 1,
-        titulo: "cuestionario iniciado",
-        descripcion: "prueba"),
+        cuestionarioId: 1,
+        nOrden: 6,
+        titulo:
+            "Eléctrico: Accionamiento/Estado limpia parabrisas (todas las velocidades)",
+        descripcion: ""),
+    BloquesCompanion.insert(
+        cuestionarioId: 1,
+        nOrden: 7,
+        titulo: "Estructura: Vidrios",
+        descripcion: ""),
+    BloquesCompanion.insert(
+        cuestionarioId: 1,
+        nOrden: 8,
+        titulo: "Estructura: Eleva vidrios",
+        descripcion: ""),
+    BloquesCompanion.insert(
+        cuestionarioId: 1,
+        nOrden: 9,
+        titulo: "Estructura: Retrovisores",
+        descripcion: ""),
+    BloquesCompanion.insert(
+        cuestionarioId: 1,
+        nOrden: 10,
+        titulo: "Eléctrico: Luces estacionarias",
+        descripcion: ""),
+    BloquesCompanion.insert(
+        cuestionarioId: 1, nOrden: 11, titulo: "SOAT", descripcion: ""),
+    BloquesCompanion.insert(
+        cuestionarioId: 1,
+        nOrden: 12,
+        titulo: "Tecnico mecánica",
+        descripcion: ""),
+    BloquesCompanion.insert(
+        cuestionarioId: 1, nOrden: 13, titulo: "Matrícula", descripcion: ""),
   ]);
 
   batch.insertAll(db.preguntas, [
@@ -102,58 +130,168 @@ void _initialize0(batch, db) {
       tipo: TipoDePregunta.unicaRespuesta,
       criticidad: 1,
       opcionesDeRespuesta: Value(
-        ["bueno", "malo"].map((e) => OpcionDeRespuesta(e, 0)).toList(),
+        [
+          OpcionDeRespuesta("Sin novedad", 0),
+          OpcionDeRespuesta("Requiere intervención", 4),
+        ],
       ),
       sistemaId: 1,
       subSistemaId: 1,
-      posicion: "no aplica",
+      posicion: "Parte delantera",
     ),
     PreguntasCompanion.insert(
       bloqueId: 3,
       tipo: TipoDePregunta.unicaRespuesta,
       criticidad: 1,
       opcionesDeRespuesta: Value(
-        ["alta", "baja"].map((e) => OpcionDeRespuesta(e, 0)).toList(),
+        [
+          OpcionDeRespuesta("Sin novedad", 0),
+          OpcionDeRespuesta("Requiere intervención", 4),
+        ],
       ),
-      sistemaId: 2,
-      subSistemaId: 2,
-      posicion: "no aplica",
+      sistemaId: 1,
+      subSistemaId: 1,
+      posicion: "Parte delantera",
     ),
     PreguntasCompanion.insert(
       bloqueId: 4,
-      tipo: TipoDePregunta.multipleRespuesta,
-      criticidad: 1,
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 3,
       opcionesDeRespuesta: Value(
-        ["gastadas", "chuzadas", "desintegradas"]
-            .map((e) => OpcionDeRespuesta(e, 0))
-            .toList(),
+        [
+          OpcionDeRespuesta("Sin novedad", 0),
+          OpcionDeRespuesta("Requiere intervención", 4),
+        ],
       ),
       sistemaId: 2,
       subSistemaId: 2,
-      posicion: "no aplica",
+      posicion: "Parte delantera",
     ),
-  ]);
-
-  batch.insertAll(db.respuestas, [
-    RespuestasCompanion.insert(
-      inspeccionId: 1,
-      preguntaId: 1,
-      respuestas: Value([OpcionDeRespuesta("malo", 0)]),
-      observacion: Value("ok"),
+    PreguntasCompanion.insert(
+      bloqueId: 5,
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 3,
+      opcionesDeRespuesta: Value(
+        [
+          OpcionDeRespuesta("Sin novedad", 0),
+          OpcionDeRespuesta("Requiere intervención", 4),
+        ],
+      ),
+      sistemaId: 2,
+      subSistemaId: 2,
+      posicion: "Parte delantera",
     ),
-    RespuestasCompanion.insert(
-      inspeccionId: 1,
-      preguntaId: 2,
-      respuestas: Value([OpcionDeRespuesta("alta", 0)]),
-      observacion: Value("mal"),
-      reparado: Value(true),
-      observacionReparacion: Value("se cuadro"),
+    PreguntasCompanion.insert(
+      bloqueId: 6,
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 3,
+      opcionesDeRespuesta: Value(
+        [
+          OpcionDeRespuesta("Sin novedad", 0),
+          OpcionDeRespuesta("Requiere intervención", 4),
+        ],
+      ),
+      sistemaId: 3,
+      subSistemaId: 3,
+      posicion: "Parte delantera",
     ),
-    RespuestasCompanion.insert(
-      inspeccionId: 1,
-      preguntaId: 3,
-      respuestas: Value([OpcionDeRespuesta("gastadas", 0)]),
-      observacion: Value("observacioncita"),
+    PreguntasCompanion.insert(
+      bloqueId: 7,
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 3,
+      opcionesDeRespuesta: Value(
+        [
+          OpcionDeRespuesta("Sin novedad", 0),
+          OpcionDeRespuesta("Requiere intervención", 4),
+        ],
+      ),
+      sistemaId: 1,
+      subSistemaId: 1,
+      posicion: "Parte delantera",
+    ),
+    PreguntasCompanion.insert(
+      bloqueId: 8,
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 3,
+      opcionesDeRespuesta: Value(
+        [
+          OpcionDeRespuesta("Sin novedad", 0),
+          OpcionDeRespuesta("Requiere intervención", 4),
+        ],
+      ),
+      sistemaId: 1,
+      subSistemaId: 1,
+      posicion: "Parte delantera",
+    ),
+    PreguntasCompanion.insert(
+      bloqueId: 9,
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 3,
+      opcionesDeRespuesta: Value(
+        [
+          OpcionDeRespuesta("Sin novedad", 0),
+          OpcionDeRespuesta("Requiere intervención", 4),
+        ],
+      ),
+      sistemaId: 1,
+      subSistemaId: 1,
+      posicion: "Parte delantera",
+    ),
+    PreguntasCompanion.insert(
+      bloqueId: 10,
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 3,
+      opcionesDeRespuesta: Value(
+        [
+          OpcionDeRespuesta("Sin novedad", 0),
+          OpcionDeRespuesta("Requiere intervención", 4),
+        ],
+      ),
+      sistemaId: 3,
+      subSistemaId: 3,
+      posicion: "Parte delantera",
+    ),
+    PreguntasCompanion.insert(
+      bloqueId: 11,
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 4,
+      opcionesDeRespuesta: Value(
+        [
+          OpcionDeRespuesta("Vigente", 0),
+          OpcionDeRespuesta("No está", 4),
+        ],
+      ),
+      sistemaId: 5,
+      subSistemaId: 5,
+      posicion: "Parte delantera",
+    ),
+    PreguntasCompanion.insert(
+      bloqueId: 12,
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 4,
+      opcionesDeRespuesta: Value(
+        [
+          OpcionDeRespuesta("Vigente", 0),
+          OpcionDeRespuesta("No está", 4),
+        ],
+      ),
+      sistemaId: 5,
+      subSistemaId: 5,
+      posicion: "Parte delantera",
+    ),
+    PreguntasCompanion.insert(
+      bloqueId: 13,
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 4,
+      opcionesDeRespuesta: Value(
+        [
+          OpcionDeRespuesta("Vigente", 0),
+          OpcionDeRespuesta("No está", 4),
+        ],
+      ),
+      sistemaId: 5,
+      subSistemaId: 5,
+      posicion: "Parte delantera",
     ),
   ]);
 }
