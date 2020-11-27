@@ -105,6 +105,8 @@ class Inspecciones extends Table {
 
   DateTimeColumn get fechaHoraInicio => dateTime().nullable()();
 
+  DateTimeColumn get fechaHoraBorradorGuardado => dateTime().nullable()();
+
   DateTimeColumn get fechaHoraEnvio => dateTime().nullable()();
 }
 

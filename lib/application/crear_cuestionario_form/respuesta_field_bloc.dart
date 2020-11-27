@@ -62,7 +62,6 @@ class RespuestaFieldBloc extends ListFieldBloc {
                     e.texto ==
                     bloque.respuesta.respuestas.value?.firstOrNull?.texto,
                 orElse: () => null),
-            validators: [FieldBlocValidators.required],
           );
         }
         break;
@@ -80,7 +79,6 @@ class RespuestaFieldBloc extends ListFieldBloc {
                         res.texto)) ?? // si no hay respuesta, devuelve false
                     false)
                 .toList(),
-            validators: [FieldBlocValidators.required],
           );
         }
         break;
@@ -99,11 +97,13 @@ class RespuestaFieldBloc extends ListFieldBloc {
           onData: (previous, current) async* {
             bloque.respuesta = bloque.respuesta.copyWith(
                 respuestas: Value([
-              if (current.value is List) ...current.value,
-              if (!(current.value is List)) current.value
-            ]));
+                  if (current.value is List) ...current.value,
+                  if (!(current.value is List)) current.value
+                ]),
+                fechaHoraRespuesta: Value(DateTime.now()));
           },
-        ),
+        )
+        ..addValidators([FieldBlocValidators.required]),
       reparado: BooleanFieldBloc(
           name: 'reparado', initialValue: bloque.respuesta.reparado.value)
         ..onValueChanges(

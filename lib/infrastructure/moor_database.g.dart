@@ -1625,6 +1625,7 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
   final int cuestionarioId;
   final String identificadorActivo;
   final DateTime fechaHoraInicio;
+  final DateTime fechaHoraBorradorGuardado;
   final DateTime fechaHoraEnvio;
   Inspeccion(
       {@required this.id,
@@ -1632,6 +1633,7 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       @required this.cuestionarioId,
       @required this.identificadorActivo,
       this.fechaHoraInicio,
+      this.fechaHoraBorradorGuardado,
       this.fechaHoraEnvio});
   factory Inspeccion.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
@@ -1649,6 +1651,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
           data['${effectivePrefix}identificador_activo']),
       fechaHoraInicio: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}fecha_hora_inicio']),
+      fechaHoraBorradorGuardado: dateTimeType.mapFromDatabaseResponse(
+          data['${effectivePrefix}fecha_hora_borrador_guardado']),
       fechaHoraEnvio: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}fecha_hora_envio']),
     );
@@ -1672,6 +1676,10 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
     if (!nullToAbsent || fechaHoraInicio != null) {
       map['fecha_hora_inicio'] = Variable<DateTime>(fechaHoraInicio);
     }
+    if (!nullToAbsent || fechaHoraBorradorGuardado != null) {
+      map['fecha_hora_borrador_guardado'] =
+          Variable<DateTime>(fechaHoraBorradorGuardado);
+    }
     if (!nullToAbsent || fechaHoraEnvio != null) {
       map['fecha_hora_envio'] = Variable<DateTime>(fechaHoraEnvio);
     }
@@ -1692,6 +1700,10 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       fechaHoraInicio: fechaHoraInicio == null && nullToAbsent
           ? const Value.absent()
           : Value(fechaHoraInicio),
+      fechaHoraBorradorGuardado:
+          fechaHoraBorradorGuardado == null && nullToAbsent
+              ? const Value.absent()
+              : Value(fechaHoraBorradorGuardado),
       fechaHoraEnvio: fechaHoraEnvio == null && nullToAbsent
           ? const Value.absent()
           : Value(fechaHoraEnvio),
@@ -1708,6 +1720,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       identificadorActivo:
           serializer.fromJson<String>(json['identificadorActivo']),
       fechaHoraInicio: serializer.fromJson<DateTime>(json['fechaHoraInicio']),
+      fechaHoraBorradorGuardado:
+          serializer.fromJson<DateTime>(json['fechaHoraBorradorGuardado']),
       fechaHoraEnvio: serializer.fromJson<DateTime>(json['fechaHoraEnvio']),
     );
   }
@@ -1720,6 +1734,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       'cuestionarioId': serializer.toJson<int>(cuestionarioId),
       'identificadorActivo': serializer.toJson<String>(identificadorActivo),
       'fechaHoraInicio': serializer.toJson<DateTime>(fechaHoraInicio),
+      'fechaHoraBorradorGuardado':
+          serializer.toJson<DateTime>(fechaHoraBorradorGuardado),
       'fechaHoraEnvio': serializer.toJson<DateTime>(fechaHoraEnvio),
     };
   }
@@ -1730,6 +1746,7 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
           int cuestionarioId,
           String identificadorActivo,
           DateTime fechaHoraInicio,
+          DateTime fechaHoraBorradorGuardado,
           DateTime fechaHoraEnvio}) =>
       Inspeccion(
         id: id ?? this.id,
@@ -1737,6 +1754,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
         cuestionarioId: cuestionarioId ?? this.cuestionarioId,
         identificadorActivo: identificadorActivo ?? this.identificadorActivo,
         fechaHoraInicio: fechaHoraInicio ?? this.fechaHoraInicio,
+        fechaHoraBorradorGuardado:
+            fechaHoraBorradorGuardado ?? this.fechaHoraBorradorGuardado,
         fechaHoraEnvio: fechaHoraEnvio ?? this.fechaHoraEnvio,
       );
   @override
@@ -1747,6 +1766,7 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
           ..write('cuestionarioId: $cuestionarioId, ')
           ..write('identificadorActivo: $identificadorActivo, ')
           ..write('fechaHoraInicio: $fechaHoraInicio, ')
+          ..write('fechaHoraBorradorGuardado: $fechaHoraBorradorGuardado, ')
           ..write('fechaHoraEnvio: $fechaHoraEnvio')
           ..write(')'))
         .toString();
@@ -1759,8 +1779,12 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
           estado.hashCode,
           $mrjc(
               cuestionarioId.hashCode,
-              $mrjc(identificadorActivo.hashCode,
-                  $mrjc(fechaHoraInicio.hashCode, fechaHoraEnvio.hashCode))))));
+              $mrjc(
+                  identificadorActivo.hashCode,
+                  $mrjc(
+                      fechaHoraInicio.hashCode,
+                      $mrjc(fechaHoraBorradorGuardado.hashCode,
+                          fechaHoraEnvio.hashCode)))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -1770,6 +1794,7 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
           other.cuestionarioId == this.cuestionarioId &&
           other.identificadorActivo == this.identificadorActivo &&
           other.fechaHoraInicio == this.fechaHoraInicio &&
+          other.fechaHoraBorradorGuardado == this.fechaHoraBorradorGuardado &&
           other.fechaHoraEnvio == this.fechaHoraEnvio);
 }
 
@@ -1779,6 +1804,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
   final Value<int> cuestionarioId;
   final Value<String> identificadorActivo;
   final Value<DateTime> fechaHoraInicio;
+  final Value<DateTime> fechaHoraBorradorGuardado;
   final Value<DateTime> fechaHoraEnvio;
   const InspeccionesCompanion({
     this.id = const Value.absent(),
@@ -1786,6 +1812,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     this.cuestionarioId = const Value.absent(),
     this.identificadorActivo = const Value.absent(),
     this.fechaHoraInicio = const Value.absent(),
+    this.fechaHoraBorradorGuardado = const Value.absent(),
     this.fechaHoraEnvio = const Value.absent(),
   });
   InspeccionesCompanion.insert({
@@ -1794,6 +1821,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     @required int cuestionarioId,
     @required String identificadorActivo,
     this.fechaHoraInicio = const Value.absent(),
+    this.fechaHoraBorradorGuardado = const Value.absent(),
     this.fechaHoraEnvio = const Value.absent(),
   })  : estado = Value(estado),
         cuestionarioId = Value(cuestionarioId),
@@ -1804,6 +1832,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     Expression<int> cuestionarioId,
     Expression<String> identificadorActivo,
     Expression<DateTime> fechaHoraInicio,
+    Expression<DateTime> fechaHoraBorradorGuardado,
     Expression<DateTime> fechaHoraEnvio,
   }) {
     return RawValuesInsertable({
@@ -1813,6 +1842,8 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
       if (identificadorActivo != null)
         'identificador_activo': identificadorActivo,
       if (fechaHoraInicio != null) 'fecha_hora_inicio': fechaHoraInicio,
+      if (fechaHoraBorradorGuardado != null)
+        'fecha_hora_borrador_guardado': fechaHoraBorradorGuardado,
       if (fechaHoraEnvio != null) 'fecha_hora_envio': fechaHoraEnvio,
     });
   }
@@ -1823,6 +1854,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
       Value<int> cuestionarioId,
       Value<String> identificadorActivo,
       Value<DateTime> fechaHoraInicio,
+      Value<DateTime> fechaHoraBorradorGuardado,
       Value<DateTime> fechaHoraEnvio}) {
     return InspeccionesCompanion(
       id: id ?? this.id,
@@ -1830,6 +1862,8 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
       cuestionarioId: cuestionarioId ?? this.cuestionarioId,
       identificadorActivo: identificadorActivo ?? this.identificadorActivo,
       fechaHoraInicio: fechaHoraInicio ?? this.fechaHoraInicio,
+      fechaHoraBorradorGuardado:
+          fechaHoraBorradorGuardado ?? this.fechaHoraBorradorGuardado,
       fechaHoraEnvio: fechaHoraEnvio ?? this.fechaHoraEnvio,
     );
   }
@@ -1853,6 +1887,10 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     if (fechaHoraInicio.present) {
       map['fecha_hora_inicio'] = Variable<DateTime>(fechaHoraInicio.value);
     }
+    if (fechaHoraBorradorGuardado.present) {
+      map['fecha_hora_borrador_guardado'] =
+          Variable<DateTime>(fechaHoraBorradorGuardado.value);
+    }
     if (fechaHoraEnvio.present) {
       map['fecha_hora_envio'] = Variable<DateTime>(fechaHoraEnvio.value);
     }
@@ -1867,6 +1905,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
           ..write('cuestionarioId: $cuestionarioId, ')
           ..write('identificadorActivo: $identificadorActivo, ')
           ..write('fechaHoraInicio: $fechaHoraInicio, ')
+          ..write('fechaHoraBorradorGuardado: $fechaHoraBorradorGuardado, ')
           ..write('fechaHoraEnvio: $fechaHoraEnvio')
           ..write(')'))
         .toString();
@@ -1935,6 +1974,20 @@ class $InspeccionesTable extends Inspecciones
     );
   }
 
+  final VerificationMeta _fechaHoraBorradorGuardadoMeta =
+      const VerificationMeta('fechaHoraBorradorGuardado');
+  GeneratedDateTimeColumn _fechaHoraBorradorGuardado;
+  @override
+  GeneratedDateTimeColumn get fechaHoraBorradorGuardado =>
+      _fechaHoraBorradorGuardado ??= _constructFechaHoraBorradorGuardado();
+  GeneratedDateTimeColumn _constructFechaHoraBorradorGuardado() {
+    return GeneratedDateTimeColumn(
+      'fecha_hora_borrador_guardado',
+      $tableName,
+      true,
+    );
+  }
+
   final VerificationMeta _fechaHoraEnvioMeta =
       const VerificationMeta('fechaHoraEnvio');
   GeneratedDateTimeColumn _fechaHoraEnvio;
@@ -1956,6 +2009,7 @@ class $InspeccionesTable extends Inspecciones
         cuestionarioId,
         identificadorActivo,
         fechaHoraInicio,
+        fechaHoraBorradorGuardado,
         fechaHoraEnvio
       ];
   @override
@@ -1994,6 +2048,13 @@ class $InspeccionesTable extends Inspecciones
           _fechaHoraInicioMeta,
           fechaHoraInicio.isAcceptableOrUnknown(
               data['fecha_hora_inicio'], _fechaHoraInicioMeta));
+    }
+    if (data.containsKey('fecha_hora_borrador_guardado')) {
+      context.handle(
+          _fechaHoraBorradorGuardadoMeta,
+          fechaHoraBorradorGuardado.isAcceptableOrUnknown(
+              data['fecha_hora_borrador_guardado'],
+              _fechaHoraBorradorGuardadoMeta));
     }
     if (data.containsKey('fecha_hora_envio')) {
       context.handle(

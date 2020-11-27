@@ -12,7 +12,7 @@ void main() {
         router: AutoRouter(),
         builder: (context, extendedNav) => Theme(
           data: ThemeData(
-              brightness: Brightness.dark,
+              brightness: Brightness.dark, //TODO: seleccion de tema
               scaffoldBackgroundColor: Colors.lightBlue),
           child: extendedNav,
         ),
