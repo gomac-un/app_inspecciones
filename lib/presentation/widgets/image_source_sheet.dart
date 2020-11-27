@@ -58,13 +58,20 @@ class ImageSourceBottomSheet extends StatelessWidget {
 
   Future<void> _onPickImage(ImageSource source) async {
     final imagePicker = ImagePicker();
-    final pickedFile = await imagePicker.getImage(
-      source: source,
-      maxHeight: maxHeight,
-      maxWidth: maxWidth,
-      imageQuality: imageQuality,
-      preferredCameraDevice: preferredCameraDevice,
-    );
+    var pickedFile;
+    try {
+      pickedFile = await imagePicker.getImage(
+        source: source,
+        maxHeight: maxHeight,
+        maxWidth: maxWidth,
+        imageQuality: imageQuality,
+        preferredCameraDevice: preferredCameraDevice,
+      );
+    } catch (e) {
+      print(e);
+      //TODO: tipos de errores
+      pickedFile = null;
+    }
     if (null != pickedFile) {
       if (kIsWeb) {
         if (null != onImage) {

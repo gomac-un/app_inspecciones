@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/respuesta_field_bloc.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/presentation/widgets/image_shower.dart';
 import 'images_picker.dart';
 
 class RespuestaCard extends StatelessWidget {
@@ -33,17 +34,11 @@ class RespuestaCard extends StatelessWidget {
             descripcion,
             style: textTheme.bodyText2,
           ),
-          //TODO: usar el widget de fotos pero no editable
           if (bloc.bloque.pregunta.fotosGuia.length > 0)
-            ...bloc.bloque.pregunta.fotosGuia
-                .map((e) => Image.file(File(e)))
-                .toList(),
-          FormBuilderImagePicker(
-            imagenesFieldBlocs: bloc.fotosReparacion,
-            decoration: const InputDecoration(
-              labelText: 'Fotos Reparacion',
+            ImageShower(
+              imagenes:
+                  bloc.bloque.pregunta.fotosGuia.map((e) => File(e)).toList(),
             ),
-          ),
           if (bloc.respuestas is SelectFieldBloc)
             DropdownFieldBlocBuilder(
               selectFieldBloc: bloc.respuestas,

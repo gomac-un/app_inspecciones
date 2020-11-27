@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:inspecciones/presentation/widgets/imagen_full_screen.dart';
 //import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'image_source_sheet.dart';
 import 'package:image_picker/image_picker.dart';
@@ -170,7 +171,7 @@ class FormBuilderImagePicker extends StatelessWidget {
                 state.fieldBlocs.length == 0
                     ? GestureDetector(
                         child: Icon(Icons.camera_enhance,
-                            color: iconColor ?? theme.primaryColor),
+                            color: iconColor ?? theme.accentColor),
                         onTap: () => modal(context),
                       )
                     : Container(
@@ -278,28 +279,6 @@ class FormBuilderImagePicker extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class FotoFullScreen extends StatelessWidget {
-  final File foto;
-  final int tag;
-  FotoFullScreen(this.foto, this.tag);
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: GestureDetector(
-        child: Center(
-          child: Hero(
-            tag: tag,
-            child: Image.file(foto),
-          ),
-        ),
-        onTap: () {
-          Navigator.pop(context);
-        },
-      ),
     );
   }
 }
