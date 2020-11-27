@@ -48,7 +48,10 @@ class BorradoresPage extends StatelessWidget {
                 subtitle: Text(
                     borradores[index].cuestionarioDeModelo.tipoDeInspeccion),
                 leading: Icon(Icons.edit),
-                trailing: Icon(Icons.delete),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () => eliminarBorrador(borradores[index], context),
+                ),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => LlenarCuestionarioFormPage(
@@ -64,6 +67,41 @@ class BorradoresPage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void eliminarBorrador(Borrador borrador, BuildContext context) {
+    // set up the buttons
+    Widget cancelButton = FlatButton(
+      child: Text("Cancelar"),
+      onPressed: () => Navigator.of(context).pop(), // OJO con el context
+    );
+    Widget continueButton = FlatButton(
+      child: Text("Eliminar"),
+      onPressed: () async {
+        Navigator.of(context).pop();
+        await _db.eliminarBorrador(borrador);
+        Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text("Borrador eliminado"),
+          duration: Duration(seconds: 3),
+        ));
+      },
+    );
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("Alerta"),
+      content: Text("¿Está seguro que desea eliminar este borrador?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
     );
   }
 }

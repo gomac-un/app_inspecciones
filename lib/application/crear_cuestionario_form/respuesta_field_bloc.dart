@@ -62,8 +62,10 @@ class RespuestaFieldBloc extends ListFieldBloc {
             //para poner el valor inicial de la lista, se busca el objeto que tenga el mismo texto en la respuesta, si no hay respuesta devuelve null
             initialValue: bloque.pregunta.opcionesDeRespuesta.firstWhere(
                 (e) =>
-                    e.texto == bloque.respuesta.respuestas.value?.first?.texto,
+                    e.texto ==
+                    bloque.respuesta.respuestas.value?.firstOrNull?.texto,
                 orElse: () => null),
+            //validators: [FieldBlocValidators.required],
           );
         }
         break;
@@ -81,6 +83,7 @@ class RespuestaFieldBloc extends ListFieldBloc {
                         res.texto)) ?? // si no hay respuesta, devuelve false
                     false)
                 .toList(),
+            //validators: [FieldBlocValidators.required],
           );
         }
         break;
@@ -169,4 +172,8 @@ class RespuestaFieldBloc extends ListFieldBloc {
     addFieldBloc(fotosReparacion);
     addFieldBloc(observacionReparacion);
   }
+}
+
+extension MyList<T> on List<T> {
+  T get firstOrNull => this.isEmpty ? null : this.first;
 }

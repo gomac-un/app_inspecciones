@@ -1,3 +1,5 @@
+import 'package:path_provider/path_provider.dart' as paths; //temp borrar
+
 export 'package:moor_flutter/moor_flutter.dart' show Value;
 
 import 'dart:convert';
@@ -84,15 +86,21 @@ class Database extends _$Database {
             fechaDeInicio: Value(DateTime.now()),
           ));*/
         }
+        await customStatement('PRAGMA foreign_keys = ON');
       },
     );
   }
 
   //Llenado de bd con datos de prueba
   Future dbdePrueba() async {
-    final m = this.createMigrator(); // changed to this
+    /*final dataDir = await paths.getApplicationDocumentsDirectory();
+    final dbFile = File(path.join(dataDir.path, 'db.sqlite'));
+    dbFile.deleteSync();*/
+    final m = this.createMigrator();
+    // changed to this
     for (final table in allTables) {
       await m.deleteTable(table.actualTableName);
+
       await m.createTable(table);
     }
 
@@ -339,6 +347,12 @@ class Database extends _$Database {
           ),
         )
         .watch();
+  }
+
+  Future eliminarBorrador(Borrador borrador) async {
+    await (delete(inspecciones)
+          ..where((r) => r.id.equals(borrador.inspeccion.id)))
+        .go();
   }
 }
 

@@ -143,6 +143,7 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
   }
 }
 
+// estados custom
 class FormBlocRevisando<SuccessResponse, FailureResponse>
     extends FormBlocLoaded<SuccessResponse, FailureResponse> {
   FormBlocRevisando(

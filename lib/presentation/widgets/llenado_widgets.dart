@@ -33,9 +33,11 @@ class RespuestaCard extends StatelessWidget {
             descripcion,
             style: textTheme.bodyText2,
           ),
-          if (bloc.bloque.pregunta.fotosGuia.length >
-              0) //TODO: usar el widget de fotos pero no editable
-            Image.file(File(bloc.bloque.pregunta.fotosGuia.first)),
+          //TODO: usar el widget de fotos pero no editable
+          if (bloc.bloque.pregunta.fotosGuia.length > 0)
+            ...bloc.bloque.pregunta.fotosGuia
+                .map((e) => Image.file(File(e)))
+                .toList(),
           if (bloc.respuestas is SelectFieldBloc)
             DropdownFieldBlocBuilder(
               selectFieldBloc: bloc.respuestas,

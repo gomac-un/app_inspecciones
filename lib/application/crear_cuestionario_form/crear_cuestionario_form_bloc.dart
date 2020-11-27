@@ -20,7 +20,7 @@ class CrearCuestionarioFormBloc extends FormBloc<String, String> {
 
   final tiposDeInspeccion = SelectFieldBloc<String, dynamic>(
     name: 'tipoDeInspeccion',
-    //validators: [FieldBlocValidators.required],
+    validators: [FieldBlocValidators.required],
   );
 
   final clasesDeModelos = MultiSelectFieldBloc<String, dynamic>(
@@ -30,15 +30,15 @@ class CrearCuestionarioFormBloc extends FormBloc<String, String> {
   final SelectFieldBloc<Contratista, dynamic> contratista =
       SelectFieldBloc<Contratista, dynamic>(
     name: 'contratista',
-    //validators: [FieldBlocValidators.required],
+    validators: [FieldBlocValidators.required],
   );
 
   final periodicidad = TextFieldBloc(
     name: 'periodicidad',
-    /*validators: [
+    validators: [
       (String n) =>
           double.parse(n, (e) => null) != null ? null : "debe ser numerico"
-    ],*/
+    ],
   );
 
   final bloques = ListFieldBloc<BloqueFieldBloc>(name: 'bloques');

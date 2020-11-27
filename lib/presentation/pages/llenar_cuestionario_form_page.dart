@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 
@@ -92,29 +93,32 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
                   ),
                 );
               } else {
-                return SingleChildScrollView(
-                  physics: ClampingScrollPhysics(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: <Widget>[
-                        if (_formBloc.bloques != null &&
-                            _formBloc.bloques.isNotEmpty)
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _formBloc.bloques.length,
-                            itemBuilder: (context, i) {
-                              if ((_formBloc.bloques[i]).pregunta == null) {
-                                return TituloCard(bloque: _formBloc.bloques[i]);
-                              } else {
-                                return RespuestaCard(
-                                    bloc: _formBloc.blocsRespuestas[i]);
-                              }
-                            },
-                          ),
-                        SizedBox(height: 60),
-                      ],
+                return Scrollbar(
+                  child: SingleChildScrollView(
+                    physics: ClampingScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: <Widget>[
+                          if (_formBloc.bloques != null &&
+                              _formBloc.bloques.isNotEmpty)
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _formBloc.bloques.length,
+                              itemBuilder: (context, i) {
+                                if ((_formBloc.bloques[i]).pregunta == null) {
+                                  return TituloCard(
+                                      bloque: _formBloc.bloques[i]);
+                                } else {
+                                  return RespuestaCard(
+                                      bloc: _formBloc.blocsRespuestas[i]);
+                                }
+                              },
+                            ),
+                          SizedBox(height: 60),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -130,14 +134,23 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
             ActionButton(
               iconData: Icons.archive,
               label: 'Guardar borrador',
-              onPressed: _formBloc.submit,
+              onPressed: () async {
+                LoadingDialog.show(context);
+                await _formBloc.guardarBorrador();
+                LoadingDialog.hide(context);
+                Navigator.of(context).pop();
+
+                /*Scaffold.of(ExtendedNavigator.of(context).parent.context)
+                    .showSnackBar(SnackBar(
+                  content: Text("Borrador guardado"),
+                  duration: Duration(seconds: 3),
+                ));*/
+              },
             ),
             ActionButton(
               iconData: Icons.send,
               label: 'Enviar',
-              onPressed: () {
-                _formBloc.finalizarInspeccion();
-              },
+              onPressed: _formBloc.finalizarInspeccion,
             ),
           ],
         ),

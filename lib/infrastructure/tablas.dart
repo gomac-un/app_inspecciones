@@ -10,18 +10,17 @@ class Activos extends Table {
 }
 
 class CuestionarioDeModelos extends Table {
-  TextColumn get modelo =>
-      text().customConstraint('REFERENCES activo(modelo)')();
+  TextColumn get modelo => text()();
 
   TextColumn get tipoDeInspeccion => text()();
 
   IntColumn get periodicidad => integer()();
 
   IntColumn get cuestionarioId => integer()
-      .customConstraint('REFERENCES cuestionario(id) ON DELETE CASCADE')();
+      .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
   IntColumn get contratistaId =>
-      integer().customConstraint('REFERENCES contratista(id)')();
+      integer().customConstraint('REFERENCES contratistas(id)')();
 
   @override
   Set<Column> get primaryKey => {modelo, tipoDeInspeccion};
@@ -37,13 +36,13 @@ class Bloques extends Table {
   IntColumn get id => integer()();
 
   IntColumn get cuestionarioId => integer()
-      .customConstraint('REFERENCES cuestionario(id) ON DELETE CASCADE')();
+      .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
   IntColumn get nOrden => integer()();
 
-  TextColumn get titulo => text().withLength(min: 1, max: 50)();
+  TextColumn get titulo => text().withLength(min: 1, max: 100)();
 
-  TextColumn get descripcion => text().withLength(min: 0, max: 50)();
+  TextColumn get descripcion => text().withLength(min: 0, max: 200)();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -59,7 +58,7 @@ class Preguntas extends Table {
       integer().customConstraint('REFERENCES sistemas(id)')();
 
   IntColumn get subSistemaId =>
-      integer().customConstraint('REFERENCES subsistemas(id)')();
+      integer().customConstraint('REFERENCES sub_sistemas(id)')();
 
   TextColumn get posicion => text().withLength(min: 0, max: 50)();
 
@@ -99,10 +98,10 @@ class Inspecciones extends Table {
   IntColumn get estado => intEnum<EstadoDeInspeccion>()();
 
   IntColumn get cuestionarioId =>
-      integer().customConstraint('REFERENCES cuestionario(id)')();
+      integer().customConstraint('REFERENCES cuestionarios(id)')();
 
   TextColumn get identificadorActivo =>
-      text().customConstraint('REFERENCES activo(identificador)')();
+      text().customConstraint('REFERENCES activos(identificador)')();
 
   DateTimeColumn get fechaHoraInicio => dateTime().nullable()();
 
@@ -113,10 +112,10 @@ class Respuestas extends Table {
   IntColumn get id => integer()();
 
   IntColumn get inspeccionId => integer()
-      .customConstraint('REFERENCES inspeccion(id) ON DELETE CASCADE')();
+      .customConstraint('REFERENCES inspecciones(id) ON DELETE CASCADE')();
 
   IntColumn get preguntaId =>
-      integer().customConstraint('REFERENCES pregunta(id)')();
+      integer().customConstraint('REFERENCES preguntas(id)')();
 
   TextColumn get respuestas => text()
       .map(const OpcionDeRespuestaConverter())
@@ -163,7 +162,7 @@ class SubSistemas extends Table {
   IntColumn get id => integer()();
   TextColumn get nombre => text()();
   IntColumn get sistemaId =>
-      integer().customConstraint('REFERENCES sistema(id) ON DELETE CASCADE')();
+      integer().customConstraint('REFERENCES sistemas(id) ON DELETE CASCADE')();
   @override
   Set<Column> get primaryKey => {id};
 }
