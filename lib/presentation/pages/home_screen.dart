@@ -67,6 +67,12 @@ class HomeScreen extends StatelessWidget {
             },
             child: Text("Reiniciar BD"),
           ),
+          RaisedButton(
+            onPressed: () {
+              getIt<Database>().exportarInspeccion();
+            },
+            child: Text("exportarInspeccion"),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

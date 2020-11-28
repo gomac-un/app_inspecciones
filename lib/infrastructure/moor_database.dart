@@ -293,7 +293,7 @@ class Database extends _$Database {
           ? EstadoDeInspeccion.enBorrador
           : EstadoDeInspeccion.enviada,
       identificadorActivo: activo,
-      fechaHoraInicio: Value(DateTime.now()),
+      momentoInicio: Value(DateTime.now()),
     );
     final id = await into(inspecciones).insert(ins);
     return Inspeccion(
@@ -325,10 +325,10 @@ class Database extends _$Database {
           .write(
         esBorrador
             ? InspeccionesCompanion(
-                fechaHoraBorradorGuardado: Value(DateTime.now()),
+                momentoBorradorGuardado: Value(DateTime.now()),
               )
             : InspeccionesCompanion(
-                fechaHoraEnvio: Value(DateTime.now()),
+                momentoEnvio: Value(DateTime.now()),
               ),
       );
       // borrar todas las respuestas anteriores
@@ -373,6 +373,17 @@ class Database extends _$Database {
           ..where((r) => r.id.equals(borrador.inspeccion.id)))
         .go();
   }
+
+  Future exportarInspeccion() async {
+    // TODO: WIP
+    final ins = await (select(inspecciones)
+          ..where(
+            (e) => e.id.equals(1),
+          ))
+        .get();
+    print(ins.map((e) => e.toJson()).toList());
+  }
+  
 }
 
 /////////////////converters

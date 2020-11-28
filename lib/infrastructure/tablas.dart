@@ -103,15 +103,15 @@ class Inspecciones extends Table {
   TextColumn get identificadorActivo =>
       text().customConstraint('REFERENCES activos(identificador)')();
 
-  DateTimeColumn get fechaHoraInicio => dateTime().nullable()();
+  DateTimeColumn get momentoInicio => dateTime().nullable()();
 
-  DateTimeColumn get fechaHoraBorradorGuardado => dateTime().nullable()();
+  DateTimeColumn get momentoBorradorGuardado => dateTime().nullable()();
 
-  DateTimeColumn get fechaHoraEnvio => dateTime().nullable()();
+  DateTimeColumn get momentoEnvio => dateTime().nullable()();
 }
 
 class Respuestas extends Table {
-  IntColumn get id => integer()();
+  IntColumn get id => integer().autoIncrement()();
 
   IntColumn get inspeccionId => integer()
       .customConstraint('REFERENCES inspecciones(id) ON DELETE CASCADE')();
@@ -133,17 +133,12 @@ class Respuestas extends Table {
 
   TextColumn get observacion => text().withDefault(const Constant(""))();
 
-  BoolColumn get novedad => boolean().withDefault(const Constant(false))();
-
   BoolColumn get reparado => boolean().withDefault(const Constant(false))();
 
   TextColumn get observacionReparacion =>
       text().withDefault(const Constant(""))();
 
-  DateTimeColumn get fechaHoraRespuesta => dateTime().nullable()();
-
-  @override
-  Set<Column> get primaryKey => {id};
+  DateTimeColumn get momentoRespuesta => dateTime().nullable()();
 }
 
 class Contratistas extends Table {

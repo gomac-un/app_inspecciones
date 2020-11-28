@@ -100,7 +100,7 @@ class RespuestaFieldBloc extends ListFieldBloc {
                   if (current.value is List) ...current.value,
                   if (!(current.value is List)) current.value
                 ]),
-                fechaHoraRespuesta: Value(DateTime.now()));
+                momentoRespuesta: Value(DateTime.now()));
           },
         )
         ..addValidators([FieldBlocValidators.required]),
