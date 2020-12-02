@@ -61,7 +61,7 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
 
   @override
   void onSubmitting() async {
-    print(state.toString());
+    //print(state.toString());
 
     try {
       await guardarEnLocal(esBorrador: false);

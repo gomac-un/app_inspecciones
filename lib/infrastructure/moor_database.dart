@@ -95,12 +95,14 @@ class Database extends _$Database {
     final dbFile = File(path.join(dataDir.path, 'db.sqlite'));
     dbFile.deleteSync();*/
     final m = this.createMigrator();
+    await customStatement('PRAGMA foreign_keys = OFF');
     // changed to this
     for (final table in allTables) {
       await m.deleteTable(table.actualTableName);
 
       await m.createTable(table);
     }
+    await customStatement('PRAGMA foreign_keys = ON');
 
     await batch(initialize(this));
   }
@@ -291,6 +293,7 @@ class Database extends _$Database {
           ? EstadoDeInspeccion.enBorrador
           : EstadoDeInspeccion.enviada,
       identificadorActivo: activo,
+      momentoInicio: Value(DateTime.now()),
     );
     final id = await into(inspecciones).insert(ins);
     return Inspeccion(
@@ -314,7 +317,20 @@ class Database extends _$Database {
           .map((r) => r.copyWith(inspeccionId: Value(i.id)))
           .toList();
     }
+
     return transaction(() async {
+      await (update(inspecciones)
+            ..where(
+                (i) => i.id.equals(respuestasForm.first.inspeccionId.value)))
+          .write(
+        esBorrador
+            ? InspeccionesCompanion(
+                momentoBorradorGuardado: Value(DateTime.now()),
+              )
+            : InspeccionesCompanion(
+                momentoEnvio: Value(DateTime.now()),
+              ),
+      );
       // borrar todas las respuestas anteriores
       await (delete(respuestas)
             ..where((r) =>
@@ -357,6 +373,17 @@ class Database extends _$Database {
           ..where((r) => r.id.equals(borrador.inspeccion.id)))
         .go();
   }
+
+  Future exportarInspeccion() async {
+    // TODO: WIP
+    final ins = await (select(inspecciones)
+          ..where(
+            (e) => e.id.equals(1),
+          ))
+        .get();
+    print(ins.map((e) => e.toJson()).toList());
+  }
+  
 }
 
 /////////////////converters
