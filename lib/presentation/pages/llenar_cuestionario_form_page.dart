@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:inspecciones/application/crear_cuestionario_form/bloques_de_formulario.dart';
 
 import 'package:inspecciones/infrastructure/moor_database.dart';
 
@@ -64,12 +65,18 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: _formBloc.bloques.length,
                               itemBuilder: (context, i) {
-                                if ((_formBloc.bloques[i]).pregunta != null) {
-                                  return RespuestaCard(
-                                      bloc: _formBloc.blocsRespuestas[i]);
-                                } else {
+                                final element = _formBloc.bloques[i];
+                                if (element is Titulo) {
                                   return TituloCard(
-                                      bloque: _formBloc.bloques[i]);
+                                    titulo: element.titulo,
+                                    descripcion: element.descripcion,
+                                  );
+                                }
+                                if (element is BloqueConPreguntaRespondidaExt) {
+                                  return RespuestaCard(bloc: element.bloc);
+                                }
+                                if (element is PreguntaTipoCuadricula) {
+                                  return Text("cuadricula"); //TODO
                                 }
                               },
                             ),
@@ -79,11 +86,13 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: _formBloc.bloques.length,
                               itemBuilder: (context, i) {
-                                if (_formBloc.bloques[i].pregunta != null &&
-                                    _formBloc.blocsRespuestas[i].criticidad >
-                                        0) {
-                                  return RespuestaCard(
-                                      bloc: _formBloc.blocsRespuestas[i]);
+                                final element = _formBloc.bloques[i];
+                                if (element is BloqueConPreguntaRespondidaExt &&
+                                    element.bloc.criticidad > 0) {
+                                  return RespuestaCard(bloc: element.bloc);
+                                }
+                                if (element is PreguntaTipoCuadricula) {
+                                  return Text("cuadricula"); //TODO
                                 }
                                 return Container();
                               },

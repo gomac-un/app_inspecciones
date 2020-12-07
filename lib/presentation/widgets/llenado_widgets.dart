@@ -109,9 +109,10 @@ class RespuestaCard extends StatelessWidget {
 }
 
 class TituloCard extends StatelessWidget {
-  final BloqueConPreguntaRespondida bloque;
+  final String titulo;
+  final String descripcion;
 
-  const TituloCard({Key key, this.bloque}) : super(key: key);
+  const TituloCard({Key key, this.titulo, this.descripcion}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -126,11 +127,11 @@ class TituloCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              bloque.bloque.titulo,
+              titulo,
               style: textTheme.headline5,
             ),
             Text(
-              bloque.bloque.descripcion,
+              descripcion,
               style: textTheme.bodyText2,
             ),
           ],

@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'package:inspecciones/application/crear_cuestionario_form/bloques_de_formulario.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/respuesta_field_bloc.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:inspecciones/domain/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:moor/moor.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,10 +12,8 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
   final Database _db;
 
   //lista que almacena los blocs de respuestas
-  // TODO: mirar como meanejar esto mejor en el objeto de estado del bloc
-  final Map<int, RespuestaFieldBloc> blocsRespuestas = {};
   //lista que almacena todos los bloques que se muestran en la inspeccion, incluyendo titulos y preguntas
-  List<BloqueConPreguntaRespondida> bloques = [];
+  List<Object> bloques = [];
 
   final String _vehiculo;
   final int _cuestionarioId;
@@ -43,16 +43,55 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
   }
   @override
   void onLoading() async {
-    bloques = await _db.cargarInspeccion(
+    final bloquesBD = await _db.cargarInspeccion(
       _cuestionarioId,
       _vehiculo,
     );
 
-    bloques?.asMap()?.forEach((i, bloque) {
-      if (bloque.pregunta != null) {
-        //si contiene pregunta entonces no es un titulo
-        blocsRespuestas[i] = RespuestaFieldBloc(bloque);
-        respuestas.addFieldBloc(blocsRespuestas[i]);
+    bool flagIniciaCuadricula = false;
+    bloquesBD?.forEach((bloque) {
+      if (bloque.pregunta == null) {
+        //los titulos no tienen pregunta asociada
+        bloques.add(
+          Titulo(
+            titulo: bloque.bloque.titulo,
+            descripcion: bloque.bloque.descripcion,
+          ),
+        );
+      } else {
+        //logica para el agrupamiento de las preguntas que componen una cuadricula
+        // funciona solo si los elementos pertenecientes a una cuadricula
+        // se encuentran contiguos
+
+        //primero agregarle el bloc al modelo en el objeto extendido y agregar este bloc al form
+        final bloqueExt = BloqueConPreguntaRespondidaExt(
+            bloqueConPreguntaRespondida: bloque,
+            bloc: RespuestaFieldBloc(bloque));
+        respuestas.addFieldBloc(bloqueExt.bloc);
+
+        // para el primer elemento se crea el objeto de agrupacion
+        if (!flagIniciaCuadricula &&
+            bloque.pregunta.tipo == TipoDePregunta.cuadricula) {
+          flagIniciaCuadricula = true;
+          final inicioCuadricula = PreguntaTipoCuadricula();
+          inicioCuadricula.grupoCuadricula.add(bloqueExt);
+          bloques.add(inicioCuadricula);
+        }
+        //los siguientes de la cuadricula se agregan en el grupo
+        if (flagIniciaCuadricula &&
+            bloque.pregunta.tipo == TipoDePregunta.cuadricula) {
+          final cuadricula = bloques.last as PreguntaTipoCuadricula;
+          cuadricula.grupoCuadricula.add(bloqueExt);
+        }
+        //cuando termina el grupo
+        if (flagIniciaCuadricula &&
+            bloque.pregunta.tipo != TipoDePregunta.cuadricula) {
+          flagIniciaCuadricula = false;
+        }
+        //preguntas que no hacen parte de un grupo
+        if (bloque.pregunta.tipo != TipoDePregunta.cuadricula) {
+          bloques.add(bloqueExt);
+        }
       }
     });
 
@@ -79,11 +118,12 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
   Future guardarEnLocal({bool esBorrador}) async {
     final appDir = await getApplicationDocumentsDirectory();
     final subDir = "inspecciones";
+
     final idform =
-        blocsRespuestas.entries.first.value.bloque.bloque.cuestionarioId;
+        respuestas.state.fieldBlocs.first.bloque.bloque.cuestionarioId;
 
     //actualizar las fotos
-    await Future.forEach(blocsRespuestas.values, (e) async {
+    await Future.forEach(respuestas.state.fieldBlocs, (e) async {
       final bloc = e as RespuestaFieldBloc;
       final fotosBases =
           procesarFotos(bloc.fotosBase, appDir.path, subDir, idform.toString());
@@ -101,7 +141,7 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
       );
     });
     await _db.guardarInspeccion(
-        blocsRespuestas.entries.map((e) => e.value.bloque.respuesta).toList(),
+        respuestas.state.fieldBlocs.map((e) => e.bloque.respuesta).toList(),
         _cuestionarioId,
         _vehiculo,
         esBorrador);
@@ -133,8 +173,8 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
     if (state is FormBlocLoaded) {
       if (state.isValid()) {
         // TODO: scroll al lugar del error
-        blocsRespuestas.forEach((key, value) {
-          value.inicioRevision();
+        respuestas.state.fieldBlocs.forEach((bloc) {
+          bloc.inicioRevision();
         });
         add(UpdateFormBlocState<String, String>(
             FormBlocRevisando.fromState(state)));

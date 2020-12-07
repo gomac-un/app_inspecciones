@@ -383,7 +383,6 @@ class Database extends _$Database {
         .get();
     print(ins.map((e) => e.toJson()).toList());
   }
-  
 }
 
 /////////////////converters

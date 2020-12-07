@@ -11,6 +11,8 @@ enum TipoDePregunta {
   fecha,
   @JsonValue("rangoNumerico")
   rangoNumerico,
+  @JsonValue("cuadricula")
+  cuadricula,
 }
 
 /*extension json on TipoDePregunta {

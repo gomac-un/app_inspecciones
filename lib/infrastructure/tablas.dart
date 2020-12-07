@@ -27,32 +27,76 @@ class CuestionarioDeModelos extends Table {
 }
 
 class Cuestionarios extends Table {
-  IntColumn get id => integer()();
-  @override
-  Set<Column> get primaryKey => {id};
+  IntColumn get id =>
+      integer().autoIncrement()(); //se podria agregar mas informacion aqui
+  // List<Inspecciones>
+  // List<Bloques>
+  //List<CuestionariosDeModelos>
 }
 
 class Bloques extends Table {
-  IntColumn get id => integer()();
+  IntColumn get id => integer().autoIncrement()();
 
   IntColumn get cuestionarioId => integer()
       .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
   IntColumn get nOrden => integer()();
 
+  //List<Preguntas>
+  //List<Titulos>
+
+  //CuadriculasDePreguntas
+
+}
+
+//TODO: refactorizar ya que se saco el titulo/descripcion del bloque y se puso
+//en las tablas titulo y pregunta.
+//Las consultas ya deben involucrar de manera independiente
+//tablas de titulos y preguntas de tipo simple y de tipo cuadricula.
+//los formularios deben tratar cada uno de estos casos y ordenarlos
+//con el nOrden que tienen los bloques correspondientes.
+class Titulos extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  IntColumn get bloqueId =>
+      integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();
+
   TextColumn get titulo => text().withLength(min: 1, max: 100)();
 
   TextColumn get descripcion => text().withLength(min: 0, max: 200)();
 
-  @override
-  Set<Column> get primaryKey => {id};
+  TextColumn get fotos => text()
+      .map(const ListInColumnConverter())
+      .withDefault(const Constant("[]"))();
 }
 
+//Tabla para agrupar las preguntas de tipo cuadricula
+//para acceder se debe hacer join con el bloque en comun con las preguntas
+class CuadriculasDePreguntas extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  IntColumn get bloqueId => integer().customConstraint(
+      'REFERENCES bloques(id)')(); //debe ser unico por ser uno a uno, sera que es pk?
+
+  //List<OpcionesDeRespuesta>
+
+}
+
+//Las preguntas de tipo seleccion unica o multiple pueden ser reunidas
+//directamente con el bloque
+//Las preguntas de tipo cuadricula deben ser
+//TODO:agrupadas por el bloque
+// a este bloque del grupo se le asocia tambien el CuadriculasDePreguntas que
+//tiene (por medio de join) las opciones de respuesta para el grupo de preguntas
 class Preguntas extends Table {
-  IntColumn get id => integer()();
+  IntColumn get id => integer().autoIncrement()();
 
   IntColumn get bloqueId =>
       integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();
+
+  TextColumn get titulo => text().withLength(min: 1, max: 100)();
+
+  TextColumn get descripcion => text().withLength(min: 0, max: 200)();
 
   IntColumn get sistemaId =>
       integer().customConstraint('REFERENCES sistemas(id)')();
@@ -68,27 +112,20 @@ class Preguntas extends Table {
 
   IntColumn get tipo => intEnum<TipoDePregunta>()();
 
-  TextColumn get opcionesDeRespuesta => text()
-      .map(const OpcionDeRespuestaConverter())
-      .withDefault(const Constant("[]"))();
-
   IntColumn get criticidad => integer()();
 
-  @override
-  Set<Column> get primaryKey => {id};
+  //List<OpcionesDeRespuesta>
 }
 
-@j.JsonSerializable()
-class OpcionDeRespuesta {
-  String texto;
-  int criticidad;
+class OpcionesDeRespuesta extends Table {
+  IntColumn get id => integer().autoIncrement()();
 
-  OpcionDeRespuesta(this.texto, this.criticidad);
+  IntColumn get preguntaId =>
+      integer()();//No se le pone el references ya que puede referenciar tanto a una pregunta como a una cuadricula
 
-  factory OpcionDeRespuesta.fromJson(Map<String, dynamic> json) =>
-      _$OpcionDeRespuestaFromJson(json);
+  TextColumn get texto => text().withLength(min: 1, max: 100)();
 
-  Map<String, dynamic> toJson() => _$OpcionDeRespuestaToJson(this);
+  IntColumn get criticidad => integer()();
 }
 
 @DataClassName('Inspeccion')
