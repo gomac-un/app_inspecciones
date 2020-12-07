@@ -8,6 +8,7 @@
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:inspecciones/presentation/pages/login_screen.dart';
 
 import 'application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
 import 'infrastructure/moor_database.dart';
@@ -18,6 +19,7 @@ import 'presentation/pages/llenar_cuestionario_form_page.dart';
 
 class Routes {
   static const String homeScreen = '/';
+  static const String loginScreen = '/login_screen';
   static const String borradoresPage = '/borradores-page';
   static const String llenarCuestionarioFormPage =
       '/llenar-cuestionario-form-page';
@@ -28,6 +30,7 @@ class Routes {
     borradoresPage,
     llenarCuestionarioFormPage,
     crearCuestionarioFormPage,
+    loginScreen,
   };
 }
 
@@ -36,6 +39,7 @@ class AutoRouter extends RouterBase {
   List<RouteDef> get routes => _routes;
   final _routes = <RouteDef>[
     RouteDef(Routes.homeScreen, page: HomeScreen),
+    RouteDef(Routes.loginScreen, page: LoginScreen),
     RouteDef(Routes.borradoresPage, page: BorradoresPage),
     RouteDef(Routes.llenarCuestionarioFormPage,
         page: LlenarCuestionarioFormPage),
