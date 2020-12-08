@@ -19,7 +19,6 @@ import 'presentation/pages/llenar_cuestionario_form_page.dart';
 
 class Routes {
   static const String homeScreen = '/';
-  static const String loginScreen = '/login_screen';
   static const String borradoresPage = '/borradores-page';
   static const String llenarCuestionarioFormPage =
       '/llenar-cuestionario-form-page';
@@ -30,7 +29,6 @@ class Routes {
     borradoresPage,
     llenarCuestionarioFormPage,
     crearCuestionarioFormPage,
-    loginScreen,
   };
 }
 
@@ -39,7 +37,6 @@ class AutoRouter extends RouterBase {
   List<RouteDef> get routes => _routes;
   final _routes = <RouteDef>[
     RouteDef(Routes.homeScreen, page: HomeScreen),
-    RouteDef(Routes.loginScreen, page: LoginScreen),
     RouteDef(Routes.borradoresPage, page: BorradoresPage),
     RouteDef(Routes.llenarCuestionarioFormPage,
         page: LlenarCuestionarioFormPage),

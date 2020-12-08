@@ -1,9 +1,15 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:form_bloc/form_bloc.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/infrastructure/database/usuario.dart';
-import 'package:inspecciones/presentation/pages/prueba.dart'; 
+import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/presentation/pages/prueba.dart';
+import 'package:inspecciones/presentation/pages/borradores_screen.dart';
+import 'package:provider/provider.dart';
+import '../../injection.dart';
+import '../../router.gr.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({Key key}) : super(key: key);
@@ -19,31 +25,29 @@ class LoginScreen extends StatelessWidget {
    MiError._();
     static const String validar_doc = 'validar_doc - Validator Error';
 }*/
-class MisValidaciones{
-  static bool validar_doc(String doc, String cont){
-    var docu= Usuario.getUsers().where((usu) => (usu.documento==doc));
+class MisValidaciones {
+  static bool validar_doc(String doc, String cont) {
+    var docu = Usuario.getUsers().where((usu) => (usu.documento == doc));
     print('documento registrado');
     print(docu);
-    if(docu.isEmpty){
+    if (docu.isEmpty) {
       return false;
-    }
-    else{
-      if(docu.elementAt(0).contrasena!=cont){
+    } else {
+      if (docu.elementAt(0).contrasena != cont) {
         return false;
       }
     }
     return true;
   }
 
-  static bool isContratista (String documento){
-    var docu= Usuario.getUsers().where((usu) => (usu.documento==documento));
-    if(docu.elementAt(0).isContratista){
+  static bool isContratista(String documento) {
+    var docu = Usuario.getUsers().where((usu) => (usu.documento == documento));
+    if (docu.elementAt(0).isContratista) {
       return true;
     }
     return false;
   }
-}  
-
+}
 
 class LoginFormBloc extends FormBloc<String, String> {
   final documento = TextFieldBloc(
@@ -65,7 +69,7 @@ class LoginFormBloc extends FormBloc<String, String> {
       fieldBlocs: [
         documento,
         password,
-  /*       showSuccessResponse, */
+        /*       showSuccessResponse, */
       ],
     );
   }
@@ -76,23 +80,23 @@ class LoginFormBloc extends FormBloc<String, String> {
     print(password.value);
     /* print(showSuccessResponse.value); */
     print('mival');
-    print(MisValidaciones.validar_doc(documento.value,password.value));
+    print(MisValidaciones.validar_doc(documento.value, password.value));
     await Future<void>.delayed(Duration(seconds: 1));
-    if (/* showSuccessResponse.value &  */ MisValidaciones.validar_doc(documento.value,password.value)) {
+    if (/* showSuccessResponse.value &  */ MisValidaciones.validar_doc(
+        documento.value, password.value)) {
       pantallaMostrar();
     } else {
       emitFailure(failureResponse: 'Ha ocurrido un error!');
     }
   }
 
-  void pantallaMostrar() async{
-    if(MisValidaciones.isContratista(documento.value)){
+  void pantallaMostrar() async {
+    if (MisValidaciones.isContratista(documento.value)) {
       print('pantallaMostrar');
       print(MisValidaciones.isContratista(documento.value));
-      emitSuccess(successResponse:'Pantalla de contratista');
-    }
-    else{
-      emitSuccess(successResponse:'Pantalla de inspector');
+      emitSuccess(successResponse: 'Pantalla de contratista');
+    } else {
+      emitSuccess(successResponse: 'Pantalla de inspector');
     }
   }
 }
@@ -110,28 +114,36 @@ class LoginForm extends StatelessWidget {
             resizeToAvoidBottomInset: false,
             /* appBar: AppBar(title: Text('Ingreso')), */
             body: Padding(
-              padding: const EdgeInsets.only(top: 30,left:8),
+              padding: const EdgeInsets.only(top: 30, left: 8),
               child: FormBlocListener<LoginFormBloc, String, String>(
                 onSubmitting: (context, state) {
                   LoadingDialog.show(context);
                 },
                 onSuccess: (context, state) {
                   LoadingDialog.hide(context);
-                    var x= Text(state.successResponse);
-                    
-                    if(x.data=="Pantalla de inspector"){
-                      print(x.data);
-                      Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => Inspector()));
-                    }
-                    else{
-                      print(x.data);
-                       Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => Contratista()));
-                    }
-                 /*  Navigator.of(context).pushReplacement(
+                  var x = Text(state.successResponse);
+                  if (x.data == "Pantalla de inspector") {
+                    print(x.data);
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (_) => Provider(
+                            create: (_) => Usuario(
+                                loginFormBloc.documento.value, null, null),
+                            child: BorradoresPage(getIt<Database>()))));
+                    /* Navigator.of(context).pushReplacementNamed(
+                      Routes.borradoresPage,
+                      arguments: BorradoresPageArguments(db: getIt<Database>()),
+                    ); */
+                  } else {
+                    print(x.data);
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (_) => Provider(
+                            create: (_) => Usuario(
+                                loginFormBloc.documento.value, null, null),
+                            child: ContratistaScreen())));
+                  }
+                  /*  Navigator.of(context).pushReplacement(
                       MaterialPageRoute(builder: (_) => SuccessScreen())); */
-                      /* Scaffold.of(context).showSnackBar(
+                  /* Scaffold.of(context).showSnackBar(
                       SnackBar(content: Text(state.successResponse))); */
                 },
                 onFailure: (context, state) {
@@ -160,7 +172,7 @@ class LoginForm extends StatelessWidget {
                           prefixIcon: Icon(Icons.lock),
                         ),
                       ),
-                     /*  SizedBox(
+                      /*  SizedBox(
                         width: 250,
                         child: CheckboxFieldBlocBuilder(
                           booleanFieldBloc: loginFormBloc.showSuccessResponse,
@@ -173,7 +185,7 @@ class LoginForm extends StatelessWidget {
                       RaisedButton(
                         onPressed: loginFormBloc.submit,
                         child: Text('Ingresar'),
-                      ), 
+                      ),
                     ],
                   ),
                 ),
@@ -215,7 +227,6 @@ class LoadingDialog extends StatelessWidget {
     );
   }
 }
-
 
 /* class SuccessScreen extends StatelessWidget {
   SuccessScreen({Key key}) : super(key: key);

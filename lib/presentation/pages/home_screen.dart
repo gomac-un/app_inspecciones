@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  void _pushScreen(BuildContext context, Widget screen) {
+  /* void _pushScreen(BuildContext context, Widget screen) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => screen),
     );
-  }
+  } */
 
   @override
   Widget build(BuildContext context) {

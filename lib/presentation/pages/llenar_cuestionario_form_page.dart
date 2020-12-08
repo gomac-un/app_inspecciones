@@ -120,8 +120,8 @@ class LlenarCuestionarioFormPage extends StatelessWidget {
               },
             ),
             ActionButton(
-              iconData: Icons.send,
-              label: 'Enviar',
+              iconData: Icons.done_all_outlined,
+              label: 'Finalizar',
               onPressed: _formBloc.enviar,
             ),
           ],

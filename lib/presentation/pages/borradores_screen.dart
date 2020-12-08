@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
-
+import 'package:inspecciones/presentation/pages/login_screen.dart';
 import 'package:inspecciones/presentation/pages/llenar_cuestionario_form_page.dart';
 import '../../infrastructure/moor_database.dart';
 import '../../injection.dart';
-import 'login_screen.dart';
+import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:inspecciones/application/crear_cuestionario_form/seleccion_activo_inspeccion_bloc.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:auto_route/auto_route.dart';
+import '../../router.gr.dart';
+import 'package:provider/provider.dart';
+import 'package:inspecciones/infrastructure/database/usuario.dart';
 
 @injectable
 class BorradoresPage extends StatelessWidget {
@@ -17,15 +23,17 @@ class BorradoresPage extends StatelessWidget {
 
   Database _db;
 
-  BorradoresPage(this._db);
+  BorradoresPage(
+    this._db,
+  );
 
   @override
   Widget build(BuildContext context) {
-    //final counterBloc = BlocProvider.of<CounterBloc>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('Borradores'),
       ),
+      drawer: Opciones(),
       body: StreamBuilder<List<Borrador>>(
         stream: _db.borradores(),
         builder: (context, snapshot) {
@@ -38,34 +46,47 @@ class BorradoresPage extends StatelessWidget {
 
           final borradores = snapshot.data;
 
-          return ListView.builder(
-            itemCount: borradores.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(borradores[index].activo.identificador +
-                    " - " +
-                    borradores[index].activo.modelo),
-                subtitle: Text(
-                    borradores[index].cuestionarioDeModelo.tipoDeInspeccion),
-                leading: Icon(Icons.edit),
-                trailing: IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () => eliminarBorrador(borradores[index], context),
-                ),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => LlenarCuestionarioFormPage(
-                      LlenarCuestionarioFormBloc.withBorrador(
-                        getIt<Database>(),
-                        borradores[index],
+          return Column(
+            children: <Widget>[
+              Expanded(
+                child: ListView.builder(
+                  itemCount: borradores.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(borradores[index].activo.identificador +
+                          " - " +
+                          borradores[index].activo.modelo),
+                      subtitle: Text(borradores[index]
+                          .cuestionarioDeModelo
+                          .tipoDeInspeccion),
+                      leading: Icon(Icons.edit),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () =>
+                            eliminarBorrador(borradores[index], context),
                       ),
-                    ),
-                  ),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => LlenarCuestionarioFormPage(
+                            LlenarCuestionarioFormBloc.withBorrador(
+                              getIt<Database>(),
+                              borradores[index],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+            ],
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _inicioInspeccion(context),
+        icon: Icon(Icons.add),
+        label: Text("Inspeccion"),
       ),
     );
   }
@@ -102,6 +123,116 @@ class BorradoresPage extends StatelessWidget {
       builder: (BuildContext context) {
         return alert;
       },
+    );
+  }
+}
+
+//Creacion de inspecciones
+Future<void> _inicioInspeccion(contextHome) async {
+  final formBloc = getIt<SeleccionActivoInspeccionBloc>();
+  return showDialog<void>(
+    //El showDialog no hace parte del arbol principal por lo cual toca guardar el contexto del home
+    context: contextHome,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Inicio de inspección'),
+        content:
+            FormBlocListener<SeleccionActivoInspeccionBloc, String, String>(
+          formBloc: formBloc,
+          onSuccess: (context, state) {
+            ExtendedNavigator.of(contextHome).push(
+              Routes.llenarCuestionarioFormPage,
+              arguments: LlenarCuestionarioFormPageArguments(
+                formBloc: LlenarCuestionarioFormBloc(
+                  getIt<Database>(),
+                  formBloc.vehiculo.value,
+                  formBloc.tiposDeInspeccion.value.cuestionarioId,
+                ),
+              ),
+            );
+            ExtendedNavigator.of(context).pop();
+          },
+          child: Container(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  TextFieldBlocBuilder(
+                    textFieldBloc: formBloc.vehiculo,
+                    decoration: InputDecoration(
+                      labelText: 'Escriba el ID del vehiculo',
+                      prefixIcon: Icon(Icons.directions_car),
+                    ),
+                  ),
+                  RadioButtonGroupFieldBlocBuilder<CuestionarioDeModelo>(
+                    selectFieldBloc: formBloc.tiposDeInspeccion,
+                    decoration: InputDecoration(
+                      labelText: 'Tipo de inspección',
+                      prefixIcon: SizedBox(),
+                      border: InputBorder.none,
+                    ),
+                    itemBuilder: (context, item) => item.tipoDeInspeccion,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          FlatButton(
+            child: Text('Inspeccionar'),
+            onPressed: formBloc.submit,
+          ),
+        ],
+      );
+    },
+  );
+}
+
+class Opciones extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    Usuario usuario = Provider.of<Usuario>(context);
+    return SafeArea(
+      child: new Drawer(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 60.0),
+          child: ListView(
+            children: <Widget>[
+              new UserAccountsDrawerHeader(
+                accountName: Text("Inspector"),
+                accountEmail: Text(usuario.documento),
+                decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: NetworkImage(
+                            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/1200px-User_icon_2.svg.png"),
+                        fit: BoxFit.fitHeight,
+                        alignment: Alignment.bottomRight)),
+              ),
+              SizedBox(height: 20.0),
+              Ink(
+                color: Colors.lightBlue,
+                width: 5.0,
+                child: Center(
+                    child: ListTile(
+                        title: Text('Cerrar Sesión'),
+                        leading: Icon(Icons.exit_to_app),
+                        onTap: () => {
+                              Navigator.pop(context),
+                              Navigator.of(context).pushReplacementNamed('/'),
+                            }) /* RaisedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.of(context).pushReplacementNamed('/');
+                    },
+                    child: Text("cerrar sesión"),
+                  ), */
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
