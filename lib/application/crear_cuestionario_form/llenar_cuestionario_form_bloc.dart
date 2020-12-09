@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:inspecciones/application/crear_cuestionario_form/bloques_de_formulario.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/respuesta_field_bloc.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:inspecciones/domain/core/enums.dart';
@@ -59,6 +58,7 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
           ),*/
             );
       } else {
+        /*
         //logica para el agrupamiento de las preguntas que componen una cuadricula
         // funciona solo si los elementos pertenecientes a una cuadricula
         // se encuentran contiguos
@@ -91,7 +91,7 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
         //preguntas que no hacen parte de un grupo
         if (bloque.pregunta.tipo != TipoDePregunta.cuadricula) {
           bloques.add(bloqueExt);
-        }
+        }*/
       }
     });
 

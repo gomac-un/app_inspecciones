@@ -9,12 +9,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
-import 'mvvc/form_llenado.dart';
+import 'mvvc/creacion_form_page.dart';
 
 class Routes {
-  static const String formLlenado = '/';
+  static const String creacionFormPage = '/';
   static const all = <String>{
-    formLlenado,
+    creacionFormPage,
   };
 }
 
@@ -22,35 +22,16 @@ class AutoRouter extends RouterBase {
   @override
   List<RouteDef> get routes => _routes;
   final _routes = <RouteDef>[
-    RouteDef(Routes.formLlenado, page: FormLlenado),
+    RouteDef(Routes.creacionFormPage, page: CreacionFormPage),
   ];
   @override
   Map<Type, AutoRouteFactory> get pagesMap => _pagesMap;
   final _pagesMap = <Type, AutoRouteFactory>{
-    FormLlenado: (data) {
-      final args = data.getArgs<FormLlenadoArguments>(
-        orElse: () => FormLlenadoArguments(),
-      );
+    CreacionFormPage: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => FormLlenado(
-          key: args.key,
-          vehiculo: args.vehiculo,
-          cuestionarioId: args.cuestionarioId,
-        ).wrappedRoute(context),
+        builder: (context) => const CreacionFormPage().wrappedRoute(context),
         settings: data,
       );
     },
   };
-}
-
-/// ************************************************************************
-/// Arguments holder classes
-/// *************************************************************************
-
-/// FormLlenado arguments holder class
-class FormLlenadoArguments {
-  final Key key;
-  final String vehiculo;
-  final int cuestionarioId;
-  FormLlenadoArguments({this.key, this.vehiculo, this.cuestionarioId});
 }

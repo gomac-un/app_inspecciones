@@ -1,73 +1,86 @@
 import 'dart:io';
-
-import 'package:inspecciones/application/crear_cuestionario_form/bloques_de_formulario.dart';
+import 'package:flutter/foundation.dart';
 import 'package:inspecciones/domain/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-part 'bloques_de_ejemplo.dart';
+part 'creacion_datos_test.dart';
 
 //TODO: agregar todas las validaciones necesarias
 
-class FormLlenadoViewModel {
+class CreacionFormViewModel {
   final _db = getIt<Database>();
 
-  final String _vehiculo;
-  final int _cuestionarioId;
+  ValueNotifier<List<String>> tiposDeInspeccion = ValueNotifier([]);
+  final tipoDeInspeccion = FormControl<String>();
+
+  final nuevoTipoDeinspeccion = FormControl<String>();
+
+  ValueNotifier<List<String>> modelos = ValueNotifier([]);
+
+  final modelosSeleccionados = FormArray<String>([]);
+
+  final contratista = FormControl<Contratista>();
+
+  final periodicidad = FormControl<int>();
+
+  final bloques = FormArray([FormGroup({})]); //!mirar bien el tipo
 
   final form = FormGroup({});
 
-  final bloques = bloquesDeEjemplo;
-
-  List bloquesMutables;
-
-  FormLlenadoViewModel(this._vehiculo, this._cuestionarioId) {
+  CreacionFormViewModel() {
     form.addAll({
+      'tipoDeInspeccion': tipoDeInspeccion,
+      'nuevoTipoDeInspeccion': nuevoTipoDeinspeccion,
+      'modelos': modelosSeleccionados,
+      'contratista': contratista,
+      'periodicidad': periodicidad,
       'bloques': bloques,
     });
+    cargarDatos();
   }
+
   Future cargarDatos() async {
-    final Inspeccion inspeccion = _db.getInspeccion(_vehiculo, _cuestionarioId);
+    tiposDeInspeccion.value = await _db.getTiposDeInspecciones();
+    tiposDeInspeccion.value.add("otro");
 
-    final List<BloqueConTitulo> titulos = await _db.getTitulos(inspeccion);
+    modelos.value = await _db.getModelos();
+    /*_db.getContratistas(),
+      _db.getSistemas(),*/
+  }
 
-    final List<BloqueConPreguntaRespondida> preguntasSimples =
-        await _db.getPreguntasSimples(inspeccion);
-
-    final List<BloqueConCuadricula> cuadriculas =
-        await _db.getCuadriculas(inspeccion);
-
-    bloquesMutables = ([...titulos, ...preguntasSimples, ...cuadriculas]
-          ..sort((a, b) => a.bloque.nOrder.compareTo(b.bloque.nOrder)))
-        .map((e) => FormControl())
-        .toList();
+  Future guardarEnLocal({bool esBorrador}) async {
+    //TODO: implementar
+  }
+  void enviar() {
+    //TODO: implementar
+    print(form.value);
   }
 }
 
 class RespuestaSeleccionSimpleFormGroup extends FormGroup {
-  final PreguntaConOpcionesDeRespuesta preguntaConOpcionesDeRespuesta;
+  final PreguntaConOpcionesDeRespuesta pregunta;
   final RespuestaConOpcionesDeRespuesta respuesta;
 
   //constructor que le envia los controles a la clase padre
-  RespuestaSeleccionSimpleFormGroup._(
-      controles, this.preguntaConOpcionesDeRespuesta, this.respuesta)
+  RespuestaSeleccionSimpleFormGroup._(controles, this.pregunta, this.respuesta)
       : super(controles);
 
   factory RespuestaSeleccionSimpleFormGroup(
-      PreguntaConOpcionesDeRespuesta preguntaConOpcionesDeRespuesta,
+      PreguntaConOpcionesDeRespuesta pregunta,
       RespuestaConOpcionesDeRespuesta respuesta) {
     respuesta.respuesta ??= RespuestasCompanion.insert(
       //TODO: pendiente de https://github.com/simolus3/moor/issues/960
       inspeccionId: null, //! agregar la inspeccion en el guardado de la db
-      preguntaId: preguntaConOpcionesDeRespuesta.pregunta.id,
+      preguntaId: pregunta.pregunta.id,
       fotosBase: Value([]),
       reparado: Value(false),
     );
 
     final Map<String, AbstractControl<dynamic>> controles = {
       'respuesta': FormControl<OpcionDeRespuesta>(
-        value: preguntaConOpcionesDeRespuesta.opcionesDeRespuesta.firstWhere(
+        value: pregunta.opcionesDeRespuesta.firstWhere(
           (e) => respuesta.opcionesDeRespuesta?.first?.id == e?.id,
           orElse: () => null,
         ), //TODO: multiples respuestas
@@ -91,7 +104,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup {
 
     return RespuestaSeleccionSimpleFormGroup._(
       controles,
-      preguntaConOpcionesDeRespuesta,
+      pregunta,
       respuesta,
     );
   }
@@ -109,7 +122,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup {
       sumres = control('respuesta').value.criticidad;
     }
 
-    return preguntaConOpcionesDeRespuesta.pregunta.criticidad * sumres;
+    return pregunta.pregunta.criticidad * sumres;
   }
 }
 

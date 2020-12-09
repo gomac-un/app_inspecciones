@@ -1,4 +1,4 @@
-part of 'form_llenado_view_model.dart';
+part of 'llenado_form_view_model.dart';
 
 final bloquesDeEjemplo = FormArray([
   TituloFormGroup(

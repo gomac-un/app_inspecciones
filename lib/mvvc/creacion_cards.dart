@@ -3,47 +3,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/mvvc/form_llenado_view_model.dart';
+import 'package:inspecciones/mvvc/common_widgets.dart';
+import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/presentation/widgets/image_shower.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-class RespuestaCard extends StatelessWidget {
-  final Widget child;
-  final String titulo;
-  final String descripcion;
-
-  const RespuestaCard(
-      {Key key, this.child, this.titulo = "", this.descripcion = ""})
-      : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Text(
-              titulo,
-              style: Theme.of(context).textTheme.headline6,
-            ),
-            Text(
-              descripcion,
-              style: Theme.of(context).textTheme.bodyText2,
-            ),
-            SizedBox(height: 10),
-            child,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TituloCard extends StatelessWidget {
+class TituloCardl extends StatelessWidget {
   final TituloFormGroup formGroup;
 
-  const TituloCard({Key key, this.formGroup}) : super(key: key);
+  const TituloCardl({Key key, this.formGroup}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -71,30 +40,26 @@ class TituloCard extends StatelessWidget {
   }
 }
 
-class SeleccionSimpleCard extends StatelessWidget {
+class SeleccionSimpleCardl extends StatelessWidget {
   final RespuestaSeleccionSimpleFormGroup formGroup;
 
-  const SeleccionSimpleCard({Key key, this.formGroup}) : super(key: key);
+  const SeleccionSimpleCardl({Key key, this.formGroup}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return RespuestaCard(
-      titulo: formGroup.preguntaConOpcionesDeRespuesta.pregunta.titulo,
-      descripcion:
-          formGroup.preguntaConOpcionesDeRespuesta.pregunta.descripcion,
+    return PreguntaCard(
+      titulo: formGroup.pregunta.pregunta.titulo,
+      descripcion: formGroup.pregunta.pregunta.descripcion,
       child: Column(
         children: [
-          if (formGroup
-                  .preguntaConOpcionesDeRespuesta.pregunta.fotosGuia.length >
-              0)
+          if (formGroup.pregunta.pregunta.fotosGuia.length > 0)
             ImageShower(
-              imagenes: formGroup
-                  .preguntaConOpcionesDeRespuesta.pregunta.fotosGuia
+              imagenes: formGroup.pregunta.pregunta.fotosGuia
                   .map((e) => File(e))
                   .toList(),
             ),
           ReactiveDropdownField<OpcionDeRespuesta>(
             formControl: formGroup.control('respuesta'),
-            items: formGroup.preguntaConOpcionesDeRespuesta.opcionesDeRespuesta
+            items: formGroup.pregunta.opcionesDeRespuesta
                 .map((e) => DropdownMenuItem<OpcionDeRespuesta>(
                     value: e, child: Text(e.texto)))
                 .toList(),
@@ -161,13 +126,13 @@ class SeleccionSimpleCard extends StatelessWidget {
   }
 }
 
-class CuadriculaCard extends StatelessWidget {
+class CuadriculaCardl extends StatelessWidget {
   final RespuestaCuadriculaFormArray formArray;
 
-  const CuadriculaCard({Key key, this.formArray}) : super(key: key);
+  const CuadriculaCardl({Key key, this.formArray}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return RespuestaCard(
+    return PreguntaCard(
       titulo: formArray.cuadricula.cuadricula.titulo,
       descripcion: formArray.cuadricula.cuadricula.descripcion,
       child: Table(

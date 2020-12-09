@@ -16,12 +16,12 @@ class CrearCuestionarioFormBloc extends FormBloc<String, String> {
 
   List<Sistema> sistemas;
 
-  final nuevoTipoDeinspeccion = TextFieldBloc(name: 'nuevoTipoDeInspeccion');
-
   final tiposDeInspeccion = SelectFieldBloc<String, dynamic>(
     name: 'tipoDeInspeccion',
     validators: [FieldBlocValidators.required],
   );
+
+  final nuevoTipoDeinspeccion = TextFieldBloc(name: 'nuevoTipoDeInspeccion');
 
   final clasesDeModelos = MultiSelectFieldBloc<String, dynamic>(
     name: 'modelos',

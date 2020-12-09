@@ -3486,6 +3486,259 @@ class $RespuestasTable extends Respuestas
       const ListInColumnConverter();
 }
 
+class RespuestasXOpcionesDeRespuestaData extends DataClass
+    implements Insertable<RespuestasXOpcionesDeRespuestaData> {
+  final int id;
+  final int respuestaId;
+  final int opcionDeRespuestaId;
+  RespuestasXOpcionesDeRespuestaData(
+      {@required this.id,
+      @required this.respuestaId,
+      @required this.opcionDeRespuestaId});
+  factory RespuestasXOpcionesDeRespuestaData.fromData(
+      Map<String, dynamic> data, GeneratedDatabase db,
+      {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    final intType = db.typeSystem.forDartType<int>();
+    return RespuestasXOpcionesDeRespuestaData(
+      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      respuestaId: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}respuesta_id']),
+      opcionDeRespuestaId: intType.mapFromDatabaseResponse(
+          data['${effectivePrefix}opcion_de_respuesta_id']),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || respuestaId != null) {
+      map['respuesta_id'] = Variable<int>(respuestaId);
+    }
+    if (!nullToAbsent || opcionDeRespuestaId != null) {
+      map['opcion_de_respuesta_id'] = Variable<int>(opcionDeRespuestaId);
+    }
+    return map;
+  }
+
+  RespuestasXOpcionesDeRespuestaCompanion toCompanion(bool nullToAbsent) {
+    return RespuestasXOpcionesDeRespuestaCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      respuestaId: respuestaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(respuestaId),
+      opcionDeRespuestaId: opcionDeRespuestaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(opcionDeRespuestaId),
+    );
+  }
+
+  factory RespuestasXOpcionesDeRespuestaData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return RespuestasXOpcionesDeRespuestaData(
+      id: serializer.fromJson<int>(json['id']),
+      respuestaId: serializer.fromJson<int>(json['respuestaId']),
+      opcionDeRespuestaId:
+          serializer.fromJson<int>(json['opcionDeRespuestaId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'respuestaId': serializer.toJson<int>(respuestaId),
+      'opcionDeRespuestaId': serializer.toJson<int>(opcionDeRespuestaId),
+    };
+  }
+
+  RespuestasXOpcionesDeRespuestaData copyWith(
+          {int id, int respuestaId, int opcionDeRespuestaId}) =>
+      RespuestasXOpcionesDeRespuestaData(
+        id: id ?? this.id,
+        respuestaId: respuestaId ?? this.respuestaId,
+        opcionDeRespuestaId: opcionDeRespuestaId ?? this.opcionDeRespuestaId,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('RespuestasXOpcionesDeRespuestaData(')
+          ..write('id: $id, ')
+          ..write('respuestaId: $respuestaId, ')
+          ..write('opcionDeRespuestaId: $opcionDeRespuestaId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(
+      id.hashCode, $mrjc(respuestaId.hashCode, opcionDeRespuestaId.hashCode)));
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) ||
+      (other is RespuestasXOpcionesDeRespuestaData &&
+          other.id == this.id &&
+          other.respuestaId == this.respuestaId &&
+          other.opcionDeRespuestaId == this.opcionDeRespuestaId);
+}
+
+class RespuestasXOpcionesDeRespuestaCompanion
+    extends UpdateCompanion<RespuestasXOpcionesDeRespuestaData> {
+  final Value<int> id;
+  final Value<int> respuestaId;
+  final Value<int> opcionDeRespuestaId;
+  const RespuestasXOpcionesDeRespuestaCompanion({
+    this.id = const Value.absent(),
+    this.respuestaId = const Value.absent(),
+    this.opcionDeRespuestaId = const Value.absent(),
+  });
+  RespuestasXOpcionesDeRespuestaCompanion.insert({
+    this.id = const Value.absent(),
+    @required int respuestaId,
+    @required int opcionDeRespuestaId,
+  })  : respuestaId = Value(respuestaId),
+        opcionDeRespuestaId = Value(opcionDeRespuestaId);
+  static Insertable<RespuestasXOpcionesDeRespuestaData> custom({
+    Expression<int> id,
+    Expression<int> respuestaId,
+    Expression<int> opcionDeRespuestaId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (respuestaId != null) 'respuesta_id': respuestaId,
+      if (opcionDeRespuestaId != null)
+        'opcion_de_respuesta_id': opcionDeRespuestaId,
+    });
+  }
+
+  RespuestasXOpcionesDeRespuestaCompanion copyWith(
+      {Value<int> id, Value<int> respuestaId, Value<int> opcionDeRespuestaId}) {
+    return RespuestasXOpcionesDeRespuestaCompanion(
+      id: id ?? this.id,
+      respuestaId: respuestaId ?? this.respuestaId,
+      opcionDeRespuestaId: opcionDeRespuestaId ?? this.opcionDeRespuestaId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (respuestaId.present) {
+      map['respuesta_id'] = Variable<int>(respuestaId.value);
+    }
+    if (opcionDeRespuestaId.present) {
+      map['opcion_de_respuesta_id'] = Variable<int>(opcionDeRespuestaId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RespuestasXOpcionesDeRespuestaCompanion(')
+          ..write('id: $id, ')
+          ..write('respuestaId: $respuestaId, ')
+          ..write('opcionDeRespuestaId: $opcionDeRespuestaId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RespuestasXOpcionesDeRespuestaTable
+    extends RespuestasXOpcionesDeRespuesta
+    with
+        TableInfo<$RespuestasXOpcionesDeRespuestaTable,
+            RespuestasXOpcionesDeRespuestaData> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $RespuestasXOpcionesDeRespuestaTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedIntColumn _id;
+  @override
+  GeneratedIntColumn get id => _id ??= _constructId();
+  GeneratedIntColumn _constructId() {
+    return GeneratedIntColumn('id', $tableName, false,
+        hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _respuestaIdMeta =
+      const VerificationMeta('respuestaId');
+  GeneratedIntColumn _respuestaId;
+  @override
+  GeneratedIntColumn get respuestaId =>
+      _respuestaId ??= _constructRespuestaId();
+  GeneratedIntColumn _constructRespuestaId() {
+    return GeneratedIntColumn('respuesta_id', $tableName, false,
+        $customConstraints: 'REFERENCES respuestas(id)');
+  }
+
+  final VerificationMeta _opcionDeRespuestaIdMeta =
+      const VerificationMeta('opcionDeRespuestaId');
+  GeneratedIntColumn _opcionDeRespuestaId;
+  @override
+  GeneratedIntColumn get opcionDeRespuestaId =>
+      _opcionDeRespuestaId ??= _constructOpcionDeRespuestaId();
+  GeneratedIntColumn _constructOpcionDeRespuestaId() {
+    return GeneratedIntColumn('opcion_de_respuesta_id', $tableName, false,
+        $customConstraints: 'REFERENCES opciones_de_respuesta(id)');
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, respuestaId, opcionDeRespuestaId];
+  @override
+  $RespuestasXOpcionesDeRespuestaTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'respuestas_x_opciones_de_respuesta';
+  @override
+  final String actualTableName = 'respuestas_x_opciones_de_respuesta';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<RespuestasXOpcionesDeRespuestaData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    }
+    if (data.containsKey('respuesta_id')) {
+      context.handle(
+          _respuestaIdMeta,
+          respuestaId.isAcceptableOrUnknown(
+              data['respuesta_id'], _respuestaIdMeta));
+    } else if (isInserting) {
+      context.missing(_respuestaIdMeta);
+    }
+    if (data.containsKey('opcion_de_respuesta_id')) {
+      context.handle(
+          _opcionDeRespuestaIdMeta,
+          opcionDeRespuestaId.isAcceptableOrUnknown(
+              data['opcion_de_respuesta_id'], _opcionDeRespuestaIdMeta));
+    } else if (isInserting) {
+      context.missing(_opcionDeRespuestaIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RespuestasXOpcionesDeRespuestaData map(Map<String, dynamic> data,
+      {String tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
+    return RespuestasXOpcionesDeRespuestaData.fromData(data, _db,
+        prefix: effectivePrefix);
+  }
+
+  @override
+  $RespuestasXOpcionesDeRespuestaTable createAlias(String alias) {
+    return $RespuestasXOpcionesDeRespuestaTable(_db, alias);
+  }
+}
+
 class Contratista extends DataClass implements Insertable<Contratista> {
   final int id;
   final String nombre;
@@ -4132,6 +4385,10 @@ abstract class _$Database extends GeneratedDatabase {
       _inspecciones ??= $InspeccionesTable(this);
   $RespuestasTable _respuestas;
   $RespuestasTable get respuestas => _respuestas ??= $RespuestasTable(this);
+  $RespuestasXOpcionesDeRespuestaTable _respuestasXOpcionesDeRespuesta;
+  $RespuestasXOpcionesDeRespuestaTable get respuestasXOpcionesDeRespuesta =>
+      _respuestasXOpcionesDeRespuesta ??=
+          $RespuestasXOpcionesDeRespuestaTable(this);
   $ContratistasTable _contratistas;
   $ContratistasTable get contratistas =>
       _contratistas ??= $ContratistasTable(this);
@@ -4153,6 +4410,7 @@ abstract class _$Database extends GeneratedDatabase {
         opcionesDeRespuesta,
         inspecciones,
         respuestas,
+        respuestasXOpcionesDeRespuesta,
         contratistas,
         sistemas,
         subSistemas

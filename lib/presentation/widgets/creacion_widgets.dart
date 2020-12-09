@@ -91,12 +91,13 @@ class CrearPreguntaCard extends StatelessWidget {
               ),
               itemBuilder: (context, item) => item.toString(),
             ),
+            /*
             FormBuilderImagePicker(
               imagenesFieldBlocs: preguntaField.imagenes,
               decoration: const InputDecoration(
                 labelText: 'Fotos guia',
               ),
-            ),
+            ),*/
             DropdownFieldBlocBuilder<TipoDePregunta>(
               selectFieldBloc: preguntaField.tiposDePregunta,
               decoration: InputDecoration(

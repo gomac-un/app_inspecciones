@@ -8,6 +8,7 @@ import 'package:json_annotation/json_annotation.dart' as j;
 import 'package:moor/moor.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import "package:collection/collection.dart";
 
 import 'package:inspecciones/domain/core/enums.dart';
 export 'database/shared.dart';
@@ -15,64 +16,7 @@ export 'database/shared.dart';
 part 'moor_database.g.dart';
 part 'bdDePrueba.dart';
 part 'tablas.dart';
-
-class BloqueConPregunta {
-  final Bloque bloque;
-  final Pregunta pregunta;
-
-  BloqueConPregunta({
-    @required this.bloque,
-    @required this.pregunta,
-  });
-}
-
-class PreguntaConOpcionesDeRespuesta {
-  final Pregunta pregunta;
-  final List<OpcionDeRespuesta> opcionesDeRespuesta;
-
-  PreguntaConOpcionesDeRespuesta(this.pregunta, this.opcionesDeRespuesta);
-}
-
-class RespuestaConOpcionesDeRespuesta {
-  RespuestasCompanion respuesta;
-  List<OpcionDeRespuesta> opcionesDeRespuesta;
-
-  RespuestaConOpcionesDeRespuesta(this.respuesta, this.opcionesDeRespuesta);
-}
-
-class CuadriculaDePreguntasConOpcionesDeRespuesta {
-  final CuadriculaDePreguntas cuadricula;
-  final List<OpcionDeRespuesta> opcionesDeRespuesta;
-
-  CuadriculaDePreguntasConOpcionesDeRespuesta(
-      this.cuadricula, this.opcionesDeRespuesta);
-}
-
-class PreguntaConRespuestaConOpcionesDeRespuesta {
-  final Pregunta pregunta;
-  RespuestaConOpcionesDeRespuesta respuesta;
-
-  PreguntaConRespuestaConOpcionesDeRespuesta(this.pregunta, this.respuesta);
-}
-
-class BloqueConPreguntaRespondida {
-  Bloque bloque;
-  Pregunta pregunta;
-  RespuestasCompanion respuesta;
-
-  BloqueConPreguntaRespondida({
-    @required this.bloque,
-    @required this.pregunta,
-    @required this.respuesta,
-  });
-}
-
-class Borrador {
-  Inspeccion inspeccion;
-  CuestionarioDeModelo cuestionarioDeModelo;
-  Activo activo;
-  Borrador(this.inspeccion, this.cuestionarioDeModelo, this.activo);
-}
+part 'tablas_unidas.dart';
 
 @UseMoor(
   tables: [
@@ -86,6 +30,7 @@ class Borrador {
     OpcionesDeRespuesta,
     Inspecciones,
     Respuestas,
+    RespuestasXOpcionesDeRespuesta,
     Contratistas,
     Sistemas,
     SubSistemas,
@@ -128,7 +73,7 @@ class Database extends _$Database {
     dbFile.deleteSync();*/
     final m = this.createMigrator();
     await customStatement('PRAGMA foreign_keys = OFF');
-    // changed to this
+
     for (final table in allTables) {
       await m.deleteTable(table.actualTableName);
 
@@ -276,21 +221,84 @@ class Database extends _$Database {
     }).get();
   }
 
-  Future<List<BloqueConPreguntaRespondida>> cargarInspeccion(
-      int cuestionarioId, String vehiculo) async {
+  Future<Inspeccion> getInspeccion(String vehiculo, int cuestionarioId) {
     //revisar si hay una inspeccion de ese cuestionario empezada
     if (cuestionarioId == null || vehiculo == null) return null;
-    final query1 = select(inspecciones)
+    final query = select(inspecciones)
       ..where(
         (ins) =>
             ins.cuestionarioId.equals(cuestionarioId) &
             ins.identificadorActivo.equals(vehiculo),
       );
 
-    final res = await query1.get();
+    return query.getSingle();
+  }
 
-    Inspeccion borrador;
-    if (res.length > 0) borrador = res.first;
+  Future<List<BloqueConTitulo>> getTitulos(Inspeccion inspeccion) {
+    final query = select(titulos).join([
+      innerJoin(bloques, bloques.id.equalsExp(titulos.bloqueId)),
+    ])
+      ..where(bloques.cuestionarioId.equals(inspeccion.cuestionarioId));
+    return query
+        .map((row) => BloqueConTitulo(
+              row.readTable(bloques),
+              row.readTable(titulos),
+            ))
+        .get();
+  }
+
+  Future<List<BloqueConPreguntaSimple>> getPreguntasSimples(
+      Inspeccion inspeccion) async {
+    final opcionesPregunta = alias(opcionesDeRespuesta, 'p');
+    final opcionesRespuesta = alias(opcionesDeRespuesta, 'r');
+
+    final query = select(preguntas).join([
+      innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
+      leftOuterJoin(opcionesPregunta,
+          opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
+      /*leftOuterJoin(respuestas, respuestas.preguntaId.equalsExp(preguntas.id)),
+      leftOuterJoin(respuestasXOpcionesDeRespuesta,
+          respuestasXOpcionesDeRespuesta.respuestaId.equalsExp(respuestas.id)),
+      leftOuterJoin(
+          opcionesRespuesta,
+          opcionesRespuesta.id
+              .equalsExp(respuestasXOpcionesDeRespuesta.opcionDeRespuestaId)),*/
+    ])
+      ..where(bloques.cuestionarioId.equals(inspeccion.cuestionarioId) &
+              preguntas.tipo.equals(0) //seleccion unica
+          );
+    final res = await query
+        .map((row) => PreguntaConOpcionDeRespuesta(
+            row.readTable(preguntas), row.readTable(opcionesPregunta)))
+        .get();
+
+    final res1 = groupBy(res, (PreguntaConOpcionDeRespuesta e) => e.pregunta)
+        .entries
+        .map(
+          (entry) => PreguntaConOpcionesDeRespuesta(
+            entry.key,
+            entry.value.map((item) => item.opcionDeRespuesta).toList(),
+          ),
+        )
+        .map(
+          (e) => BloqueConPreguntaSimple(null, e, null),
+        ) //TODO: obtener el bloque y las respuestas
+        .toList();
+
+    return res1;
+  }
+
+  Future<List<BloqueConCuadricula>> getCuadriculas(
+      Inspeccion inspeccion) async {
+    //TODO: implementar
+    return null;
+  }
+
+  Future<List<BloqueConPreguntaRespondida>> cargarInspeccion(
+      int cuestionarioId, String vehiculo) async {
+    //revisar si hay una inspeccion de ese cuestionario empezada
+
+    Inspeccion borrador = await getInspeccion(vehiculo, cuestionarioId);
 
     //carga los bloques y si tiene preguntas y respuestas las agrega
     final query2 = select(bloques).join([
