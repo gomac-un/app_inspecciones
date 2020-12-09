@@ -8,9 +8,7 @@ import 'package:inspecciones/application/crear_cuestionario_form/crear_cuestiona
 import 'package:inspecciones/application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/seleccion_activo_inspeccion_bloc.dart';
 import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/presentation/pages/borradores_screen.dart';
 
-import 'package:inspecciones/presentation/pages/llenar_cuestionario_form_page.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:moor_db_viewer/moor_db_viewer.dart';
 import '../../infrastructure/moor_database.dart';
@@ -48,6 +46,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
+          /*
           ListTile(
             title: Chip(label: Text('Borradores')),
             onTap: () => ExtendedNavigator.of(context).push(
@@ -55,6 +54,13 @@ class HomeScreen extends StatelessWidget {
               arguments: BorradoresPageArguments(db: getIt<Database>()),
             ),
           ),
+          ListTile(
+            title: Chip(label: Text('Prueba mvvc')),
+            onTap: () => ExtendedNavigator.of(context).push(
+              Routes.borradoresPage,
+              arguments: BorradoresPageArguments(db: getIt<Database>()),
+            ),
+          ),*/
           RaisedButton(
             onPressed: () {
               Navigator.of(context).push(MaterialPageRoute(
@@ -86,6 +92,7 @@ class HomeScreen extends StatelessWidget {
 
   Future<void> _inicioInspeccion(contextHome) async {
     final formBloc = getIt<SeleccionActivoInspeccionBloc>();
+
     return showDialog<void>(
       //El showDialog no hace parte del arbol principal por lo cual toca guardar el contexto del home
       context: contextHome,
@@ -96,6 +103,7 @@ class HomeScreen extends StatelessWidget {
               FormBlocListener<SeleccionActivoInspeccionBloc, String, String>(
             formBloc: formBloc,
             onSuccess: (context, state) {
+              /*
               ExtendedNavigator.of(contextHome).push(
                 Routes.llenarCuestionarioFormPage,
                 arguments: LlenarCuestionarioFormPageArguments(
@@ -106,7 +114,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
               );
-              ExtendedNavigator.of(context).pop();
+              ExtendedNavigator.of(context).pop();*/
             },
             child: Container(
               width: double.maxFinite,

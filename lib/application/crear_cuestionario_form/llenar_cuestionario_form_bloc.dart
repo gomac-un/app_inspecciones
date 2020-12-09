@@ -52,12 +52,12 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
     bloquesBD?.forEach((bloque) {
       if (bloque.pregunta == null) {
         //los titulos no tienen pregunta asociada
-        bloques.add(
-          Titulo(
+        bloques.add(Object()
+            /*Titulo(
             titulo: bloque.bloque.titulo,
             descripcion: bloque.bloque.descripcion,
-          ),
-        );
+          ),*/
+            );
       } else {
         //logica para el agrupamiento de las preguntas que componen una cuadricula
         // funciona solo si los elementos pertenecientes a una cuadricula

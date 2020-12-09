@@ -13,6 +13,7 @@ import 'presentation/pages/borradores_screen.dart';
 import 'infrastructure/moor_database.dart';
 import 'infrastructure/local_datasource.dart';
 import 'infrastructure/remote_datasource.dart';
+import 'infrastructure/inspecciones_repository.dart';
 import 'infrastructure/core/network_info.dart';
 import 'infrastructure/database/mobile.dart';
 import 'application/crear_cuestionario_form/seleccion_activo_inspeccion_bloc.dart';
@@ -42,6 +43,11 @@ GetIt $initGetIt(
   gh.factory<SeleccionActivoInspeccionBloc>(
       () => SeleccionActivoInspeccionBloc(get<Database>()));
   gh.factory<BorradoresPage>(() => BorradoresPage(get<Database>()));
+  gh.lazySingleton<InspeccionesRepository>(() => InspeccionesRepository(
+        remoteDataSource: get<InspeccionesRemoteDataSource>(),
+        localDataBase: get<Database>(),
+        networkInfo: get<NetworkInfo>(),
+      ));
   return get;
 }
 

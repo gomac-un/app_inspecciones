@@ -9,6 +9,7 @@ class Activos extends Table {
   Set<Column> get primaryKey => {identificador};
 }
 
+//Tabla para asignar cuestionarios a modelos y a contratistas
 class CuestionarioDeModelos extends Table {
   TextColumn get modelo => text()();
 
@@ -28,7 +29,7 @@ class CuestionarioDeModelos extends Table {
 
 class Cuestionarios extends Table {
   IntColumn get id =>
-      integer().autoIncrement()(); //se podria agregar mas informacion aqui
+      integer().autoIncrement()(); //se podria agregar mas informacion aquí
   // List<Inspecciones>
   // List<Bloques>
   //List<CuestionariosDeModelos>
@@ -49,7 +50,7 @@ class Bloques extends Table {
 
 }
 
-//TODO: refactorizar ya que se saco el titulo/descripcion del bloque y se puso
+//TODO: refactorizar ya que se sacó el titulo/descripcion del bloque y se puso
 //en las tablas titulo y pregunta.
 //Las consultas ya deben involucrar de manera independiente
 //tablas de titulos y preguntas de tipo simple y de tipo cuadricula.
@@ -72,12 +73,16 @@ class Titulos extends Table {
 
 //Tabla para agrupar las preguntas de tipo cuadricula
 //para acceder se debe hacer join con el bloque en comun con las preguntas
+@DataClassName('CuadriculaDePreguntas')
 class CuadriculasDePreguntas extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   IntColumn get bloqueId => integer().customConstraint(
       'REFERENCES bloques(id)')(); //debe ser unico por ser uno a uno, sera que es pk?
 
+  TextColumn get titulo => text().withLength(min: 1, max: 100)();
+
+  TextColumn get descripcion => text().withLength(min: 0, max: 200)();
   //List<OpcionesDeRespuesta>
 
 }
@@ -88,6 +93,7 @@ class CuadriculasDePreguntas extends Table {
 //TODO:agrupadas por el bloque
 // a este bloque del grupo se le asocia tambien el CuadriculasDePreguntas que
 //tiene (por medio de join) las opciones de respuesta para el grupo de preguntas
+
 class Preguntas extends Table {
   IntColumn get id => integer().autoIncrement()();
 
@@ -117,11 +123,17 @@ class Preguntas extends Table {
   //List<OpcionesDeRespuesta>
 }
 
+@DataClassName('OpcionDeRespuesta')
 class OpcionesDeRespuesta extends Table {
   IntColumn get id => integer().autoIncrement()();
 
+  //uno de estos 2 debe ser no nulo
   IntColumn get preguntaId =>
-      integer()();//No se le pone el references ya que puede referenciar tanto a una pregunta como a una cuadricula
+      integer().nullable().customConstraint('REFERENCES preguntas(id)')();
+
+  IntColumn get cuadriculaId => integer()
+      .nullable()
+      .customConstraint('REFERENCES cuadriculas_de_preguntas(id)')();
 
   TextColumn get texto => text().withLength(min: 1, max: 100)();
 
@@ -156,9 +168,7 @@ class Respuestas extends Table {
   IntColumn get preguntaId =>
       integer().customConstraint('REFERENCES preguntas(id)')();
 
-  TextColumn get respuestas => text()
-      .map(const OpcionDeRespuestaConverter())
-      .withDefault(const Constant("[]"))();
+  //List<OpcionDeRespuesta>
 
   TextColumn get fotosBase => text()
       .map(const ListInColumnConverter())
@@ -176,6 +186,16 @@ class Respuestas extends Table {
       text().withDefault(const Constant(""))();
 
   DateTimeColumn get momentoRespuesta => dateTime().nullable()();
+}
+
+class RespuestasXOpcionesDeRespuesta extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  IntColumn get respuestaId =>
+      integer().customConstraint('REFERENCES respuestas(id)')();
+
+  IntColumn get opcionDeRespuestaId =>
+      integer().customConstraint('REFERENCES opciones_de_respuesta(id)')();
 }
 
 class Contratistas extends Table {

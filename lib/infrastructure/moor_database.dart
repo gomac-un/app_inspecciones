@@ -26,6 +26,35 @@ class BloqueConPregunta {
   });
 }
 
+class PreguntaConOpcionesDeRespuesta {
+  final Pregunta pregunta;
+  final List<OpcionDeRespuesta> opcionesDeRespuesta;
+
+  PreguntaConOpcionesDeRespuesta(this.pregunta, this.opcionesDeRespuesta);
+}
+
+class RespuestaConOpcionesDeRespuesta {
+  RespuestasCompanion respuesta;
+  List<OpcionDeRespuesta> opcionesDeRespuesta;
+
+  RespuestaConOpcionesDeRespuesta(this.respuesta, this.opcionesDeRespuesta);
+}
+
+class CuadriculaDePreguntasConOpcionesDeRespuesta {
+  final CuadriculaDePreguntas cuadricula;
+  final List<OpcionDeRespuesta> opcionesDeRespuesta;
+
+  CuadriculaDePreguntasConOpcionesDeRespuesta(
+      this.cuadricula, this.opcionesDeRespuesta);
+}
+
+class PreguntaConRespuestaConOpcionesDeRespuesta {
+  final Pregunta pregunta;
+  RespuestaConOpcionesDeRespuesta respuesta;
+
+  PreguntaConRespuestaConOpcionesDeRespuesta(this.pregunta, this.respuesta);
+}
+
 class BloqueConPreguntaRespondida {
   Bloque bloque;
   Pregunta pregunta;
@@ -51,7 +80,10 @@ class Borrador {
     CuestionarioDeModelos,
     Cuestionarios,
     Bloques,
+    Titulos,
+    CuadriculasDePreguntas,
     Preguntas,
+    OpcionesDeRespuesta,
     Inspecciones,
     Respuestas,
     Contratistas,
@@ -177,10 +209,11 @@ class Database extends _$Database {
       for (var b in f["bloques"]) {
         i++;
         var bfi = BloquesCompanion.insert(
-            cuestionarioId: cid,
-            nOrden: i,
-            titulo: b["titulo"],
-            descripcion: b["descripcion"]);
+          cuestionarioId: cid,
+          nOrden: i,
+          /*titulo: b["titulo"],
+          descripcion: b["descripcion"],*/
+        );
         int bid = await into(bloques).insert(bfi);
 
         if (b["criticidad"] == null)
@@ -221,7 +254,7 @@ class Database extends _$Database {
               TipoDePregunta.values, b["tipoDePregunta"]),
           fotosGuia: Value(fotosGuiaProcesadas.toList()),
           criticidad: b["criticidad"],
-          opcionesDeRespuesta: Value(l),
+          //opcionesDeRespuesta: Value(l),
         );
         await into(preguntas).insert(pfi);
       }
@@ -406,7 +439,7 @@ class ListInColumnConverter extends TypeConverter<List<String>, String> {
     return jsonEncode(value);
   }
 }
-
+/*
 class OpcionDeRespuestaConverter
     extends TypeConverter<List<OpcionDeRespuesta>, String> {
   const OpcionDeRespuestaConverter();
@@ -428,4 +461,4 @@ class OpcionDeRespuestaConverter
 
     return jsonEncode(value);
   }
-}
+}*/

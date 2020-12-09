@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/respuesta_field_bloc.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
+
 import 'package:inspecciones/presentation/widgets/image_shower.dart';
 import 'images_picker.dart';
 
@@ -16,8 +16,8 @@ class RespuestaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    final String titulo = bloc.bloque.bloque.titulo;
-    final String descripcion = bloc.bloque.bloque.descripcion;
+    final String titulo = "";
+    final String descripcion = "";
 
     return Card(
       //margin: const EdgeInsets.all(8.0),
@@ -89,7 +89,7 @@ class RespuestaCard extends StatelessWidget {
                 return SizedBox();
               }
             },
-          ),
+          ), /*
           FormBuilderImagePicker(
             imagenesFieldBlocs: bloc.fotosBase,
             decoration: const InputDecoration(
@@ -101,7 +101,7 @@ class RespuestaCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Fotos Reparacion',
             ),
-          ),
+          ),*/
         ],
       ),
     );

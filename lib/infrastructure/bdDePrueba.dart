@@ -13,6 +13,7 @@ Function initialize(db) {
 }
 
 void _initialize0(Batch batch, db) {
+  /*
   batch.insertAll(db.activos, [
     ActivosCompanion.insert(modelo: 'DT-Kenworth', identificador: '1'),
     ActivosCompanion.insert(modelo: 'sencillo-Kenworth', identificador: '2'),
@@ -293,5 +294,5 @@ void _initialize0(Batch batch, db) {
       subSistemaId: 5,
       posicion: "Parte delantera",
     ),
-  ]);
+  ]);*/
 }

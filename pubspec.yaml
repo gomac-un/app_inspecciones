@@ -41,6 +41,7 @@ dependencies:
   path_provider: ^1.6.18
   provider: ^4.3.2+2
   sqlite3_flutter_libs: ^0.2.0
+  reactive_forms: ^7.4.0
 
 dev_dependencies:
   flutter_test:

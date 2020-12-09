@@ -55,13 +55,14 @@ class RespuestaFieldBloc extends ListFieldBloc {
           resbloc =
               SelectFieldBloc<OpcionDeRespuesta, BloqueConPreguntaRespondida>(
             name: 'respuesta',
-            items: bloque.pregunta.opcionesDeRespuesta,
+            items: null, //bloque.pregunta.opcionesDeRespuesta,
             //para poner el valor inicial de la lista, se busca el objeto que tenga el mismo texto en la respuesta, si no hay respuesta devuelve null
-            initialValue: bloque.pregunta.opcionesDeRespuesta.firstWhere(
+            initialValue:
+                null, /*bloque.pregunta.opcionesDeRespuesta.firstWhere(
                 (e) =>
                     e.texto ==
                     bloque.respuesta.respuestas.value?.firstOrNull?.texto,
-                orElse: () => null),
+                orElse: () => null),*/
           );
         }
         break;
@@ -70,15 +71,16 @@ class RespuestaFieldBloc extends ListFieldBloc {
           resbloc = MultiSelectFieldBloc<OpcionDeRespuesta,
               BloqueConPreguntaRespondida>(
             name: 'respuesta',
-            items: bloque.pregunta.opcionesDeRespuesta,
+            items: null, //bloque.pregunta.opcionesDeRespuesta,
             //para poner el valor inicial de la lista, se buscan los objetos que esten en las respuestas
-            initialValue: bloque.pregunta.opcionesDeRespuesta
+            initialValue:
+                null, /*bloque.pregunta.opcionesDeRespuesta
                 .where((opc) =>
                     (bloque.respuesta.respuestas.value?.any((res) =>
                         opc.texto ==
                         res.texto)) ?? // si no hay respuesta, devuelve false
                     false)
-                .toList(),
+                .toList(),*/
           );
         }
         break;
@@ -96,10 +98,10 @@ class RespuestaFieldBloc extends ListFieldBloc {
         ..onValueChanges(
           onData: (previous, current) async* {
             bloque.respuesta = bloque.respuesta.copyWith(
-                respuestas: Value([
+                /*respuestas: Value([
                   if (current.value is List) ...current.value,
                   if (!(current.value is List)) current.value
-                ]),
+                ]),*/
                 momentoRespuesta: Value(DateTime.now()));
           },
         )
