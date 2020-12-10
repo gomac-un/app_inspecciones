@@ -14,8 +14,9 @@ class CreadorTituloFormGroup extends FormGroup {
         });
 }
 
-class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup {
-  ValueNotifier<List<SubSistema>> subSistemas;
+class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup
+    implements ConRespuestas {
+  final ValueNotifier<List<SubSistema>> subSistemas;
   //constructor que le envia los controles a la clase padre
   CreadorPreguntaSeleccionSimpleFormGroup._(
       Map<String, AbstractControl<dynamic>> controles, this.subSistemas)
@@ -23,7 +24,8 @@ class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup {
 
   factory CreadorPreguntaSeleccionSimpleFormGroup() {
     final sistema = fb.control<Sistema>(null);
-    final subSistemas = ValueNotifier<List<SubSistema>>([]);
+    final subSistemas =
+        ValueNotifier<List<SubSistema>>([]); //! hay que hacerle dispose
 
     sistema.valueChanges.asBroadcastStream().listen((sistema) async {
       subSistemas.value = await getIt<Database>().getSubSistemas(sistema);
@@ -65,17 +67,70 @@ class CreadorRespuestaFormGroup extends FormGroup {
         });
 }
 
-class CreadorPreguntaCuadriculaFormArray extends FormArray<OpcionDeRespuesta> {
-  //constructor que le envia los controles a la clase padre
-  CreadorPreguntaCuadriculaFormArray._(
-    controles,
+abstract class ConRespuestas {
+  agregarRespuesta();
+  borrarRespuesta(AbstractControl e);
+}
+
+class CreadorPreguntaCuadriculaFormGroup extends FormGroup
+    implements ConRespuestas {
+  final ValueNotifier<List<SubSistema>> subSistemas;
+
+  CreadorPreguntaCuadriculaFormGroup._(
+    Map<String, AbstractControl<dynamic>> controles,
+    this.subSistemas,
   ) : super(controles);
 
-  factory CreadorPreguntaCuadriculaFormArray() {
-    FormGroup controles = FormGroup({});
+  factory CreadorPreguntaCuadriculaFormGroup() {
+    final sistema = fb.control<Sistema>(null);
+    final subSistemas =
+        ValueNotifier<List<SubSistema>>([]); //! hay que hacerle dispose
 
-    return CreadorPreguntaCuadriculaFormArray._(
-      controles,
-    );
+    sistema.valueChanges.asBroadcastStream().listen((sistema) async {
+      subSistemas.value = await getIt<Database>().getSubSistemas(sistema);
+    });
+
+    final Map<String, AbstractControl<dynamic>> controles = {
+      'titulo': fb.control<String>(""),
+      'descripcion': fb.control<String>(""),
+      'sistema': sistema,
+      'subSistema': fb.control<SubSistema>(null),
+      'posicion': fb.control<String>("no aplica"),
+      'preguntas': fb.array([]),
+      'respuestas': fb.array([]),
+    };
+
+    return CreadorPreguntaCuadriculaFormGroup._(controles, subSistemas);
   }
+
+  agregarPregunta() {
+    (control('preguntas') as FormArray)
+        .add(CreadorSubPreguntaCuadriculaFormGroup());
+  }
+
+  borrarPregunta(AbstractControl e) {
+    try {
+      (control('preguntas') as FormArray).remove(e);
+    } on FormControlNotFoundException {}
+  }
+
+  agregarRespuesta() {
+    (control('respuestas') as FormArray).add(CreadorRespuestaFormGroup());
+  }
+
+  borrarRespuesta(AbstractControl e) {
+    try {
+      (control('respuestas') as FormArray).remove(e);
+    } on FormControlNotFoundException {}
+  }
+}
+
+class CreadorSubPreguntaCuadriculaFormGroup extends FormGroup {
+  CreadorSubPreguntaCuadriculaFormGroup()
+      : super({
+          //! En la bd se debe agregar el sistema, subsistema, posicion, tipodepregunta correspondiente para no crear mas controles aqui
+          'titulo': fb.control<String>(""),
+          'descripcion': fb.control<String>(""),
+          'criticidad': fb.control<double>(0),
+        });
 }

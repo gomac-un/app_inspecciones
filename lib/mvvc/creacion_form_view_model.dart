@@ -66,7 +66,7 @@ class CreacionFormViewModel {
 
   agregarCuadriculaDespuesDe(AbstractControl e) {
     bloques.insert(
-        bloques.controls.indexOf(e) + 1, CreadorPreguntaCuadriculaFormArray());
+        bloques.controls.indexOf(e) + 1, CreadorPreguntaCuadriculaFormGroup());
   }
 
   borrarBloque(AbstractControl e) {

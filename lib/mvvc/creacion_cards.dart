@@ -10,8 +10,9 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 class CreadorTituloCard extends StatelessWidget {
   final CreadorTituloFormGroup formGroup;
-
-  const CreadorTituloCard({Key key, this.formGroup}) : super(key: key);
+  final int nro;
+  const CreadorTituloCard({Key key, this.formGroup, this.nro})
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -39,7 +40,10 @@ class CreadorTituloCard extends StatelessWidget {
                 labelText: 'Descripción',
               ),
             ),
-            BotonesDeBloque(formGroup: formGroup),
+            BotonesDeBloque(
+              formGroup: formGroup,
+              nro: nro,
+            ),
           ],
         ),
       ),
@@ -152,61 +156,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10),
-          ReactiveValueListenableBuilder(
-              formControl: formGroup.control('respuestas'),
-              builder: (context, control, child) {
-                return Column(
-                  children: [
-                    Text(
-                      'Respuestas',
-                      style: Theme.of(context).textTheme.headline6,
-                    ),
-                    SizedBox(height: 10),
-                    if ((control as FormArray).controls.length > 0)
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: (control as FormArray).controls.length,
-                        itemBuilder: (context, i) {
-                          final element = (control as FormArray).controls[i]
-                              as CreadorRespuestaFormGroup;
-                          //Las keys sirven para que flutter maneje correctamente los widgets de la lista
-                          return Column(
-                            key: ValueKey(element),
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ReactiveTextField(
-                                      formControl: element.control('texto'),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.delete),
-                                    tooltip: 'borrar respuesta',
-                                    onPressed: () =>
-                                        formGroup.borrarRespuesta(element),
-                                  ),
-                                ],
-                              ),
-                              ReactiveSlider(
-                                formControl: element.control('criticidad'),
-                                max: 4,
-                                divisions: 4,
-                                labelBuilder: (v) => v.round().toString(),
-                                activeColor: Colors.red,
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    MaterialButton(
-                      child: Text("Agregar respuesta"),
-                      onPressed: formGroup.agregarRespuesta,
-                    ),
-                  ],
-                );
-              }),
+          WidgetRespuestas(formGroup: formGroup),
           BotonesDeBloque(formGroup: formGroup),
           // Muestra las observaciones de la reparacion solo si reparado es true
         ],
@@ -215,63 +165,239 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
   }
 }
 
-class CreadorCuadriculaCard extends StatelessWidget {
-  final CreadorPreguntaCuadriculaFormArray formArray;
+class WidgetRespuestas extends StatelessWidget {
+  const WidgetRespuestas({
+    Key key,
+    @required this.formGroup,
+  }) : super(key: key);
 
-  const CreadorCuadriculaCard({Key key, this.formArray}) : super(key: key);
+  final ConRespuestas formGroup;
+
   @override
   Widget build(BuildContext context) {
-/*
-    return PreguntaCard(
-      titulo: formArray.cuadricula.cuadricula.titulo,
-      descripcion: formArray.cuadricula.cuadricula.descripcion,
-      child: Table(
-        border:
-            TableBorder(horizontalInside: BorderSide(color: Colors.black26)),
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        // defaultColumnWidth: IntrinsicColumnWidth(), // esto es caro
-        columnWidths: {0: FlexColumnWidth(2)},
-        children: [
-          TableRow(
+    return ReactiveValueListenableBuilder(
+        formControl: (formGroup as FormGroup).control('respuestas'),
+        builder: (context, control, child) {
+          return Column(
             children: [
-              Text(""),
-              ...formArray.cuadricula.opcionesDeRespuesta.map(
-                (e) => Text(
-                  e.texto,
-                  textAlign: TextAlign.center,
+              Text(
+                'Respuestas',
+                style: Theme.of(context).textTheme.headline6,
+              ),
+              SizedBox(height: 10),
+              if ((control as FormArray).controls.length > 0)
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: (control as FormArray).controls.length,
+                  itemBuilder: (context, i) {
+                    final element = (control as FormArray).controls[i]
+                        as CreadorRespuestaFormGroup;
+                    //Las keys sirven para que flutter maneje correctamente los widgets de la lista
+                    return Column(
+                      key: ValueKey(element),
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ReactiveTextField(
+                                formControl: element.control('texto'),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete),
+                              tooltip: 'borrar respuesta',
+                              onPressed: () =>
+                                  formGroup.borrarRespuesta(element),
+                            ),
+                          ],
+                        ),
+                        ReactiveSlider(
+                          formControl: element.control('criticidad'),
+                          max: 4,
+                          divisions: 4,
+                          labelBuilder: (v) => v.round().toString(),
+                          activeColor: Colors.red,
+                        ),
+                      ],
+                    );
+                  },
                 ),
+              MaterialButton(
+                child: Text("Agregar respuesta"),
+                onPressed: formGroup.agregarRespuesta,
               ),
             ],
+          );
+        });
+  }
+}
+
+class CreadorCuadriculaCard extends StatelessWidget {
+  final CreadorPreguntaCuadriculaFormGroup formGroup;
+
+  const CreadorCuadriculaCard({Key key, this.formGroup}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = Provider.of<CreacionFormViewModel>(context);
+    return PreguntaCard(
+      titulo: 'Pregunta tipo cuadricula',
+      child: Column(
+        children: [
+          ReactiveTextField(
+            formControl: formGroup.control('titulo'),
+            decoration: InputDecoration(
+              labelText: 'Titulo',
+            ),
           ),
-          //IterableZip permite recorrer simultaneamente los dos arrays
-          ...IterableZip([formArray.preguntasRespondidas, formArray.controls])
-              .map((e) {
-            final pregunta = e[0] as PreguntaConRespuestaConOpcionesDeRespuesta;
-            final ctrlPregunta = e[1] as FormControl<OpcionDeRespuesta>;
-            return TableRow(
-              children: [
-                Text(pregunta.pregunta.titulo),
-                ...formArray.cuadricula.opcionesDeRespuesta
-                    .map((res) => ReactiveRadio(
-                          value: res,
-                          formControl: ctrlPregunta,
+          SizedBox(height: 10),
+          ReactiveTextField(
+            formControl: formGroup.control('descripcion'),
+            decoration: InputDecoration(
+              labelText: 'Descripción',
+            ),
+          ),
+          SizedBox(height: 10),
+          ValueListenableBuilder<List<Sistema>>(
+            valueListenable: viewModel.sistemas,
+            builder: (context, value, child) {
+              return ReactiveDropdownField<Sistema>(
+                formControl: formGroup.control('sistema'),
+                items: value
+                    .map((e) => DropdownMenuItem<Sistema>(
+                          value: e,
+                          child: Text(e.nombre),
                         ))
                     .toList(),
-                //TODO: agregar controles para agregar fotos y reparaciones, tal vez con popups
-              ],
-            );
-          }).toList(),
+                decoration: InputDecoration(
+                  labelText: 'Sistema',
+                ),
+              );
+            },
+          ),
+          SizedBox(height: 10),
+          ValueListenableBuilder<List<SubSistema>>(
+              valueListenable: formGroup.subSistemas,
+              builder: (context, value, child) {
+                return ReactiveDropdownField<SubSistema>(
+                  formControl: formGroup.control('subSistema'),
+                  items: value
+                      .map((e) => DropdownMenuItem<SubSistema>(
+                            value: e,
+                            child: Text(e.nombre),
+                          ))
+                      .toList(),
+                  decoration: InputDecoration(
+                    labelText: 'Subsistema',
+                  ),
+                );
+              }),
+          SizedBox(height: 10),
+          ReactiveDropdownField<String>(
+            formControl: formGroup.control('posicion'),
+            items: ["no aplica", "adelante", "atras"]
+                .map((e) => DropdownMenuItem<String>(
+                      value: e,
+                      child: Text(e),
+                    ))
+                .toList(),
+            decoration: InputDecoration(
+              labelText: 'Posicion',
+            ),
+          ),
+          WidgetPreguntas(formGroup: formGroup),
+          WidgetRespuestas(formGroup: formGroup),
+          BotonesDeBloque(formGroup: formGroup),
         ],
       ),
-    );*/
+    );
+  }
+}
+
+class WidgetPreguntas extends StatelessWidget {
+  const WidgetPreguntas({
+    Key key,
+    @required this.formGroup,
+  }) : super(key: key);
+
+  final CreadorPreguntaCuadriculaFormGroup formGroup;
+
+  @override
+  Widget build(BuildContext context) {
+    return ReactiveValueListenableBuilder(
+        formControl: (formGroup as FormGroup).control('preguntas'),
+        builder: (context, control, child) {
+          return Column(
+            children: [
+              Text(
+                'Preguntas',
+                style: Theme.of(context).textTheme.headline6,
+              ),
+              SizedBox(height: 10),
+              if ((control as FormArray).controls.length > 0)
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: (control as FormArray).controls.length,
+                  itemBuilder: (context, i) {
+                    final element = (control as FormArray).controls[i]
+                        as CreadorSubPreguntaCuadriculaFormGroup;
+                    //Las keys sirven para que flutter maneje correctamente los widgets de la lista
+                    return Column(
+                      key: ValueKey(element),
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  ReactiveTextField(
+                                    formControl: element.control('titulo'),
+                                    decoration: InputDecoration(
+                                      labelText: 'Titulo',
+                                    ),
+                                  ),
+                                  ReactiveTextField(
+                                    formControl: element.control('descripcion'),
+                                    decoration: InputDecoration(
+                                      labelText: 'Descripcion',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete),
+                              tooltip: 'borrar pregunta',
+                              onPressed: () =>
+                                  formGroup.borrarPregunta(element),
+                            ),
+                          ],
+                        ),
+                        ReactiveSlider(
+                          formControl: element.control('criticidad'),
+                          max: 4,
+                          divisions: 4,
+                          labelBuilder: (v) => v.round().toString(),
+                          activeColor: Colors.red,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              MaterialButton(
+                child: Text("Agregar pregunta"),
+                onPressed: formGroup.agregarPregunta,
+              ),
+            ],
+          );
+        });
   }
 }
 
 class BotonesDeBloque extends StatelessWidget {
-  const BotonesDeBloque({
-    Key key,
-    this.formGroup,
-  }) : super(key: key);
+  final int nro;
+  const BotonesDeBloque({Key key, this.formGroup, this.nro}) : super(key: key);
 
   final AbstractControl formGroup;
 
@@ -280,7 +406,7 @@ class BotonesDeBloque extends StatelessWidget {
     final viewModel = Provider.of<CreacionFormViewModel>(context);
     return ButtonBar(
       //TODO: estilizar mejor estos iconos
-      alignment: MainAxisAlignment.start,
+      alignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           icon: Icon(Icons.add_circle_outline),
@@ -302,6 +428,7 @@ class BotonesDeBloque extends StatelessWidget {
           tooltip: 'borrar bloque',
           onPressed: () => viewModel.borrarBloque(formGroup),
         ),
+        if (nro != null) Text('${nro + 1}'),
       ],
     );
   }

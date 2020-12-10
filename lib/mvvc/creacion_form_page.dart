@@ -147,15 +147,15 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                       //Las keys sirven para que flutter maneje correctamente los widgets de la lista
                       if (element is CreadorTituloFormGroup) {
                         return CreadorTituloCard(
-                            key: ValueKey(element), formGroup: element);
+                            key: ValueKey(element), formGroup: element, nro: i);
                       }
                       if (element is CreadorPreguntaSeleccionSimpleFormGroup) {
                         return CreadorSeleccionSimpleCard(
-                            /*key: ValueKey(element),*/ formGroup: element);
+                            key: ValueKey(element), formGroup: element);
                       }
-                      if (element is CreadorPreguntaCuadriculaFormArray) {
+                      if (element is CreadorPreguntaCuadriculaFormGroup) {
                         return CreadorCuadriculaCard(
-                            key: ValueKey(element), formArray: element);
+                            key: ValueKey(element), formGroup: element);
                       }
                       return Text(
                           "error: el bloque $i no tiene una card que lo renderice");
