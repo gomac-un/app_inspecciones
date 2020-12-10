@@ -75,7 +75,6 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           ValueListenableBuilder<List<Sistema>>(
             valueListenable: viewModel.sistemas,
             builder: (context, value, child) {
-              print('build sistema');
               return ReactiveDropdownField<Sistema>(
                 formControl: formGroup.control('sistema'),
                 items: value
@@ -91,31 +90,24 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             },
           ),
           SizedBox(height: 10),
-          ReactiveValueListenableBuilder<Sistema>(
-              formControl: formGroup.control('sistema') as FormControl<Sistema>,
-              builder: (context, sistema, child) {
-                print('build listener sistema');
-                return FutureBuilder<List<SubSistema>>(
-                    future: viewModel.subSistemas(sistema.value),
-                    builder: (context, snapshot) {
-                      print('build future subsistema');
-                      if (snapshot.connectionState == ConnectionState.done)
-                        return ReactiveDropdownField<SubSistema>(
-                          formControl: formGroup.control('subSistema'),
-                          items: snapshot.data
-                              .map((e) => DropdownMenuItem<SubSistema>(
-                                    value: e,
-                                    child: Text(e.nombre),
-                                  ))
-                              .toList(),
-                          decoration: InputDecoration(
-                            labelText: 'Subsistema',
-                          ),
-                        );
-                      print('no construyo subsistema');
-                      return CircularProgressIndicator();
-                    });
+
+          ValueListenableBuilder<List<SubSistema>>(
+              valueListenable: formGroup.subSistemas,
+              builder: (context, value, child) {
+                return ReactiveDropdownField<SubSistema>(
+                  formControl: formGroup.control('subSistema'),
+                  items: value
+                      .map((e) => DropdownMenuItem<SubSistema>(
+                            value: e,
+                            child: Text(e.nombre),
+                          ))
+                      .toList(),
+                  decoration: InputDecoration(
+                    labelText: 'Subsistema',
+                  ),
+                );
               }),
+
           SizedBox(height: 10),
           ReactiveDropdownField<String>(
             formControl: formGroup.control('posicion'),
@@ -138,6 +130,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
               max: 4,
               divisions: 4,
               labelBuilder: (v) => v.round().toString(),
+              activeColor: Colors.red,
             ),
           ),
           FormBuilderImagePicker(
@@ -168,6 +161,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
                       'Respuestas',
                       style: Theme.of(context).textTheme.headline6,
                     ),
+                    SizedBox(height: 10),
                     if ((control as FormArray).controls.length > 0)
                       ListView.builder(
                         shrinkWrap: true,
@@ -180,7 +174,6 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
                           return Column(
                             key: ValueKey(element),
                             children: [
-                              SizedBox(height: 10),
                               Row(
                                 children: [
                                   Expanded(
@@ -195,6 +188,13 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
                                         formGroup.borrarRespuesta(element),
                                   ),
                                 ],
+                              ),
+                              ReactiveSlider(
+                                formControl: element.control('criticidad'),
+                                max: 4,
+                                divisions: 4,
+                                labelBuilder: (v) => v.round().toString(),
+                                activeColor: Colors.red,
                               ),
                             ],
                           );
@@ -211,46 +211,6 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           // Muestra las observaciones de la reparacion solo si reparado es true
         ],
       ),
-    );
-  }
-}
-
-class BotonesDeBloque extends StatelessWidget {
-  const BotonesDeBloque({
-    Key key,
-    this.formGroup,
-  }) : super(key: key);
-
-  final AbstractControl formGroup;
-
-  @override
-  Widget build(BuildContext context) {
-    final viewModel = Provider.of<CreacionFormViewModel>(context);
-    return ButtonBar(
-      //TODO: estilizar mejor estos iconos
-      alignment: MainAxisAlignment.start,
-      children: [
-        IconButton(
-          icon: Icon(Icons.add_circle_outline),
-          tooltip: 'agregar pregunta',
-          onPressed: () => viewModel.agregarPreguntaDespuesDe(formGroup),
-        ),
-        IconButton(
-          icon: Icon(Icons.format_size),
-          tooltip: 'agregar titulo',
-          onPressed: () => viewModel.agregarTituloDespuesDe(formGroup),
-        ),
-        IconButton(
-          icon: Icon(Icons.view_module),
-          tooltip: 'agregar cuadricula',
-          onPressed: () => viewModel.agregarCuadriculaDespuesDe(formGroup),
-        ),
-        IconButton(
-          icon: Icon(Icons.delete),
-          tooltip: 'borrar bloque',
-          onPressed: () => viewModel.borrarBloque(formGroup),
-        ),
-      ],
     );
   }
 }
@@ -304,5 +264,45 @@ class CreadorCuadriculaCard extends StatelessWidget {
         ],
       ),
     );*/
+  }
+}
+
+class BotonesDeBloque extends StatelessWidget {
+  const BotonesDeBloque({
+    Key key,
+    this.formGroup,
+  }) : super(key: key);
+
+  final AbstractControl formGroup;
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = Provider.of<CreacionFormViewModel>(context);
+    return ButtonBar(
+      //TODO: estilizar mejor estos iconos
+      alignment: MainAxisAlignment.start,
+      children: [
+        IconButton(
+          icon: Icon(Icons.add_circle_outline),
+          tooltip: 'agregar pregunta',
+          onPressed: () => viewModel.agregarPreguntaDespuesDe(formGroup),
+        ),
+        IconButton(
+          icon: Icon(Icons.format_size),
+          tooltip: 'agregar titulo',
+          onPressed: () => viewModel.agregarTituloDespuesDe(formGroup),
+        ),
+        IconButton(
+          icon: Icon(Icons.view_module),
+          tooltip: 'agregar cuadricula',
+          onPressed: () => viewModel.agregarCuadriculaDespuesDe(formGroup),
+        ),
+        IconButton(
+          icon: Icon(Icons.delete),
+          tooltip: 'borrar bloque',
+          onPressed: () => viewModel.borrarBloque(formGroup),
+        ),
+      ],
+    );
   }
 }

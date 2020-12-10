@@ -12,7 +12,6 @@ class CreacionFormViewModel {
   final _db = getIt<Database>();
 
   ValueNotifier<List<Sistema>> sistemas = ValueNotifier([]);
-  ValueNotifier<List<SubSistema>> subSistemas = ValueNotifier([]);
 
   ValueNotifier<List<String>> tiposDeInspeccion = ValueNotifier([]);
   final tipoDeInspeccion = FormControl<String>();
@@ -53,7 +52,6 @@ class CreacionFormViewModel {
     modelos.value = await _db.getModelos();
     contratistas.value = await _db.getContratistas();
     sistemas.value = await _db.getSistemas();
-    print('carga datos');
   }
 
   /// Metodos para los bloques que funcionan sorprendentemente bien con los nulos y los casos extremos

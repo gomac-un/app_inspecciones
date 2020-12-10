@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_cards.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
@@ -8,6 +9,7 @@ import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:inspecciones/mvvc/form_scaffold.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
 import 'package:inspecciones/presentation/widgets/widgets.dart';
+import 'package:moor_db_viewer/moor_db_viewer.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -160,6 +162,13 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                     },
                   );
                 }),
+            RaisedButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => MoorDbViewer(getIt<Database>())));
+              },
+              child: Text("ver BD"),
+            ),
             SizedBox(height: 60),
           ],
         ),

@@ -15,12 +15,15 @@ class CreadorTituloFormGroup extends FormGroup {
 }
 
 class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup {
-  ValueNotifier<List<SubSistema>> subSistemas = ValueNotifier([]);
+  ValueNotifier<List<SubSistema>> subSistemas;
   //constructor que le envia los controles a la clase padre
-  CreadorPreguntaSeleccionSimpleFormGroup._(controles) : super(controles);
+  CreadorPreguntaSeleccionSimpleFormGroup._(
+      Map<String, AbstractControl<dynamic>> controles, this.subSistemas)
+      : super(controles);
 
   factory CreadorPreguntaSeleccionSimpleFormGroup() {
     final sistema = fb.control<Sistema>(null);
+    final subSistemas = ValueNotifier<List<SubSistema>>([]);
 
     sistema.valueChanges.asBroadcastStream().listen((sistema) async {
       subSistemas.value = await getIt<Database>().getSubSistemas(sistema);
@@ -38,7 +41,7 @@ class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup {
       'respuestas': fb.array([]),
     };
 
-    return CreadorPreguntaSeleccionSimpleFormGroup._(controles);
+    return CreadorPreguntaSeleccionSimpleFormGroup._(controles, subSistemas);
   }
 
   agregarRespuesta() {
@@ -56,7 +59,10 @@ class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup {
 
 class CreadorRespuestaFormGroup extends FormGroup {
   CreadorRespuestaFormGroup()
-      : super({'texto': fb.control(""), 'criticidad': fb.control(0)});
+      : super({
+          'texto': fb.control<String>(""),
+          'criticidad': fb.control<double>(0)
+        });
 }
 
 class CreadorPreguntaCuadriculaFormArray extends FormArray<OpcionDeRespuesta> {
