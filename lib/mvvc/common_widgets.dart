@@ -5,7 +5,7 @@ class PreguntaCard extends StatelessWidget {
   final String titulo;
   final String descripcion;
 
-  const PreguntaCard({Key key, this.child, this.titulo = "", this.descripcion})
+  const PreguntaCard({Key key, this.child, this.titulo, this.descripcion})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -14,10 +14,11 @@ class PreguntaCard extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            Text(
-              titulo,
-              style: Theme.of(context).textTheme.headline6,
-            ),
+            if (titulo != null)
+              Text(
+                titulo,
+                style: Theme.of(context).textTheme.headline6,
+              ),
             if (descripcion != null)
               Text(
                 descripcion,

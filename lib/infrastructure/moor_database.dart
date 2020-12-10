@@ -110,6 +110,7 @@ class Database extends _$Database {
   }
 
   Future<List<SubSistema>> getSubSistemas(Sistema sistema) {
+    if (sistema == null) return Future.value([]);
     //return (select(subSistemas)..where(subSistemas.sistemaId.equals(1))).get();
     final query = select(subSistemas)
       ..where((u) => u.sistemaId.equals(sistema.id));

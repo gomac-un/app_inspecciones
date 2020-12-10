@@ -1,16 +1,16 @@
-import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
+import 'package:inspecciones/mvvc/creacion_cards.dart';
+import 'package:inspecciones/mvvc/creacion_controls.dart';
+import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
+import 'package:inspecciones/mvvc/form_scaffold.dart';
+import 'package:inspecciones/presentation/widgets/action_button.dart';
+import 'package:inspecciones/presentation/widgets/widgets.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-
-import 'package:inspecciones/presentation/widgets/action_button.dart';
-import 'package:inspecciones/presentation/widgets/widgets.dart';
-
-import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
-import 'package:inspecciones/mvvc/form_scaffold.dart';
-import 'package:inspecciones/mvvc/creacion_cards.dart';
 
 class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
   const CreacionFormPage({Key key}) : super(key: key);
@@ -19,7 +19,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
   Widget wrappedRoute(BuildContext context) => Provider(
         create: (ctx) => CreacionFormViewModel(),
         child: this,
-        dispose: (context, CreacionFormViewModel value) => value.form.dispose(),
+        dispose: (context, CreacionFormViewModel value) => value.dispose(),
       );
 
   @override
@@ -49,7 +49,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                                 ))
                             .toList(),
                         decoration: InputDecoration(
-                          labelText: 'Seleccione una opción',
+                          labelText: 'Seleccione el tipo de inspeccion',
                         ),
                       );
                     },
@@ -78,6 +78,8 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                   valueListenable: viewModel.modelos,
                   builder: (context, modelos, child) {
                     return MultiSelectDialogField(
+                      buttonText:
+                          Text('Modelos a los que aplica esta inspección'),
                       items: modelos.map((e) => MultiSelectItem(e, e)).toList(),
                       listType: MultiSelectListType.CHIP,
                       onConfirm: (values) {
@@ -87,40 +89,77 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                         items:
                             modelos.map((e) => MultiSelectItem(e, e)).toList(),
                         onTap: (value) {
-                          //setState(() {
+                          //TODO: opcion de quitar opciones desde el chipDisplay
                           //viewModel.modelosSeleccionados.updateValue(viewModel.modelosSeleccionados.value..remove(value));
                           /*viewModel.modelosSeleccionados.value = viewModel
                               .modelosSeleccionados.value
                               .where((e) => e != value)
                               .toList();*/
-                          viewModel.modelosSeleccionados.remove(control)
-                          //});
+                          //viewModel.modelosSeleccionados.remove(control);
                         },
                       ),
                     );
                   }),
             ),
-            /*
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: viewModel.bloques.controls.length,
-              itemBuilder: (context, i) {
-                final element = viewModel.bloques.controls[i];
-                /*
-                if (element is TituloFormGroup) {
-                  return TituloCard(formGroup: element);
-                }
-                if (element is RespuestaSeleccionSimpleFormGroup) {
-                  return SeleccionSimpleCard(formGroup: element);
-                }
-                if (element is RespuestaCuadriculaFormArray) {
-                  return CuadriculaCard(formArray: element);
-                }*/
-                return Text(
-                    "error: el bloque $i no tiene una card que lo renderice");
-              },
-            ),*/
+            PreguntaCard(
+              titulo: 'Contratista',
+              child: ValueListenableBuilder<List<Contratista>>(
+                valueListenable: viewModel.contratistas,
+                builder: (context, value, child) {
+                  return ReactiveDropdownField(
+                    formControl: viewModel.contratista,
+                    items: value
+                        .map((e) => DropdownMenuItem(
+                              value: e,
+                              child: Text(e.nombre),
+                            ))
+                        .toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Seleccione un contratista',
+                    ),
+                  );
+                },
+              ),
+            ),
+            PreguntaCard(
+              titulo: 'periodicidad',
+              descripcion: '(en dias)',
+              child: ReactiveSlider(
+                formControl: viewModel.periodicidad,
+                max: 100.0,
+                divisions: 100,
+                labelBuilder: (v) => v.round().toString(),
+              ),
+            ),
+            ReactiveValueListenableBuilder(
+                formControl: viewModel.bloques,
+                builder: (context, control, child) {
+                  if (viewModel.bloques.controls.length == 0)
+                    return BotonesDeBloque();
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: viewModel.bloques.controls.length,
+                    itemBuilder: (context, i) {
+                      final element = viewModel.bloques.controls[i];
+                      //Las keys sirven para que flutter maneje correctamente los widgets de la lista
+                      if (element is CreadorTituloFormGroup) {
+                        return CreadorTituloCard(
+                            key: ValueKey(element), formGroup: element);
+                      }
+                      if (element is CreadorPreguntaSeleccionSimpleFormGroup) {
+                        return CreadorSeleccionSimpleCard(
+                            /*key: ValueKey(element),*/ formGroup: element);
+                      }
+                      if (element is CreadorPreguntaCuadriculaFormArray) {
+                        return CreadorCuadriculaCard(
+                            key: ValueKey(element), formArray: element);
+                      }
+                      return Text(
+                          "error: el bloque $i no tiene una card que lo renderice");
+                    },
+                  );
+                }),
             SizedBox(height: 60),
           ],
         ),
@@ -143,7 +182,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
             ),
             ActionButton(
               iconData: Icons.send,
-              label: 'Enviar',
+              label: 'Finalizar',
               onPressed: viewModel.enviar,
             ),
           ],

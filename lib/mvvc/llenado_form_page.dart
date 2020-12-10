@@ -75,7 +75,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
             ),
             ActionButton(
               iconData: Icons.send,
-              label: 'Enviar',
+              label: 'Finalizar',
               onPressed: viewModel.enviar,
             ),
           ],

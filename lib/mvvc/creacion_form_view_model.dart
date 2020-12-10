@@ -1,16 +1,18 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:inspecciones/domain/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
+import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 part 'creacion_datos_test.dart';
 
 //TODO: agregar todas las validaciones necesarias
-
+//TODO: implementar la edicion de cuestionarios
 class CreacionFormViewModel {
   final _db = getIt<Database>();
+
+  ValueNotifier<List<Sistema>> sistemas = ValueNotifier([]);
+  ValueNotifier<List<SubSistema>> subSistemas = ValueNotifier([]);
 
   ValueNotifier<List<String>> tiposDeInspeccion = ValueNotifier([]);
   final tipoDeInspeccion = FormControl<String>();
@@ -19,13 +21,14 @@ class CreacionFormViewModel {
 
   ValueNotifier<List<String>> modelos = ValueNotifier([]);
 
-  final modelosSeleccionados = FormArray<String>([]);
+  final modelosSeleccionados = FormControl<List<String>>(value: []);
 
+  ValueNotifier<List<Contratista>> contratistas = ValueNotifier([]);
   final contratista = FormControl<Contratista>();
 
-  final periodicidad = FormControl<int>();
+  final periodicidad = FormControl<double>();
 
-  final bloques = FormArray([FormGroup({})]); //!mirar bien el tipo
+  final bloques = FormArray([]);
 
   final form = FormGroup({});
 
@@ -38,6 +41,8 @@ class CreacionFormViewModel {
       'periodicidad': periodicidad,
       'bloques': bloques,
     });
+
+    bloques.add(CreadorTituloFormGroup());
     cargarDatos();
   }
 
@@ -46,8 +51,32 @@ class CreacionFormViewModel {
     tiposDeInspeccion.value.add("otro");
 
     modelos.value = await _db.getModelos();
-    /*_db.getContratistas(),
-      _db.getSistemas(),*/
+    contratistas.value = await _db.getContratistas();
+    sistemas.value = await _db.getSistemas();
+    print('carga datos');
+  }
+
+  /// Metodos para los bloques que funcionan sorprendentemente bien con los nulos y los casos extremos
+  agregarPreguntaDespuesDe(AbstractControl e) {
+    bloques.insert(bloques.controls.indexOf(e) + 1,
+        CreadorPreguntaSeleccionSimpleFormGroup());
+  }
+
+  agregarTituloDespuesDe(AbstractControl e) {
+    bloques.insert(bloques.controls.indexOf(e) + 1, CreadorTituloFormGroup());
+  }
+
+  agregarCuadriculaDespuesDe(AbstractControl e) {
+    bloques.insert(
+        bloques.controls.indexOf(e) + 1, CreadorPreguntaCuadriculaFormArray());
+  }
+
+  borrarBloque(AbstractControl e) {
+    try {
+      bloques.remove(e);
+    } on FormControlNotFoundException {
+      print("que pendejo");
+    }
   }
 
   Future guardarEnLocal({bool esBorrador}) async {
@@ -57,116 +86,12 @@ class CreacionFormViewModel {
     //TODO: implementar
     print(form.value);
   }
-}
 
-class RespuestaSeleccionSimpleFormGroup extends FormGroup {
-  final PreguntaConOpcionesDeRespuesta pregunta;
-  final RespuestaConOpcionesDeRespuesta respuesta;
-
-  //constructor que le envia los controles a la clase padre
-  RespuestaSeleccionSimpleFormGroup._(controles, this.pregunta, this.respuesta)
-      : super(controles);
-
-  factory RespuestaSeleccionSimpleFormGroup(
-      PreguntaConOpcionesDeRespuesta pregunta,
-      RespuestaConOpcionesDeRespuesta respuesta) {
-    respuesta.respuesta ??= RespuestasCompanion.insert(
-      //TODO: pendiente de https://github.com/simolus3/moor/issues/960
-      inspeccionId: null, //! agregar la inspeccion en el guardado de la db
-      preguntaId: pregunta.pregunta.id,
-      fotosBase: Value([]),
-      reparado: Value(false),
-    );
-
-    final Map<String, AbstractControl<dynamic>> controles = {
-      'respuesta': FormControl<OpcionDeRespuesta>(
-        value: pregunta.opcionesDeRespuesta.firstWhere(
-          (e) => respuesta.opcionesDeRespuesta?.first?.id == e?.id,
-          orElse: () => null,
-        ), //TODO: multiples respuestas
-      ),
-      'observacion':
-          FormControl<String>(value: respuesta.respuesta.observacion.value),
-      'fotosBase': FormArray(
-        respuesta.respuesta.fotosBase.value
-            .map((e) => FormControl(value: File(e)))
-            .toList(),
-      ),
-      'reparado': FormControl<bool>(value: respuesta.respuesta.reparado.value),
-      'observacionReparacion': FormControl<String>(
-          value: respuesta.respuesta.observacionReparacion.value),
-      'fotosReparacion': FormArray(
-        respuesta.respuesta.fotosReparacion.value
-            .map((e) => FormControl(value: File(e)))
-            .toList(),
-      ),
-    };
-
-    return RespuestaSeleccionSimpleFormGroup._(
-      controles,
-      pregunta,
-      respuesta,
-    );
+  /// Cierra todos los streams para evitar fugas de memoria, se suele llamar desde el provider
+  dispose() {
+    tiposDeInspeccion.dispose();
+    modelos.dispose();
+    contratistas.dispose();
+    form.dispose();
   }
-  get criticidad {
-    int sumres = 0;
-    if (control('respuesta').value is Iterable) {
-      /*TODO: calcular la criticidad de las multiples con las reglas de
-      * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
-      * solo para la pantalla de arreglos
-      */
-      control('respuesta').value.forEach((e) {
-        sumres += e.criticidad;
-      });
-    } else {
-      sumres = control('respuesta').value.criticidad;
-    }
-
-    return pregunta.pregunta.criticidad * sumres;
-  }
-}
-
-class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta> {
-  final CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula;
-  final List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas;
-
-  //constructor que le envia los controles a la clase padre
-  RespuestaCuadriculaFormArray._(
-      controles, this.cuadricula, this.preguntasRespondidas)
-      : super(controles);
-
-  factory RespuestaCuadriculaFormArray(
-    CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula,
-    List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas,
-  ) {
-    preguntasRespondidas.forEach((e) {
-      e.respuesta.respuesta ??= RespuestasCompanion.insert(
-        inspeccionId: null, //! agregar la inspeccion en el guardado de la db
-        preguntaId: e.pregunta.id,
-      );
-    });
-
-    final List<FormControl> controles = preguntasRespondidas
-        .map(
-          (e) => FormControl<OpcionDeRespuesta>(
-            value: cuadricula.opcionesDeRespuesta.firstWhere(
-              (e1) => e1.id == e.respuesta.opcionesDeRespuesta?.first?.id,
-              orElse: () => null,
-            ),
-          ),
-        )
-        .toList(); //TODO: seleccion multiple
-
-    return RespuestaCuadriculaFormArray._(
-      controles,
-      cuadricula,
-      preguntasRespondidas,
-    );
-  }
-}
-
-class TituloFormGroup extends FormGroup {
-  final Titulo titulo;
-
-  TituloFormGroup(this.titulo) : super({});
 }
