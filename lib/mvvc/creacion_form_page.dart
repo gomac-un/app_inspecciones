@@ -4,7 +4,6 @@ import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_cards.dart';
-import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:inspecciones/mvvc/form_scaffold.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
@@ -60,7 +59,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                   ReactiveValueListenableBuilder<String>(
                       formControl: viewModel.tipoDeInspeccion,
                       builder: (context, value, child) {
-                        if (value.value == "otro")
+                        if (value.value == "otra")
                           return ReactiveTextField(
                             formControl: viewModel.nuevoTipoDeinspeccion,
                             decoration: InputDecoration(
@@ -133,28 +132,6 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                 labelBuilder: (v) => v.round().toString(),
               ),
             ),
-            /*
-            ReactiveValueListenableBuilder(
-                formControl: viewModel.bloques,
-                builder: (context, control, child) {
-                  if (viewModel.bloques.controls.length == 0)
-                    return BotonesDeBloque();
-                  /*
-                    [ListView.builder] by default does not support child 
-                    reordering. If you are planning to change child order at a 
-                    later time, consider using [ListView] or [ListView.custom]. 
-                    */
-                  return ListView.builder(
-                    //
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: viewModel.bloques.controls.length,
-                    itemBuilder: (context, i) {
-                      final element = viewModel.bloques.controls[i];
-                      return ControlWidget(element: element, i: i);
-                    },
-                  );
-                }),*/
             AnimatedList(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -173,6 +150,10 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                     builder: (context) => MoorDbViewer(getIt<Database>())));
               },
               child: Text("ver BD"),
+            ),
+            RaisedButton(
+              onPressed: getIt<Database>().dbdePrueba,
+              child: Text("reiniciar DB"),
             ),
             SizedBox(height: 60),
           ],

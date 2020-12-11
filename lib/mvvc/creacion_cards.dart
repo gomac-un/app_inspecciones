@@ -3,7 +3,6 @@ import 'package:inspecciones/domain/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
-import 'package:inspecciones/mvvc/creacion_form_page.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:provider/provider.dart';
@@ -203,6 +202,9 @@ class WidgetRespuestas extends StatelessWidget {
                             Expanded(
                               child: ReactiveTextField(
                                 formControl: element.control('texto'),
+                                decoration: InputDecoration(
+                                  labelText: 'Respuesta',
+                                ),
                               ),
                             ),
                             IconButton(
@@ -446,6 +448,7 @@ class BotonesDeBloque extends StatelessWidget {
           onPressed: () {
             final index =
                 (formGroup.parent as FormArray).controls.indexOf(formGroup);
+            if (index == 0) return; //no borre el primer titulo
             AnimatedList.of(context).removeItem(
               index,
               (context, animation) => ControlWidgetAnimado(

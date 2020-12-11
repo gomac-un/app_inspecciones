@@ -18,12 +18,13 @@ class LlenadoFormViewModel {
 
   final bloques = bloquesDeEjemplo;
 
-  List bloquesMutables;
+  //List bloquesMutables;
 
   LlenadoFormViewModel(this._vehiculo, this._cuestionarioId) {
     form.addAll({
       'bloques': bloques,
     });
+    //cargarDatos();
   }
 
   Future cargarDatos() async {
@@ -38,7 +39,7 @@ class LlenadoFormViewModel {
     final List<BloqueConCuadricula> cuadriculas =
         await _db.getCuadriculas(inspeccion);
 
-    final bloquesMutables = ([...titulos, ...preguntasSimples, ...cuadriculas]
+    final bloques = ([...titulos, ...preguntasSimples, ...cuadriculas]
           ..sort((a, b) => a.nOrden.compareTo(b.bloque.nOrden)))
         .map<AbstractControl>((e) {
       if (e is BloqueConTitulo) return TituloFormGroup(e.titulo);
@@ -51,7 +52,7 @@ class LlenadoFormViewModel {
     }).toList();
 
     form.addAll({
-      'bloques': FormArray(bloquesMutables),
+      'bloques': FormArray(bloques),
     });
   }
 

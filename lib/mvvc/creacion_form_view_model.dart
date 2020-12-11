@@ -48,7 +48,7 @@ class CreacionFormViewModel {
 
   Future cargarDatos() async {
     tiposDeInspeccion.value = await _db.getTiposDeInspecciones();
-    tiposDeInspeccion.value.add("otro");
+    tiposDeInspeccion.value.add("otra");
 
     modelos.value = await _db.getModelos();
     contratistas.value = await _db.getContratistas();
@@ -74,7 +74,8 @@ class CreacionFormViewModel {
   }
   void enviar() {
     //TODO: implementar
-    print(form.value);
+    print(form.controls);
+    _db.crearCuestionarioFromReactiveForm(form.controls);
   }
 
   /// Cierra todos los streams para evitar fugas de memoria, se suele llamar desde el provider

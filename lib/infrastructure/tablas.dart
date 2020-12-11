@@ -90,7 +90,7 @@ class CuadriculasDePreguntas extends Table {
 //Las preguntas de tipo seleccion unica o multiple pueden ser reunidas
 //directamente con el bloque
 //Las preguntas de tipo cuadricula deben ser
-//TODO:agrupadas por el bloque
+//TODO: agrupadas por el bloque
 // a este bloque del grupo se le asocia tambien el CuadriculasDePreguntas que
 //tiene (por medio de join) las opciones de respuesta para el grupo de preguntas
 

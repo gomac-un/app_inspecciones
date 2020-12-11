@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enum_to_string/enum_to_string.dart';
+import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:json_annotation/json_annotation.dart' as j;
 import 'package:moor/moor.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,6 +12,7 @@ import 'package:path/path.dart' as path;
 import "package:collection/collection.dart";
 
 import 'package:inspecciones/domain/core/enums.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 export 'database/shared.dart';
 
 part 'moor_database.g.dart';
@@ -81,7 +83,7 @@ class Database extends _$Database {
     }
     await customStatement('PRAGMA foreign_keys = ON');
 
-    await batch(initialize(this));
+    //await batch(initialize(this));
   }
 
   //datos para la creacion de cuestionarios
@@ -128,10 +130,98 @@ class Database extends _$Database {
     return query.get();
   }
 
+  Future crearCuestionarioFromReactiveForm(Map<String, AbstractControl> form) {
+    return transaction(() async {
+      int cid =
+          await into(cuestionarios).insert(CuestionariosCompanion.insert());
+
+      final String tipoDeInspeccion = form["tipoDeInspeccion"].value == "otra"
+          ? form["nuevoTipoDeInspeccion"].value
+          : form["tipoDeInspeccion"].value;
+
+      await batch((batch) {
+        // asociar a cada modelo con este cuestionario
+        batch.insertAll(
+            cuestionarioDeModelos,
+            (form["modelos"].value as List<String>)
+                .map((String modelo) => CuestionarioDeModelosCompanion.insert(
+                    modelo: modelo,
+                    tipoDeInspeccion: tipoDeInspeccion,
+                    periodicidad:
+                        (form["periodicidad"].value as double).round(),
+                    contratistaId:
+                        (form["contratista"].value as Contratista).id,
+                    cuestionarioId: cid))
+                .toList()); //TODO: distintas periodicidades y contratistas por cuestionarioDeModelo
+      });
+
+      (form["bloques"] as FormArray)
+          .controls
+          .asMap()
+          .entries
+          .forEach((entry) async {
+        final i = entry.key;
+        final control = entry.value;
+        final bid = await into(bloques)
+            .insert(BloquesCompanion.insert(cuestionarioId: cid, nOrden: i));
+
+        //TODO: guardar inserts en listas para luego insertarlos en batch
+        if (control is CreadorTituloFormGroup) {
+          await into(titulos).insert(TitulosCompanion.insert(
+            bloqueId: bid,
+            titulo: control.value["titulo"],
+            descripcion: control.value["descripcion"],
+          ));
+        }
+        if (control is CreadorPreguntaSeleccionSimpleFormGroup) {
+          final appDir = await getApplicationDocumentsDirectory();
+          final fotosGuia =
+              (control.value["fotosGuia"] as List<File>).map((image) async {
+            if (path.isWithin(appDir.path, image.path)) {
+              // la imagen ya esta en la carpeta de datos
+              return image.path;
+            } else {
+              //mover la foto a la carpeta de datos
+              final fileName = path.basename(image.path);
+              final newPath = path.join(appDir.path, 'fotos', "cuestionario",
+                  cid.toString(), fileName);
+              await File(newPath).create(recursive: true);
+              final savedImage = await image.copy(newPath);
+              return savedImage.path;
+            }
+          }).toList();
+          final fotosGuiaProcesadas = await Future.wait(fotosGuia);
+          final pid = await into(preguntas).insert(PreguntasCompanion.insert(
+            bloqueId: bid,
+            titulo: control.value["titulo"],
+            descripcion: control.value["descripcion"],
+            sistemaId: control.value["sistema"].id,
+            subSistemaId: control.value["subSistema"].id,
+            posicion: control.value["posicion"],
+            tipo: control.value["tipoDePregunta"],
+            criticidad: control.value["criticidad"].round(),
+            fotosGuia: Value(fotosGuiaProcesadas),
+          ));
+          await batch((batch) {
+            // asociar a cada modelo con este cuestionario
+            batch.insertAll(
+              opcionesDeRespuesta,
+              (control.value["respuestas"] as List<Map>)
+                  .map((e) => OpcionesDeRespuestaCompanion.insert(
+                      texto: e["texto"], criticidad: e["criticidad"].round()))
+                  .toList(),
+            );
+          });
+        }
+      });
+    });
+  }
+
   Future crearCuestionario(Map<String, dynamic> f) async {
     return transaction(() async {
       final ins1 = CuestionariosCompanion.insert();
-      int cid = await into(cuestionarios).insert(ins1);
+      int cid =
+          await into(cuestionarios).insert(CuestionariosCompanion.insert());
 
       String tipoDeInspeccion = f["tipoDeInspeccion"] == "otra"
           ? f["nuevoTipoDeInspeccion"]
