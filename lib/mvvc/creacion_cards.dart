@@ -3,6 +3,7 @@ import 'package:inspecciones/domain/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
+import 'package:inspecciones/mvvc/creacion_form_page.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:provider/provider.dart';
@@ -424,25 +425,93 @@ class BotonesDeBloque extends StatelessWidget {
         IconButton(
           icon: Icon(Icons.add_circle_outline),
           tooltip: 'agregar pregunta',
-          onPressed: () => viewModel.agregarPreguntaDespuesDe(formGroup),
+          onPressed: () => agregar(
+              context, viewModel, CreadorPreguntaSeleccionSimpleFormGroup()),
         ),
         IconButton(
           icon: Icon(Icons.format_size),
           tooltip: 'agregar titulo',
-          onPressed: () => viewModel.agregarTituloDespuesDe(formGroup),
+          onPressed: () =>
+              agregar(context, viewModel, CreadorTituloFormGroup()),
         ),
         IconButton(
           icon: Icon(Icons.view_module),
           tooltip: 'agregar cuadricula',
-          onPressed: () => viewModel.agregarCuadriculaDespuesDe(formGroup),
+          onPressed: () =>
+              agregar(context, viewModel, CreadorPreguntaCuadriculaFormGroup()),
         ),
         IconButton(
           icon: Icon(Icons.delete),
           tooltip: 'borrar bloque',
-          onPressed: () => viewModel.borrarBloque(formGroup),
+          onPressed: () {
+            final index =
+                (formGroup.parent as FormArray).controls.indexOf(formGroup);
+            AnimatedList.of(context).removeItem(
+              index,
+              (context, animation) => ControlWidgetAnimado(
+                element: formGroup,
+                index: index,
+                animation: animation,
+              ),
+            );
+            viewModel.borrarBloque(formGroup);
+          },
         ),
         if (nro != null) Text('${nro + 1}'),
       ],
+    );
+  }
+
+  void agregar(BuildContext context, CreacionFormViewModel viewModel,
+      AbstractControl nuevo) {
+    AnimatedList.of(context).insertItem(
+        (formGroup.parent as FormArray).controls.indexOf(formGroup) + 1);
+    viewModel.agregarBloqueDespuesDe(bloque: nuevo, despuesDe: formGroup);
+  }
+}
+
+class ControlWidget extends StatelessWidget {
+  final AbstractControl element;
+  final int index;
+
+  const ControlWidget(this.element, this.index, {Key key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    if (element is CreadorTituloFormGroup) {
+      return CreadorTituloCard(
+          key: ValueKey(element), formGroup: element, nro: index);
+    }
+    if (element is CreadorPreguntaSeleccionSimpleFormGroup) {
+      return CreadorSeleccionSimpleCard(
+          key: ValueKey(element), formGroup: element);
+    }
+    if (element is CreadorPreguntaCuadriculaFormGroup) {
+      return CreadorCuadriculaCard(key: ValueKey(element), formGroup: element);
+    }
+    return Text("error: el bloque $index no tiene una card que lo renderice");
+  }
+}
+
+class ControlWidgetAnimado extends StatelessWidget {
+  final Animation<double> animation;
+  final int index;
+  const ControlWidgetAnimado({
+    Key key,
+    @required this.element,
+    this.animation,
+    this.index,
+  }) : super(key: key);
+
+  final AbstractControl element;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizeTransition(
+      sizeFactor: animation,
+      child: ControlWidget(
+        element,
+        index,
+      ),
     );
   }
 }

@@ -55,19 +55,9 @@ class CreacionFormViewModel {
     sistemas.value = await _db.getSistemas();
   }
 
-  /// Metodos para los bloques que funcionan sorprendentemente bien con los nulos y los casos extremos
-  agregarPreguntaDespuesDe(AbstractControl e) {
-    bloques.insert(bloques.controls.indexOf(e) + 1,
-        CreadorPreguntaSeleccionSimpleFormGroup());
-  }
-
-  agregarTituloDespuesDe(AbstractControl e) {
-    bloques.insert(bloques.controls.indexOf(e) + 1, CreadorTituloFormGroup());
-  }
-
-  agregarCuadriculaDespuesDe(AbstractControl e) {
-    bloques.insert(
-        bloques.controls.indexOf(e) + 1, CreadorPreguntaCuadriculaFormGroup());
+  /// Metodo que funciona sorprendentemente bien con los nulos y los casos extremos
+  agregarBloqueDespuesDe({AbstractControl bloque, AbstractControl despuesDe}) {
+    bloques.insert(bloques.controls.indexOf(despuesDe) + 1, bloque);
   }
 
   borrarBloque(AbstractControl e) {

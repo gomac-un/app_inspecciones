@@ -133,6 +133,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                 labelBuilder: (v) => v.round().toString(),
               ),
             ),
+            /*
             ReactiveValueListenableBuilder(
                 formControl: viewModel.bloques,
                 builder: (context, control, child) {
@@ -150,24 +151,22 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                     itemCount: viewModel.bloques.controls.length,
                     itemBuilder: (context, i) {
                       final element = viewModel.bloques.controls[i];
-                      //Las keys sirven para que flutter maneje correctamente los widgets de la lista
-                      if (element is CreadorTituloFormGroup) {
-                        return CreadorTituloCard(
-                            key: ValueKey(element), formGroup: element, nro: i);
-                      }
-                      if (element is CreadorPreguntaSeleccionSimpleFormGroup) {
-                        return CreadorSeleccionSimpleCard(
-                            key: ValueKey(element), formGroup: element);
-                      }
-                      if (element is CreadorPreguntaCuadriculaFormGroup) {
-                        return CreadorCuadriculaCard(
-                            key: ValueKey(element), formGroup: element);
-                      }
-                      return Text(
-                          "error: el bloque $i no tiene una card que lo renderice");
+                      return ControlWidget(element: element, i: i);
                     },
                   );
-                }),
+                }),*/
+            AnimatedList(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              initialItemCount: viewModel.bloques.controls.length,
+              itemBuilder: (context, index, animation) {
+                return ControlWidgetAnimado(
+                  element: viewModel.bloques.controls[index],
+                  index: index,
+                  animation: animation,
+                );
+              },
+            ),
             RaisedButton(
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
