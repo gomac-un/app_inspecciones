@@ -223,8 +223,14 @@ class WidgetRespuestas extends StatelessWidget {
                     );
                   },
                 ),
-              MaterialButton(
-                child: Text("Agregar respuesta"),
+              OutlineButton(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add),
+                    Text("Agregar respuesta"),
+                  ],
+                ),
                 onPressed: formGroup.agregarRespuesta,
               ),
             ],
@@ -305,6 +311,7 @@ class CreadorCuadriculaCard extends StatelessWidget {
               labelText: 'Posicion',
             ),
           ),
+          SizedBox(height: 10),
           WidgetPreguntas(formGroup: formGroup),
           WidgetRespuestas(formGroup: formGroup),
           BotonesDeBloque(formGroup: formGroup),
@@ -385,8 +392,14 @@ class WidgetPreguntas extends StatelessWidget {
                     );
                   },
                 ),
-              MaterialButton(
-                child: Text("Agregar pregunta"),
+              OutlineButton(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add),
+                    Text("Agregar pregunta"),
+                  ],
+                ),
                 onPressed: formGroup.agregarPregunta,
               ),
             ],

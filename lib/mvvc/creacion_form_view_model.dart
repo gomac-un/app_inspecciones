@@ -8,6 +8,7 @@ part 'creacion_datos_test.dart';
 
 //TODO: agregar todas las validaciones necesarias
 //TODO: implementar la edicion de cuestionarios
+
 class CreacionFormViewModel {
   final _db = getIt<Database>();
 
@@ -40,7 +41,7 @@ class CreacionFormViewModel {
       'periodicidad': periodicidad,
       'bloques': bloques,
     });
-
+    //agregar un titulo inicial
     bloques.add(CreadorTituloFormGroup());
     cargarDatos();
   }
@@ -70,6 +71,7 @@ class CreacionFormViewModel {
   }
 
   borrarBloque(AbstractControl e) {
+    //TODO hacerle dispose si se requiere
     try {
       bloques.remove(e);
     } on FormControlNotFoundException {
@@ -90,6 +92,7 @@ class CreacionFormViewModel {
     tiposDeInspeccion.dispose();
     modelos.dispose();
     contratistas.dispose();
+    sistemas.dispose();
     form.dispose();
   }
 }

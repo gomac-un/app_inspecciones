@@ -138,7 +138,13 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                 builder: (context, control, child) {
                   if (viewModel.bloques.controls.length == 0)
                     return BotonesDeBloque();
+                  /*
+                    [ListView.builder] by default does not support child 
+                    reordering. If you are planning to change child order at a 
+                    later time, consider using [ListView] or [ListView.custom]. 
+                    */
                   return ListView.builder(
+                    //
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: viewModel.bloques.controls.length,
