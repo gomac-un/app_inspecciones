@@ -83,7 +83,7 @@ class Database extends _$Database {
     }
     await customStatement('PRAGMA foreign_keys = ON');
 
-    //await batch(initialize(this));
+    await batch(initialize(this));
   }
 
   //datos para la creacion de cuestionarios
@@ -154,18 +154,16 @@ class Database extends _$Database {
                     cuestionarioId: cid))
                 .toList()); //TODO: distintas periodicidades y contratistas por cuestionarioDeModelo
       });
-
-      (form["bloques"] as FormArray)
-          .controls
-          .asMap()
-          .entries
-          .forEach((entry) async {
+      //procesamiento de cada bloque ya sea titulo, pregunta o cuadricula
+      await Future.forEach(
+          (form["bloques"] as FormArray).controls.asMap().entries,
+          (entry) async {
         final i = entry.key;
         final control = entry.value;
         final bid = await into(bloques)
             .insert(BloquesCompanion.insert(cuestionarioId: cid, nOrden: i));
 
-        //TODO: guardar inserts en listas para luego insertarlos en batch
+        //TODO: guardar inserts de cada tipo en listas para luego insertarlos en batch
         if (control is CreadorTituloFormGroup) {
           await into(titulos).insert(TitulosCompanion.insert(
             bloqueId: bid,
@@ -202,98 +200,62 @@ class Database extends _$Database {
             criticidad: control.value["criticidad"].round(),
             fotosGuia: Value(fotosGuiaProcesadas),
           ));
+          // Asociacion de las opciones de respuesta de esta pregunta
           await batch((batch) {
-            // asociar a cada modelo con este cuestionario
             batch.insertAll(
               opcionesDeRespuesta,
               (control.value["respuestas"] as List<Map>)
                   .map((e) => OpcionesDeRespuestaCompanion.insert(
-                      texto: e["texto"], criticidad: e["criticidad"].round()))
+                        preguntaId: Value(pid),
+                        texto: e["texto"],
+                        criticidad: e["criticidad"].round(),
+                      ))
+                  .toList(),
+            );
+          });
+        }
+        if (control is CreadorPreguntaCuadriculaFormGroup) {
+          final cuadrId = await into(cuadriculasDePreguntas).insert(
+              CuadriculasDePreguntasCompanion.insert(
+                  bloqueId: bid,
+                  titulo: control.value["titulo"],
+                  descripcion: control.value["descripcion"]));
+
+          //Asociacion de las preguntas con esta cuadricula
+          await batch((batch) {
+            batch.insertAll(
+              preguntas,
+              (control.value["preguntas"] as List<Map>)
+                  .map((e) => PreguntasCompanion.insert(
+                        bloqueId: bid,
+                        titulo: e["titulo"],
+                        descripcion: e["descripcion"],
+                        sistemaId: control.value["sistema"]
+                            .id, //TODO: sistema/subsistema/posicion diferente para cada pregunta
+                        subSistemaId: control.value["subSistema"].id,
+                        posicion: control.value["posicion"],
+                        tipo: TipoDePregunta.cuadricula,
+                        criticidad: e["criticidad"]
+                            .round(), //TODO: fotos para cada pregunta
+                      ))
+                  .toList(),
+            );
+          });
+          // Asociacion de las opciones de respuesta de esta cuadricula
+          await batch((batch) {
+            batch.insertAll(
+              opcionesDeRespuesta,
+              (control.value["respuestas"] as List<Map>)
+                  .map((e) => OpcionesDeRespuestaCompanion.insert(
+                        cuadriculaId: Value(cuadrId),
+                        texto: e["texto"],
+                        criticidad: e["criticidad"].round(),
+                      ))
                   .toList(),
             );
           });
         }
       });
-    });
-  }
-
-  Future crearCuestionario(Map<String, dynamic> f) async {
-    return transaction(() async {
-      final ins1 = CuestionariosCompanion.insert();
-      int cid =
-          await into(cuestionarios).insert(CuestionariosCompanion.insert());
-
-      String tipoDeInspeccion = f["tipoDeInspeccion"] == "otra"
-          ? f["nuevoTipoDeInspeccion"]
-          : f["tipoDeInspeccion"];
-
-      await batch((batch) {
-        // asociar a cada modelo con este cuestionario
-        batch.insertAll(
-            cuestionarioDeModelos,
-            (f["modelos"] as List<String>)
-                .map((String modelo) => CuestionarioDeModelosCompanion.insert(
-                    modelo: modelo,
-                    tipoDeInspeccion: tipoDeInspeccion,
-                    periodicidad: int.parse(f["periodicidad"]),
-                    contratistaId: f["contratista"].id,
-                    cuestionarioId: cid))
-                .toList()); //TODO: distintas periodicidades y contratistas por cuestionarioDeModelo
-      });
-
-      int i = -1;
-      for (var b in f["bloques"]) {
-        i++;
-        var bfi = BloquesCompanion.insert(
-          cuestionarioId: cid,
-          nOrden: i,
-          /*titulo: b["titulo"],
-          descripcion: b["descripcion"],*/
-        );
-        int bid = await into(bloques).insert(bfi);
-
-        if (b["criticidad"] == null)
-          continue; //si es null entonces es un titulo entonces siga al siguiente bloque
-
-        //construccion de las opciones de respuesta
-        List<OpcionDeRespuesta> l = [];
-        for (var r in b["respuestas"]) {
-          l.add(OpcionDeRespuesta.fromJson(r));
-        }
-
-        final appDir = await getApplicationDocumentsDirectory();
-
-        final List<Future<String>> fotosGuia =
-            b["imagenes"].map<Future<String>>((imageURl) async {
-          final image = File(imageURl);
-          if (path.isWithin(appDir.path, image.path)) {
-            // la imagen ya esta en la carpeta de datos
-            return image.path;
-          } else {
-            //mover la foto a la carpeta de datos
-            final fileName = path.basename(image.path);
-            final newPath = path.join(
-                appDir.path, 'fotos', "cuestionario", cid.toString(), fileName);
-            await File(newPath).create(recursive: true);
-            final savedImage = await image.copy(newPath);
-            return savedImage.path;
-          }
-        }).toList();
-        final fotosGuiaProcesadas = await Future.wait(fotosGuia);
-
-        var pfi = PreguntasCompanion.insert(
-          bloqueId: bid,
-          sistemaId: b["sistema"].id,
-          subSistemaId: b["subsistema"].id,
-          posicion: b["posicion"],
-          tipo: EnumToString.fromString(
-              TipoDePregunta.values, b["tipoDePregunta"]),
-          fotosGuia: Value(fotosGuiaProcesadas.toList()),
-          criticidad: b["criticidad"],
-          //opcionesDeRespuesta: Value(l),
-        );
-        await into(preguntas).insert(pfi);
-      }
     });
   }
 

@@ -40,7 +40,7 @@ class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup
       'criticidad': fb.control<double>(0),
       'fotosGuia': fb.array<File>([]),
       'tipoDePregunta': fb.control<TipoDePregunta>(null),
-      'respuestas': fb.array([]),
+      'respuestas': fb.array<Map<String, dynamic>>([]),
     };
 
     return CreadorPreguntaSeleccionSimpleFormGroup._(controles, subSistemas);
@@ -96,8 +96,8 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
       'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null),
       'posicion': fb.control<String>("no aplica"),
-      'preguntas': fb.array([]),
-      'respuestas': fb.array([]),
+      'preguntas': fb.array<Map<String, dynamic>>([]),
+      'respuestas': fb.array<Map<String, dynamic>>([]),
     };
 
     return CreadorPreguntaCuadriculaFormGroup._(controles, subSistemas);

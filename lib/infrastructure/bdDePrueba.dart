@@ -13,15 +13,15 @@ Function initialize(db) {
 }
 
 void _initialize0(Batch batch, db) {
-  /*
   batch.insertAll(db.activos, [
     ActivosCompanion.insert(modelo: 'DT-Kenworth', identificador: '1'),
     ActivosCompanion.insert(modelo: 'sencillo-Kenworth', identificador: '2'),
   ]);
+  /*
   batch.insertAll(db.cuestionarios, [
-    CuestionariosCompanion.insert(id: Value(1)),
-    CuestionariosCompanion.insert(id: Value(2)),
-  ]);
+    CuestionariosCompanion.insert(),
+    CuestionariosCompanion.insert(),
+  ]);*/
 
   batch.insertAll(db.contratistas, [
     ContratistasCompanion.insert(id: Value(1), nombre: "El mejor contratista"),
@@ -45,7 +45,7 @@ void _initialize0(Batch batch, db) {
     SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 5),
     SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 6),
   ]);
-
+/*
   batch.insertAll(db.cuestionarioDeModelos, [
     CuestionarioDeModelosCompanion.insert(
         modelo: 'DT-Kenworth',
