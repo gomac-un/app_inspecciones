@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
+import 'package:kt_dart/kt.dart';
 import 'package:moor_db_viewer/moor_db_viewer.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -77,6 +80,14 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
             RaisedButton(
               onPressed: getIt<Database>().dbdePrueba,
               child: Text("reiniciar DB"),
+            ),
+            RaisedButton(
+              onPressed: () {
+                final kt = listOf();
+                final kt1 = listOf("a");
+                print(kt.map((e) => "o").toString());
+              },
+              child: Text("run test"),
             ),
             SizedBox(height: 60),
           ],

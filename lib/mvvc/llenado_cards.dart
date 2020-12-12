@@ -9,6 +9,7 @@ import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/presentation/widgets/image_shower.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:kt_dart/kt.dart';
 
 class TituloCard extends StatelessWidget {
   final TituloFormGroup formGroup;
@@ -52,10 +53,11 @@ class SeleccionSimpleCard extends StatelessWidget {
       descripcion: formGroup.pregunta.pregunta.descripcion,
       child: Column(
         children: [
-          if (formGroup.pregunta.pregunta.fotosGuia.length > 0)
+          if (formGroup.pregunta.pregunta.fotosGuia.size > 0)
             ImageShower(
               imagenes: formGroup.pregunta.pregunta.fotosGuia
                   .map((e) => File(e))
+                  .iter
                   .toList(),
             ),
           ReactiveDropdownField<OpcionDeRespuesta>(

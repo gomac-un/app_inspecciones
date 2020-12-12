@@ -5,7 +5,7 @@ final bloquesDeEjemplo = FormArray([
     Titulo(
       bloqueId: 1,
       descripcion: "descripcion del titulazo",
-      fotos: [],
+      fotos: listOf(),
       id: 1,
       titulo: "El titulazo",
     ),
@@ -16,7 +16,7 @@ final bloquesDeEjemplo = FormArray([
         bloqueId: 2,
         criticidad: 1,
         descripcion: "desc1",
-        fotosGuia: [],
+        fotosGuia: listOf(),
         id: 1,
         posicion: "abajo",
         sistemaId: 1,
@@ -31,8 +31,8 @@ final bloquesDeEjemplo = FormArray([
     ),
     RespuestaConOpcionesDeRespuesta(
       Respuesta(
-        fotosBase: [],
-        fotosReparacion: [],
+        fotosBase: listOf(),
+        fotosReparacion: listOf(),
         id: 1,
         inspeccionId: 1,
         observacion: "obs1",
@@ -71,7 +71,7 @@ final bloquesDeEjemplo = FormArray([
             bloqueId: 3,
             criticidad: 1,
             descripcion: "descripcion de la pregunta de una fila de la tabla",
-            fotosGuia: [],
+            fotosGuia: listOf(),
             id: 3,
             posicion: "null",
             sistemaId: null,
@@ -97,7 +97,7 @@ final bloquesDeEjemplo = FormArray([
               criticidad: 1,
               descripcion:
                   "descripcion2 de la pregunta de una fila de la tabla",
-              fotosGuia: [],
+              fotosGuia: listOf(),
               id: 4,
               posicion: "null",
               sistemaId: null,

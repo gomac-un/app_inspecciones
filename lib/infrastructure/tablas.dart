@@ -220,3 +220,24 @@ class RespuestasXOpcionesDeRespuesta extends Table {
   IntColumn get opcionDeRespuestaId =>
       integer().customConstraint('REFERENCES opciones_de_respuesta(id)')();
 }
+
+class ListInColumnConverter extends TypeConverter<KtList<String>, String> {
+  const ListInColumnConverter();
+  @override
+  KtList<String> mapToDart(String fromDb) {
+    if (fromDb == null) {
+      return null;
+    }
+    return (jsonDecode(fromDb) as List).map<String>((e) => e).toImmutableList();
+  }
+
+  @override
+  String mapToSql(KtList<String> value) {
+    if (value == null) {
+      return null;
+    }
+
+    final str = value.fold<String>("[", (acc, val) => acc + '"$val",');
+    return str.replaceRange(str.length - 1, str.length, ']');
+  }
+}

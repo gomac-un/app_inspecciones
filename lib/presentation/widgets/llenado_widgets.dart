@@ -6,6 +6,7 @@ import 'package:inspecciones/application/crear_cuestionario_form/respuesta_field
 
 import 'package:inspecciones/presentation/widgets/image_shower.dart';
 import 'images_picker.dart';
+import 'package:kt_dart/kt.dart';
 
 class RespuestaCard extends StatelessWidget {
   final RespuestaFieldBloc bloc;
@@ -34,10 +35,12 @@ class RespuestaCard extends StatelessWidget {
             descripcion,
             style: textTheme.bodyText2,
           ),
-          if (bloc.bloque.pregunta.fotosGuia.length > 0)
+          if (bloc.bloque.pregunta.fotosGuia.size > 0)
             ImageShower(
-              imagenes:
-                  bloc.bloque.pregunta.fotosGuia.map((e) => File(e)).toList(),
+              imagenes: bloc.bloque.pregunta.fotosGuia
+                  .map((e) => File(e))
+                  .iter
+                  .toList(),
             ),
           if (bloc.respuestas is SelectFieldBloc)
             DropdownFieldBlocBuilder(

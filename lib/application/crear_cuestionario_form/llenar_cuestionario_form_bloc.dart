@@ -3,6 +3,7 @@ import 'package:inspecciones/application/crear_cuestionario_form/respuesta_field
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:inspecciones/domain/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:kt_dart/collection.dart';
 import 'package:moor/moor.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -133,12 +134,12 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
           bloc.fotosReparacion, appDir.path, subDir, idform.toString());
       final fotosReparacionProcesadas = await Future.wait(fotosReparacion);
       bloc.bloque.respuesta = bloc.bloque.respuesta.copyWith(
-        fotosBase: Value(
-          fotosBaseProcesadas.toList(),
-        ),
-        fotosReparacion: Value(
-          fotosReparacionProcesadas.toList(),
-        ),
+        fotosBase: Value(listOf()
+            //fotosBaseProcesadas.toList(),
+            ),
+        fotosReparacion: Value(listOf()
+            //fotosReparacionProcesadas.toList(),
+            ),
       );
     });
     await _db.guardarInspeccion(

@@ -961,7 +961,7 @@ class Titulo extends DataClass implements Insertable<Titulo> {
   final int bloqueId;
   final String titulo;
   final String descripcion;
-  final List<String> fotos;
+  final KtList<String> fotos;
   Titulo(
       {@required this.id,
       @required this.bloqueId,
@@ -1031,7 +1031,7 @@ class Titulo extends DataClass implements Insertable<Titulo> {
       bloqueId: serializer.fromJson<int>(json['bloqueId']),
       titulo: serializer.fromJson<String>(json['titulo']),
       descripcion: serializer.fromJson<String>(json['descripcion']),
-      fotos: serializer.fromJson<List<String>>(json['fotos']),
+      fotos: serializer.fromJson<KtList<String>>(json['fotos']),
     );
   }
   @override
@@ -1042,7 +1042,7 @@ class Titulo extends DataClass implements Insertable<Titulo> {
       'bloqueId': serializer.toJson<int>(bloqueId),
       'titulo': serializer.toJson<String>(titulo),
       'descripcion': serializer.toJson<String>(descripcion),
-      'fotos': serializer.toJson<List<String>>(fotos),
+      'fotos': serializer.toJson<KtList<String>>(fotos),
     };
   }
 
@@ -1051,7 +1051,7 @@ class Titulo extends DataClass implements Insertable<Titulo> {
           int bloqueId,
           String titulo,
           String descripcion,
-          List<String> fotos}) =>
+          KtList<String> fotos}) =>
       Titulo(
         id: id ?? this.id,
         bloqueId: bloqueId ?? this.bloqueId,
@@ -1094,7 +1094,7 @@ class TitulosCompanion extends UpdateCompanion<Titulo> {
   final Value<int> bloqueId;
   final Value<String> titulo;
   final Value<String> descripcion;
-  final Value<List<String>> fotos;
+  final Value<KtList<String>> fotos;
   const TitulosCompanion({
     this.id = const Value.absent(),
     this.bloqueId = const Value.absent(),
@@ -1132,7 +1132,7 @@ class TitulosCompanion extends UpdateCompanion<Titulo> {
       Value<int> bloqueId,
       Value<String> titulo,
       Value<String> descripcion,
-      Value<List<String>> fotos}) {
+      Value<KtList<String>> fotos}) {
     return TitulosCompanion(
       id: id ?? this.id,
       bloqueId: bloqueId ?? this.bloqueId,
@@ -1282,7 +1282,7 @@ class $TitulosTable extends Titulos with TableInfo<$TitulosTable, Titulo> {
     return $TitulosTable(_db, alias);
   }
 
-  static TypeConverter<List<String>, String> $converter0 =
+  static TypeConverter<KtList<String>, String> $converter0 =
       const ListInColumnConverter();
 }
 
@@ -1580,7 +1580,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
   final int sistemaId;
   final int subSistemaId;
   final String posicion;
-  final List<String> fotosGuia;
+  final KtList<String> fotosGuia;
   final TipoDePregunta tipo;
   final int criticidad;
   Pregunta(
@@ -1700,7 +1700,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       sistemaId: serializer.fromJson<int>(json['sistemaId']),
       subSistemaId: serializer.fromJson<int>(json['subSistemaId']),
       posicion: serializer.fromJson<String>(json['posicion']),
-      fotosGuia: serializer.fromJson<List<String>>(json['fotosGuia']),
+      fotosGuia: serializer.fromJson<KtList<String>>(json['fotosGuia']),
       tipo: serializer.fromJson<TipoDePregunta>(json['tipo']),
       criticidad: serializer.fromJson<int>(json['criticidad']),
     );
@@ -1716,7 +1716,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       'sistemaId': serializer.toJson<int>(sistemaId),
       'subSistemaId': serializer.toJson<int>(subSistemaId),
       'posicion': serializer.toJson<String>(posicion),
-      'fotosGuia': serializer.toJson<List<String>>(fotosGuia),
+      'fotosGuia': serializer.toJson<KtList<String>>(fotosGuia),
       'tipo': serializer.toJson<TipoDePregunta>(tipo),
       'criticidad': serializer.toJson<int>(criticidad),
     };
@@ -1730,7 +1730,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           int sistemaId,
           int subSistemaId,
           String posicion,
-          List<String> fotosGuia,
+          KtList<String> fotosGuia,
           TipoDePregunta tipo,
           int criticidad}) =>
       Pregunta(
@@ -1805,7 +1805,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
   final Value<int> sistemaId;
   final Value<int> subSistemaId;
   final Value<String> posicion;
-  final Value<List<String>> fotosGuia;
+  final Value<KtList<String>> fotosGuia;
   final Value<TipoDePregunta> tipo;
   final Value<int> criticidad;
   const PreguntasCompanion({
@@ -1873,7 +1873,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       Value<int> sistemaId,
       Value<int> subSistemaId,
       Value<String> posicion,
-      Value<List<String>> fotosGuia,
+      Value<KtList<String>> fotosGuia,
       Value<TipoDePregunta> tipo,
       Value<int> criticidad}) {
     return PreguntasCompanion(
@@ -2144,7 +2144,7 @@ class $PreguntasTable extends Preguntas
     return $PreguntasTable(_db, alias);
   }
 
-  static TypeConverter<List<String>, String> $converter0 =
+  static TypeConverter<KtList<String>, String> $converter0 =
       const ListInColumnConverter();
   static TypeConverter<TipoDePregunta, int> $converter1 =
       const EnumIndexConverter<TipoDePregunta>(TipoDePregunta.values);
@@ -2951,8 +2951,8 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
   final int id;
   final int inspeccionId;
   final int preguntaId;
-  final List<String> fotosBase;
-  final List<String> fotosReparacion;
+  final KtList<String> fotosBase;
+  final KtList<String> fotosReparacion;
   final String observacion;
   final bool reparado;
   final String observacionReparacion;
@@ -3067,9 +3067,9 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       id: serializer.fromJson<int>(json['id']),
       inspeccionId: serializer.fromJson<int>(json['inspeccionId']),
       preguntaId: serializer.fromJson<int>(json['preguntaId']),
-      fotosBase: serializer.fromJson<List<String>>(json['fotosBase']),
+      fotosBase: serializer.fromJson<KtList<String>>(json['fotosBase']),
       fotosReparacion:
-          serializer.fromJson<List<String>>(json['fotosReparacion']),
+          serializer.fromJson<KtList<String>>(json['fotosReparacion']),
       observacion: serializer.fromJson<String>(json['observacion']),
       reparado: serializer.fromJson<bool>(json['reparado']),
       observacionReparacion:
@@ -3084,8 +3084,8 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       'id': serializer.toJson<int>(id),
       'inspeccionId': serializer.toJson<int>(inspeccionId),
       'preguntaId': serializer.toJson<int>(preguntaId),
-      'fotosBase': serializer.toJson<List<String>>(fotosBase),
-      'fotosReparacion': serializer.toJson<List<String>>(fotosReparacion),
+      'fotosBase': serializer.toJson<KtList<String>>(fotosBase),
+      'fotosReparacion': serializer.toJson<KtList<String>>(fotosReparacion),
       'observacion': serializer.toJson<String>(observacion),
       'reparado': serializer.toJson<bool>(reparado),
       'observacionReparacion': serializer.toJson<String>(observacionReparacion),
@@ -3097,8 +3097,8 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
           {int id,
           int inspeccionId,
           int preguntaId,
-          List<String> fotosBase,
-          List<String> fotosReparacion,
+          KtList<String> fotosBase,
+          KtList<String> fotosReparacion,
           String observacion,
           bool reparado,
           String observacionReparacion,
@@ -3167,8 +3167,8 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
   final Value<int> id;
   final Value<int> inspeccionId;
   final Value<int> preguntaId;
-  final Value<List<String>> fotosBase;
-  final Value<List<String>> fotosReparacion;
+  final Value<KtList<String>> fotosBase;
+  final Value<KtList<String>> fotosReparacion;
   final Value<String> observacion;
   final Value<bool> reparado;
   final Value<String> observacionReparacion;
@@ -3225,8 +3225,8 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
       {Value<int> id,
       Value<int> inspeccionId,
       Value<int> preguntaId,
-      Value<List<String>> fotosBase,
-      Value<List<String>> fotosReparacion,
+      Value<KtList<String>> fotosBase,
+      Value<KtList<String>> fotosReparacion,
       Value<String> observacion,
       Value<bool> reparado,
       Value<String> observacionReparacion,
@@ -3480,9 +3480,9 @@ class $RespuestasTable extends Respuestas
     return $RespuestasTable(_db, alias);
   }
 
-  static TypeConverter<List<String>, String> $converter0 =
+  static TypeConverter<KtList<String>, String> $converter0 =
       const ListInColumnConverter();
-  static TypeConverter<List<String>, String> $converter1 =
+  static TypeConverter<KtList<String>, String> $converter1 =
       const ListInColumnConverter();
 }
 

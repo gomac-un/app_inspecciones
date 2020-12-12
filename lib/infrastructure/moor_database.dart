@@ -3,9 +3,8 @@ export 'package:moor_flutter/moor_flutter.dart' show Value;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:enum_to_string/enum_to_string.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
-import 'package:json_annotation/json_annotation.dart' as j;
+import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -198,7 +197,7 @@ class Database extends _$Database {
             posicion: control.value["posicion"],
             tipo: control.value["tipoDePregunta"],
             criticidad: control.value["criticidad"].round(),
-            fotosGuia: Value(fotosGuiaProcesadas),
+            fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
           ));
           // Asociacion de las opciones de respuesta de esta pregunta
           await batch((batch) {
@@ -321,22 +320,26 @@ class Database extends _$Database {
               preguntas.tipo.equals(0) //seleccion unica
           );
     final res = await query
-        .map((row) => PreguntaConOpcionDeRespuesta(
-            row.readTable(preguntas), row.readTable(opcionesPregunta)))
+        .map((row) => [
+              row.readTable(bloques),
+              row.readTable(preguntas),
+              row.readTable(opcionesPregunta)
+            ])
         .get();
 
-    final res1 = groupBy(res, (PreguntaConOpcionDeRespuesta e) => e.pregunta)
+    final res1 = groupBy(res, (e) => e[1])
         .entries
-        .map(
-          (entry) => PreguntaConOpcionesDeRespuesta(
-            entry.key,
-            entry.value.map((item) => item.opcionDeRespuesta).toList(),
-          ),
-        )
-        .map(
-          (e) => BloqueConPreguntaSimple(null, e, null),
-        ) //TODO: obtener el bloque y las respuestas
+        .map((entry) => BloqueConPreguntaSimple(
+            entry.value.first[0],
+            PreguntaConOpcionesDeRespuesta(
+              entry.key,
+              entry.value.map((item) => item[2] as OpcionDeRespuesta).toList(),
+            ),
+            RespuestaConOpcionesDeRespuesta(null, null)))
+        //TODO: obtener el bloque y las respuestas
         .toList();
+
+    //iterar las preguntas para obtener las opciones de respuesta seleccionadas
 
     return res1;
   }
@@ -489,48 +492,3 @@ class Database extends _$Database {
     print(ins.map((e) => e.toJson()).toList());
   }
 }
-
-/////////////////converters
-
-class ListInColumnConverter extends TypeConverter<List<String>, String> {
-  const ListInColumnConverter();
-  @override
-  List<String> mapToDart(String fromDb) {
-    if (fromDb == null) {
-      return null;
-    }
-    return (jsonDecode(fromDb) as List).map((e) => e as String).toList();
-  }
-
-  @override
-  String mapToSql(List<String> value) {
-    if (value == null) {
-      return null;
-    }
-
-    return jsonEncode(value);
-  }
-}
-/*
-class OpcionDeRespuestaConverter
-    extends TypeConverter<List<OpcionDeRespuesta>, String> {
-  const OpcionDeRespuestaConverter();
-  @override
-  List<OpcionDeRespuesta> mapToDart(String fromDb) {
-    if (fromDb == null) {
-      return null;
-    }
-    return (jsonDecode(fromDb) as List)
-        .map((e) => OpcionDeRespuesta.fromJson(e))
-        .toList();
-  }
-
-  @override
-  String mapToSql(List<OpcionDeRespuesta> value) {
-    if (value == null) {
-      return null;
-    }
-
-    return jsonEncode(value);
-  }
-}*/

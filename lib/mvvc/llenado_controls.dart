@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 class RespuestaSeleccionSimpleFormGroup extends FormGroup {
@@ -18,8 +19,10 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup {
       //TODO: pendiente de https://github.com/simolus3/moor/issues/960
       inspeccionId: null, //! agregar la inspeccion en el guardado de la db
       preguntaId: pregunta.pregunta.id,
-      fotosBase: Value([]),
+      fotosBase: Value(listOf()),
       reparado: Value(false),
+      observacionReparacion: Value(""),
+      fotosReparacion: Value(listOf()),
     );
 
     final Map<String, AbstractControl<dynamic>> controles = {
@@ -34,6 +37,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup {
       'fotosBase': FormArray(
         respuesta.respuesta.fotosBase.value
             .map((e) => FormControl(value: File(e)))
+            .iter
             .toList(),
       ),
       'reparado': FormControl<bool>(value: respuesta.respuesta.reparado.value),
@@ -42,6 +46,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup {
       'fotosReparacion': FormArray(
         respuesta.respuesta.fotosReparacion.value
             .map((e) => FormControl(value: File(e)))
+            .iter
             .toList(),
       ),
     };

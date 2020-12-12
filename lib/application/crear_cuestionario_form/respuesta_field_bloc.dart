@@ -133,7 +133,7 @@ class RespuestaFieldBloc extends ListFieldBloc {
         ),
       fotosBase: ListFieldBloc(
         name: 'fotosBase',
-        fieldBlocs: bloque.respuesta.fotosBase.value
+        fieldBlocs: bloque.respuesta.fotosBase.value.iter
             ?.map(
               (e) => InputFieldBloc(
                 name: "foto",
@@ -145,7 +145,7 @@ class RespuestaFieldBloc extends ListFieldBloc {
       ),
       fotosReparacion: ListFieldBloc(
         name: 'fotosReparacion',
-        fieldBlocs: bloque.respuesta.fotosReparacion.value
+        fieldBlocs: bloque.respuesta.fotosReparacion.value.iter
             ?.map(
               (e) => InputFieldBloc(
                 name: "foto",
