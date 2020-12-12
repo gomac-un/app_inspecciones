@@ -76,7 +76,7 @@ final bloquesDeEjemplo = FormArray([
             posicion: "null",
             sistemaId: null,
             subSistemaId: null,
-            tipo: TipoDePregunta.cuadricula,
+            tipo: TipoDePregunta.parteDeCuadricula,
             titulo: "pregunta de una fila de la tabla",
           ),
           RespuestaConOpcionesDeRespuesta(
@@ -102,7 +102,7 @@ final bloquesDeEjemplo = FormArray([
               posicion: "null",
               sistemaId: null,
               subSistemaId: null,
-              tipo: TipoDePregunta.cuadricula,
+              tipo: TipoDePregunta.parteDeCuadricula,
               titulo: "pregunta2 de una fila de la tabla",
             ),
             RespuestaConOpcionesDeRespuesta(null, null)),

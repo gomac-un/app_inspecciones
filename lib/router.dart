@@ -9,8 +9,8 @@ import 'package:inspecciones/presentation/pages/llenar_cuestionario_form_page.da
 @MaterialAutoRouter(
   routes: <AutoRoute>[
     // initial route is named "/"
-    //MaterialRoute(page: LlenadoFormPage, initial: true),
-    MaterialRoute(page: CreacionFormPage, initial: true),
+    MaterialRoute(page: LlenadoFormPage, initial: true),
+    //MaterialRoute(page: CreacionFormPage, initial: true),
     //MaterialRoute(page: HomeScreen, initial: true),
     /*MaterialRoute(page: BorradoresPage),
     MaterialRoute(page: LlenarCuestionarioFormPage),

@@ -42,6 +42,7 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
   }
   @override
   void onLoading() async {
+    /*
     final bloquesBD = await _db.cargarInspeccion(
       _cuestionarioId,
       _vehiculo,
@@ -58,7 +59,7 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
           ),*/
             );
       } else {
-        /*
+        
         //logica para el agrupamiento de las preguntas que componen una cuadricula
         // funciona solo si los elementos pertenecientes a una cuadricula
         // se encuentran contiguos
@@ -91,10 +92,10 @@ class LlenarCuestionarioFormBloc extends FormBloc<String, String> {
         //preguntas que no hacen parte de un grupo
         if (bloque.pregunta.tipo != TipoDePregunta.cuadricula) {
           bloques.add(bloqueExt);
-        }*/
+        }
       }
     });
-
+*/
     emitLoaded();
   }
 

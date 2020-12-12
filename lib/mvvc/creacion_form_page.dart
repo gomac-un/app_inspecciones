@@ -155,6 +155,11 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
               onPressed: getIt<Database>().dbdePrueba,
               child: Text("reiniciar DB"),
             ),
+            /*
+            RaisedButton(
+              onPressed: viewModel.cargarDatos,
+              child: Text("recargar creador de cuestionario"),
+            ),*/
             SizedBox(height: 60),
           ],
         ),

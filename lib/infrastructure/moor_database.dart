@@ -234,7 +234,7 @@ class Database extends _$Database {
                             .id, //TODO: sistema/subsistema/posicion diferente para cada pregunta
                         subSistemaId: control.value["subSistema"].id,
                         posicion: control.value["posicion"],
-                        tipo: TipoDePregunta.cuadricula,
+                        tipo: TipoDePregunta.parteDeCuadricula,
                         criticidad: e["criticidad"]
                             .round(), //TODO: fotos para cada pregunta
                       ))
@@ -287,11 +287,11 @@ class Database extends _$Database {
     return query.getSingle();
   }
 
-  Future<List<BloqueConTitulo>> getTitulos(Inspeccion inspeccion) {
+  Future<List<BloqueConTitulo>> getTitulos(int cuestionarioId) {
     final query = select(titulos).join([
       innerJoin(bloques, bloques.id.equalsExp(titulos.bloqueId)),
     ])
-      ..where(bloques.cuestionarioId.equals(inspeccion.cuestionarioId));
+      ..where(bloques.cuestionarioId.equals(cuestionarioId));
     return query
         .map((row) => BloqueConTitulo(
               row.readTable(bloques),
@@ -301,9 +301,9 @@ class Database extends _$Database {
   }
 
   Future<List<BloqueConPreguntaSimple>> getPreguntasSimples(
-      Inspeccion inspeccion) async {
-    final opcionesPregunta = alias(opcionesDeRespuesta, 'p');
-    final opcionesRespuesta = alias(opcionesDeRespuesta, 'r');
+      int cuestionarioId) async {
+    final opcionesPregunta = alias(opcionesDeRespuesta, 'op');
+    final opcionesRespuesta = alias(opcionesDeRespuesta, 'or');
 
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
@@ -317,7 +317,7 @@ class Database extends _$Database {
           opcionesRespuesta.id
               .equalsExp(respuestasXOpcionesDeRespuesta.opcionDeRespuestaId)),*/
     ])
-      ..where(bloques.cuestionarioId.equals(inspeccion.cuestionarioId) &
+      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
               preguntas.tipo.equals(0) //seleccion unica
           );
     final res = await query
@@ -341,13 +341,24 @@ class Database extends _$Database {
     return res1;
   }
 
-  Future<List<BloqueConCuadricula>> getCuadriculas(
-      Inspeccion inspeccion) async {
+  Future<List<BloqueConCuadricula>> getCuadriculas(int cuestionarioId) async {
     //TODO: implementar
     return null;
   }
 
-  Future<List<BloqueConPreguntaRespondida>> cargarInspeccion(
+  Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId) async {
+    final List<BloqueConTitulo> titulos = await getTitulos(cuestionarioId);
+
+    final List<BloqueConPreguntaSimple> preguntasSimples =
+        await getPreguntasSimples(cuestionarioId);
+
+    final List<BloqueConCuadricula> cuadriculas = [];
+    //await getCuadriculas(cuestionarioId);
+
+    return [...titulos, ...preguntasSimples, ...cuadriculas];
+  }
+
+  Future<List<BloqueConPreguntaRespondida>> cargarInspeccionOld(
       int cuestionarioId, String vehiculo) async {
     //revisar si hay una inspeccion de ese cuestionario empezada
 

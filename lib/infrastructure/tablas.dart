@@ -9,6 +9,29 @@ class Activos extends Table {
   Set<Column> get primaryKey => {identificador};
 }
 
+class Contratistas extends Table {
+  IntColumn get id => integer()();
+  TextColumn get nombre => text()();
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class Sistemas extends Table {
+  IntColumn get id => integer()();
+  TextColumn get nombre => text()();
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class SubSistemas extends Table {
+  IntColumn get id => integer()();
+  TextColumn get nombre => text()();
+  IntColumn get sistemaId =>
+      integer().customConstraint('REFERENCES sistemas(id) ON DELETE CASCADE')();
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 //Tabla para asignar cuestionarios a modelos y a contratistas
 class CuestionarioDeModelos extends Table {
   TextColumn get modelo => text()();
@@ -196,27 +219,4 @@ class RespuestasXOpcionesDeRespuesta extends Table {
 
   IntColumn get opcionDeRespuestaId =>
       integer().customConstraint('REFERENCES opciones_de_respuesta(id)')();
-}
-
-class Contratistas extends Table {
-  IntColumn get id => integer()();
-  TextColumn get nombre => text()();
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class Sistemas extends Table {
-  IntColumn get id => integer()();
-  TextColumn get nombre => text()();
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class SubSistemas extends Table {
-  IntColumn get id => integer()();
-  TextColumn get nombre => text()();
-  IntColumn get sistemaId =>
-      integer().customConstraint('REFERENCES sistemas(id) ON DELETE CASCADE')();
-  @override
-  Set<Column> get primaryKey => {id};
 }

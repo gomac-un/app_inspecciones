@@ -1,3 +1,4 @@
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/domain/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
@@ -60,6 +61,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = Provider.of<CreacionFormViewModel>(context);
     return PreguntaCard(
+      titulo: 'Pregunta de seleccion',
       child: Column(
         children: [
           ReactiveTextField(
@@ -145,10 +147,14 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           ),
           ReactiveDropdownField<TipoDePregunta>(
             formControl: formGroup.control('tipoDePregunta'),
-            items: [TipoDePregunta.unicaRespuesta]
+            items: [
+              TipoDePregunta.unicaRespuesta,
+              TipoDePregunta.multipleRespuesta
+            ]
                 .map((e) => DropdownMenuItem<TipoDePregunta>(
                       value: e,
-                      child: Text(e.toString()),
+                      child: Text(
+                          EnumToString.convertToString(e, camelCase: true)),
                     ))
                 .toList(),
             decoration: InputDecoration(
@@ -373,6 +379,7 @@ class WidgetPreguntas extends StatelessWidget {
                                       labelText: 'Descripcion',
                                     ),
                                   ),
+                                  //TODO: submenu para agregar sistemas,subsistemas y fotos para cada pregunta
                                 ],
                               ),
                             ),

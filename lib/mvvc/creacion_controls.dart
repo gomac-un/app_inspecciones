@@ -128,7 +128,7 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
 class CreadorSubPreguntaCuadriculaFormGroup extends FormGroup {
   CreadorSubPreguntaCuadriculaFormGroup()
       : super({
-          //! En la bd se debe agregar el sistema, subsistema, posicion, tipodepregunta correspondiente para no crear mas controles aqui
+          //! En la bd se agrega el sistema, subsistema, posicion, tipodepregunta correspondiente para no crear mas controles aqui
           'titulo': fb.control<String>(""),
           'descripcion': fb.control<String>(""),
           'criticidad': fb.control<double>(0),

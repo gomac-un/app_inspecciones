@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/injection.dart';
+import 'package:inspecciones/mvvc/llenado_controls.dart';
+import 'package:moor_db_viewer/moor_db_viewer.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -14,12 +18,17 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   final String vehiculo;
   final int cuestionarioId;
 
-  const LlenadoFormPage({Key key, this.vehiculo, this.cuestionarioId})
-      : super(key: key);
+  const LlenadoFormPage({
+    Key key,
+    this.vehiculo,
+    this.cuestionarioId,
+  }) //! eliminar valores por defecto y tirar error si son nulos
+  : super(key: key);
 
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
-        create: (ctx) => LlenadoFormViewModel(vehiculo, cuestionarioId),
+        create: (ctx) => LlenadoFormViewModel(
+            '1', 1), //LlenadoFormViewModel(vehiculo, cuestionarioId),
         child: this,
         dispose: (context, LlenadoFormViewModel value) => value.form.dispose(),
       );
@@ -34,24 +43,40 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
         formGroup: viewModel.form,
         child: Column(
           children: [
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: viewModel.bloques.controls.length,
-              itemBuilder: (context, i) {
-                final element = viewModel.bloques.controls[i];
-                if (element is TituloFormGroup) {
-                  return TituloCard(formGroup: element);
-                }
-                if (element is RespuestaSeleccionSimpleFormGroup) {
-                  return SeleccionSimpleCard(formGroup: element);
-                }
-                if (element is RespuestaCuadriculaFormArray) {
-                  return CuadriculaCard(formArray: element);
-                }
-                return Text(
-                    "error: el bloque $i no tiene una card que lo renderice");
+            ValueListenableBuilder<bool>(
+                valueListenable: viewModel.cargada,
+                builder: (context, cargada, child) {
+                  if (!cargada) return CircularProgressIndicator();
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: viewModel.bloques.controls.length,
+                    itemBuilder: (context, i) {
+                      final element = viewModel.bloques.controls[i];
+                      if (element is TituloFormGroup) {
+                        return TituloCard(formGroup: element);
+                      }
+                      if (element is RespuestaSeleccionSimpleFormGroup) {
+                        return SeleccionSimpleCard(formGroup: element);
+                      }
+                      if (element is RespuestaCuadriculaFormArray) {
+                        return CuadriculaCard(formArray: element);
+                      }
+                      return Text(
+                          "error: el bloque $i no tiene una card que lo renderice");
+                    },
+                  );
+                }),
+            RaisedButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => MoorDbViewer(getIt<Database>())));
               },
+              child: Text("ver BD"),
+            ),
+            RaisedButton(
+              onPressed: getIt<Database>().dbdePrueba,
+              child: Text("reiniciar DB"),
             ),
             SizedBox(height: 60),
           ],
