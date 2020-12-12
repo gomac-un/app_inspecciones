@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
@@ -17,6 +18,8 @@ import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/mvvc/llenado_cards.dart';
 import 'package:inspecciones/mvvc/form_scaffold.dart';
 
+import 'package:http/http.dart' as http;
+
 class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   final String vehiculo;
   final int cuestionarioId;
@@ -25,13 +28,12 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
     Key key,
     this.vehiculo,
     this.cuestionarioId,
-  }) //! eliminar valores por defecto y tirar error si son nulos
-  : super(key: key);
+  }) : super(key: key);
 
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
         create: (ctx) => LlenadoFormViewModel(
-            '1', 1), //LlenadoFormViewModel(vehiculo, cuestionarioId),
+            '1', 1), //! LlenadoFormViewModel(vehiculo, cuestionarioId),
         child: this,
         dispose: (context, LlenadoFormViewModel value) => value.form.dispose(),
       );
@@ -46,6 +48,10 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
         formGroup: viewModel.form,
         child: Column(
           children: [
+            RaisedButton(
+              onPressed: () async {},
+              child: Text("run test"),
+            ),
             ValueListenableBuilder<bool>(
                 valueListenable: viewModel.cargada,
                 builder: (context, cargada, child) {
@@ -80,14 +86,6 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
             RaisedButton(
               onPressed: getIt<Database>().dbdePrueba,
               child: Text("reiniciar DB"),
-            ),
-            RaisedButton(
-              onPressed: () {
-                final kt = listOf();
-                final kt1 = listOf("a");
-                print(kt.map((e) => "o").toString());
-              },
-              child: Text("run test"),
             ),
             SizedBox(height: 60),
           ],

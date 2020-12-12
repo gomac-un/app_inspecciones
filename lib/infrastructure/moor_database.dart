@@ -316,9 +316,12 @@ class Database extends _$Database {
           opcionesRespuesta.id
               .equalsExp(respuestasXOpcionesDeRespuesta.opcionDeRespuestaId)),*/
     ])
-      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
-              preguntas.tipo.equals(0) //seleccion unica
-          );
+      ..where(
+        bloques.cuestionarioId.equals(cuestionarioId) &
+            (preguntas.tipo.equals(0) //seleccion unica
+                |
+                preguntas.tipo.equals(1)), //seleccion multiple
+      );
     final res = await query
         .map((row) => [
               row.readTable(bloques),
@@ -330,16 +333,18 @@ class Database extends _$Database {
     final res1 = groupBy(res, (e) => e[1])
         .entries
         .map((entry) => BloqueConPreguntaSimple(
-            entry.value.first[0],
-            PreguntaConOpcionesDeRespuesta(
-              entry.key,
-              entry.value.map((item) => item[2] as OpcionDeRespuesta).toList(),
-            ),
-            RespuestaConOpcionesDeRespuesta(null, null)))
-        //TODO: obtener el bloque y las respuestas
+              entry.value.first[0],
+              PreguntaConOpcionesDeRespuesta(
+                entry.key,
+                entry.value
+                    .map((item) => item[2] as OpcionDeRespuesta)
+                    .toList(),
+              ),
+              RespuestaConOpcionesDeRespuesta(null, null),
+            ))
         .toList();
 
-    //iterar las preguntas para obtener las opciones de respuesta seleccionadas
+    //TODO: iterar las preguntas para obtener las opciones de respuesta seleccionadas
 
     return res1;
   }

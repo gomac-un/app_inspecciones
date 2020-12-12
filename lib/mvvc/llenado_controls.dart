@@ -4,6 +4,8 @@ import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+//TODO: agregarle todas las validaciones necesarias a los campos
+
 class RespuestaSeleccionSimpleFormGroup extends FormGroup {
   final PreguntaConOpcionesDeRespuesta pregunta;
   final RespuestaConOpcionesDeRespuesta respuesta;
@@ -19,19 +21,28 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup {
       //TODO: pendiente de https://github.com/simolus3/moor/issues/960
       inspeccionId: null, //! agregar la inspeccion en el guardado de la db
       preguntaId: pregunta.pregunta.id,
+      observacion: Value(''),
       fotosBase: Value(listOf()),
       reparado: Value(false),
       observacionReparacion: Value(""),
       fotosReparacion: Value(listOf()),
     );
 
+    final respuestas = FormArray<OpcionDeRespuesta>(
+      pregunta.opcionesDeRespuesta
+          .where(
+            (opcion) =>
+                respuesta.opcionesDeRespuesta?.any((res) => res == opcion) ??
+                false,
+          )
+          .map((e) => FormControl(value: e))
+          .toList(),
+    );
+    if (respuestas.value.length == 0)
+      respuestas.value = [null]; //por si no hay respuestas
+
     final Map<String, AbstractControl<dynamic>> controles = {
-      'respuesta': FormControl<OpcionDeRespuesta>(
-        value: pregunta.opcionesDeRespuesta.firstWhere(
-          (e) => respuesta.opcionesDeRespuesta?.first?.id == e?.id,
-          orElse: () => null,
-        ), //TODO: multiples respuestas
-      ),
+      'respuestas': respuestas,
       'observacion':
           FormControl<String>(value: respuesta.respuesta.observacion.value),
       'fotosBase': FormArray(
