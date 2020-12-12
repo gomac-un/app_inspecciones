@@ -299,22 +299,14 @@ class Database extends _$Database {
         .get();
   }
 
-  Future<List<BloqueConPreguntaSimple>> getPreguntasSimples(
-      int cuestionarioId) async {
+  Future<List<BloqueConPreguntaSimple>> getPreguntasSimples(int cuestionarioId,
+      [int inspeccionId]) async {
     final opcionesPregunta = alias(opcionesDeRespuesta, 'op');
-    final opcionesRespuesta = alias(opcionesDeRespuesta, 'or');
 
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
       leftOuterJoin(opcionesPregunta,
           opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
-      /*leftOuterJoin(respuestas, respuestas.preguntaId.equalsExp(preguntas.id)),
-      leftOuterJoin(respuestasXOpcionesDeRespuesta,
-          respuestasXOpcionesDeRespuesta.respuestaId.equalsExp(respuestas.id)),
-      leftOuterJoin(
-          opcionesRespuesta,
-          opcionesRespuesta.id
-              .equalsExp(respuestasXOpcionesDeRespuesta.opcionDeRespuestaId)),*/
     ])
       ..where(
         bloques.cuestionarioId.equals(cuestionarioId) &
@@ -323,79 +315,119 @@ class Database extends _$Database {
                 preguntas.tipo.equals(1)), //seleccion multiple
       );
     final res = await query
-        .map((row) => [
-              row.readTable(bloques),
-              row.readTable(preguntas),
-              row.readTable(opcionesPregunta)
-            ])
+        .map((row) => {
+              'bloque': row.readTable(bloques),
+              'pregunta': row.readTable(preguntas),
+              'opcionesDePregunta': row.readTable(opcionesPregunta)
+            })
         .get();
 
-    final res1 = groupBy(res, (e) => e[1])
-        .entries
-        .map((entry) => BloqueConPreguntaSimple(
-              entry.value.first[0],
-              PreguntaConOpcionesDeRespuesta(
-                entry.key,
-                entry.value
-                    .map((item) => item[2] as OpcionDeRespuesta)
-                    .toList(),
-              ),
-              RespuestaConOpcionesDeRespuesta(null, null),
-            ))
-        .toList();
-
-    //TODO: iterar las preguntas para obtener las opciones de respuesta seleccionadas
-
-    return res1;
+    return Future.wait(
+      groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
+        return BloqueConPreguntaSimple(
+          entry.value.first['bloque'],
+          PreguntaConOpcionesDeRespuesta(
+            entry.key,
+            entry.value
+                .map((item) => item['opcionesDePregunta'] as OpcionDeRespuesta)
+                .toList(),
+          ),
+          await getRespuestas(entry.key.id, inspeccionId),
+          //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
+        );
+      }),
+    );
   }
 
-  Future<List<BloqueConCuadricula>> getCuadriculas(int cuestionarioId) async {
-    //TODO: implementar
-    return null;
+  Future<RespuestaConOpcionesDeRespuesta> getRespuestas(int preguntaId,
+      [int inspeccionId]) async {
+    //TODO: mirar el caso donde se presenten varias respuestas a una preguntaXinspeccion
+    if (inspeccionId == null)
+      return RespuestaConOpcionesDeRespuesta(null, null);
+    final query = select(respuestas).join([
+      leftOuterJoin(
+        respuestasXOpcionesDeRespuesta,
+        respuestasXOpcionesDeRespuesta.respuestaId.equalsExp(respuestas.id),
+      ),
+      innerJoin(
+        opcionesDeRespuesta,
+        opcionesDeRespuesta.id
+            .equalsExp(respuestasXOpcionesDeRespuesta.opcionDeRespuestaId),
+      ),
+    ])
+      ..where(
+        respuestas.preguntaId.equals(preguntaId) &
+            respuestas.inspeccionId.equals(inspeccionId), //seleccion multiple
+      );
+    final res = await query
+        .map((row) =>
+            [row.readTable(respuestas), row.readTable(opcionesDeRespuesta)])
+        .get();
+
+    if (res.length == 0) return RespuestaConOpcionesDeRespuesta(null, null);
+
+    return RespuestaConOpcionesDeRespuesta(
+        (res.first[0] as Respuesta)
+            .toCompanion(true), //TODO: si se necesita companion?
+        res.map((item) => item[1] as OpcionDeRespuesta).toList());
   }
 
-  Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId) async {
+  Future<List<BloqueConCuadricula>> getCuadriculas(int cuestionarioId,
+      [int inspeccionId]) async {
+    final query = select(preguntas).join([
+      innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
+      innerJoin(cuadriculasDePreguntas,
+          cuadriculasDePreguntas.bloqueId.equalsExp(bloques.id)),
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
+              preguntas.tipo.equals(2) //parteDeCuadricula
+          );
+
+    final res = await query
+        .map((row) => {
+              'pregunta': row.readTable(preguntas),
+              'bloque': row.readTable(bloques),
+              'cuadricula': row.readTable(cuadriculasDePreguntas),
+            })
+        .get();
+
+    return Future.wait(
+      groupBy(res, (e) => e['bloque'] as Bloque).entries.map((entry) async {
+        return BloqueConCuadricula(
+          entry.key,
+          CuadriculaDePreguntasConOpcionesDeRespuesta(
+            entry.value.first['cuadricula'],
+            await respuestasDeCuadricula(
+                (entry.value.first['cuadricula'] as CuadriculaDePreguntas).id),
+          ),
+          await Future.wait(entry.value.map(
+            (item) async => PreguntaConRespuestaConOpcionesDeRespuesta(
+                item['pregunta'] as Pregunta,
+                await getRespuestas(
+                    (item['pregunta'] as Pregunta).id, inspeccionId)),
+          )),
+        );
+      }),
+    );
+  }
+
+  Future<List<OpcionDeRespuesta>> respuestasDeCuadricula(int cuadriculaId) {
+    final query = select(opcionesDeRespuesta)
+      ..where((or) => or.cuadriculaId.equals(cuadriculaId));
+    return query.get();
+  }
+
+  Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId,
+      {int inspeccionId}) async {
     final List<BloqueConTitulo> titulos = await getTitulos(cuestionarioId);
 
     final List<BloqueConPreguntaSimple> preguntasSimples =
-        await getPreguntasSimples(cuestionarioId);
+        await getPreguntasSimples(cuestionarioId, inspeccionId);
 
-    final List<BloqueConCuadricula> cuadriculas = [];
-    //await getCuadriculas(cuestionarioId);
+    final List<BloqueConCuadricula> cuadriculas =
+        await getCuadriculas(cuestionarioId);
 
     return [...titulos, ...preguntasSimples, ...cuadriculas];
-  }
-
-  Future<List<BloqueConPreguntaRespondida>> cargarInspeccionOld(
-      int cuestionarioId, String vehiculo) async {
-    //revisar si hay una inspeccion de ese cuestionario empezada
-
-    Inspeccion borrador = await getInspeccion(vehiculo, cuestionarioId);
-
-    //carga los bloques y si tiene preguntas y respuestas las agrega
-    final query2 = select(bloques).join([
-      leftOuterJoin(preguntas, preguntas.bloqueId.equalsExp(bloques.id)),
-      leftOuterJoin(
-          respuestas,
-          respuestas.preguntaId.equalsExp(preguntas.id) &
-              respuestas.inspeccionId.equals(borrador?.id)),
-    ])
-      ..where(bloques.cuestionarioId.equals(cuestionarioId))
-      ..orderBy([OrderingTerm(expression: bloques.nOrden)]);
-
-    return query2
-        .map(
-          (row) => BloqueConPreguntaRespondida(
-            bloque: row.readTable(bloques),
-            pregunta: row.readTable(preguntas),
-            respuesta: row.readTable(respuestas)?.toCompanion(
-                    true) ?? //si no hay respuesta devuelve una vacía con inspeccion nula que se debe llenar despues
-                RespuestasCompanion.insert(
-                    inspeccionId: null,
-                    preguntaId: row.readTable(preguntas)?.id),
-          ),
-        )
-        .get();
   }
 
   Future<Inspeccion> crearInspeccion(
