@@ -9,58 +9,44 @@ part 'creacion_datos_test.dart';
 //TODO: agregar todas las validaciones necesarias
 //TODO: implementar la edicion de cuestionarios
 
-Future<Map<String, dynamic>> _cuestionariosExistentes(
-    AbstractControl<dynamic> control) async {
-  final form = control as FormGroup;
-
-  final tipoDeInspeccion = form.control('tipoDeInspeccion');
-  final modelos = form.control('modelos');
-
-  final cuestionariosExistentes = await getIt<Database>()
-      .getCuestionarios(tipoDeInspeccion.value, modelos.value);
-  if (cuestionariosExistentes.length > 0) {
-    tipoDeInspeccion.setErrors({'yaExiste': true});
-    tipoDeInspeccion.markAsTouched();
-    /*return "Ya hay un cuestionario para esta inspeccion y \n el modelo " +
-        cuestionariosExistentes.first.modelo;*/
-  } else {
-    tipoDeInspeccion.removeError('yaExiste');
-  }
-  return null;
-}
-
 class CreacionFormViewModel {
   final _db = getIt<Database>();
 
-  ValueNotifier<List<Sistema>> sistemas = ValueNotifier([]);
+  final sistemas = ValueNotifier<List<Sistema>>([]);
+  final tiposDeInspeccion = ValueNotifier<List<String>>([]);
+  final modelos = ValueNotifier<List<String>>([]);
+  final contratistas = ValueNotifier<List<Contratista>>([]);
 
-  ValueNotifier<List<String>> tiposDeInspeccion = ValueNotifier([]);
-  final tipoDeInspeccion = FormControl<String>();
+  final tipoDeInspeccion =
+      FormControl<String>(validators: [Validators.required]);
 
-  final nuevoTipoDeinspeccion = FormControl<String>();
+  final nuevoTipoDeinspeccion =
+      FormControl<String>(value: ""); //validado desde el form
 
-  ValueNotifier<List<String>> modelos = ValueNotifier([]);
+  final modelosSeleccionados = FormControl<List<String>>(
+      value: [], validators: [Validators.minLength(1)]);
 
-  final modelosSeleccionados = FormControl<List<String>>(value: []);
-
-  ValueNotifier<List<Contratista>> contratistas = ValueNotifier([]);
   final contratista = FormControl<Contratista>();
 
   final periodicidad = FormControl<double>();
 
   final bloques = FormArray([]);
 
-  final form = FormGroup({}, asyncValidators: [_cuestionariosExistentes]);
+  FormGroup form; //no cambiar please
 
   CreacionFormViewModel() {
-    form.addAll({
+    form = FormGroup({
       'tipoDeInspeccion': tipoDeInspeccion,
       'nuevoTipoDeInspeccion': nuevoTipoDeinspeccion,
       'modelos': modelosSeleccionados,
       'contratista': contratista,
       'periodicidad': periodicidad,
       'bloques': bloques,
-    });
+    }, validators: [
+      _nuevoTipoDeInspeccion
+    ], asyncValidators: [
+      _cuestionariosExistentes
+    ]);
     //agregar un titulo inicial
     bloques.add(CreadorTituloFormGroup());
     cargarDatos();
@@ -91,7 +77,8 @@ class CreacionFormViewModel {
 
   enviar() async {
     print(form.controls);
-    await _db.crearCuestionarioFromReactiveForm(form.controls);
+    form.markAllAsTouched();
+    await _db.crearCuestionario(form.controls);
   }
 
   /// Cierra todos los streams para evitar fugas de memoria, se suele llamar desde el provider
@@ -102,4 +89,42 @@ class CreacionFormViewModel {
     sistemas.dispose();
     form.dispose();
   }
+}
+
+//Custom Validators
+Future<Map<String, dynamic>> _cuestionariosExistentes(
+    AbstractControl<dynamic> control) async {
+  final form = control as FormGroup;
+
+  final tipoDeInspeccion = form.control('tipoDeInspeccion');
+  final modelos = form.control('modelos');
+
+  final cuestionariosExistentes = await getIt<Database>()
+      .getCuestionarios(tipoDeInspeccion.value, modelos.value);
+  if (cuestionariosExistentes.length > 0) {
+    tipoDeInspeccion.setErrors({'yaExiste': true});
+    tipoDeInspeccion.markAsTouched();
+  } else {
+    tipoDeInspeccion.removeError('yaExiste');
+  }
+  return null;
+}
+
+Map<String, dynamic> _nuevoTipoDeInspeccion(AbstractControl<dynamic> control) {
+  final form = control as FormGroup;
+
+  final tipoDeInspeccion = form.control('tipoDeInspeccion');
+  final nuevoTipoDeinspeccion =
+      form.control('nuevoTipoDeInspeccion') as FormControl<String>;
+
+  final error = {ValidationMessage.required: true};
+
+  if (tipoDeInspeccion.value == 'otra' &&
+      nuevoTipoDeinspeccion.value.trim().isEmpty) {
+    nuevoTipoDeinspeccion.setErrors(error);
+    //nuevoTipoDeinspeccion.markAsTouched();
+  } else {
+    nuevoTipoDeinspeccion.removeError(ValidationMessage.required);
+  }
+  return null;
 }

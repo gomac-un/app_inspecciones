@@ -1,14 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_cards.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:inspecciones/mvvc/form_scaffold.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
 import 'package:inspecciones/presentation/widgets/widgets.dart';
-import 'package:moor_db_viewer/moor_db_viewer.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -52,6 +50,10 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                         decoration: InputDecoration(
                           labelText: 'Seleccione el tipo de inspeccion',
                         ),
+                        validationMessages: (control) => {
+                          'yaExiste':
+                              'Uno de los activos ya tiene asociada una inspeccion de este tipo', //TODO: decir cual
+                        },
                       );
                     },
                   ),
@@ -67,10 +69,6 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                               prefixIcon: Icon(Icons.text_fields),
                               floatingLabelBehavior: FloatingLabelBehavior.auto,
                             ),
-                            validationMessages: (control) => {
-                              'yaExiste':
-                                  'El vehiculo x ya tiene asociada una inspeccion de este tipo',
-                            },
                           );
                         return SizedBox.shrink();
                       }),
@@ -82,6 +80,8 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
               child: ValueListenableBuilder<List<String>>(
                   valueListenable: viewModel.modelos,
                   builder: (context, modelos, child) {
+                    //Implementar de mejor manera el multiselect para que funcione
+                    //con los validators de reactive Forms https://github.com/joanpablo/reactive_forms/issues/64
                     return MultiSelectDialogField(
                       buttonText:
                           Text('Modelos a los que aplica esta inspección'),
@@ -89,6 +89,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                       listType: MultiSelectListType.CHIP,
                       onConfirm: (values) {
                         viewModel.modelosSeleccionados.updateValue(values);
+                        viewModel.modelosSeleccionados.markAsTouched();
                       },
                       chipDisplay: MultiSelectChipDisplay(
                         items:
@@ -148,22 +149,6 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                 );
               },
             ),
-            RaisedButton(
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => MoorDbViewer(getIt<Database>())));
-              },
-              child: Text("ver BD"),
-            ),
-            RaisedButton(
-              onPressed: getIt<Database>().dbdePrueba,
-              child: Text("reiniciar DB"),
-            ),
-            /*
-            RaisedButton(
-              onPressed: viewModel.cargarDatos,
-              child: Text("recargar creador de cuestionario"),
-            ),*/
             SizedBox(height: 60),
           ],
         ),
@@ -176,13 +161,16 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
             ActionButton(
               iconData: Icons.send,
               label: 'Finalizar',
-              onPressed: () async {
-                LoadingDialog.show(context);
-                await viewModel.enviar();
-                LoadingDialog.hide(context);
-                ExtendedNavigator.of(context)
-                    .pop(); //TODO: mostrar mensaje de exito en la pantalla de destino
-              },
+              onPressed: !viewModel.form.valid
+                  ? viewModel.form.markAllAsTouched
+                  : () async {
+                      viewModel.form.markAllAsTouched();
+                      LoadingDialog.show(context);
+                      await viewModel.enviar();
+                      LoadingDialog.hide(context);
+                      ExtendedNavigator.of(context)
+                          .pop(); //TODO: mostrar mensaje de exito en la pantalla de destino
+                    },
             ),
           ],
         ),

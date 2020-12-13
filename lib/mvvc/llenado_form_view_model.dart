@@ -5,6 +5,7 @@ import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
 import 'package:kt_dart/collection.dart';
+import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 part 'llenado_datos_test.dart';
@@ -68,12 +69,13 @@ class LlenadoFormViewModel {
       throw Exception("Tipo de control no reconocido");
     }).toList();
 
-    await _db.guardarInspeccionV2(respuestas, _cuestionarioId, _vehiculo, true);
+    await _db.guardarInspeccion(respuestas, _cuestionarioId, _vehiculo, true);
     print("guardada");
   }
 
   void finalizar() {
     //TODO: implementar
     print(form.value);
+    throw NotImplementedException();
   }
 }
