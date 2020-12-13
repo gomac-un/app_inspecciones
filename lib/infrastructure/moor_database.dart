@@ -577,17 +577,12 @@ class Database extends _$Database {
       //TODO: eliminar la inspeccion de los borradores porque solo se necesita el activo y el cm, ya que la inspeccion se consulta con base a estos
       innerJoin(activos,
           activos.identificador.equalsExp(inspecciones.identificadorActivo)),
-      innerJoin(cuestionarios,
-          cuestionarios.id.equalsExp(inspecciones.cuestionarioId)),
-      innerJoin(cuestionarioDeModelos,
-          cuestionarioDeModelos.cuestionarioId.equalsExp(cuestionarios.id)),
     ]);
 
     return query
         .map(
           (row) => Borrador(
             row.readTable(inspecciones),
-            row.readTable(cuestionarioDeModelos),
             row.readTable(activos),
           ),
         )

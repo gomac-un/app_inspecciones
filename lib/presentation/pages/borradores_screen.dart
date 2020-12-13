@@ -37,8 +37,10 @@ class BorradoresPage extends StatelessWidget {
                 title: Text(borradores[index].activo.identificador +
                     " - " +
                     borradores[index].activo.modelo),
-                subtitle: Text(
-                    borradores[index].cuestionarioDeModelo.tipoDeInspeccion),
+                subtitle: Text(borradores[index]
+                    .inspeccion
+                    .momentoBorradorGuardado
+                    .toString()),
                 leading: Icon(Icons.edit),
                 trailing: IconButton(
                   icon: Icon(Icons.delete),

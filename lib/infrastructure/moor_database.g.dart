@@ -502,7 +502,7 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
       _contratistaId ??= _constructContratistaId();
   GeneratedIntColumn _constructContratistaId() {
     return GeneratedIntColumn('contratista_id', $tableName, false,
-        $customConstraints: 'REFERENCES contratistas(id)');
+        $customConstraints: 'REFERENCES contratistas(id) ON DELETE SET NULL');
   }
 
   @override
@@ -1495,7 +1495,7 @@ class $CuadriculasDePreguntasTable extends CuadriculasDePreguntas
   GeneratedIntColumn get bloqueId => _bloqueId ??= _constructBloqueId();
   GeneratedIntColumn _constructBloqueId() {
     return GeneratedIntColumn('bloque_id', $tableName, false,
-        $customConstraints: 'REFERENCES bloques(id)');
+        $customConstraints: 'REFERENCES bloques(id) ON DELETE CASCADE');
   }
 
   final VerificationMeta _tituloMeta = const VerificationMeta('titulo');
@@ -2390,8 +2390,11 @@ class $OpcionesDeRespuestaTable extends OpcionesDeRespuesta
   @override
   GeneratedIntColumn get preguntaId => _preguntaId ??= _constructPreguntaId();
   GeneratedIntColumn _constructPreguntaId() {
-    return GeneratedIntColumn('pregunta_id', $tableName, true,
-        $customConstraints: 'REFERENCES preguntas(id)');
+    return GeneratedIntColumn(
+      'pregunta_id',
+      $tableName,
+      true,
+    );
   }
 
   final VerificationMeta _cuadriculaIdMeta =
@@ -2401,8 +2404,11 @@ class $OpcionesDeRespuestaTable extends OpcionesDeRespuesta
   GeneratedIntColumn get cuadriculaId =>
       _cuadriculaId ??= _constructCuadriculaId();
   GeneratedIntColumn _constructCuadriculaId() {
-    return GeneratedIntColumn('cuadricula_id', $tableName, true,
-        $customConstraints: 'REFERENCES cuadriculas_de_preguntas(id)');
+    return GeneratedIntColumn(
+      'cuadricula_id',
+      $tableName,
+      true,
+    );
   }
 
   final VerificationMeta _textoMeta = const VerificationMeta('texto');
@@ -2812,7 +2818,7 @@ class $InspeccionesTable extends Inspecciones
       _cuestionarioId ??= _constructCuestionarioId();
   GeneratedIntColumn _constructCuestionarioId() {
     return GeneratedIntColumn('cuestionario_id', $tableName, false,
-        $customConstraints: 'REFERENCES cuestionarios(id)');
+        $customConstraints: 'REFERENCES cuestionarios(id) ON DELETE CASCADE');
   }
 
   final VerificationMeta _identificadorActivoMeta =
@@ -2823,7 +2829,8 @@ class $InspeccionesTable extends Inspecciones
       _identificadorActivo ??= _constructIdentificadorActivo();
   GeneratedTextColumn _constructIdentificadorActivo() {
     return GeneratedTextColumn('identificador_activo', $tableName, false,
-        $customConstraints: 'REFERENCES activos(identificador)');
+        $customConstraints:
+            'REFERENCES activos(identificador) ON DELETE CASCADE');
   }
 
   final VerificationMeta _momentoInicioMeta =
@@ -3330,7 +3337,7 @@ class $RespuestasTable extends Respuestas
   GeneratedIntColumn get preguntaId => _preguntaId ??= _constructPreguntaId();
   GeneratedIntColumn _constructPreguntaId() {
     return GeneratedIntColumn('pregunta_id', $tableName, false,
-        $customConstraints: 'REFERENCES preguntas(id)');
+        $customConstraints: 'REFERENCES preguntas(id) ON DELETE CASCADE');
   }
 
   final VerificationMeta _fotosBaseMeta = const VerificationMeta('fotosBase');
@@ -3673,7 +3680,7 @@ class $RespuestasXOpcionesDeRespuestaTable
       _respuestaId ??= _constructRespuestaId();
   GeneratedIntColumn _constructRespuestaId() {
     return GeneratedIntColumn('respuesta_id', $tableName, false,
-        $customConstraints: 'REFERENCES respuestas(id)');
+        $customConstraints: 'REFERENCES respuestas(id) ON DELETE CASCADE');
   }
 
   final VerificationMeta _opcionDeRespuestaIdMeta =
@@ -3684,7 +3691,8 @@ class $RespuestasXOpcionesDeRespuestaTable
       _opcionDeRespuestaId ??= _constructOpcionDeRespuestaId();
   GeneratedIntColumn _constructOpcionDeRespuestaId() {
     return GeneratedIntColumn('opcion_de_respuesta_id', $tableName, false,
-        $customConstraints: 'REFERENCES opciones_de_respuesta(id)');
+        $customConstraints:
+            'REFERENCES opciones_de_respuesta(id) ON DELETE CASCADE');
   }
 
   @override

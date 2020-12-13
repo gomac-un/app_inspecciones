@@ -67,6 +67,10 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                               prefixIcon: Icon(Icons.text_fields),
                               floatingLabelBehavior: FloatingLabelBehavior.auto,
                             ),
+                            validationMessages: (control) => {
+                              'yaExiste':
+                                  'El vehiculo x ya tiene asociada una inspeccion de este tipo',
+                            },
                           );
                         return SizedBox.shrink();
                       }),

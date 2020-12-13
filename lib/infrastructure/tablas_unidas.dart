@@ -90,7 +90,6 @@ class BloqueConCuadricula extends IBloqueOrdenable {
 
 class Borrador {
   Inspeccion inspeccion;
-  CuestionarioDeModelo cuestionarioDeModelo;
   Activo activo;
-  Borrador(this.inspeccion, this.cuestionarioDeModelo, this.activo);
+  Borrador(this.inspeccion, this.activo);
 }

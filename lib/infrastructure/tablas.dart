@@ -43,8 +43,8 @@ class CuestionarioDeModelos extends Table {
   IntColumn get cuestionarioId => integer()
       .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
-  IntColumn get contratistaId =>
-      integer().customConstraint('REFERENCES contratistas(id)')();
+  IntColumn get contratistaId => integer()
+      .customConstraint('REFERENCES contratistas(id) ON DELETE SET NULL')();
 
   @override
   Set<Column> get primaryKey => {modelo, tipoDeInspeccion};
@@ -101,7 +101,7 @@ class CuadriculasDePreguntas extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   IntColumn get bloqueId => integer().customConstraint(
-      'REFERENCES bloques(id)')(); //debe ser unico por ser uno a uno, sera que es pk?
+      'REFERENCES bloques(id) ON DELETE CASCADE')(); //debe ser unico por ser uno a uno, sera que es pk?
 
   TextColumn get titulo => text().withLength(min: 1, max: 100)();
 
@@ -151,12 +151,11 @@ class OpcionesDeRespuesta extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   //uno de estos 2 debe ser no nulo
-  IntColumn get preguntaId =>
-      integer().nullable().customConstraint('REFERENCES preguntas(id)')();
+  IntColumn get preguntaId => integer().nullable()();
+  //.customConstraint('REFERENCES preguntas(id)')();
 
-  IntColumn get cuadriculaId => integer()
-      .nullable()
-      .customConstraint('REFERENCES cuadriculas_de_preguntas(id)')();
+  IntColumn get cuadriculaId => integer().nullable()();
+  //.customConstraint('REFERENCES cuadriculas_de_preguntas(id) ')();
 
   TextColumn get texto => text().withLength(min: 1, max: 100)();
 
@@ -169,11 +168,11 @@ class Inspecciones extends Table {
 
   IntColumn get estado => intEnum<EstadoDeInspeccion>()();
 
-  IntColumn get cuestionarioId =>
-      integer().customConstraint('REFERENCES cuestionarios(id)')();
+  IntColumn get cuestionarioId => integer()
+      .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
-  TextColumn get identificadorActivo =>
-      text().customConstraint('REFERENCES activos(identificador)')();
+  TextColumn get identificadorActivo => text().customConstraint(
+      'REFERENCES activos(identificador) ON DELETE CASCADE')();
 
   DateTimeColumn get momentoInicio => dateTime().nullable()();
 
@@ -188,8 +187,8 @@ class Respuestas extends Table {
   IntColumn get inspeccionId => integer()
       .customConstraint('REFERENCES inspecciones(id) ON DELETE CASCADE')();
 
-  IntColumn get preguntaId =>
-      integer().customConstraint('REFERENCES preguntas(id)')();
+  IntColumn get preguntaId => integer()
+      .customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
 
   //List<OpcionDeRespuesta>
 
@@ -214,11 +213,11 @@ class Respuestas extends Table {
 class RespuestasXOpcionesDeRespuesta extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  IntColumn get respuestaId =>
-      integer().customConstraint('REFERENCES respuestas(id)')();
+  IntColumn get respuestaId => integer()
+      .customConstraint('REFERENCES respuestas(id) ON DELETE CASCADE')();
 
-  IntColumn get opcionDeRespuestaId =>
-      integer().customConstraint('REFERENCES opciones_de_respuesta(id)')();
+  IntColumn get opcionDeRespuestaId => integer().customConstraint(
+      'REFERENCES opciones_de_respuesta(id) ON DELETE CASCADE')();
 }
 
 class ListInColumnConverter extends TypeConverter<KtList<String>, String> {

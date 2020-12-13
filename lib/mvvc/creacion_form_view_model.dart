@@ -9,6 +9,26 @@ part 'creacion_datos_test.dart';
 //TODO: agregar todas las validaciones necesarias
 //TODO: implementar la edicion de cuestionarios
 
+Future<Map<String, dynamic>> _cuestionariosExistentes(
+    AbstractControl<dynamic> control) async {
+  final form = control as FormGroup;
+
+  final tipoDeInspeccion = form.control('tipoDeInspeccion');
+  final modelos = form.control('modelos');
+
+  final cuestionariosExistentes = await getIt<Database>()
+      .getCuestionarios(tipoDeInspeccion.value, modelos.value);
+  if (cuestionariosExistentes.length > 0) {
+    tipoDeInspeccion.setErrors({'yaExiste': true});
+    tipoDeInspeccion.markAsTouched();
+    /*return "Ya hay un cuestionario para esta inspeccion y \n el modelo " +
+        cuestionariosExistentes.first.modelo;*/
+  } else {
+    tipoDeInspeccion.removeError('yaExiste');
+  }
+  return null;
+}
+
 class CreacionFormViewModel {
   final _db = getIt<Database>();
 
@@ -30,7 +50,7 @@ class CreacionFormViewModel {
 
   final bloques = FormArray([]);
 
-  final form = FormGroup({});
+  final form = FormGroup({}, asyncValidators: [_cuestionariosExistentes]);
 
   CreacionFormViewModel() {
     form.addAll({

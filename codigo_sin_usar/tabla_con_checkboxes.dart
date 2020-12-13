@@ -1,5 +1,5 @@
 //esto va en el controlador:
-final cuadricula = FormArray([
+/*final cuadricula = FormArray([
     FormArray([
       FormControl(value: true),
       FormControl(value: false),
@@ -75,3 +75,4 @@ RespuestaCard(
                 },
               ),
             ),
+            */
