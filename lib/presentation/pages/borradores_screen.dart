@@ -1,20 +1,12 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
-import 'package:inspecciones/application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
 
-import 'package:inspecciones/presentation/pages/llenar_cuestionario_form_page.dart';
+import 'package:inspecciones/router.gr.dart';
 import '../../infrastructure/moor_database.dart';
-import '../../injection.dart';
-import 'login_screen.dart';
 
 @injectable
 class BorradoresPage extends StatelessWidget {
-  void _pushScreen(BuildContext context, Widget screen) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => screen),
-    );
-  }
-
   Database _db;
 
   BorradoresPage(this._db);
@@ -52,14 +44,11 @@ class BorradoresPage extends StatelessWidget {
                   icon: Icon(Icons.delete),
                   onPressed: () => eliminarBorrador(borradores[index], context),
                 ),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => LlenarCuestionarioFormPage(
-                      LlenarCuestionarioFormBloc.withBorrador(
-                        getIt<Database>(),
-                        borradores[index],
-                      ),
-                    ),
+                onTap: () => ExtendedNavigator.of(context).push(
+                  Routes.llenadoFormPage,
+                  arguments: LlenadoFormPageArguments(
+                    vehiculo: borradores[index].activo.identificador,
+                    cuestionarioId: borradores[index].inspeccion.cuestionarioId,
                   ),
                 ),
               );

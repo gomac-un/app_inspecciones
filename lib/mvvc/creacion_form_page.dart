@@ -170,20 +170,15 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             ActionButton(
-              iconData: Icons.archive,
-              label: 'Guardar borrador',
+              iconData: Icons.send,
+              label: 'Finalizar',
               onPressed: () async {
                 LoadingDialog.show(context);
-                await viewModel.guardarEnLocal(esBorrador: true);
+                await viewModel.enviar();
                 LoadingDialog.hide(context);
                 ExtendedNavigator.of(context)
                     .pop(); //TODO: mostrar mensaje de exito en la pantalla de destino
               },
-            ),
-            ActionButton(
-              iconData: Icons.send,
-              label: 'Finalizar',
-              onPressed: viewModel.enviar,
             ),
           ],
         ),

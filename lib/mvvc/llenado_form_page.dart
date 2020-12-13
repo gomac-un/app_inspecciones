@@ -32,8 +32,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
 
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
-        create: (ctx) => LlenadoFormViewModel(
-            '1', 1), //! LlenadoFormViewModel(vehiculo, cuestionarioId),
+        create: (ctx) => LlenadoFormViewModel(vehiculo, cuestionarioId),
         child: this,
         dispose: (context, LlenadoFormViewModel value) => value.form.dispose(),
       );
@@ -48,10 +47,6 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
         formGroup: viewModel.form,
         child: Column(
           children: [
-            RaisedButton(
-              onPressed: () async {},
-              child: Text("run test"),
-            ),
             ValueListenableBuilder<bool>(
                 valueListenable: viewModel.cargada,
                 builder: (context, cargada, child) {
@@ -101,7 +96,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
               label: 'Guardar borrador',
               onPressed: () async {
                 LoadingDialog.show(context);
-                await viewModel.guardarEnLocal(esBorrador: true);
+                await viewModel.guardarBorrador();
                 LoadingDialog.hide(context);
                 ExtendedNavigator.of(context)
                     .pop(); //TODO: mostrar mensaje de exito en la pantalla de destino
@@ -110,7 +105,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
             ActionButton(
               iconData: Icons.send,
               label: 'Finalizar',
-              onPressed: viewModel.enviar,
+              onPressed: viewModel.finalizar,
             ),
           ],
         ),

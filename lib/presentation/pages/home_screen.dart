@@ -35,6 +35,7 @@ class HomeScreen extends StatelessWidget {
             title: Chip(label: Text('Ingreso')),
             onTap: () => _pushScreen(context, LoginScreen()),
           ),
+          /*
           ListTile(
             title: Chip(label: Text('Creación de Inspecciones')),
             onTap: () => _pushScreen(
@@ -45,8 +46,14 @@ class HomeScreen extends StatelessWidget {
                 child: CrearCuestionarioFormPage(),
               ),
             ),
+          ),*/
+          ListTile(
+            title: Chip(label: Text('Creación de Inspecciones')),
+            onTap: () => ExtendedNavigator.of(context).push(
+              Routes.creacionFormPage,
+              arguments: BorradoresPageArguments(db: getIt<Database>()),
+            ),
           ),
-          /*
           ListTile(
             title: Chip(label: Text('Borradores')),
             onTap: () => ExtendedNavigator.of(context).push(
@@ -54,13 +61,6 @@ class HomeScreen extends StatelessWidget {
               arguments: BorradoresPageArguments(db: getIt<Database>()),
             ),
           ),
-          ListTile(
-            title: Chip(label: Text('Prueba mvvc')),
-            onTap: () => ExtendedNavigator.of(context).push(
-              Routes.borradoresPage,
-              arguments: BorradoresPageArguments(db: getIt<Database>()),
-            ),
-          ),*/
           RaisedButton(
             onPressed: () {
               Navigator.of(context).push(MaterialPageRoute(
@@ -103,18 +103,15 @@ class HomeScreen extends StatelessWidget {
               FormBlocListener<SeleccionActivoInspeccionBloc, String, String>(
             formBloc: formBloc,
             onSuccess: (context, state) {
-              /*
               ExtendedNavigator.of(contextHome).push(
-                Routes.llenarCuestionarioFormPage,
-                arguments: LlenarCuestionarioFormPageArguments(
-                  formBloc: LlenarCuestionarioFormBloc(
-                    getIt<Database>(),
-                    formBloc.vehiculo.value,
-                    formBloc.tiposDeInspeccion.value.cuestionarioId,
-                  ),
+                Routes.llenadoFormPage,
+                arguments: LlenadoFormPageArguments(
+                  vehiculo: formBloc.vehiculo.value,
+                  cuestionarioId:
+                      formBloc.tiposDeInspeccion.value.cuestionarioId,
                 ),
               );
-              ExtendedNavigator.of(context).pop();*/
+              ExtendedNavigator.of(context).pop();
             },
             child: Container(
               width: double.maxFinite,

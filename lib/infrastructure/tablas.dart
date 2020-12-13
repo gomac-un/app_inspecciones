@@ -236,7 +236,7 @@ class ListInColumnConverter extends TypeConverter<KtList<String>, String> {
     if (value == null) {
       return null;
     }
-
+    if (value.size == 0) return "[]";
     final str = value.fold<String>("[", (acc, val) => acc + '"$val",');
     return str.replaceRange(str.length - 1, str.length, ']');
   }

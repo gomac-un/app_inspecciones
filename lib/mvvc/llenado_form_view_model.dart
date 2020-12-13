@@ -37,7 +37,7 @@ class LlenadoFormViewModel {
     /*final Inspeccion inspeccion =
         await _db.getInspeccion(_vehiculo, _cuestionarioId);*/
 
-    final bloquesBD = await _db.cargarCuestionario(_cuestionarioId);
+    final bloquesBD = await _db.cargarCuestionario(_cuestionarioId, _vehiculo);
 
     //ordenamiento y creacion de los controles dependiendo del tipo de elemento
     bloques = FormArray((bloquesBD
@@ -49,7 +49,7 @@ class LlenadoFormViewModel {
       if (e is BloqueConCuadricula)
         return RespuestaCuadriculaFormArray(
             e.cuadricula, e.preguntasRespondidas);
-      return null;
+      throw Exception("Tipo de bloque no reconocido");
     }).toList());
 
     form.addAll({
@@ -58,10 +58,21 @@ class LlenadoFormViewModel {
     cargada.value = true;
   }
 
-  Future guardarEnLocal({bool esBorrador}) async {
-    //TODO: implementar
+  Future guardarBorrador() async {
+    print(form.value);
+    final respuestas =
+        bloques.controls.expand<RespuestaConOpcionesDeRespuesta>((e) {
+      if (e is TituloFormGroup) return [];
+      if (e is RespuestaSeleccionSimpleFormGroup) return [e.toDB()];
+      if (e is RespuestaCuadriculaFormArray) return e.toDB();
+      throw Exception("Tipo de control no reconocido");
+    }).toList();
+
+    await _db.guardarInspeccionV2(respuestas, _cuestionarioId, _vehiculo, true);
+    print("guardada");
   }
-  void enviar() {
+
+  void finalizar() {
     //TODO: implementar
     print(form.value);
   }

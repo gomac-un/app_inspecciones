@@ -1,32 +1,33 @@
 import 'dart:io';
-
+import 'package:collection/collection.dart';
+import 'package:inspecciones/domain/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:path/path.dart' as path;
 
 //TODO: agregarle todas las validaciones necesarias a los campos
-
+//TODO: implementar estos controles como sealed classes
 class RespuestaSeleccionSimpleFormGroup extends FormGroup {
   final PreguntaConOpcionesDeRespuesta pregunta;
   final RespuestaConOpcionesDeRespuesta respuesta;
+  DateTime _momentoRespuesta;
 
   //constructor que le envia los controles a la clase padre
   RespuestaSeleccionSimpleFormGroup._(controles, this.pregunta, this.respuesta)
-      : super(controles);
+      : super(controles) {
+    this.valueChanges.listen((_) => _momentoRespuesta =
+        DateTime.now()); //guarda el momento de la ultima edicion
+  }
 
   factory RespuestaSeleccionSimpleFormGroup(
       PreguntaConOpcionesDeRespuesta pregunta,
       RespuestaConOpcionesDeRespuesta respuesta) {
-    respuesta.respuesta ??= RespuestasCompanion.insert(
-      //TODO: pendiente de https://github.com/simolus3/moor/issues/960
-      inspeccionId: null, //! agregar la inspeccion en el guardado de la db
-      preguntaId: pregunta.pregunta.id,
-      observacion: Value(''),
-      fotosBase: Value(listOf()),
-      reparado: Value(false),
-      observacionReparacion: Value(""),
-      fotosReparacion: Value(listOf()),
-    );
+    // La idea era que los companions devolvieran los valores por defecto pero no es asi
+    // https://github.com/simolus3/moor/issues/960
+    // entonces aca se asignan definen nuevo los valores por defecto que son usados
+    // cuando se inicia una nueva inspeccion
+    respuesta.respuesta ??= respuestaPorDefectoBuilder(pregunta.pregunta.id);
 
     final respuestas = FormArray<OpcionDeRespuesta>(
       pregunta.opcionesDeRespuesta
@@ -38,8 +39,11 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup {
           .map((e) => FormControl(value: e))
           .toList(),
     );
-    if (respuestas.value.length == 0)
-      respuestas.value = [null]; //por si no hay respuestas
+    if (respuestas.value.length == 0 &&
+        pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta)
+      respuestas.value = [
+        null
+      ]; //si no hay respuestas agrega un control vacio porque la seleccion unica lo necesita
 
     final Map<String, AbstractControl<dynamic>> controles = {
       'respuestas': respuestas,
@@ -84,6 +88,29 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup {
 
     return pregunta.pregunta.criticidad * sumres;
   }
+
+  RespuestaConOpcionesDeRespuesta toDB() {
+    return RespuestaConOpcionesDeRespuesta(
+      respuesta.respuesta.copyWith(
+        fotosBase: Value((control('fotosBase') as FormArray<File>)
+            .value
+            .map((e) => e.path)
+            .toImmutableList()),
+        fotosReparacion: Value((control('fotosReparacion') as FormArray<File>)
+            .value
+            .map((e) => e.path)
+            .toImmutableList()),
+        observacion: Value(control('observacion').value),
+        reparado: Value(control('reparado').value),
+        observacionReparacion: Value(control('observacionReparacion').value),
+        momentoRespuesta: Value(_momentoRespuesta),
+      ),
+      (control('respuestas') as FormArray<OpcionDeRespuesta>)
+          .controls
+          .map((e) => e.value)
+          .toList(),
+    );
+  }
 }
 
 class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta> {
@@ -100,17 +127,14 @@ class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta> {
     List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas,
   ) {
     preguntasRespondidas.forEach((e) {
-      e.respuesta.respuesta ??= RespuestasCompanion.insert(
-        inspeccionId: null, //! agregar la inspeccion en el guardado de la db
-        preguntaId: e.pregunta.id,
-      );
+      e.respuesta.respuesta ??= respuestaPorDefectoBuilder(e.pregunta.id);
     });
 
     final List<FormControl> controles = preguntasRespondidas
         .map(
           (e) => FormControl<OpcionDeRespuesta>(
             value: cuadricula.opcionesDeRespuesta.firstWhere(
-              (e1) => e1.id == e.respuesta.opcionesDeRespuesta?.first?.id,
+              (e1) => e1 == e.respuesta.opcionesDeRespuesta?.first,
               orElse: () => null,
             ),
           ),
@@ -123,6 +147,23 @@ class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta> {
       preguntasRespondidas,
     );
   }
+
+  List<RespuestaConOpcionesDeRespuesta> toDB([int inspeccionId]) {
+    return IterableZip([preguntasRespondidas, controls]).map((e) {
+      final pregunta = e[0] as PreguntaConRespuestaConOpcionesDeRespuesta;
+      final ctrlPregunta = e[1] as FormControl<OpcionDeRespuesta>;
+      return RespuestaConOpcionesDeRespuesta(
+        pregunta.respuesta.respuesta,
+        [ctrlPregunta.value], //TODO: implementar la seleccion multiple
+      );
+    }).toList();
+    /*return IterableZip([preguntasRespondidas, controls]).map((e) {
+      final pregunta = e[0] as PreguntaConRespuestaConOpcionesDeRespuesta;
+      final ctrlPregunta = e[1] as FormControl<OpcionDeRespuesta>;
+      return pregunta.respuesta
+          .respuesta; //pregunta.respuesta.respuesta.copyWith(momentoRespuesta: Value(_momento));
+    }).toList();*/
+  }
 }
 
 class TituloFormGroup extends FormGroup {
@@ -130,3 +171,13 @@ class TituloFormGroup extends FormGroup {
 
   TituloFormGroup(this.titulo) : super({});
 }
+
+respuestaPorDefectoBuilder(int preguntaId) => RespuestasCompanion.insert(
+      inspeccionId: null, //! agregar la inspeccion en el guardado de la db
+      preguntaId: preguntaId,
+      observacion: Value(''),
+      fotosBase: Value(listOf()),
+      reparado: Value(false),
+      observacionReparacion: Value(""),
+      fotosReparacion: Value(listOf()),
+    );

@@ -77,11 +77,14 @@ class SeleccionSimpleCard extends StatelessWidget {
             ),
           if (formGroup.pregunta.pregunta.tipo ==
               TipoDePregunta.multipleRespuesta)
-            MultiSelectDialogField(
+            MultiSelectDialogField<OpcionDeRespuesta>(
               buttonText: Text('Seleccione entre las opciones'),
               items: formGroup.pregunta.opcionesDeRespuesta
                   .map((e) => MultiSelectItem(e, e.texto))
                   .toList(),
+              initialValue: (formGroup.control('respuestas')
+                      as FormArray<OpcionDeRespuesta>)
+                  .value,
               listType: MultiSelectListType.CHIP,
               onConfirm: (values) {
                 formGroup.control('respuestas').updateValue(values);

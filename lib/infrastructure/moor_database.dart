@@ -417,15 +417,21 @@ class Database extends _$Database {
     return query.get();
   }
 
-  Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId,
-      {int inspeccionId}) async {
+  Future<List<IBloqueOrdenable>> cargarCuestionario(
+      int cuestionarioId, String activo) async {
+    final inspeccion = await (select(inspecciones)
+          ..where((tbl) =>
+              tbl.cuestionarioId.equals(cuestionarioId) &
+              tbl.identificadorActivo.equals(activo)))
+        .getSingle();
+    final inspeccionId = inspeccion?.id;
     final List<BloqueConTitulo> titulos = await getTitulos(cuestionarioId);
 
     final List<BloqueConPreguntaSimple> preguntasSimples =
         await getPreguntasSimples(cuestionarioId, inspeccionId);
 
     final List<BloqueConCuadricula> cuadriculas =
-        await getCuadriculas(cuestionarioId);
+        await getCuadriculas(cuestionarioId, inspeccionId);
 
     return [...titulos, ...preguntasSimples, ...cuadriculas];
   }
@@ -441,14 +447,89 @@ class Database extends _$Database {
       momentoInicio: Value(DateTime.now()),
     );
     final id = await into(inspecciones).insert(ins);
-    return Inspeccion(
-      id: id,
-      cuestionarioId: cuestionarioId,
-      estado: esBorrador
-          ? EstadoDeInspeccion.enBorrador
-          : EstadoDeInspeccion.enviada,
-      identificadorActivo: activo,
-    );
+    return (select(inspecciones)..where((i) => i.id.equals(id))).getSingle();
+  }
+
+  Future guardarInspeccionV2(
+      List<RespuestaConOpcionesDeRespuesta> respuestasForm,
+      int cuestionarioId,
+      String activo,
+      bool esBorrador) async {
+    if (respuestasForm.first.respuesta.inspeccionId.value == null) {
+      //si la primera respuesta no tiene inspeccion asociada, asocia todas a una nueva inspeccion
+      final ins = await crearInspeccion(cuestionarioId, activo, esBorrador);
+      respuestasForm.forEach((rf) {
+        rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
+      });
+    }
+    return transaction(() async {
+      await (update(inspecciones)
+            ..where((i) =>
+                i.id.equals(respuestasForm.first.respuesta.inspeccionId.value)))
+          .write(
+        esBorrador
+            ? InspeccionesCompanion(
+                momentoBorradorGuardado: Value(DateTime.now()),
+              )
+            : InspeccionesCompanion(
+                momentoEnvio: Value(DateTime.now()),
+              ),
+      );
+      await Future.forEach<RespuestaConOpcionesDeRespuesta>(respuestasForm,
+          (e) async {
+        //Mover las fotos a una carpeta unica para cada inspeccion
+        final appDir = await getApplicationDocumentsDirectory();
+        final idform =
+            respuestasForm.first.respuesta.inspeccionId.value.toString();
+        final fotosBaseProc = await Future.wait(organizarFotos(
+            e.respuesta.fotosBase, appDir.path, "fotosInspecciones", idform));
+        final fotosRepProc = await Future.wait(organizarFotos(
+            e.respuesta.fotosBase, appDir.path, "fotosInspecciones", idform));
+        e.respuesta.copyWith(
+          fotosBase: Value(fotosBaseProc.toImmutableList()),
+          fotosReparacion: Value(fotosRepProc.toImmutableList()),
+        );
+
+        int res;
+        if (e.respuesta.id.present) {
+          await into(respuestas).insertOnConflictUpdate(e.respuesta);
+          res = e.respuesta.id.value;
+        } else {
+          res = await into(respuestas).insert(e.respuesta);
+        }
+
+        await (delete(respuestasXOpcionesDeRespuesta)
+              ..where((rxor) => rxor.respuestaId.equals(res)))
+            .go();
+        await Future.forEach<OpcionDeRespuesta>(e.opcionesDeRespuesta,
+            (opres) async {
+          await into(respuestasXOpcionesDeRespuesta).insert(
+              RespuestasXOpcionesDeRespuestaCompanion.insert(
+                  respuestaId: res, opcionDeRespuestaId: opres.id));
+        });
+      });
+    });
+  }
+
+  Iterable<Future<String>> organizarFotos(
+      Value<KtList<String>> fotos,
+      String appDir,
+      String subDir, //fotosInspecciones
+      String idform) {
+    return fotos.value.iter.toList().map((pathFoto) async {
+      final dir = path.join(appDir, subDir, idform);
+      if (path.isWithin(dir, pathFoto)) {
+        // la imagen ya esta en la carpeta de datos
+        return pathFoto;
+      } else {
+        //mover la foto a la carpeta de datos
+        final fileName = path.basename(pathFoto);
+        final newPath = path.join(dir, fileName);
+        await File(newPath).create(recursive: true);
+        final savedImage = await File(pathFoto).copy(newPath);
+        return savedImage.path;
+      }
+    });
   }
 
   //esta funcion para actualizar primero borra todo lo anterior y lo reemplaza con datos actualizados, no es lo mas eficiente
@@ -515,7 +596,7 @@ class Database extends _$Database {
 
   Future eliminarBorrador(Borrador borrador) async {
     await (delete(inspecciones)
-          ..where((r) => r.id.equals(borrador.inspeccion.id)))
+          ..where((ins) => ins.id.equals(borrador.inspeccion.id)))
         .go();
   }
 

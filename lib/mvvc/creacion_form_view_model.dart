@@ -69,14 +69,9 @@ class CreacionFormViewModel {
     }
   }
 
-  Future guardarEnLocal({bool esBorrador}) async {
-    //TODO: implementar
-  }
-  void enviar() {
-    //TODO: implementar
+  enviar() async {
     print(form.controls);
-    _db.crearCuestionarioFromReactiveForm(form.controls);
-    //TODO: navigator.pop
+    await _db.crearCuestionarioFromReactiveForm(form.controls);
   }
 
   /// Cierra todos los streams para evitar fugas de memoria, se suele llamar desde el provider
