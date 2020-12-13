@@ -21,7 +21,7 @@ class InspeccionesRepository {
   //TODO
   downloadOfflineData() async {
     if (await networkInfo.isConnected) {
-      var data = await remoteDataSource.getOfflineData();
+      //var data = await remoteDataSource.getOfflineData();
       /* 
       traer
       activos

@@ -1,19 +1,15 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:get_it/get_it.dart';
-import 'package:inspecciones/application/crear_cuestionario_form/crear_cuestionario_form_bloc.dart';
-import 'package:inspecciones/application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
+
 import 'package:inspecciones/application/crear_cuestionario_form/seleccion_activo_inspeccion_bloc.dart';
 import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/presentation/pages/borradores_screen.dart';
 
-import 'package:inspecciones/presentation/pages/llenar_cuestionario_form_page.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:moor_db_viewer/moor_db_viewer.dart';
 import '../../infrastructure/moor_database.dart';
-import 'crear_cuestionario_form_page.dart';
+
 import 'login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -36,6 +32,7 @@ class HomeScreen extends StatelessWidget {
             title: Chip(label: Text('Ingreso')),
             onTap: () => _pushScreen(context, LoginScreen()),
           ),
+          /*
           ListTile(
             title: Chip(label: Text('Creación de Inspecciones')),
             onTap: () => _pushScreen(
@@ -45,6 +42,13 @@ class HomeScreen extends StatelessWidget {
                     CrearCuestionarioFormBloc(getIt<Database>()),
                 child: CrearCuestionarioFormPage(),
               ),
+            ),
+          ),*/
+          ListTile(
+            title: Chip(label: Text('Creación de Inspecciones')),
+            onTap: () => ExtendedNavigator.of(context).push(
+              Routes.creacionFormPage,
+              arguments: BorradoresPageArguments(db: getIt<Database>()),
             ),
           ),
           ListTile(
@@ -85,6 +89,7 @@ class HomeScreen extends StatelessWidget {
 
   Future<void> _inicioInspeccion(contextHome) async {
     final formBloc = getIt<SeleccionActivoInspeccionBloc>();
+
     return showDialog<void>(
       //El showDialog no hace parte del arbol principal por lo cual toca guardar el contexto del home
       context: contextHome,
@@ -96,13 +101,11 @@ class HomeScreen extends StatelessWidget {
             formBloc: formBloc,
             onSuccess: (context, state) {
               ExtendedNavigator.of(contextHome).push(
-                Routes.llenarCuestionarioFormPage,
-                arguments: LlenarCuestionarioFormPageArguments(
-                  formBloc: LlenarCuestionarioFormBloc(
-                    getIt<Database>(),
-                    formBloc.vehiculo.value,
-                    formBloc.tiposDeInspeccion.value.cuestionarioId,
-                  ),
+                Routes.llenadoFormPage,
+                arguments: LlenadoFormPageArguments(
+                  vehiculo: formBloc.vehiculo.value,
+                  cuestionarioId:
+                      formBloc.tiposDeInspeccion.value.cuestionarioId,
                 ),
               );
               ExtendedNavigator.of(context).pop();

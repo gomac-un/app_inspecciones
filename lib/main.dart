@@ -11,12 +11,26 @@ void main() {
       builder: ExtendedNavigator.builder(
         router: AutoRouter(),
         builder: (context, extendedNav) => Theme(
-          data: ThemeData(
-              brightness: Brightness.dark, //TODO: seleccion de tema
-              scaffoldBackgroundColor: Colors.lightBlue),
+          data: customTheme, //TODO: seleccion de tema
           child: extendedNav,
         ),
       ), //InspeccionScreen(),
     ),
+    /*MaterialApp(
+      home: Testing(),
+    ),*/
   );
 }
+
+final customTheme = ThemeData(
+  brightness: Brightness.light,
+  primaryColor: Colors.lightBlue,
+  accentColor: Colors.deepPurple,
+  scaffoldBackgroundColor: Colors.lightBlue,
+  visualDensity: VisualDensity.compact,
+  inputDecorationTheme: InputDecorationTheme(
+    border: const UnderlineInputBorder(),
+    fillColor: Colors.grey.withOpacity(.3),
+    filled: true,
+  ),
+);

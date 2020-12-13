@@ -6,20 +6,16 @@ Function initialize(db) {
         batch.insertAll(db.activos, [
           ...*/
 
-Function initialize(db) {
+Function initialize(Database db) {
   return (batch) {
     return _initialize0(batch, db);
   };
 }
 
-void _initialize0(Batch batch, db) {
+void _initialize0(Batch batch, Database db) {
   batch.insertAll(db.activos, [
     ActivosCompanion.insert(modelo: 'DT-Kenworth', identificador: '1'),
     ActivosCompanion.insert(modelo: 'sencillo-Kenworth', identificador: '2'),
-  ]);
-  batch.insertAll(db.cuestionarios, [
-    CuestionariosCompanion.insert(id: Value(1)),
-    CuestionariosCompanion.insert(id: Value(2)),
   ]);
 
   batch.insertAll(db.contratistas, [
@@ -33,7 +29,8 @@ void _initialize0(Batch batch, db) {
     SistemasCompanion.insert(id: Value(3), nombre: "Eléctrico"),
     SistemasCompanion.insert(id: Value(4), nombre: "Frenos"),
     SistemasCompanion.insert(id: Value(5), nombre: "Hidráulico"),
-    SistemasCompanion.insert(id: Value(6), nombre: "No aplica"),
+    SistemasCompanion.insert(id: Value(6), nombre: "Motor"),
+    SistemasCompanion.insert(id: Value(7), nombre: "No aplica"),
   ]);
 
   batch.insertAll(db.subSistemas, [
@@ -43,255 +40,120 @@ void _initialize0(Batch batch, db) {
     SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 4),
     SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 5),
     SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 6),
+    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 7),
   ]);
-
+  //Inicio de una inspeccion de prueba
+  //Datos de la inspeccion
+  batch.insertAll(db.cuestionarios, [
+    CuestionariosCompanion.insert(),
+  ]);
   batch.insertAll(db.cuestionarioDeModelos, [
     CuestionarioDeModelosCompanion.insert(
         modelo: 'DT-Kenworth',
         tipoDeInspeccion: "preoperacional",
+        periodicidad: 100,
         cuestionarioId: 1,
-        periodicidad: 100,
-        contratistaId: 1),
-    CuestionarioDeModelosCompanion.insert(
-        modelo: 'sencillo-Kenworth',
-        tipoDeInspeccion: "preoperacional",
-        cuestionarioId: 2,
-        periodicidad: 100,
-        contratistaId: 2),
+        contratistaId: 1)
   ]);
-
   batch.insertAll(db.bloques, [
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 1,
-        titulo: "Parte delantera del vehículo DT Kenworth",
+    BloquesCompanion.insert(cuestionarioId: 1, nOrden: 0),
+    BloquesCompanion.insert(cuestionarioId: 1, nOrden: 1),
+    BloquesCompanion.insert(cuestionarioId: 1, nOrden: 2),
+    BloquesCompanion.insert(cuestionarioId: 1, nOrden: 3),
+  ]);
+  //Un bloque de cada tipo
+  //Un titulo
+  batch.insertAll(db.titulos, [
+    TitulosCompanion.insert(
+        bloqueId: 1,
+        titulo: "Motor y dirección DT Kenworth",
         descripcion:
             "Inspeccionar el estado de cada parte en mención y evaluar su funcionamiento."),
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 2,
-        titulo: "Silla del conductor",
-        descripcion: ""),
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 3,
-        titulo: "Silla del tripulante",
-        descripcion: ""),
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 4,
-        titulo: "Palanca de cambios",
-        descripcion: ""),
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 5,
-        titulo: "Mando de la transmisión (Pera fuller)",
-        descripcion: ""),
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 6,
-        titulo:
-            "Eléctrico: Accionamiento/Estado limpia parabrisas (todas las velocidades)",
-        descripcion: ""),
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 7,
-        titulo: "Estructura: Vidrios",
-        descripcion: ""),
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 8,
-        titulo: "Estructura: Eleva vidrios",
-        descripcion: ""),
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 9,
-        titulo: "Estructura: Retrovisores",
-        descripcion: ""),
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 10,
-        titulo: "Eléctrico: Luces estacionarias",
-        descripcion: ""),
-    BloquesCompanion.insert(
-        cuestionarioId: 1, nOrden: 11, titulo: "SOAT", descripcion: ""),
-    BloquesCompanion.insert(
-        cuestionarioId: 1,
-        nOrden: 12,
-        titulo: "Tecnico mecánica",
-        descripcion: ""),
-    BloquesCompanion.insert(
-        cuestionarioId: 1, nOrden: 13, titulo: "Matrícula", descripcion: ""),
   ]);
-
+  //Una pregunta de seleccion unica
+  batch.insert(
+      db.preguntas,
+      PreguntasCompanion.insert(
+        bloqueId: 2,
+        titulo: "Estado del restrictor del aire",
+        descripcion: "",
+        sistemaId: 6,
+        subSistemaId: 6,
+        posicion: "no aplica",
+        tipo: TipoDePregunta.unicaRespuesta,
+        criticidad: 3,
+      ));
+  batch.insertAll(db.opcionesDeRespuesta, [
+    OpcionesDeRespuestaCompanion.insert(
+        preguntaId: Value(1), texto: "Indica cambio de filtro", criticidad: 2),
+    OpcionesDeRespuestaCompanion.insert(
+        preguntaId: Value(1), texto: "No lo posee", criticidad: 0),
+    OpcionesDeRespuestaCompanion.insert(
+        preguntaId: Value(1), texto: "Mal estado", criticidad: 4),
+    OpcionesDeRespuestaCompanion.insert(
+        preguntaId: Value(1), texto: "Sin novedad", criticidad: 0),
+  ]);
+  //Una pregunta de seleccion multiple
+  batch.insert(
+      db.preguntas,
+      PreguntasCompanion.insert(
+        bloqueId: 3,
+        titulo: "Estado aceite lubricante",
+        descripcion: "",
+        sistemaId: 6,
+        subSistemaId: 6,
+        posicion: "no aplica",
+        tipo: TipoDePregunta.multipleRespuesta,
+        criticidad: 3,
+      ));
+  batch.insertAll(db.opcionesDeRespuesta, [
+    OpcionesDeRespuestaCompanion.insert(
+        preguntaId: Value(2), texto: "Condicion normal", criticidad: 0),
+    OpcionesDeRespuestaCompanion.insert(
+        preguntaId: Value(2),
+        texto: "Posible dilucion por combustible",
+        criticidad: 3),
+    OpcionesDeRespuestaCompanion.insert(
+        preguntaId: Value(2), texto: "Color lechoso", criticidad: 3),
+    OpcionesDeRespuestaCompanion.insert(
+        preguntaId: Value(2),
+        texto: "Presencia de particulas extrañas",
+        criticidad: 3),
+  ]);
+  //Una cuadricula de preguntas
+  batch.insert(
+      db.cuadriculasDePreguntas,
+      CuadriculasDePreguntasCompanion.insert(
+        bloqueId: 4,
+        titulo: "Fugas en el motor",
+        descripcion: "",
+      ));
+  //Las preguntas de la cuadricula
   batch.insertAll(db.preguntas, [
     PreguntasCompanion.insert(
-      bloqueId: 2,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 1,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Sin novedad", 0),
-          OpcionDeRespuesta("Requiere intervención", 4),
-        ],
-      ),
-      sistemaId: 1,
-      subSistemaId: 1,
-      posicion: "Parte delantera",
-    ),
+        bloqueId: 4,
+        titulo: "Fugas/estado en mangueras",
+        descripcion: "",
+        sistemaId: 6,
+        subSistemaId: 6,
+        posicion: "n/a",
+        tipo: TipoDePregunta.parteDeCuadricula,
+        criticidad: 3),
     PreguntasCompanion.insert(
-      bloqueId: 3,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 1,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Sin novedad", 0),
-          OpcionDeRespuesta("Requiere intervención", 4),
-        ],
-      ),
-      sistemaId: 1,
-      subSistemaId: 1,
-      posicion: "Parte delantera",
-    ),
-    PreguntasCompanion.insert(
-      bloqueId: 4,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 3,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Sin novedad", 0),
-          OpcionDeRespuesta("Requiere intervención", 4),
-        ],
-      ),
-      sistemaId: 2,
-      subSistemaId: 2,
-      posicion: "Parte delantera",
-    ),
-    PreguntasCompanion.insert(
-      bloqueId: 5,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 3,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Sin novedad", 0),
-          OpcionDeRespuesta("Requiere intervención", 4),
-        ],
-      ),
-      sistemaId: 2,
-      subSistemaId: 2,
-      posicion: "Parte delantera",
-    ),
-    PreguntasCompanion.insert(
-      bloqueId: 6,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 3,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Sin novedad", 0),
-          OpcionDeRespuesta("Requiere intervención", 4),
-        ],
-      ),
-      sistemaId: 3,
-      subSistemaId: 3,
-      posicion: "Parte delantera",
-    ),
-    PreguntasCompanion.insert(
-      bloqueId: 7,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 3,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Sin novedad", 0),
-          OpcionDeRespuesta("Requiere intervención", 4),
-        ],
-      ),
-      sistemaId: 1,
-      subSistemaId: 1,
-      posicion: "Parte delantera",
-    ),
-    PreguntasCompanion.insert(
-      bloqueId: 8,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 3,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Sin novedad", 0),
-          OpcionDeRespuesta("Requiere intervención", 4),
-        ],
-      ),
-      sistemaId: 1,
-      subSistemaId: 1,
-      posicion: "Parte delantera",
-    ),
-    PreguntasCompanion.insert(
-      bloqueId: 9,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 3,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Sin novedad", 0),
-          OpcionDeRespuesta("Requiere intervención", 4),
-        ],
-      ),
-      sistemaId: 1,
-      subSistemaId: 1,
-      posicion: "Parte delantera",
-    ),
-    PreguntasCompanion.insert(
-      bloqueId: 10,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 3,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Sin novedad", 0),
-          OpcionDeRespuesta("Requiere intervención", 4),
-        ],
-      ),
-      sistemaId: 3,
-      subSistemaId: 3,
-      posicion: "Parte delantera",
-    ),
-    PreguntasCompanion.insert(
-      bloqueId: 11,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 4,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Vigente", 0),
-          OpcionDeRespuesta("No está", 4),
-        ],
-      ),
-      sistemaId: 5,
-      subSistemaId: 5,
-      posicion: "Parte delantera",
-    ),
-    PreguntasCompanion.insert(
-      bloqueId: 12,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 4,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Vigente", 0),
-          OpcionDeRespuesta("No está", 4),
-        ],
-      ),
-      sistemaId: 5,
-      subSistemaId: 5,
-      posicion: "Parte delantera",
-    ),
-    PreguntasCompanion.insert(
-      bloqueId: 13,
-      tipo: TipoDePregunta.unicaRespuesta,
-      criticidad: 4,
-      opcionesDeRespuesta: Value(
-        [
-          OpcionDeRespuesta("Vigente", 0),
-          OpcionDeRespuesta("No está", 4),
-        ],
-      ),
-      sistemaId: 5,
-      subSistemaId: 5,
-      posicion: "Parte delantera",
-    ),
+        bloqueId: 4,
+        titulo: "Fugas en base del filtro de aceite",
+        descripcion: "",
+        sistemaId: 6,
+        subSistemaId: 6,
+        posicion: "n/a",
+        tipo: TipoDePregunta.parteDeCuadricula,
+        criticidad: 3),
+  ]);
+  //Las respuestas de la cuadricula
+  batch.insertAll(db.opcionesDeRespuesta, [
+    OpcionesDeRespuestaCompanion.insert(
+        texto: "requiere intervencion", criticidad: 4, cuadriculaId: Value(1)),
+    OpcionesDeRespuestaCompanion.insert(
+        texto: "sin novedad", criticidad: 0, cuadriculaId: Value(1)),
   ]);
 }
