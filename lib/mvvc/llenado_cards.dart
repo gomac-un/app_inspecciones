@@ -10,6 +10,7 @@ import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/presentation/widgets/image_shower.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:kt_dart/kt.dart';
 
@@ -50,6 +51,7 @@ class SeleccionSimpleCard extends StatelessWidget {
   const SeleccionSimpleCard({Key key, this.formGroup}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<LlenadoFormViewModel>(context);
     return PreguntaCard(
       titulo: formGroup.pregunta.pregunta.titulo,
       descripcion: formGroup.pregunta.pregunta.descripcion,
@@ -110,39 +112,41 @@ class SeleccionSimpleCard extends StatelessWidget {
               labelText: 'Fotos base',
             ),
           ),
-          ReactiveCheckboxListTile(
-            formControl: formGroup.control('reparado'),
-            title: Text('Reparado'),
-            controlAffinity: ListTileControlAffinity.leading,
-          ),
+          if (viewModel.estado.value == EstadoDeInspeccion.reparacion)
+            ReactiveCheckboxListTile(
+              formControl: formGroup.control('reparado'),
+              title: Text('Reparado'),
+              controlAffinity: ListTileControlAffinity.leading,
+            ),
           // Muestra las observaciones de la reparacion solo si reparado es true
-          ReactiveValueListenableBuilder(
-            formControl: formGroup.control('reparado') as FormControl<bool>,
-            builder: (context, control, child) {
-              if (control.value)
-                return Column(
-                  children: [
-                    ReactiveTextField(
-                      formControl: formGroup.control('observacionReparacion'),
-                      decoration: InputDecoration(
-                        labelText: 'Observaciones de la reparación',
-                        prefixIcon: Icon(Icons.remove_red_eye),
+          if (viewModel.estado.value == EstadoDeInspeccion.reparacion)
+            ReactiveValueListenableBuilder(
+              formControl: formGroup.control('reparado') as FormControl<bool>,
+              builder: (context, control, child) {
+                if (control.value)
+                  return Column(
+                    children: [
+                      ReactiveTextField(
+                        formControl: formGroup.control('observacionReparacion'),
+                        decoration: InputDecoration(
+                          labelText: 'Observaciones de la reparación',
+                          prefixIcon: Icon(Icons.remove_red_eye),
+                        ),
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
+                        textInputAction: TextInputAction.next,
                       ),
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                      textInputAction: TextInputAction.next,
-                    ),
-                    FormBuilderImagePicker(
-                      formArray: formGroup.control('fotosReparacion'),
-                      decoration: const InputDecoration(
-                        labelText: 'Fotos de la reparación',
+                      FormBuilderImagePicker(
+                        formArray: formGroup.control('fotosReparacion'),
+                        decoration: const InputDecoration(
+                          labelText: 'Fotos de la reparación',
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              return SizedBox.shrink();
-            },
-          ),
+                    ],
+                  );
+                return SizedBox.shrink();
+              },
+            ),
         ],
       ),
     );
@@ -155,45 +159,101 @@ class CuadriculaCard extends StatelessWidget {
   const CuadriculaCard({Key key, this.formArray}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<LlenadoFormViewModel>(context);
+    final numeroDeColumnas = formArray.cuadricula.opcionesDeRespuesta.length;
     return PreguntaCard(
       titulo: formArray.cuadricula.cuadricula.titulo,
       descripcion: formArray.cuadricula.cuadricula.descripcion,
-      child: Table(
-        border:
-            TableBorder(horizontalInside: BorderSide(color: Colors.black26)),
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        // defaultColumnWidth: IntrinsicColumnWidth(), // esto es caro
-        columnWidths: {0: FlexColumnWidth(2)},
+      child: Column(
         children: [
-          TableRow(
+          Table(
+            border: TableBorder(
+                horizontalInside: BorderSide(color: Colors.black26)),
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            columnWidths: {
+              0: FlexColumnWidth(2),
+              numeroDeColumnas + 1: FlexColumnWidth(0.5),
+            },
             children: [
-              Text(""),
-              ...formArray.cuadricula.opcionesDeRespuesta.map(
-                (e) => Text(
-                  e.texto,
-                  textAlign: TextAlign.center,
-                ),
+              TableRow(
+                children: [
+                  Text(""),
+                  ...formArray.cuadricula.opcionesDeRespuesta.map(
+                    (e) => Text(
+                      e.texto,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Text(""),
+                ],
               ),
+              //IterableZip permite recorrer simultaneamente los dos arrays
+              ...IterableZip(
+                      [formArray.preguntasRespondidas, formArray.controls])
+                  .map((e) {
+                final pregunta =
+                    e[0] as PreguntaConRespuestaConOpcionesDeRespuesta;
+                final ctrlPregunta = e[1] as FormControl<OpcionDeRespuesta>;
+                return TableRow(
+                  children: [
+                    Text(pregunta.pregunta.titulo),
+                    ...formArray.cuadricula.opcionesDeRespuesta
+                        .map((res) => ReactiveRadio(
+                              value: res,
+                              formControl: ctrlPregunta,
+                            ))
+                        .toList(),
+                    IconButton(
+                      icon: Icon(Icons.remove_red_eye),
+                      onPressed: () async {
+                        /*
+                        final res = showDialog<Map>(
+                            context: null,
+                            child: AlertDialog(
+                              content: Column(
+                                children: [
+                                  ReactiveTextField(
+                                    formControl:
+                                        ctrlPregunta.control('observacion'),
+                                    decoration: InputDecoration(
+                                      labelText: 'Observaciones',
+                                      prefixIcon: Icon(Icons.remove_red_eye),
+                                      floatingLabelBehavior:
+                                          FloatingLabelBehavior.auto,
+                                    ),
+                                    keyboardType: TextInputType.multiline,
+                                    maxLines: null,
+                                    textInputAction: TextInputAction.next,
+                                  ),
+                                  //TODO: mostrar los botones de agregar imagenes y el checkbox de
+                                  //reparación de una manera mas optima, no uno en cada fila
+                                  FormBuilderImagePicker(
+                                    formArray: formGroup.control('fotosBase'),
+                                    decoration: const InputDecoration(
+                                      labelText: 'Fotos base',
+                                    ),
+                                  ),
+                                  if (viewModel.estado.value ==
+                                      EstadoDeInspeccion.reparacion)
+                                    ReactiveCheckboxListTile(
+                                      formControl:
+                                          formGroup.control('reparado'),
+                                      title: Text('Reparado'),
+                                      controlAffinity:
+                                          ListTileControlAffinity.leading,
+                                    ),
+                                ],
+                              ),
+                            ));
+                      */
+                      },
+                    ),
+                    //TODO: agregar controles para agregar fotos y reparaciones, tal vez con popups
+                  ],
+                );
+              }).toList(),
             ],
           ),
-          //IterableZip permite recorrer simultaneamente los dos arrays
-          ...IterableZip([formArray.preguntasRespondidas, formArray.controls])
-              .map((e) {
-            final pregunta = e[0] as PreguntaConRespuestaConOpcionesDeRespuesta;
-            final ctrlPregunta = e[1] as FormControl<OpcionDeRespuesta>;
-            return TableRow(
-              children: [
-                Text(pregunta.pregunta.titulo),
-                ...formArray.cuadricula.opcionesDeRespuesta
-                    .map((res) => ReactiveRadio(
-                          value: res,
-                          formControl: ctrlPregunta,
-                        ))
-                    .toList(),
-                //TODO: agregar controles para agregar fotos y reparaciones, tal vez con popups
-              ],
-            );
-          }).toList(),
         ],
       ),
     );

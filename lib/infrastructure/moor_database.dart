@@ -340,10 +340,11 @@ class Database extends _$Database {
       return RespuestaConOpcionesDeRespuesta(null, null);
     final query = select(respuestas).join([
       leftOuterJoin(
+        //left outer join para que carguen las respuestas sin opciones seleccionadas
         respuestasXOpcionesDeRespuesta,
         respuestasXOpcionesDeRespuesta.respuestaId.equalsExp(respuestas.id),
       ),
-      innerJoin(
+      leftOuterJoin(
         opcionesDeRespuesta,
         opcionesDeRespuesta.id
             .equalsExp(respuestasXOpcionesDeRespuesta.opcionDeRespuestaId),
@@ -434,12 +435,10 @@ class Database extends _$Database {
   }
 
   Future<Inspeccion> crearInspeccion(
-      int cuestionarioId, String activo, bool esBorrador) async {
+      int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
     final ins = InspeccionesCompanion.insert(
       cuestionarioId: cuestionarioId,
-      estado: esBorrador
-          ? EstadoDeInspeccion.enBorrador
-          : EstadoDeInspeccion.enviada,
+      estado: estado,
       identificadorActivo: activo,
       momentoInicio: Value(DateTime.now()),
     );
@@ -448,10 +447,10 @@ class Database extends _$Database {
   }
 
   Future guardarInspeccion(List<RespuestaConOpcionesDeRespuesta> respuestasForm,
-      int cuestionarioId, String activo, bool esBorrador) async {
+      int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
     if (respuestasForm.first.respuesta.inspeccionId.value == null) {
       //si la primera respuesta no tiene inspeccion asociada, asocia todas a una nueva inspeccion
-      final ins = await crearInspeccion(cuestionarioId, activo, esBorrador);
+      final ins = await crearInspeccion(cuestionarioId, activo, estado);
       respuestasForm.forEach((rf) {
         rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
       });
@@ -461,7 +460,7 @@ class Database extends _$Database {
             ..where((i) =>
                 i.id.equals(respuestasForm.first.respuesta.inspeccionId.value)))
           .write(
-        esBorrador
+        estado == EstadoDeInspeccion.borrador
             ? InspeccionesCompanion(
                 momentoBorradorGuardado: Value(DateTime.now()),
               )
@@ -501,8 +500,8 @@ class Database extends _$Database {
         await (delete(respuestasXOpcionesDeRespuesta)
               ..where((rxor) => rxor.respuestaId.equals(res)))
             .go();
-        await Future.forEach<OpcionDeRespuesta>(e.opcionesDeRespuesta,
-            (opres) async {
+        await Future.forEach<OpcionDeRespuesta>(
+            e.opcionesDeRespuesta.where((e) => e != null), (opres) async {
           await into(respuestasXOpcionesDeRespuesta).insert(
               RespuestasXOpcionesDeRespuestaCompanion.insert(
                   respuestaId: res, opcionDeRespuestaId: opres.id));

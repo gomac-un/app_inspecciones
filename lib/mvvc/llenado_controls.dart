@@ -4,11 +4,11 @@ import 'package:inspecciones/domain/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:path/path.dart' as path;
 
 //TODO: agregarle todas las validaciones necesarias a los campos
 //TODO: implementar estos controles como sealed classes
-class RespuestaSeleccionSimpleFormGroup extends FormGroup {
+class RespuestaSeleccionSimpleFormGroup extends FormGroup
+    implements BloqueDeFormulario {
   final PreguntaConOpcionesDeRespuesta pregunta;
   final RespuestaConOpcionesDeRespuesta respuesta;
   DateTime _momentoRespuesta;
@@ -38,27 +38,27 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup {
           )
           .map((e) => FormControl(value: e))
           .toList(),
+      validators: [Validators.minLength(1), Validators.maxLength(1)],
     );
     if (respuestas.value.length == 0 &&
         pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta)
       respuestas.value = [
         null
-      ]; //si no hay respuestas agrega un control vacio porque la seleccion unica lo necesita
+      ]; // si no hay respuestas agrega un control vacio porque la seleccion unica lo necesita
 
     final Map<String, AbstractControl<dynamic>> controles = {
       'respuestas': respuestas,
-      'observacion':
-          FormControl<String>(value: respuesta.respuesta.observacion.value),
-      'fotosBase': FormArray(
+      'observacion': fb.control<String>(respuesta.respuesta.observacion.value),
+      'fotosBase': fb.array<File>(
         respuesta.respuesta.fotosBase.value
             .map((e) => FormControl(value: File(e)))
             .iter
             .toList(),
       ),
-      'reparado': FormControl<bool>(value: respuesta.respuesta.reparado.value),
-      'observacionReparacion': FormControl<String>(
-          value: respuesta.respuesta.observacionReparacion.value),
-      'fotosReparacion': FormArray(
+      'reparado': fb.control<bool>(respuesta.respuesta.reparado.value),
+      'observacionReparacion':
+          fb.control<String>(respuesta.respuesta.observacionReparacion.value),
+      'fotosReparacion': fb.array<File>(
         respuesta.respuesta.fotosReparacion.value
             .map((e) => FormControl(value: File(e)))
             .iter
@@ -72,19 +72,17 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup {
       respuesta,
     );
   }
+
+  @override
   get criticidad {
-    int sumres = 0;
-    if (control('respuesta').value is Iterable) {
-      /*TODO: calcular la criticidad de las multiples con las reglas de
+    /*TODO: calcular la criticidad de las multiples con las reglas de
       * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
       * solo para la pantalla de arreglos
       */
-      control('respuesta').value.forEach((e) {
-        sumres += e.criticidad;
-      });
-    } else {
-      sumres = control('respuesta').value.criticidad;
-    }
+    int sumres = (control('respuestas') as FormArray<OpcionDeRespuesta>)
+        .controls
+        .where((e) => e.value != null)
+        .fold(0, (p, c) => p + c.value.criticidad);
 
     return pregunta.pregunta.criticidad * sumres;
   }
@@ -108,12 +106,14 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup {
       (control('respuestas') as FormArray<OpcionDeRespuesta>)
           .controls
           .map((e) => e.value)
+          //.where((e) => e != null)
           .toList(),
     );
   }
 }
 
-class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta> {
+class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta>
+    implements BloqueDeFormulario {
   final CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula;
   final List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas;
 
@@ -130,7 +130,7 @@ class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta> {
       e.respuesta.respuesta ??= respuestaPorDefectoBuilder(e.pregunta.id);
     });
 
-    final List<FormControl> controles = preguntasRespondidas
+    final List<FormControl<OpcionDeRespuesta>> controles = preguntasRespondidas
         .map(
           (e) => FormControl<OpcionDeRespuesta>(
             value: cuadricula.opcionesDeRespuesta.firstWhere(
@@ -157,19 +157,31 @@ class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta> {
         [ctrlPregunta.value], //TODO: implementar la seleccion multiple
       );
     }).toList();
-    /*return IterableZip([preguntasRespondidas, controls]).map((e) {
+  }
+
+  get criticidad {
+    /*TODO: calcular la criticidad de las multiples con las reglas de
+      * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
+      * solo para la pantalla de arreglos
+      */
+
+    return IterableZip([preguntasRespondidas, controls]).map((e) {
       final pregunta = e[0] as PreguntaConRespuestaConOpcionesDeRespuesta;
       final ctrlPregunta = e[1] as FormControl<OpcionDeRespuesta>;
-      return pregunta.respuesta
-          .respuesta; //pregunta.respuesta.respuesta.copyWith(momentoRespuesta: Value(_momento));
-    }).toList();*/
+      return pregunta.pregunta.criticidad * ctrlPregunta.value.criticidad;
+    }).fold(0, (p, c) => p + c);
+
+    //return pregunta.pregunta.criticidad * sumres;
   }
 }
 
-class TituloFormGroup extends FormGroup {
+class TituloFormGroup extends FormGroup implements BloqueDeFormulario {
   final Titulo titulo;
 
   TituloFormGroup(this.titulo) : super({});
+
+  @override
+  int get criticidad => 0;
 }
 
 respuestaPorDefectoBuilder(int preguntaId) => RespuestasCompanion.insert(
@@ -181,3 +193,7 @@ respuestaPorDefectoBuilder(int preguntaId) => RespuestasCompanion.insert(
       observacionReparacion: Value(""),
       fotosReparacion: Value(listOf()),
     );
+
+abstract class BloqueDeFormulario {
+  int get criticidad;
+}

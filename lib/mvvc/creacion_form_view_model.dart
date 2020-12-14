@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
+import 'package:inspecciones/mvvc/creacion_validators.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 part 'creacion_datos_test.dart';
 
-//TODO: agregar todas las validaciones necesarias
 //TODO: implementar la edicion de cuestionarios
 
 class CreacionFormViewModel {
@@ -26,9 +26,10 @@ class CreacionFormViewModel {
   final modelosSeleccionados = FormControl<List<String>>(
       value: [], validators: [Validators.minLength(1)]);
 
-  final contratista = FormControl<Contratista>();
+  final contratista =
+      FormControl<Contratista>(validators: [Validators.required]);
 
-  final periodicidad = FormControl<double>();
+  final periodicidad = FormControl<double>(validators: [Validators.required]);
 
   final bloques = FormArray([]);
 
@@ -43,9 +44,9 @@ class CreacionFormViewModel {
       'periodicidad': periodicidad,
       'bloques': bloques,
     }, validators: [
-      _nuevoTipoDeInspeccion
+      nuevoTipoDeInspeccion
     ], asyncValidators: [
-      _cuestionariosExistentes
+      cuestionariosExistentes //FIXME: no recalcula cuando cambia el tipo de inspeccion
     ]);
     //agregar un titulo inicial
     bloques.add(CreadorTituloFormGroup());
@@ -89,42 +90,4 @@ class CreacionFormViewModel {
     sistemas.dispose();
     form.dispose();
   }
-}
-
-//Custom Validators
-Future<Map<String, dynamic>> _cuestionariosExistentes(
-    AbstractControl<dynamic> control) async {
-  final form = control as FormGroup;
-
-  final tipoDeInspeccion = form.control('tipoDeInspeccion');
-  final modelos = form.control('modelos');
-
-  final cuestionariosExistentes = await getIt<Database>()
-      .getCuestionarios(tipoDeInspeccion.value, modelos.value);
-  if (cuestionariosExistentes.length > 0) {
-    tipoDeInspeccion.setErrors({'yaExiste': true});
-    tipoDeInspeccion.markAsTouched();
-  } else {
-    tipoDeInspeccion.removeError('yaExiste');
-  }
-  return null;
-}
-
-Map<String, dynamic> _nuevoTipoDeInspeccion(AbstractControl<dynamic> control) {
-  final form = control as FormGroup;
-
-  final tipoDeInspeccion = form.control('tipoDeInspeccion');
-  final nuevoTipoDeinspeccion =
-      form.control('nuevoTipoDeInspeccion') as FormControl<String>;
-
-  final error = {ValidationMessage.required: true};
-
-  if (tipoDeInspeccion.value == 'otra' &&
-      nuevoTipoDeinspeccion.value.trim().isEmpty) {
-    nuevoTipoDeinspeccion.setErrors(error);
-    //nuevoTipoDeinspeccion.markAsTouched();
-  } else {
-    nuevoTipoDeinspeccion.removeError(ValidationMessage.required);
-  }
-  return null;
 }

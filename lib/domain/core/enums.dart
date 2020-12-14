@@ -13,6 +13,7 @@ enum TipoDePregunta {
 }
 
 enum EstadoDeInspeccion {
-  enBorrador,
+  borrador,
+  reparacion,
   enviada,
 }

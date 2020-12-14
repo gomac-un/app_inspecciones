@@ -190,6 +190,11 @@ class WidgetRespuestas extends StatelessWidget {
                 'Respuestas',
                 style: Theme.of(context).textTheme.headline6,
               ),
+              if (control.invalid)
+                Text(
+                  control.errors.entries.first.key,
+                  style: TextStyle(color: Colors.red),
+                ),
               SizedBox(height: 10),
               if ((control as FormArray).controls.length > 0)
                 ListView.builder(
@@ -240,7 +245,10 @@ class WidgetRespuestas extends StatelessWidget {
                     Text("Agregar respuesta"),
                   ],
                 ),
-                onPressed: formGroup.agregarRespuesta,
+                onPressed: () {
+                  formGroup.agregarRespuesta();
+                  control.markAsTouched();
+                },
               ),
             ],
           );

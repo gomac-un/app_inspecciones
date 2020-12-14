@@ -5,6 +5,7 @@ import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_cards.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:inspecciones/mvvc/form_scaffold.dart';
+import 'package:inspecciones/mvvc/reactive_multiselect_dialog_field.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
 import 'package:inspecciones/presentation/widgets/widgets.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
@@ -50,10 +51,6 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                         decoration: InputDecoration(
                           labelText: 'Seleccione el tipo de inspeccion',
                         ),
-                        validationMessages: (control) => {
-                          'yaExiste':
-                              'Uno de los activos ya tiene asociada una inspeccion de este tipo', //TODO: decir cual
-                        },
                       );
                     },
                   ),
@@ -80,31 +77,18 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
               child: ValueListenableBuilder<List<String>>(
                   valueListenable: viewModel.modelos,
                   builder: (context, modelos, child) {
-                    //Implementar de mejor manera el multiselect para que funcione
-                    //con los validators de reactive Forms https://github.com/joanpablo/reactive_forms/issues/64
-                    return MultiSelectDialogField(
-                      buttonText:
-                          Text('Modelos a los que aplica esta inspección'),
-                      items: modelos.map((e) => MultiSelectItem(e, e)).toList(),
-                      listType: MultiSelectListType.CHIP,
-                      onConfirm: (values) {
-                        viewModel.modelosSeleccionados.updateValue(values);
-                        viewModel.modelosSeleccionados.markAsTouched();
-                      },
-                      chipDisplay: MultiSelectChipDisplay(
+                    return ReactiveMultiSelectDialogField(
+                        formControl: viewModel.modelosSeleccionados,
                         items:
                             modelos.map((e) => MultiSelectItem(e, e)).toList(),
-                        onTap: (value) {
-                          //TODO: opcion de quitar opciones desde el chipDisplay
-                          //viewModel.modelosSeleccionados.updateValue(viewModel.modelosSeleccionados.value..remove(value));
-                          /*viewModel.modelosSeleccionados.value = viewModel
-                              .modelosSeleccionados.value
-                              .where((e) => e != value)
-                              .toList();*/
-                          //viewModel.modelosSeleccionados.remove(control);
-                        },
-                      ),
-                    );
+                        buttonText:
+                            Text('Modelos a los que aplica esta inspección'),
+                        validationMessages: (control) => {
+                              ValidationMessage.minLength:
+                                  'Seleccione al menos un modelo',
+                              'yaExiste':
+                                  'El modelo ${control.getError('yaExiste')} ya tiene asociado un cuestionario de este tipo',
+                            });
                   }),
             ),
             PreguntaCard(
@@ -164,7 +148,6 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
               onPressed: !viewModel.form.valid
                   ? viewModel.form.markAllAsTouched
                   : () async {
-                      viewModel.form.markAllAsTouched();
                       LoadingDialog.show(context);
                       await viewModel.enviar();
                       LoadingDialog.hide(context);
