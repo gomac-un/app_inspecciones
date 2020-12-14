@@ -51,17 +51,27 @@ class Opciones extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.only(top: 60.0),
           child: ListView(
-            children: <Widget>[
-              new UserAccountsDrawerHeader(
-                accountName: Text("Administrador"),
-                accountEmail: Text(usuario.documento),
-                decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: NetworkImage(
-                            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/1200px-User_icon_2.svg.png"),
-                        fit: BoxFit.fitHeight,
-                        alignment: Alignment.bottomRight)),
+            children: <Widget> [
+            Container(
+              color: Colors.lightBlue,
+              height: 200,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 30.0),
+                child: UserAccountsDrawerHeader(
+                  accountName: Text(
+                    "Inspector",
+                  ),
+                  accountEmail: Text(usuario.documento),
+                  currentAccountPicture: CircleAvatar(
+                    backgroundColor: Colors.deepPurple,
+                    child: Text(
+                      usuario.documento[0],
+                      style: TextStyle(fontSize: 35),
+                    ),
+                  ),
+                ),
               ),
+            ),
               SizedBox(height: 20.0),
               SizedBox(
                 height: 5.0,
@@ -121,7 +131,7 @@ class Opciones extends StatelessWidget {
                             Navigator.of(context).pushReplacementNamed('/'),
                           }),
                 ),
-            ],
+           ],
           ),
         ),
       ),
