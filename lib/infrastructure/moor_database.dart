@@ -257,7 +257,7 @@ class Database extends _$Database {
   Future<List<CuestionarioDeModelo>> cuestionariosParaVehiculo(
       String vehiculo) {
     final query = select(activos).join([
-      leftOuterJoin(cuestionarioDeModelos,
+      innerJoin(cuestionarioDeModelos,
           cuestionarioDeModelos.modelo.equalsExp(activos.modelo)),
     ])
       ..where(activos.identificador.equals(vehiculo));
@@ -267,14 +267,14 @@ class Database extends _$Database {
     }).get();
   }
 
-  Future<Inspeccion> getInspeccion(String vehiculo, int cuestionarioId) {
+  Future<Inspeccion> getInspeccion(String activo, int cuestionarioId) {
     //revisar si hay una inspeccion de ese cuestionario empezada
-    if (cuestionarioId == null || vehiculo == null) return null;
+    if (cuestionarioId == null || activo == null) return null;
     final query = select(inspecciones)
       ..where(
         (ins) =>
             ins.cuestionarioId.equals(cuestionarioId) &
-            ins.identificadorActivo.equals(vehiculo),
+            ins.identificadorActivo.equals(activo),
       );
 
     return query.getSingle();
@@ -448,24 +448,24 @@ class Database extends _$Database {
 
   Future guardarInspeccion(List<RespuestaConOpcionesDeRespuesta> respuestasForm,
       int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
-    if (respuestasForm.first.respuesta.inspeccionId.value == null) {
-      //si la primera respuesta no tiene inspeccion asociada, asocia todas a una nueva inspeccion
-      final ins = await crearInspeccion(cuestionarioId, activo, estado);
-      respuestasForm.forEach((rf) {
-        rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
-      });
+    Inspeccion ins = await getInspeccion(activo, cuestionarioId);
+    if (ins == null) {
+      //si no hay inspeccion creada, asocia todas las respuestas a una nueva inspeccion
+      ins = await crearInspeccion(cuestionarioId, activo, estado);
     }
+    respuestasForm.forEach((rf) {
+      rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
+    });
     return transaction(() async {
-      await (update(inspecciones)
-            ..where((i) =>
-                i.id.equals(respuestasForm.first.respuesta.inspeccionId.value)))
-          .write(
-        estado == EstadoDeInspeccion.borrador
+      await (update(inspecciones)..where((i) => i.id.equals(ins.id))).write(
+        estado == EstadoDeInspeccion.enviada
             ? InspeccionesCompanion(
-                momentoBorradorGuardado: Value(DateTime.now()),
+                momentoEnvio: Value(DateTime.now()),
+                estado: Value(estado),
               )
             : InspeccionesCompanion(
-                momentoEnvio: Value(DateTime.now()),
+                momentoBorradorGuardado: Value(DateTime.now()),
+                estado: Value(estado),
               ),
       );
       await Future.forEach<RespuestaConOpcionesDeRespuesta>(respuestasForm,

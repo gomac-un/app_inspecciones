@@ -43,16 +43,16 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
 
-    return ValueListenableBuilder<EstadoDeInspeccion>(
-        valueListenable: viewModel.estado,
-        builder: (context, estado, child) {
-          return FormScaffold(
-            title: Text(estado == EstadoDeInspeccion.reparacion
-                ? 'Reparación de problemas'
-                : 'Llenado de inspeccion'),
-            body: ReactiveForm(
-              formGroup: viewModel.form,
-              child: Column(
+    return ReactiveForm(
+      formGroup: viewModel.form,
+      child: ValueListenableBuilder<EstadoDeInspeccion>(
+          valueListenable: viewModel.estado,
+          builder: (context, estado, child) {
+            return FormScaffold(
+              title: Text(estado == EstadoDeInspeccion.reparacion
+                  ? 'Reparación de problemas'
+                  : 'Llenado de inspeccion'),
+              body: Column(
                 children: [
                   ValueListenableBuilder<bool>(
                       valueListenable: viewModel.cargada,
@@ -88,25 +88,27 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                   SizedBox(height: 60),
                 ],
               ),
-            ),
-            floatingActionButton: BotonesGuardado(viewModel: viewModel),
-          );
-        });
+              floatingActionButton: BotonesGuardado(
+                estado: estado,
+              ),
+            );
+          }),
+    );
   }
 }
 
 class BotonesGuardado extends StatelessWidget {
   const BotonesGuardado({
     Key key,
-    @required this.viewModel,
-    this.estado,
+    @required this.estado,
   }) : super(key: key);
 
-  final LlenadoFormViewModel viewModel;
   final EstadoDeInspeccion estado;
 
   @override
   Widget build(BuildContext context) {
+    final form = ReactiveForm.of(context);
+    final viewModel = Provider.of<LlenadoFormViewModel>(context);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -116,19 +118,38 @@ class BotonesGuardado extends StatelessWidget {
             iconData: Icons.archive,
             label: 'Guardar borrador',
             onPressed: () async {
-              await guardarYSalir(
-                context,
-                accion: () =>
-                    viewModel.guardarInspeccionEnLocal(estado: estado),
-              );
+              LoadingDialog.show(context);
+              await viewModel.guardarInspeccionEnLocal(estado: estado);
+              LoadingDialog.hide(context);
             },
           ),
           ActionButton(
             iconData: Icons.send,
             label: 'Finalizar',
-            onPressed: !viewModel.form.valid
-                ? () => Scaffold.of(context).showSnackBar(
-                    SnackBar(content: Text("La inspeccion tiene errores")))
+            onPressed: !form.valid
+                ? () {
+                    form.markAllAsTouched();
+                    Scaffold.of(context).showSnackBar(SnackBar(
+                        content: Row(
+                      children: [
+                        Text("La inspeccion tiene errores"),
+                        FlatButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                    title: Text("Errores: "),
+                                    content: Text(
+                                      /*JsonEncoder.withIndent('  ')
+                                          .convert(json.encode(form.errors)),*/
+                                      form.errors.toString(),
+                                    )),
+                              );
+                            },
+                            child: Text("ver errores"))
+                      ],
+                    )));
+                  }
                 : () async {
                     switch (estado) {
                       case EstadoDeInspeccion.borrador:
@@ -138,6 +159,10 @@ class BotonesGuardado extends StatelessWidget {
                         if (criticidadTotal > 0) {
                           viewModel.estado.value =
                               EstadoDeInspeccion.reparacion;
+                          LoadingDialog.show(context);
+                          await viewModel.guardarInspeccionEnLocal(
+                              estado: EstadoDeInspeccion.reparacion);
+                          LoadingDialog.hide(context);
                         } else {
                           await guardarYSalir(
                             context,
@@ -146,7 +171,6 @@ class BotonesGuardado extends StatelessWidget {
                             ),
                           );
                         }
-
                         break;
                       case EstadoDeInspeccion.reparacion:
                         await guardarYSalir(
@@ -167,6 +191,7 @@ class BotonesGuardado extends StatelessWidget {
   }
 
   Future guardarYSalir(BuildContext context, {AsyncCallback accion}) async {
+    final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
     viewModel.estado.value = EstadoDeInspeccion.enviada;
     LoadingDialog.show(context);
     await accion();

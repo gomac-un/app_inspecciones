@@ -24,8 +24,7 @@ class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup
 
   factory CreadorPreguntaSeleccionSimpleFormGroup() {
     final sistema = fb.control<Sistema>(null, [Validators.required]);
-    final subSistemas =
-        ValueNotifier<List<SubSistema>>([]); //! hay que hacerle dispose
+    final subSistemas = ValueNotifier<List<SubSistema>>([]);
 
     sistema.valueChanges.asBroadcastStream().listen((sistema) async {
       subSistemas.value = await getIt<Database>().getSubSistemas(sistema);
@@ -57,6 +56,12 @@ class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup
     } on FormControlNotFoundException {
       print("que pendejo");
     }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    subSistemas.dispose();
   }
 }
 
@@ -125,6 +130,12 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     try {
       (control('respuestas') as FormArray).remove(e);
     } on FormControlNotFoundException {}
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    subSistemas.dispose();
   }
 }
 

@@ -206,46 +206,46 @@ class CuadriculaCard extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.remove_red_eye),
                       onPressed: () async {
-                        /*
-                        final res = showDialog<Map>(
+                        /*final res = showDialog<Map>(
                             context: null,
-                            child: AlertDialog(
-                              content: Column(
-                                children: [
-                                  ReactiveTextField(
-                                    formControl:
-                                        ctrlPregunta.control('observacion'),
-                                    decoration: InputDecoration(
-                                      labelText: 'Observaciones',
-                                      prefixIcon: Icon(Icons.remove_red_eye),
-                                      floatingLabelBehavior:
-                                          FloatingLabelBehavior.auto,
-                                    ),
-                                    keyboardType: TextInputType.multiline,
-                                    maxLines: null,
-                                    textInputAction: TextInputAction.next,
+                            builder: (context) => AlertDialog(
+                                  content: Column(
+                                    children: [
+                                      ReactiveTextField(
+                                        formControl:
+                                            ctrlPregunta.control('observacion'),
+                                        decoration: InputDecoration(
+                                          labelText: 'Observaciones',
+                                          prefixIcon:
+                                              Icon(Icons.remove_red_eye),
+                                          floatingLabelBehavior:
+                                              FloatingLabelBehavior.auto,
+                                        ),
+                                        keyboardType: TextInputType.multiline,
+                                        maxLines: null,
+                                        textInputAction: TextInputAction.next,
+                                      ),
+                                      //TODO: mostrar los botones de agregar imagenes y el checkbox de
+                                      //reparación de una manera mas optima, no uno en cada fila
+                                      FormBuilderImagePicker(
+                                        formArray:
+                                            formGroup.control('fotosBase'),
+                                        decoration: const InputDecoration(
+                                          labelText: 'Fotos base',
+                                        ),
+                                      ),
+                                      if (viewModel.estado.value ==
+                                          EstadoDeInspeccion.reparacion)
+                                        ReactiveCheckboxListTile(
+                                          formControl:
+                                              formGroup.control('reparado'),
+                                          title: Text('Reparado'),
+                                          controlAffinity:
+                                              ListTileControlAffinity.leading,
+                                        ),
+                                    ],
                                   ),
-                                  //TODO: mostrar los botones de agregar imagenes y el checkbox de
-                                  //reparación de una manera mas optima, no uno en cada fila
-                                  FormBuilderImagePicker(
-                                    formArray: formGroup.control('fotosBase'),
-                                    decoration: const InputDecoration(
-                                      labelText: 'Fotos base',
-                                    ),
-                                  ),
-                                  if (viewModel.estado.value ==
-                                      EstadoDeInspeccion.reparacion)
-                                    ReactiveCheckboxListTile(
-                                      formControl:
-                                          formGroup.control('reparado'),
-                                      title: Text('Reparado'),
-                                      controlAffinity:
-                                          ListTileControlAffinity.leading,
-                                    ),
-                                ],
-                              ),
-                            ));
-                      */
+                                ));*/
                       },
                     ),
                     //TODO: agregar controles para agregar fotos y reparaciones, tal vez con popups

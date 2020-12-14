@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 
@@ -37,10 +38,15 @@ class BorradoresPage extends StatelessWidget {
                 title: Text(borradores[index].activo.identificador +
                     " - " +
                     borradores[index].activo.modelo),
-                subtitle: Text(borradores[index]
-                    .inspeccion
-                    .momentoBorradorGuardado
-                    .toString()),
+                subtitle: Text("Fecha de guardado: " +
+                    borradores[index]
+                        .inspeccion
+                        .momentoBorradorGuardado
+                        .toString() +
+                    " - " +
+                    "Estado: " +
+                    EnumToString.convertToString(
+                        borradores[index].inspeccion.estado)),
                 leading: Icon(Icons.edit),
                 trailing: IconButton(
                   icon: Icon(Icons.delete),

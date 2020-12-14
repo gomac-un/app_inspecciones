@@ -38,7 +38,10 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
           )
           .map((e) => FormControl(value: e))
           .toList(),
-      validators: [Validators.minLength(1), Validators.maxLength(1)],
+      validators: [
+        Validators.minLength(1),
+        if (pregunta.opcionesDeRespuesta.length == 1) Validators.maxLength(1),
+      ],
     );
     if (respuestas.value.length == 0 &&
         pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta)
