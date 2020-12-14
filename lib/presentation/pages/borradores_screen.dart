@@ -195,42 +195,54 @@ class Opciones extends StatelessWidget {
     Usuario usuario = Provider.of<Usuario>(context);
     return SafeArea(
       child: new Drawer(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 60.0),
-          child: ListView(
-            children: <Widget>[
-              new UserAccountsDrawerHeader(
-                accountName: Text("Inspector"),
-                accountEmail: Text(usuario.documento),
-                decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: NetworkImage(
-                            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/1200px-User_icon_2.svg.png"),
-                        fit: BoxFit.fitHeight,
-                        alignment: Alignment.bottomRight)),
-              ),
-              SizedBox(height: 20.0),
-              Ink(
-                color: Colors.lightBlue,
-                width: 5.0,
-                child: Center(
-                    child: ListTile(
-                        title: Text('Cerrar Sesión'),
-                        leading: Icon(Icons.exit_to_app),
-                        onTap: () => {
-                              Navigator.pop(context),
-                              Navigator.of(context).pushReplacementNamed('/'),
-                            }) /* RaisedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.of(context).pushReplacementNamed('/');
-                    },
-                    child: Text("cerrar sesión"),
-                  ), */
+        child: ListView(
+          children: <Widget>[
+            /* Container(color: Colors.deepPurple[100], height:56), */
+            Container(
+              color: Colors.lightBlue,
+              height: 200,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 30.0),
+                child: UserAccountsDrawerHeader(
+                  accountName: Text(
+                    "Inspector",
+                  ),
+                  accountEmail: Text(usuario.documento),
+                  /* decoration: BoxDecoration(
+                          image: DecorationImage(
+                              image: NetworkImage(
+                                  "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/1200px-User_icon_2.svg.png"),
+                              fit: BoxFit.fitHeight,
+                              alignment: Alignment.bottomRight,
+                              ),
+                              
+                              ), */
+                  currentAccountPicture: CircleAvatar(
+                    backgroundColor: Colors.deepPurple,
+                    child: Text(
+                      usuario.documento[0],
+                      style: TextStyle(fontSize: 35),
                     ),
+                  ),
+                ),
               ),
-            ],
-          ),
+            ),
+            SizedBox(height: 30.0),
+            Container(
+              alignment: Alignment.bottomRight,
+              height: 500,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 100.0, left: 160.0),
+                child: ListTile(
+                    title: Text('Cerrar Sesión'),
+                    leading: Icon(Icons.exit_to_app),
+                    onTap: () => {
+                          Navigator.pop(context),
+                          Navigator.of(context).pushReplacementNamed('/'),
+                        }),
+              ),
+            ),
+          ],
         ),
       ),
     );
