@@ -533,25 +533,35 @@ class Database extends _$Database {
 
   Stream<List<Borrador>> borradores() {
     final query = select(inspecciones).join([
-      //TODO: eliminar la inspeccion de los borradores porque solo se necesita el activo y el cm, ya que la inspeccion se consulta con base a estos
       innerJoin(activos,
           activos.identificador.equalsExp(inspecciones.identificadorActivo)),
     ]);
 
     return query
-        .map(
-          (row) => Borrador(
-            row.readTable(inspecciones),
-            row.readTable(activos),
-          ),
-        )
-        .watch();
+        .map((row) =>
+            Borrador(row.readTable(activos), row.readTable(inspecciones), null))
+        .watch()
+        .asyncMap((l) async => await Future.wait<Borrador>(l.map(
+              (e) async => e.copyWith(
+                cuestionarioDeModelo:
+                    await getCuestionarioDeModelo(e.inspeccion),
+              ),
+            )));
   }
 
   Future eliminarBorrador(Borrador borrador) async {
     await (delete(inspecciones)
           ..where((ins) => ins.id.equals(borrador.inspeccion.id)))
         .go();
+  }
+
+  Future<CuestionarioDeModelo> getCuestionarioDeModelo(Inspeccion inspeccion) {
+    final query = select(cuestionarios).join([
+      innerJoin(cuestionarioDeModelos,
+          cuestionarioDeModelos.cuestionarioId.equalsExp(cuestionarios.id))
+    ])
+      ..where(cuestionarios.id.equals(inspeccion.cuestionarioId));
+    return query.map((row) => row.readTable(cuestionarioDeModelos)).getSingle();
   }
 
   // Esta funcion deberá exportar las inspecciones llenadas de manera

@@ -31,22 +31,23 @@ class BorradoresPage extends StatelessWidget {
 
           final borradores = snapshot.data;
 
-          return ListView.builder(
+          return ListView.separated(
+            separatorBuilder: (BuildContext context, int index) => Divider(),
             itemCount: borradores.length,
             itemBuilder: (context, index) {
+              final borrador = borradores[index];
+              final f = borrador.inspeccion.momentoBorradorGuardado;
               return ListTile(
-                title: Text(borradores[index].activo.identificador +
+                tileColor: Theme.of(context).cardColor,
+                title: Text(borrador.activo.identificador +
                     " - " +
-                    borradores[index].activo.modelo),
-                subtitle: Text("Fecha de guardado: " +
-                    borradores[index]
-                        .inspeccion
-                        .momentoBorradorGuardado
-                        .toString() +
-                    " - " +
-                    "Estado: " +
-                    EnumToString.convertToString(
-                        borradores[index].inspeccion.estado)),
+                    borrador.activo.modelo),
+                subtitle: Text(
+                    "Tipo de inspeccion: ${borrador.cuestionarioDeModelo.tipoDeInspeccion} \n" +
+                        "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute}  \n" +
+                        "Estado: " +
+                        EnumToString.convertToString(
+                            borrador.inspeccion.estado)),
                 leading: Icon(Icons.edit),
                 trailing: IconButton(
                   icon: Icon(Icons.delete),
@@ -55,8 +56,8 @@ class BorradoresPage extends StatelessWidget {
                 onTap: () => ExtendedNavigator.of(context).push(
                   Routes.llenadoFormPage,
                   arguments: LlenadoFormPageArguments(
-                    vehiculo: borradores[index].activo.identificador,
-                    cuestionarioId: borradores[index].inspeccion.cuestionarioId,
+                    vehiculo: borrador.activo.identificador,
+                    cuestionarioId: borrador.inspeccion.cuestionarioId,
                   ),
                 ),
               );

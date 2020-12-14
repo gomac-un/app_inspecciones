@@ -146,7 +146,29 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
               iconData: Icons.send,
               label: 'Finalizar',
               onPressed: !viewModel.form.valid
-                  ? viewModel.form.markAllAsTouched
+                  ? () {
+                      viewModel.form.markAllAsTouched();
+                      Scaffold.of(context).showSnackBar(SnackBar(
+                          content: Row(
+                        children: [
+                          Text("La inspeccion tiene errores"),
+                          FlatButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                      title: Text("Errores: "),
+                                      content: Text(
+                                        /*JsonEncoder.withIndent('  ')
+                                          .convert(json.encode(form.errors)),*/
+                                        viewModel.form.errors.toString(),
+                                      )),
+                                );
+                              },
+                              child: Text("ver errores"))
+                        ],
+                      )));
+                    }
                   : () async {
                       LoadingDialog.show(context);
                       await viewModel.enviar();

@@ -89,7 +89,28 @@ class BloqueConCuadricula extends IBloqueOrdenable {
 }
 
 class Borrador {
-  Inspeccion inspeccion;
   Activo activo;
-  Borrador(this.inspeccion, this.activo);
+  Inspeccion inspeccion;
+  CuestionarioDeModelo cuestionarioDeModelo;
+  Borrador(
+    this.activo,
+    this.inspeccion,
+    this.cuestionarioDeModelo,
+  );
+
+  Borrador copyWith({
+    Activo activo,
+    Inspeccion inspeccion,
+    CuestionarioDeModelo cuestionarioDeModelo,
+  }) {
+    return Borrador(
+      activo ?? this.activo,
+      inspeccion ?? this.inspeccion,
+      cuestionarioDeModelo ?? this.cuestionarioDeModelo,
+    );
+  }
+
+  @override
+  String toString() =>
+      'Borrador(activo: $activo, inspeccion: $inspeccion, cuestionarioDeModelo: $cuestionarioDeModelo)';
 }

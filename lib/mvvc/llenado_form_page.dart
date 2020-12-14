@@ -121,6 +121,8 @@ class BotonesGuardado extends StatelessWidget {
               LoadingDialog.show(context);
               await viewModel.guardarInspeccionEnLocal(estado: estado);
               LoadingDialog.hide(context);
+              Scaffold.of(context)
+                  .showSnackBar(SnackBar(content: Text("Guardado exitoso")));
             },
           ),
           ActionButton(

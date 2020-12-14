@@ -65,7 +65,6 @@ class LlenadoFormViewModel {
   }
 
   Future guardarInspeccionEnLocal({@required EstadoDeInspeccion estado}) async {
-    print(form.value);
     form.markAllAsTouched();
     final respuestas =
         bloques.controls.expand<RespuestaConOpcionesDeRespuesta>((e) {
@@ -76,7 +75,6 @@ class LlenadoFormViewModel {
     }).toList();
 
     await _db.guardarInspeccion(respuestas, _cuestionarioId, _vehiculo, estado);
-    print("guardada");
   }
 
   void finalizar() {
