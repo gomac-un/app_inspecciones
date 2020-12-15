@@ -29,7 +29,7 @@ class DjangoAPI implements InspeccionesRemoteDataSource {
       body: jsonEncode(userLogin.toDatabaseJson()),
     );
     if (response.statusCode == 200) {
-      return Token.fromJson(json.decode(response.body));
+      return Token.fromServerJson(json.decode(response.body));
     } else {
       print(json.decode(response.body).toString());
       throw ServerException(json.decode(response.body));

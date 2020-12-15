@@ -18,13 +18,10 @@ class FormScaffold extends StatelessWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(title: title),
       body: SafeArea(
-        child: Theme(
-          data: Theme.of(context).copyWith(highlightColor: Colors.purple),
-          child: Scrollbar(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(8.0),
-              child: this.body,
-            ),
+        child: Scrollbar(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(8.0),
+            child: this.body,
           ),
         ),
       ),

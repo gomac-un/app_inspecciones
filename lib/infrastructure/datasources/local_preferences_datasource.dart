@@ -1,10 +1,11 @@
 import 'package:injectable/injectable.dart';
+import 'package:inspecciones/application/auth/usuario.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class ILocalPreferencesDataSource {
-  Future saveUser(User user);
+  Future saveUser(Usuario user);
   Future deleteUser();
-  User getUser();
+  Usuario getUser();
 }
 
 @LazySingleton(as: ILocalPreferencesDataSource)
@@ -13,15 +14,17 @@ class SharedPreferencesDataSource implements ILocalPreferencesDataSource {
 
   SharedPreferencesDataSource(this.preferences);
 
-  Future saveUser(User user) async {
+  Future saveUser(Usuario user) async {
     await preferences.setString('user', user.toJson());
   }
 
-  Future deleteUser() {
-    preferences.remove('user');
+  Future deleteUser() async {
+    await preferences.remove('user');
   }
 
-  User getUser() {
-    return preferences.getString('user');
+  Usuario getUser() {
+    print(preferences.getString('user'));
+    if (preferences.getString('user') == null) return null;
+    return Usuario.fromJson(preferences.getString('user'));
   }
 }

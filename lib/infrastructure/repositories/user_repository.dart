@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:injectable/injectable.dart';
-import 'package:inspecciones/infrastructure/local_preferences_datasource.dart';
-import 'package:inspecciones/infrastructure/remote_datasource.dart';
+import 'package:inspecciones/application/auth/usuario.dart';
+import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
+import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
 import 'package:inspecciones/infrastructure/repositories/api_model.dart';
 import 'package:meta/meta.dart';
 
@@ -13,27 +14,28 @@ class UserRepository {
 
   UserRepository(this.api, this.localPreferences);
 
-  Future<User> authenticateUser({UserLogin userLogin}) async {
+  Future<Usuario> authenticateUser({UserLogin userLogin}) async {
+    //TODO: revisar si esta en linea
     Token token = await api.getToken(userLogin);
-    User user = User(
-      id: 0,
-      username: userLogin.username,
-      token: token.token,
-      //TODO: otros datos
+    Usuario user = Usuario(
+      userLogin.username,
+      userLogin.password,
+      true,
+      token,
     );
     return user;
   }
 
-  Future<void> saveLocalUser({@required User user}) async {
+  Future<void> saveLocalUser({@required Usuario user}) async {
     // write token with the user to the local database
     await localPreferences.saveUser(user);
   }
 
-  Future<void> deleteLocalUser({@required int id}) async {
+  Future<void> deleteLocalUser() async {
     await localPreferences.deleteUser();
   }
 
-  User getLocalUser() {
+  Usuario getLocalUser() {
     final res = localPreferences.getUser();
     return res;
   }

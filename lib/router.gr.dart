@@ -7,20 +7,25 @@
 // ignore_for_file: public_member_api_docs
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'mvvc/creacion_form_page.dart';
 import 'mvvc/llenado_form_page.dart';
 import 'presentation/pages/borradores_screen.dart';
 import 'presentation/pages/home_screen.dart';
+import 'presentation/pages/login_screen.dart';
+import 'presentation/pages/splash_screen.dart';
 
 class Routes {
-  static const String homeScreen = '/';
+  static const String splashPage = '/';
+  static const String loginScreen = '/login-screen';
+  static const String homeScreen = '/home-screen';
   static const String creacionFormPage = '/creacion-form-page';
   static const String llenadoFormPage = '/llenado-form-page';
   static const String borradoresPage = '/borradores-page';
   static const all = <String>{
+    splashPage,
+    loginScreen,
     homeScreen,
     creacionFormPage,
     llenadoFormPage,
@@ -32,6 +37,8 @@ class AutoRouter extends RouterBase {
   @override
   List<RouteDef> get routes => _routes;
   final _routes = <RouteDef>[
+    RouteDef(Routes.splashPage, page: SplashPage),
+    RouteDef(Routes.loginScreen, page: LoginScreen),
     RouteDef(Routes.homeScreen, page: HomeScreen),
     RouteDef(Routes.creacionFormPage, page: CreacionFormPage),
     RouteDef(Routes.llenadoFormPage, page: LlenadoFormPage),
@@ -40,6 +47,18 @@ class AutoRouter extends RouterBase {
   @override
   Map<Type, AutoRouteFactory> get pagesMap => _pagesMap;
   final _pagesMap = <Type, AutoRouteFactory>{
+    SplashPage: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => SplashPage(),
+        settings: data,
+      );
+    },
+    LoginScreen: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => LoginScreen(),
+        settings: data,
+      );
+    },
     HomeScreen: (data) {
       return MaterialPageRoute<dynamic>(
         builder: (context) => HomeScreen(),
@@ -79,6 +98,10 @@ class AutoRouter extends RouterBase {
 /// *************************************************************************
 
 extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
+  Future<dynamic> pushSplashPage() => push<dynamic>(Routes.splashPage);
+
+  Future<dynamic> pushLoginScreen() => push<dynamic>(Routes.loginScreen);
+
   Future<dynamic> pushHomeScreen() => push<dynamic>(Routes.homeScreen);
 
   Future<dynamic> pushCreacionFormPage() =>

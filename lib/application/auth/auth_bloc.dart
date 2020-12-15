@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:inspecciones/application/auth/usuario.dart';
 import 'package:inspecciones/infrastructure/repositories/api_model.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import 'package:meta/meta.dart';
@@ -23,7 +24,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthEvent event,
   ) async* {
     if (event is AppStarted) {
-      final user = await userRepository.getLocalUser();
+      final user = userRepository.getLocalUser();
 
       if (user != null) {
         yield Authenticated(user);
@@ -34,14 +35,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     if (event is LoggingIn) {
       yield Loading();
-      final validUser = userRepository.authenticateUser(userLogin: event.user);
-      await userRepository.saveLocalUser(user: event.user);
-      yield Authenticated(validUser);
+      try {
+        final validUser =
+            await userRepository.authenticateUser(userLogin: event.user);
+        await userRepository.saveLocalUser(user: validUser);
+        yield Authenticated(validUser);
+      } catch (e) {
+        print(e);
+      }
     }
 
     if (event is LoggingOut) {
       yield Loading();
-      await userRepository.deleteToken(id: 0);
+      await userRepository.deleteLocalUser();
       yield Unauthenticated();
     }
   }
