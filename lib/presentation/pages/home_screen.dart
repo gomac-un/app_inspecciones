@@ -87,9 +87,10 @@ class FloatingActionButtonInicioInspeccion extends StatelessWidget {
           final mensajeLlenado = await ExtendedNavigator.of(context)
               .push(Routes.llenadoFormPage, arguments: res);
           // mostar el mensaje que viene desde la pantalla de llenado
-          Scaffold.of(context)
-            ..removeCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text("$mensajeLlenado")));
+          if (mensajeLlenado != null)
+            Scaffold.of(context)
+              ..removeCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text("$mensajeLlenado")));
         }
       },
       icon: Icon(Icons.add),

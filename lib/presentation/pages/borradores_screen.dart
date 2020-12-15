@@ -21,7 +21,7 @@ class BorradoresPage extends StatelessWidget {
         title: Text('Borradores'),
       ),
       body: StreamBuilder<List<Borrador>>(
-        stream: _db.borradores(),
+        stream: _db.borradoresDao.borradores(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Align(
@@ -89,7 +89,7 @@ class BorradoresPage extends StatelessWidget {
       child: Text("Eliminar"),
       onPressed: () async {
         Navigator.of(context).pop();
-        await _db.eliminarBorrador(borrador);
+        await _db.borradoresDao.eliminarBorrador(borrador);
         Scaffold.of(context).showSnackBar(SnackBar(
           content: Text("Borrador eliminado"),
           duration: Duration(seconds: 3),

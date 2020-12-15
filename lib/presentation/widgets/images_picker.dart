@@ -173,6 +173,7 @@ class FormBuilderImagePicker extends StatelessWidget {
                       )
                     : Container(
                         height: imageHeight,
+                        width: double.maxFinite,
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children: [

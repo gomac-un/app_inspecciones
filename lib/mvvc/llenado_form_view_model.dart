@@ -36,10 +36,12 @@ class LlenadoFormViewModel {
   }
 
   Future cargarDatos() async {
-    final inspeccion = await _db.getInspeccion(_vehiculo, _cuestionarioId);
+    final inspeccion =
+        await _db.llenadoDao.getInspeccion(_vehiculo, _cuestionarioId);
     estado.value = inspeccion?.estado ?? EstadoDeInspeccion.borrador;
 
-    final bloquesBD = await _db.cargarCuestionario(_cuestionarioId, _vehiculo);
+    final bloquesBD =
+        await _db.llenadoDao.cargarCuestionario(_cuestionarioId, _vehiculo);
 
     //ordenamiento y creacion de los controles dependiendo del tipo de elemento
     bloques = FormArray(

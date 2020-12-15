@@ -179,75 +179,55 @@ class CuadriculaCard extends StatelessWidget {
             children: [
               TableRow(
                 children: [
-                  Text(""),
+                  SizedBox.shrink(),
                   ...formArray.cuadricula.opcionesDeRespuesta.map(
                     (e) => Text(
                       e.texto,
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  Text(""),
+                  SizedBox.shrink(),
                 ],
               ),
-              //IterableZip permite recorrer simultaneamente los dos arrays
-              ...IterableZip(
-                      [formArray.preguntasRespondidas, formArray.controls])
-                  .map((e) {
-                final pregunta =
-                    e[0] as PreguntaConRespuestaConOpcionesDeRespuesta;
-                final ctrlPregunta = e[1] as FormControl<OpcionDeRespuesta>;
+              ...formArray.controls.map((d) {
+                final e = d as RespuestaSeleccionSimpleFormGroup;
+                /*final ctrlPregunta =
+                    e.control('respuestas') ;*/
                 return TableRow(
                   children: [
-                    Text(pregunta.pregunta.titulo),
+                    Text(e.pregunta.pregunta.titulo),
                     ...formArray.cuadricula.opcionesDeRespuesta
                         .map((res) => ReactiveRadio(
                               value: res,
-                              formControl: ctrlPregunta,
+                              formControl: e.control('respuestas'),
                             ))
                         .toList(),
                     IconButton(
-                      icon: Icon(Icons.remove_red_eye),
+                      icon: viewModel.estado.value !=
+                                  EstadoDeInspeccion.borrador &&
+                              e.criticidad > 0
+                          ? Icon(
+                              Icons.broken_image,
+                              color: Colors.red,
+                            )
+                          : Icon(Icons.remove_red_eye),
                       onPressed: () async {
-                        /*final res = showDialog<Map>(
-                            context: null,
-                            builder: (context) => AlertDialog(
-                                  content: Column(
-                                    children: [
-                                      ReactiveTextField(
-                                        formControl:
-                                            ctrlPregunta.control('observacion'),
-                                        decoration: InputDecoration(
-                                          labelText: 'Observaciones',
-                                          prefixIcon:
-                                              Icon(Icons.remove_red_eye),
-                                          floatingLabelBehavior:
-                                              FloatingLabelBehavior.auto,
-                                        ),
-                                        keyboardType: TextInputType.multiline,
-                                        maxLines: null,
-                                        textInputAction: TextInputAction.next,
-                                      ),
-                                      //TODO: mostrar los botones de agregar imagenes y el checkbox de
-                                      //reparación de una manera mas optima, no uno en cada fila
-                                      FormBuilderImagePicker(
-                                        formArray:
-                                            formGroup.control('fotosBase'),
-                                        decoration: const InputDecoration(
-                                          labelText: 'Fotos base',
-                                        ),
-                                      ),
-                                      if (viewModel.estado.value ==
-                                          EstadoDeInspeccion.reparacion)
-                                        ReactiveCheckboxListTile(
-                                          formControl:
-                                              formGroup.control('reparado'),
-                                          title: Text('Reparado'),
-                                          controlAffinity:
-                                              ListTileControlAffinity.leading,
-                                        ),
-                                    ],
-                                  ),
-                                ));*/
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            content: Provider(
+                              create: (_) => viewModel,
+                              child: SingleChildScrollView(
+                                  child: SeleccionSimpleCard(formGroup: e)),
+                            ),
+                            actions: [
+                              OutlineButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: Text("ok"),
+                              )
+                            ],
+                          ),
+                        );
                       },
                     ),
                     //TODO: agregar controles para agregar fotos y reparaciones, tal vez con popups

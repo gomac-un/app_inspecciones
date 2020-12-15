@@ -27,7 +27,8 @@ class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup
     final subSistemas = ValueNotifier<List<SubSistema>>([]);
 
     sistema.valueChanges.asBroadcastStream().listen((sistema) async {
-      subSistemas.value = await getIt<Database>().getSubSistemas(sistema);
+      subSistemas.value =
+          await getIt<Database>().creacionDao.getSubSistemas(sistema);
     });
 
     final Map<String, AbstractControl<dynamic>> controles = {
@@ -93,7 +94,8 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
         ValueNotifier<List<SubSistema>>([]); //! hay que hacerle dispose
 
     sistema.valueChanges.asBroadcastStream().listen((sistema) async {
-      subSistemas.value = await getIt<Database>().getSubSistemas(sistema);
+      subSistemas.value =
+          await getIt<Database>().creacionDao.getSubSistemas(sistema);
     });
 
     final Map<String, AbstractControl<dynamic>> controles = {

@@ -3,8 +3,6 @@ enum TipoDePregunta {
 
   multipleRespuesta,
 
-  parteDeCuadricula,
-
   binaria,
 
   fecha,

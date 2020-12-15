@@ -54,12 +54,12 @@ class CreacionFormViewModel {
   }
 
   Future cargarDatos() async {
-    tiposDeInspeccion.value = await _db.getTiposDeInspecciones();
+    tiposDeInspeccion.value = await _db.creacionDao.getTiposDeInspecciones();
     tiposDeInspeccion.value.add("otra");
 
-    modelos.value = await _db.getModelos();
-    contratistas.value = await _db.getContratistas();
-    sistemas.value = await _db.getSistemas();
+    modelos.value = await _db.creacionDao.getModelos();
+    contratistas.value = await _db.creacionDao.getContratistas();
+    sistemas.value = await _db.creacionDao.getSistemas();
   }
 
   /// Metodo que funciona sorprendentemente bien con los nulos y los casos extremos
@@ -79,7 +79,7 @@ class CreacionFormViewModel {
   enviar() async {
     print(form.controls);
     form.markAllAsTouched();
-    await _db.crearCuestionario(form.controls);
+    await _db.creacionDao.crearCuestionario(form.controls);
   }
 
   /// Cierra todos los streams para evitar fugas de memoria, se suele llamar desde el provider

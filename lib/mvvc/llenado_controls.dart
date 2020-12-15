@@ -27,7 +27,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     // https://github.com/simolus3/moor/issues/960
     // entonces aca se asignan definen nuevo los valores por defecto que son usados
     // cuando se inicia una nueva inspeccion
-    respuesta.respuesta ??= respuestaPorDefectoBuilder(pregunta.pregunta.id);
+    respuesta.respuesta ??= crearRespuestaPorDefecto(pregunta.pregunta.id);
 
     FormControl respuestas;
 
@@ -127,7 +127,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
   }
 }
 
-class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta>
+class RespuestaCuadriculaFormArray extends FormArray
     implements BloqueDeFormulario {
   final CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula;
   final List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas;
@@ -142,18 +142,24 @@ class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta>
     List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas,
   ) {
     preguntasRespondidas.forEach((e) {
-      e.respuesta.respuesta ??= respuestaPorDefectoBuilder(e.pregunta.id);
+      e.respuesta.respuesta ??= crearRespuestaPorDefecto(e.pregunta.id);
     });
 
-    final List<FormControl<OpcionDeRespuesta>> controles = preguntasRespondidas
-        .map(
+    final List<RespuestaSeleccionSimpleFormGroup> controles = preguntasRespondidas
+        .map((e) => RespuestaSeleccionSimpleFormGroup(
+                PreguntaConOpcionesDeRespuesta(
+                  e.pregunta,
+                  cuadricula.opcionesDeRespuesta,
+                ),
+                e.respuesta)
+            /*
           (e) => FormControl<OpcionDeRespuesta>(
               value: cuadricula.opcionesDeRespuesta.firstWhere(
                 (e1) => e1 == e.respuesta.opcionesDeRespuesta?.first,
                 orElse: () => null,
               ),
-              validators: [Validators.required]),
-        )
+              validators: [Validators.required]),*/
+            )
         .toList(); //TODO: seleccion multiple
 
     return RespuestaCuadriculaFormArray._(
@@ -164,13 +170,14 @@ class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta>
   }
 
   List<RespuestaConOpcionesDeRespuesta> toDB([int inspeccionId]) {
-    return IterableZip([preguntasRespondidas, controls]).map((e) {
-      final pregunta = e[0] as PreguntaConRespuestaConOpcionesDeRespuesta;
-      final ctrlPregunta = e[1] as FormControl<OpcionDeRespuesta>;
+    return controls.map((d) {
+      final e = d as RespuestaSeleccionSimpleFormGroup;
+      return e.toDB();
+      /*
       return RespuestaConOpcionesDeRespuesta(
-        pregunta.respuesta.respuesta,
+        e.respuesta.respuesta,
         [ctrlPregunta.value], //TODO: implementar la seleccion multiple
-      );
+      );*/
     }).toList();
   }
 
@@ -180,10 +187,11 @@ class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta>
       * solo para la pantalla de arreglos
       */
 
-    return IterableZip([preguntasRespondidas, controls]).map((e) {
-      final pregunta = e[0] as PreguntaConRespuestaConOpcionesDeRespuesta;
-      final ctrlPregunta = e[1] as FormControl<OpcionDeRespuesta>;
-      return pregunta.pregunta.criticidad * ctrlPregunta.value.criticidad;
+    return controls.map((d) {
+      final e = d as RespuestaSeleccionSimpleFormGroup;
+      final ctrlPregunta =
+          (e.control('respuestas') as FormControl<OpcionDeRespuesta>);
+      return e.pregunta.pregunta.criticidad * ctrlPregunta.value.criticidad;
     }).fold(0, (p, c) => p + c);
 
     //return pregunta.pregunta.criticidad * sumres;
@@ -199,7 +207,7 @@ class TituloFormGroup extends FormGroup implements BloqueDeFormulario {
   int get criticidad => 0;
 }
 
-respuestaPorDefectoBuilder(int preguntaId) => RespuestasCompanion.insert(
+crearRespuestaPorDefecto(int preguntaId) => RespuestasCompanion.insert(
       inspeccionId: null, //! agregar la inspeccion en el guardado de la db
       preguntaId: preguntaId,
       observacion: Value(''),

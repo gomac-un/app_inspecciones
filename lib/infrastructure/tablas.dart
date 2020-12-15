@@ -141,6 +141,8 @@ class Preguntas extends Table {
 
   IntColumn get tipo => intEnum<TipoDePregunta>()();
 
+  BoolColumn get parteDeCuadricula => boolean()();
+
   IntColumn get criticidad => integer()();
 
   //List<OpcionesDeRespuesta>
