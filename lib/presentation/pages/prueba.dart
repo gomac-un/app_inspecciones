@@ -48,8 +48,6 @@ class Opciones extends StatelessWidget {
     Usuario usuario = Provider.of<Usuario>(context);
     return SafeArea(
       child: new Drawer(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 60.0),
           child: ListView(
             children: <Widget> [
             Container(
@@ -59,7 +57,7 @@ class Opciones extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 30.0),
                 child: UserAccountsDrawerHeader(
                   accountName: Text(
-                    "Inspector",
+                    "Administrador",
                   ),
                   accountEmail: Text(usuario.documento),
                   currentAccountPicture: CircleAvatar(
@@ -77,9 +75,9 @@ class Opciones extends StatelessWidget {
                 height: 5.0,
               ),
               ListTile(
-                  tileColor: Colors.lightBlue,
-                  title: Text('Creación de Inspecciones'),
-                  leading: Icon(Icons.add),
+                  selectedTileColor: Colors.deepPurple,
+                  title: Text('Creación de Inspecciones',style: TextStyle(/* color: Colors.white ,*/fontSize: 15)),
+                  leading: Icon(Icons.add,/* color: Colors.white, */),
                   onTap: () => {
                         Navigator.pop(context),
                         _pushScreen(
@@ -95,9 +93,9 @@ class Opciones extends StatelessWidget {
                 height: 5.0,
               ),
               ListTile(
-                tileColor: Colors.lightBlue,
-                title: Text('Ver base de Datos'),
-                leading: Icon(Icons.view_array),
+                tileColor: Colors.deepPurple,
+                title: Text('Ver base de Datos',style: TextStyle(color: Colors.white,fontSize: 15)),
+                leading: Icon(Icons.view_array,color: Colors.white,),
                 onTap: () => {
                   Navigator.pop(context),
                   Navigator.of(context).push(
@@ -113,13 +111,13 @@ class Opciones extends StatelessWidget {
                 height: 5.0,
               ),
               ListTile(
-                tileColor: Colors.lightBlue,
-                title: Text('Reiniciar base de datos'),
-                leading: Icon(Icons.replay_outlined),
+                tileColor: Colors.deepPurple,
+                title: Text('Reiniciar base de datos',style: TextStyle(color: Colors.white,fontSize: 15),),
+                leading: Icon(Icons.replay_outlined,color: Colors.white,),
                 onTap: () => getIt<Database>().dbdePrueba(),
               ),
               SizedBox(
-                height: 150.0,
+                height: 200.0,
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 160.0),
@@ -134,7 +132,6 @@ class Opciones extends StatelessWidget {
            ],
           ),
         ),
-      ),
     );
   }
 }

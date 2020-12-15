@@ -53,6 +53,7 @@ class BorradoresPage extends StatelessWidget {
                   itemCount: borradores.length,
                   itemBuilder: (context, index) {
                     return ListTile(
+                      tileColor: Colors.white24,
                       title: Text(borradores[index].activo.identificador +
                           " - " +
                           borradores[index].activo.modelo),
