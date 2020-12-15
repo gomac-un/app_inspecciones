@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:kt_dart/kt.dart';
-import 'package:inspecciones/domain/core/enums.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:moor/moor.dart';

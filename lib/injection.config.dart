@@ -11,7 +11,6 @@ import 'package:injectable/injectable.dart';
 
 import 'presentation/pages/borradores_screen.dart';
 import 'infrastructure/moor_database.dart';
-import 'infrastructure/local_datasource.dart';
 import 'infrastructure/remote_datasource.dart';
 import 'infrastructure/inspecciones_repository.dart';
 import 'infrastructure/core/network_info.dart';
@@ -33,8 +32,6 @@ GetIt $initGetIt(
   gh.factory<DataConnectionChecker>(
       () => thirdPartyInjections.dataConnectionChecker);
   gh.lazySingleton<Database>(() => registerModule.constructDb());
-  gh.lazySingleton<InspeccionesLocalDataSource>(
-      () => InspeccionesLocalDataSourceImplSqlite());
   gh.lazySingleton<InspeccionesRemoteDataSource>(
       () => InspeccionesRemoteDataSourceImpl(client: get<Client>()));
   gh.lazySingleton<NetworkInfo>(

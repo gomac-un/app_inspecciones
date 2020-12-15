@@ -1,6 +1,5 @@
 import 'dart:io';
-import 'package:collection/collection.dart';
-import 'package:inspecciones/domain/core/enums.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -145,22 +144,15 @@ class RespuestaCuadriculaFormArray extends FormArray
       e.respuesta.respuesta ??= crearRespuestaPorDefecto(e.pregunta.id);
     });
 
-    final List<RespuestaSeleccionSimpleFormGroup> controles = preguntasRespondidas
-        .map((e) => RespuestaSeleccionSimpleFormGroup(
+    final List<RespuestaSeleccionSimpleFormGroup> controles =
+        preguntasRespondidas
+            .map((e) => RespuestaSeleccionSimpleFormGroup(
                 PreguntaConOpcionesDeRespuesta(
                   e.pregunta,
                   cuadricula.opcionesDeRespuesta,
                 ),
-                e.respuesta)
-            /*
-          (e) => FormControl<OpcionDeRespuesta>(
-              value: cuadricula.opcionesDeRespuesta.firstWhere(
-                (e1) => e1 == e.respuesta.opcionesDeRespuesta?.first,
-                orElse: () => null,
-              ),
-              validators: [Validators.required]),*/
-            )
-        .toList(); //TODO: seleccion multiple
+                e.respuesta))
+            .toList(); //TODO: seleccion multiple
 
     return RespuestaCuadriculaFormArray._(
       controles,
@@ -173,11 +165,6 @@ class RespuestaCuadriculaFormArray extends FormArray
     return controls.map((d) {
       final e = d as RespuestaSeleccionSimpleFormGroup;
       return e.toDB();
-      /*
-      return RespuestaConOpcionesDeRespuesta(
-        e.respuesta.respuesta,
-        [ctrlPregunta.value], //TODO: implementar la seleccion multiple
-      );*/
     }).toList();
   }
 

@@ -3,9 +3,9 @@ export 'package:moor_flutter/moor_flutter.dart' show Value;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:inspecciones/infrastructure/database/borradores_dao.dart';
-import 'package:inspecciones/infrastructure/database/creacion_dao.dart';
-import 'package:inspecciones/infrastructure/database/llenado_dao.dart';
+import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
+import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
+import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
@@ -13,7 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import "package:collection/collection.dart";
 
-import 'package:inspecciones/domain/core/enums.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 export 'database/shared.dart';
 
