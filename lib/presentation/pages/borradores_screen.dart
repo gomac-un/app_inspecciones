@@ -1,21 +1,18 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
-import 'package:injectable/injectable.dart';
-
+import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/router.gr.dart';
-import 'package:kt_dart/kt.dart';
+
 import '../../infrastructure/moor_database.dart';
 
-@injectable
 class BorradoresPage extends StatelessWidget {
-  final Database _db;
+  final Database _db = getIt<Database>();
 
-  BorradoresPage(this._db);
+  BorradoresPage();
 
   @override
   Widget build(BuildContext context) {
-    //final counterBloc = BlocProvider.of<CounterBloc>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('Borradores'),
@@ -71,7 +68,7 @@ class BorradoresPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           //TODO: implementar la subida de inspecciones al server
-          throw NotImplementedException();
+          throw Exception();
         },
         icon: Icon(Icons.upload_file),
         label: Text("Subir inspecciones"),

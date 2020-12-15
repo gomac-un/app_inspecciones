@@ -65,7 +65,7 @@ class InicioInspeccionForm extends StatelessWidget {
                     hint: "Seleccione el tipo de inspección",
                   ),*/
                 ),
-                _MySubmitButton(),
+                _BotonInicioInspeccion(),
               ],
             );
           },
@@ -75,7 +75,7 @@ class InicioInspeccionForm extends StatelessWidget {
   }
 }
 
-class _MySubmitButton extends StatelessWidget {
+class _BotonInicioInspeccion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final form = ReactiveForm.of(context) as FormGroup;

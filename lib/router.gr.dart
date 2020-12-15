@@ -10,7 +10,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'infrastructure/moor_database.dart';
 import 'mvvc/creacion_form_page.dart';
 import 'mvvc/llenado_form_page.dart';
 import 'presentation/pages/borradores_screen.dart';
@@ -67,9 +66,8 @@ class AutoRouter extends RouterBase {
       );
     },
     BorradoresPage: (data) {
-      final args = data.getArgs<BorradoresPageArguments>(nullOk: false);
       return MaterialPageRoute<dynamic>(
-        builder: (context) => BorradoresPage(args.db),
+        builder: (context) => BorradoresPage(),
         settings: data,
       );
     },
@@ -97,13 +95,7 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
             key: key, vehiculo: vehiculo, cuestionarioId: cuestionarioId),
       );
 
-  Future<dynamic> pushBorradoresPage({
-    @required Database db,
-  }) =>
-      push<dynamic>(
-        Routes.borradoresPage,
-        arguments: BorradoresPageArguments(db: db),
-      );
+  Future<dynamic> pushBorradoresPage() => push<dynamic>(Routes.borradoresPage);
 }
 
 /// ************************************************************************
@@ -116,10 +108,4 @@ class LlenadoFormPageArguments {
   final String vehiculo;
   final int cuestionarioId;
   LlenadoFormPageArguments({this.key, this.vehiculo, this.cuestionarioId});
-}
-
-/// BorradoresPage arguments holder class
-class BorradoresPageArguments {
-  final Database db;
-  BorradoresPageArguments({@required this.db});
 }

@@ -2,38 +2,37 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
-import 'package:meta/meta.dart';
+import 'package:inspecciones/infrastructure/repositories/api_model.dart';
 
 import 'package:inspecciones/core/error/exceptions.dart';
 
-abstract class InspeccionesRemoteDataSource {}
+abstract class InspeccionesRemoteDataSource {
+  Future<Token> getToken(UserLogin userLogin);
+  //syncDatabase
+}
 
 @LazySingleton(as: InspeccionesRemoteDataSource)
-class InspeccionesRemoteDataSourceImpl implements InspeccionesRemoteDataSource {
-  final http.Client client;
+class DjangoAPI implements InspeccionesRemoteDataSource {
+  static const _server = 'http://127.0.0.1:8000';
+  static const _apiBase = '/inspecciones/api/v1';
+  static const _tokenEndpoint = "/api-token-auth/";
 
-  InspeccionesRemoteDataSourceImpl({@required this.client});
-/*
-  @override
-  Future<NumberTriviaModel> getConcreteNumberTrivia(int number) =>
-      _getTriviaFromUrl('http://numbersapi.com/$number');
+  DjangoAPI();
 
-  @override
-  Future<NumberTriviaModel> getRandomNumberTrivia() =>
-      _getTriviaFromUrl('http://numbersapi.com/random');
-
-  Future<NumberTriviaModel> _getTriviaFromUrl(String url) async {
-    final response = await client.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
+  Future<Token> getToken(UserLogin userLogin) async {
+    final _tokenURL = _server + _apiBase + _tokenEndpoint;
+    final http.Response response = await http.post(
+      _tokenURL,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
       },
+      body: jsonEncode(userLogin.toDatabaseJson()),
     );
-
     if (response.statusCode == 200) {
-      return NumberTriviaModel.fromJson(json.decode(response.body));
+      return Token.fromJson(json.decode(response.body));
     } else {
-      throw ServerException();
+      print(json.decode(response.body).toString());
+      throw ServerException(json.decode(response.body));
     }
-  }*/
+  }
 }

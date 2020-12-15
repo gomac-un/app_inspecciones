@@ -42,6 +42,7 @@ dependencies:
   path_provider: ^1.6.18
   provider: ^4.3.2+2
   reactive_forms: ^7.6.2
+  shared_preferences: ^0.5.12+4
   sqlite3_flutter_libs: ^0.2.0
 
 dev_dependencies:

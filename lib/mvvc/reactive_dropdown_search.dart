@@ -21,7 +21,7 @@ class ReactiveDropdownSearch<V> extends ReactiveFormField<V> {
             builder: (ReactiveFormFieldState<V> field) {
               return DropdownSearch<V>(
                 key: ObjectKey(field
-                    .value), //machetazo para que no mantenga estado interno
+                    .value), //machetazo para que borre el estado interno en cada cambio de field.value
                 mode: Mode.MENU,
                 //showSelectedItem: true,
                 items: items,

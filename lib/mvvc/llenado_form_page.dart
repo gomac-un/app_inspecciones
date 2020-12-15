@@ -173,7 +173,6 @@ class BotonesGuardado extends StatelessWidget {
     );
     LoadingDialog.hide(context);
     ExtendedNavigator.of(context).pop("Inspeccion finalizada");
-    //TODO: mostrar mensaje de exito en la pantalla de destino
   }
 }
 

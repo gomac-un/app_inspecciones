@@ -117,7 +117,11 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           SizedBox(height: 10),
           ReactiveDropdownField<String>(
             formControl: formGroup.control('posicion'),
-            items: ["no aplica", "adelante", "atras"]
+            items: [
+              "no aplica",
+              "adelante",
+              "atras"
+            ] //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),

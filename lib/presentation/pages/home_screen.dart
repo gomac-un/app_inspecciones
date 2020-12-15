@@ -21,16 +21,11 @@ class HomeScreen extends StatelessWidget {
           ),
           ListTile(
             title: Chip(label: Text('Creación de Inspecciones')),
-            onTap: () => ExtendedNavigator.of(context).push(
-              Routes.creacionFormPage,
-            ),
+            onTap: () => ExtendedNavigator.of(context).pushCreacionFormPage(),
           ),
           ListTile(
             title: Chip(label: Text('Borradores')),
-            onTap: () => ExtendedNavigator.of(context).push(
-              Routes.borradoresPage,
-              arguments: BorradoresPageArguments(db: getIt<Database>()),
-            ),
+            onTap: () => ExtendedNavigator.of(context).pushBorradoresPage(),
           ),
           RaisedButton(
             onPressed: () {

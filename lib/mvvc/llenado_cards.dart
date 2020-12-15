@@ -85,13 +85,6 @@ class SeleccionSimpleCard extends StatelessWidget {
                   .toList(),
               formControl: formGroup.control('respuestas')
                   as FormControl<List<OpcionDeRespuesta>>,
-              /*initialValue: (formGroup.control('respuestas')
-                      as FormArray<OpcionDeRespuesta>)
-                  .value,
-              listType: MultiSelectListType.CHIP,
-              onConfirm: (values) {
-                formGroup.control('respuestas').updateValue(values);
-              },*/
             ),
           SizedBox(height: 10),
           ReactiveTextField(

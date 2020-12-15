@@ -9,7 +9,6 @@ import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 
-import 'presentation/pages/borradores_screen.dart';
 import 'infrastructure/moor_database.dart';
 import 'infrastructure/remote_datasource.dart';
 import 'infrastructure/inspecciones_repository.dart';
@@ -36,7 +35,6 @@ GetIt $initGetIt(
       () => InspeccionesRemoteDataSourceImpl(client: get<Client>()));
   gh.lazySingleton<NetworkInfo>(
       () => NetworkInfoImpl(get<DataConnectionChecker>()));
-  gh.factory<BorradoresPage>(() => BorradoresPage(get<Database>()));
   gh.lazySingleton<InspeccionesRepository>(() => InspeccionesRepository(
         remoteDataSource: get<InspeccionesRemoteDataSource>(),
         localDataBase: get<Database>(),
