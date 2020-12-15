@@ -82,6 +82,7 @@ void _initialize0(Batch batch, Database db) {
         posicion: "no aplica",
         tipo: TipoDePregunta.unicaRespuesta,
         criticidad: 3,
+        parteDeCuadricula: false,
       ));
   batch.insertAll(db.opcionesDeRespuesta, [
     OpcionesDeRespuestaCompanion.insert(
@@ -105,6 +106,7 @@ void _initialize0(Batch batch, Database db) {
         posicion: "no aplica",
         tipo: TipoDePregunta.multipleRespuesta,
         criticidad: 3,
+        parteDeCuadricula: false,
       ));
   batch.insertAll(db.opcionesDeRespuesta, [
     OpcionesDeRespuestaCompanion.insert(
@@ -131,23 +133,27 @@ void _initialize0(Batch batch, Database db) {
   //Las preguntas de la cuadricula
   batch.insertAll(db.preguntas, [
     PreguntasCompanion.insert(
-        bloqueId: 4,
-        titulo: "Fugas/estado en mangueras",
-        descripcion: "",
-        sistemaId: 6,
-        subSistemaId: 6,
-        posicion: "n/a",
-        tipo: TipoDePregunta.parteDeCuadricula,
-        criticidad: 3),
+      bloqueId: 4,
+      titulo: "Fugas/estado en mangueras",
+      descripcion: "",
+      sistemaId: 6,
+      subSistemaId: 6,
+      posicion: "n/a",
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 3,
+      parteDeCuadricula: true,
+    ),
     PreguntasCompanion.insert(
-        bloqueId: 4,
-        titulo: "Fugas en base del filtro de aceite",
-        descripcion: "",
-        sistemaId: 6,
-        subSistemaId: 6,
-        posicion: "n/a",
-        tipo: TipoDePregunta.parteDeCuadricula,
-        criticidad: 3),
+      bloqueId: 4,
+      titulo: "Fugas en base del filtro de aceite",
+      descripcion: "",
+      sistemaId: 6,
+      subSistemaId: 6,
+      posicion: "n/a",
+      tipo: TipoDePregunta.unicaRespuesta,
+      criticidad: 3,
+      parteDeCuadricula: true,
+    ),
   ]);
   //Las respuestas de la cuadricula
   batch.insertAll(db.opcionesDeRespuesta, [

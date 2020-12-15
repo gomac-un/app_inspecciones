@@ -1,6 +1,6 @@
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
-import 'package:inspecciones/domain/core/enums.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
@@ -117,7 +117,11 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           SizedBox(height: 10),
           ReactiveDropdownField<String>(
             formControl: formGroup.control('posicion'),
-            items: ["no aplica", "adelante", "atras"]
+            items: [
+              "no aplica",
+              "adelante",
+              "atras"
+            ] //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),
@@ -190,6 +194,11 @@ class WidgetRespuestas extends StatelessWidget {
                 'Respuestas',
                 style: Theme.of(context).textTheme.headline6,
               ),
+              if (control.invalid)
+                Text(
+                  control.errors.entries.first.key,
+                  style: TextStyle(color: Colors.red),
+                ),
               SizedBox(height: 10),
               if ((control as FormArray).controls.length > 0)
                 ListView.builder(
@@ -240,7 +249,10 @@ class WidgetRespuestas extends StatelessWidget {
                     Text("Agregar respuesta"),
                   ],
                 ),
-                onPressed: formGroup.agregarRespuesta,
+                onPressed: () {
+                  formGroup.agregarRespuesta();
+                  control.markAsTouched();
+                },
               ),
             ],
           );
@@ -341,7 +353,7 @@ class WidgetPreguntas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ReactiveValueListenableBuilder(
-        formControl: (formGroup as FormGroup).control('preguntas'),
+        formControl: formGroup.control('preguntas'),
         builder: (context, control, child) {
           return Column(
             children: [

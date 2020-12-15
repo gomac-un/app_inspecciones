@@ -1,10 +1,10 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:inspecciones/domain/core/enums.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
 import 'package:kt_dart/collection.dart';
+import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 part 'llenado_datos_test.dart';
@@ -15,6 +15,8 @@ class LlenadoFormViewModel {
   final _db = getIt<Database>();
 
   final ValueNotifier<bool> cargada = ValueNotifier(false);
+  final ValueNotifier<EstadoDeInspeccion> estado =
+      ValueNotifier(EstadoDeInspeccion.borrador);
 
   final String _vehiculo;
   final int _cuestionarioId;
@@ -34,23 +36,29 @@ class LlenadoFormViewModel {
   }
 
   Future cargarDatos() async {
-    /*final Inspeccion inspeccion =
-        await _db.getInspeccion(_vehiculo, _cuestionarioId);*/
+    final inspeccion =
+        await _db.llenadoDao.getInspeccion(_vehiculo, _cuestionarioId);
+    estado.value = inspeccion?.estado ?? EstadoDeInspeccion.borrador;
 
-    final bloquesBD = await _db.cargarCuestionario(_cuestionarioId, _vehiculo);
+    final bloquesBD =
+        await _db.llenadoDao.cargarCuestionario(_cuestionarioId, _vehiculo);
 
     //ordenamiento y creacion de los controles dependiendo del tipo de elemento
-    bloques = FormArray((bloquesBD
-          ..sort((a, b) => a.nOrden.compareTo(b.bloque.nOrden)))
-        .map<AbstractControl>((e) {
-      if (e is BloqueConTitulo) return TituloFormGroup(e.titulo);
-      if (e is BloqueConPreguntaSimple)
-        return RespuestaSeleccionSimpleFormGroup(e.pregunta, e.respuesta);
-      if (e is BloqueConCuadricula)
-        return RespuestaCuadriculaFormArray(
-            e.cuadricula, e.preguntasRespondidas);
-      throw Exception("Tipo de bloque no reconocido");
-    }).toList());
+    bloques = FormArray(
+      (bloquesBD
+            ..sort(
+              (a, b) => a.nOrden.compareTo(b.bloque.nOrden),
+            ))
+          .map<AbstractControl>((e) {
+        if (e is BloqueConTitulo) return TituloFormGroup(e.titulo);
+        if (e is BloqueConPreguntaSimple)
+          return RespuestaSeleccionSimpleFormGroup(e.pregunta, e.respuesta);
+        if (e is BloqueConCuadricula)
+          return RespuestaCuadriculaFormArray(
+              e.cuadricula, e.preguntasRespondidas);
+        throw Exception("Tipo de bloque no reconocido");
+      }).toList(),
+    );
 
     form.addAll({
       'bloques': bloques,
@@ -58,8 +66,8 @@ class LlenadoFormViewModel {
     cargada.value = true;
   }
 
-  Future guardarBorrador() async {
-    print(form.value);
+  Future guardarInspeccionEnLocal({@required EstadoDeInspeccion estado}) async {
+    form.markAllAsTouched();
     final respuestas =
         bloques.controls.expand<RespuestaConOpcionesDeRespuesta>((e) {
       if (e is TituloFormGroup) return [];
@@ -68,12 +76,13 @@ class LlenadoFormViewModel {
       throw Exception("Tipo de control no reconocido");
     }).toList();
 
-    await _db.guardarInspeccionV2(respuestas, _cuestionarioId, _vehiculo, true);
-    print("guardada");
+    await _db.guardarInspeccion(respuestas, _cuestionarioId, _vehiculo, estado);
   }
 
   void finalizar() {
     //TODO: implementar
+    form.markAllAsTouched();
+    if (form.valid) print("valida");
     print(form.value);
   }
 }

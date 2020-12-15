@@ -8,49 +8,51 @@ import 'package:http/http.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'presentation/pages/borradores_screen.dart';
+import 'application/auth/auth_bloc.dart';
 import 'infrastructure/moor_database.dart';
-import 'infrastructure/local_datasource.dart';
-import 'infrastructure/remote_datasource.dart';
-import 'infrastructure/inspecciones_repository.dart';
+import 'infrastructure/datasources/local_preferences_datasource.dart';
+import 'infrastructure/datasources/remote_datasource.dart';
 import 'infrastructure/core/network_info.dart';
 import 'infrastructure/database/mobile.dart';
-import 'application/crear_cuestionario_form/seleccion_activo_inspeccion_bloc.dart';
+import 'infrastructure/datasources/injectable_module.dart';
 import 'infrastructure/core/third_party_injections.dart';
+import 'infrastructure/repositories/user_repository.dart';
 
 /// adds generated dependencies
 /// to the provided [GetIt] instance
 
-GetIt $initGetIt(
+Future<GetIt> $initGetIt(
   GetIt get, {
   String environment,
   EnvironmentFilter environmentFilter,
-}) {
+}) async {
   final gh = GetItHelper(get, environment, environmentFilter);
   final thirdPartyInjections = _$ThirdPartyInjections();
   final registerModule = _$RegisterModule();
+  final sharedPreferencesInjectableModule =
+      _$SharedPreferencesInjectableModule();
   gh.factory<Client>(() => thirdPartyInjections.client);
   gh.factory<DataConnectionChecker>(
       () => thirdPartyInjections.dataConnectionChecker);
   gh.lazySingleton<Database>(() => registerModule.constructDb());
-  gh.lazySingleton<InspeccionesLocalDataSource>(
-      () => InspeccionesLocalDataSourceImplSqlite());
-  gh.lazySingleton<InspeccionesRemoteDataSource>(
-      () => InspeccionesRemoteDataSourceImpl(client: get<Client>()));
+  gh.lazySingleton<InspeccionesRemoteDataSource>(() => DjangoAPI());
   gh.lazySingleton<NetworkInfo>(
       () => NetworkInfoImpl(get<DataConnectionChecker>()));
-  gh.factory<SeleccionActivoInspeccionBloc>(
-      () => SeleccionActivoInspeccionBloc(get<Database>()));
-  gh.factory<BorradoresPage>(() => BorradoresPage(get<Database>()));
-  gh.lazySingleton<InspeccionesRepository>(() => InspeccionesRepository(
-        remoteDataSource: get<InspeccionesRemoteDataSource>(),
-        localDataBase: get<Database>(),
-        networkInfo: get<NetworkInfo>(),
-      ));
+  final sharedPreferences = await sharedPreferencesInjectableModule.prefs;
+  gh.factory<SharedPreferences>(() => sharedPreferences);
+  gh.lazySingleton<ILocalPreferencesDataSource>(
+      () => SharedPreferencesDataSource(get<SharedPreferences>()));
+  gh.factory<UserRepository>(() => UserRepository(
+      get<InspeccionesRemoteDataSource>(), get<ILocalPreferencesDataSource>()));
+  gh.factory<AuthBloc>(() => AuthBloc(userRepository: get<UserRepository>()));
   return get;
 }
 
 class _$ThirdPartyInjections extends ThirdPartyInjections {}
 
 class _$RegisterModule extends RegisterModule {}
+
+class _$SharedPreferencesInjectableModule
+    extends SharedPreferencesInjectableModule {}

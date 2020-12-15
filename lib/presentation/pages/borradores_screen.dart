@@ -1,25 +1,24 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
-import 'package:injectable/injectable.dart';
-
+import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/router.gr.dart';
+
 import '../../infrastructure/moor_database.dart';
 
-@injectable
 class BorradoresPage extends StatelessWidget {
-  Database _db;
+  final Database _db = getIt<Database>();
 
-  BorradoresPage(this._db);
+  BorradoresPage();
 
   @override
   Widget build(BuildContext context) {
-    //final counterBloc = BlocProvider.of<CounterBloc>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('Borradores'),
       ),
       body: StreamBuilder<List<Borrador>>(
-        stream: _db.borradores(),
+        stream: _db.borradoresDao.borradores(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Align(
@@ -30,17 +29,25 @@ class BorradoresPage extends StatelessWidget {
 
           final borradores = snapshot.data;
 
-          return ListView.builder(
+          return ListView.separated(
+            separatorBuilder: (BuildContext context, int index) => Divider(),
             itemCount: borradores.length,
             itemBuilder: (context, index) {
+              final borrador = borradores[index];
+              final f = borrador.inspeccion.momentoBorradorGuardado;
+              final fechaBorrador = f == null
+                  ? ''
+                  : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute} \n";
               return ListTile(
-                title: Text(borradores[index].activo.identificador +
+                tileColor: Theme.of(context).cardColor,
+                title: Text(borrador.activo.identificador +
                     " - " +
-                    borradores[index].activo.modelo),
-                subtitle: Text(borradores[index]
-                    .inspeccion
-                    .momentoBorradorGuardado
-                    .toString()),
+                    borrador.activo.modelo),
+                subtitle: Text(
+                    "Tipo de inspeccion: ${borrador.cuestionarioDeModelo.tipoDeInspeccion} \n" +
+                        "$fechaBorrador Estado: " +
+                        EnumToString.convertToString(
+                            borrador.inspeccion.estado)),
                 leading: Icon(Icons.edit),
                 trailing: IconButton(
                   icon: Icon(Icons.delete),
@@ -49,14 +56,22 @@ class BorradoresPage extends StatelessWidget {
                 onTap: () => ExtendedNavigator.of(context).push(
                   Routes.llenadoFormPage,
                   arguments: LlenadoFormPageArguments(
-                    vehiculo: borradores[index].activo.identificador,
-                    cuestionarioId: borradores[index].inspeccion.cuestionarioId,
+                    vehiculo: borrador.activo.identificador,
+                    cuestionarioId: borrador.inspeccion.cuestionarioId,
                   ),
                 ),
               );
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          //TODO: implementar la subida de inspecciones al server
+          throw Exception();
+        },
+        icon: Icon(Icons.upload_file),
+        label: Text("Subir inspecciones"),
       ),
     );
   }
@@ -71,7 +86,7 @@ class BorradoresPage extends StatelessWidget {
       child: Text("Eliminar"),
       onPressed: () async {
         Navigator.of(context).pop();
-        await _db.eliminarBorrador(borrador);
+        await _db.borradoresDao.eliminarBorrador(borrador);
         Scaffold.of(context).showSnackBar(SnackBar(
           content: Text("Borrador eliminado"),
           duration: Duration(seconds: 3),

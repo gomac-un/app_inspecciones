@@ -3,8 +3,6 @@ enum TipoDePregunta {
 
   multipleRespuesta,
 
-  parteDeCuadricula,
-
   binaria,
 
   fecha,
@@ -13,6 +11,7 @@ enum TipoDePregunta {
 }
 
 enum EstadoDeInspeccion {
-  enBorrador,
+  borrador,
+  reparacion,
   enviada,
 }

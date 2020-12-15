@@ -24,19 +24,16 @@ dependencies:
   flutter:
     sdk: flutter
   auto_route: ^0.6.9
-  bloc: ^6.1.0
   collection: ^1.14.13
   cupertino_icons: ^0.1.3
-  data_connection_checker: null
+  data_connection_checker: ^0.3.4
+  dropdown_search: ^0.4.8
   enum_to_string: ^1.0.14
-  equatable: null
-  flutter_bloc: null
-  flutter_form_bloc: ^0.19.0
-  form_bloc: ^0.19.1
+  equatable: ^1.2.5
+  flutter_bloc: ^6.1.1
   get_it: ^5.0.1
-  http: ^0.12.2
-  image_picker: null
-  injectable: null
+  image_picker: ^0.6.7+15
+  injectable: ^1.0.5
   kt_dart: ^0.8.0
   moor: ^3.3.1
   moor_db_viewer: ^2.0.3
@@ -44,7 +41,8 @@ dependencies:
   path: ^1.7.0
   path_provider: ^1.6.18
   provider: ^4.3.2+2
-  reactive_forms: ^7.6.1
+  reactive_forms: ^7.6.2
+  shared_preferences: ^0.5.12+4
   sqlite3_flutter_libs: ^0.2.0
 
 dev_dependencies:
@@ -52,10 +50,8 @@ dev_dependencies:
     sdk: flutter
   auto_route_generator: ^0.6.10
   build_runner: ^1.10.9
-  # add the generator to your dev_dependencies
-  injectable_generator: null
+  injectable_generator: ^1.0.6
   json_serializable: null
-  #freezed: 
   moor_generator: ^3.3.1
 
 dependency_overrides: null

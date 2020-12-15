@@ -1,14 +1,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_cards.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:inspecciones/mvvc/form_scaffold.dart';
+import 'package:inspecciones/mvvc/reactive_multiselect_dialog_field.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
 import 'package:inspecciones/presentation/widgets/widgets.dart';
-import 'package:moor_db_viewer/moor_db_viewer.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -67,10 +66,6 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                               prefixIcon: Icon(Icons.text_fields),
                               floatingLabelBehavior: FloatingLabelBehavior.auto,
                             ),
-                            validationMessages: (control) => {
-                              'yaExiste':
-                                  'El vehiculo x ya tiene asociada una inspeccion de este tipo',
-                            },
                           );
                         return SizedBox.shrink();
                       }),
@@ -82,28 +77,18 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
               child: ValueListenableBuilder<List<String>>(
                   valueListenable: viewModel.modelos,
                   builder: (context, modelos, child) {
-                    return MultiSelectDialogField(
-                      buttonText:
-                          Text('Modelos a los que aplica esta inspección'),
-                      items: modelos.map((e) => MultiSelectItem(e, e)).toList(),
-                      listType: MultiSelectListType.CHIP,
-                      onConfirm: (values) {
-                        viewModel.modelosSeleccionados.updateValue(values);
-                      },
-                      chipDisplay: MultiSelectChipDisplay(
+                    return ReactiveMultiSelectDialogField(
+                        formControl: viewModel.modelosSeleccionados,
                         items:
                             modelos.map((e) => MultiSelectItem(e, e)).toList(),
-                        onTap: (value) {
-                          //TODO: opcion de quitar opciones desde el chipDisplay
-                          //viewModel.modelosSeleccionados.updateValue(viewModel.modelosSeleccionados.value..remove(value));
-                          /*viewModel.modelosSeleccionados.value = viewModel
-                              .modelosSeleccionados.value
-                              .where((e) => e != value)
-                              .toList();*/
-                          //viewModel.modelosSeleccionados.remove(control);
-                        },
-                      ),
-                    );
+                        buttonText:
+                            Text('Modelos a los que aplica esta inspección'),
+                        validationMessages: (control) => {
+                              ValidationMessage.minLength:
+                                  'Seleccione al menos un modelo',
+                              'yaExiste':
+                                  'El modelo ${control.getError('yaExiste')} ya tiene asociado un cuestionario de este tipo',
+                            });
                   }),
             ),
             PreguntaCard(
@@ -148,22 +133,6 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                 );
               },
             ),
-            RaisedButton(
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => MoorDbViewer(getIt<Database>())));
-              },
-              child: Text("ver BD"),
-            ),
-            RaisedButton(
-              onPressed: getIt<Database>().dbdePrueba,
-              child: Text("reiniciar DB"),
-            ),
-            /*
-            RaisedButton(
-              onPressed: viewModel.cargarDatos,
-              child: Text("recargar creador de cuestionario"),
-            ),*/
             SizedBox(height: 60),
           ],
         ),
@@ -176,13 +145,37 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
             ActionButton(
               iconData: Icons.send,
               label: 'Finalizar',
-              onPressed: () async {
-                LoadingDialog.show(context);
-                await viewModel.enviar();
-                LoadingDialog.hide(context);
-                ExtendedNavigator.of(context)
-                    .pop(); //TODO: mostrar mensaje de exito en la pantalla de destino
-              },
+              onPressed: !viewModel.form.valid
+                  ? () {
+                      viewModel.form.markAllAsTouched();
+                      Scaffold.of(context).showSnackBar(SnackBar(
+                          content: Row(
+                        children: [
+                          Text("La inspeccion tiene errores"),
+                          FlatButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                      title: Text("Errores: "),
+                                      content: Text(
+                                        /*JsonEncoder.withIndent('  ')
+                                          .convert(json.encode(form.errors)),*/
+                                        viewModel.form.errors.toString(),
+                                      )),
+                                );
+                              },
+                              child: Text("ver errores"))
+                        ],
+                      )));
+                    }
+                  : () async {
+                      LoadingDialog.show(context);
+                      await viewModel.enviar();
+                      LoadingDialog.hide(context);
+                      ExtendedNavigator.of(context)
+                          .pop(); //TODO: mostrar mensaje de exito en la pantalla de destino
+                    },
             ),
           ],
         ),
