@@ -4,7 +4,6 @@ import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-//TODO: agregarle todas las validaciones necesarias a los campos
 //TODO: implementar estos controles como sealed classes
 class RespuestaSeleccionSimpleFormGroup extends FormGroup
     implements BloqueDeFormulario {

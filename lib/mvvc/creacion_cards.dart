@@ -349,7 +349,7 @@ class WidgetPreguntas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ReactiveValueListenableBuilder(
-        formControl: (formGroup as FormGroup).control('preguntas'),
+        formControl: formGroup.control('preguntas'),
         builder: (context, control, child) {
           return Column(
             children: [

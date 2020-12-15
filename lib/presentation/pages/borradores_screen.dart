@@ -9,7 +9,7 @@ import '../../infrastructure/moor_database.dart';
 
 @injectable
 class BorradoresPage extends StatelessWidget {
-  Database _db;
+  final Database _db;
 
   BorradoresPage(this._db);
 

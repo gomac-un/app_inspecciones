@@ -1,20 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/pages/inicio_inspeccion_form_widget.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:moor_db_viewer/moor_db_viewer.dart';
 
-import '../../infrastructure/moor_database.dart';
-import 'login_screen.dart';
-
 class HomeScreen extends StatelessWidget {
-  void _pushScreen(BuildContext context, Widget screen) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => screen),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

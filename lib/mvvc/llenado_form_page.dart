@@ -1,26 +1,15 @@
-import 'dart:convert';
-import 'dart:io';
-
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:auto_route/auto_route.dart';
 import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/injection.dart';
+import 'package:inspecciones/mvvc/form_scaffold.dart';
+import 'package:inspecciones/mvvc/llenado_cards.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
-import 'package:kt_dart/kt.dart';
-import 'package:moor_db_viewer/moor_db_viewer.dart';
-import 'package:provider/provider.dart';
-import 'package:reactive_forms/reactive_forms.dart';
-
+import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
 import 'package:inspecciones/presentation/widgets/widgets.dart';
-
-import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
-import 'package:inspecciones/mvvc/llenado_cards.dart';
-import 'package:inspecciones/mvvc/form_scaffold.dart';
-
-import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 
 class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   final String vehiculo;

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:collection/collection.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
@@ -10,10 +9,10 @@ import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/mvvc/reactive_multiselect_dialog_field.dart';
 import 'package:inspecciones/presentation/widgets/image_shower.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
+import 'package:kt_dart/kt.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:kt_dart/kt.dart';
 
 class TituloCard extends StatelessWidget {
   final TituloFormGroup formGroup;
