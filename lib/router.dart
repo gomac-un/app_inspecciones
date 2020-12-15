@@ -5,6 +5,7 @@ import 'package:inspecciones/presentation/pages/borradores_screen.dart';
 import 'package:inspecciones/presentation/pages/home_screen.dart';
 
 @MaterialAutoRouter(
+  generateNavigationHelperExtension: true,
   routes: <AutoRoute>[
     // initial route is named "/"
     MaterialRoute(page: HomeScreen, initial: true),

@@ -29,25 +29,29 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     // cuando se inicia una nueva inspeccion
     respuesta.respuesta ??= respuestaPorDefectoBuilder(pregunta.pregunta.id);
 
-    final respuestas = FormArray<OpcionDeRespuesta>(
-      pregunta.opcionesDeRespuesta
-          .where(
-            (opcion) =>
-                respuesta.opcionesDeRespuesta?.any((res) => res == opcion) ??
-                false,
-          )
-          .map((e) => FormControl(value: e))
-          .toList(),
-      validators: [
-        Validators.minLength(1),
-        if (pregunta.opcionesDeRespuesta.length == 1) Validators.maxLength(1),
-      ],
-    );
-    if (respuestas.value.length == 0 &&
-        pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta)
-      respuestas.value = [
-        null
-      ]; // si no hay respuestas agrega un control vacio porque la seleccion unica lo necesita
+    FormControl respuestas;
+
+    if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta) {
+      respuestas = FormControl<List<OpcionDeRespuesta>>(
+        value: pregunta.opcionesDeRespuesta
+            .where(
+              (opcion) =>
+                  respuesta.opcionesDeRespuesta?.any((res) => res == opcion) ??
+                  false,
+            )
+            .toList(),
+        validators: [Validators.minLength(1)],
+      );
+    }
+    if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta) {
+      respuestas = FormControl<OpcionDeRespuesta>(
+        value: pregunta.opcionesDeRespuesta.firstWhere(
+          (e) => respuesta.opcionesDeRespuesta?.first == e,
+          orElse: () => null,
+        ),
+        validators: [Validators.required],
+      );
+    }
 
     final Map<String, AbstractControl<dynamic>> controles = {
       'respuestas': respuestas,
@@ -82,10 +86,17 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
       * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
       * solo para la pantalla de arreglos
       */
-    int sumres = (control('respuestas') as FormArray<OpcionDeRespuesta>)
-        .controls
-        .where((e) => e.value != null)
-        .fold(0, (p, c) => p + c.value.criticidad);
+    int sumres;
+    if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta) {
+      sumres = (control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
+          .value
+          .fold(0, (p, c) => p + c.criticidad);
+    }
+    if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta) {
+      sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
+          .value
+          .criticidad;
+    }
 
     return pregunta.pregunta.criticidad * sumres;
   }
@@ -106,11 +117,12 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
         observacionReparacion: Value(control('observacionReparacion').value),
         momentoRespuesta: Value(_momentoRespuesta),
       ),
-      (control('respuestas') as FormArray<OpcionDeRespuesta>)
-          .controls
-          .map((e) => e.value)
-          //.where((e) => e != null)
-          .toList(),
+      [
+        if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta)
+          ...control('respuestas').value,
+        if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta)
+          control('respuestas').value,
+      ],
     );
   }
 }
@@ -136,11 +148,11 @@ class RespuestaCuadriculaFormArray extends FormArray<OpcionDeRespuesta>
     final List<FormControl<OpcionDeRespuesta>> controles = preguntasRespondidas
         .map(
           (e) => FormControl<OpcionDeRespuesta>(
-            value: cuadricula.opcionesDeRespuesta.firstWhere(
-              (e1) => e1 == e.respuesta.opcionesDeRespuesta?.first,
-              orElse: () => null,
-            ),
-          ),
+              value: cuadricula.opcionesDeRespuesta.firstWhere(
+                (e1) => e1 == e.respuesta.opcionesDeRespuesta?.first,
+                orElse: () => null,
+              ),
+              validators: [Validators.required]),
         )
         .toList(); //TODO: seleccion multiple
 

@@ -31,7 +31,6 @@ class HomeScreen extends StatelessWidget {
             title: Chip(label: Text('Creación de Inspecciones')),
             onTap: () => ExtendedNavigator.of(context).push(
               Routes.creacionFormPage,
-              arguments: BorradoresPageArguments(db: getIt<Database>()),
             ),
           ),
           ListTile(
@@ -62,24 +61,39 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final res = await showDialog<LlenadoFormPageArguments>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text('Inicio de inspección'),
-              content: InicioInspeccionForm(),
-            ),
-          );
-          if (res != null)
-            ExtendedNavigator.of(context).push(
-              Routes.llenadoFormPage,
-              arguments: res,
-            );
-        },
-        icon: Icon(Icons.add),
-        label: Text("Inspeccion"),
-      ),
+      floatingActionButton: FloatingActionButtonInicioInspeccion(),
+    );
+  }
+}
+
+class FloatingActionButtonInicioInspeccion extends StatelessWidget {
+  const FloatingActionButtonInicioInspeccion({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton.extended(
+      onPressed: () async {
+        final res = await showDialog<LlenadoFormPageArguments>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Inicio de inspección'),
+            content: InicioInspeccionForm(),
+          ),
+        );
+
+        if (res != null) {
+          final mensajeLlenado = await ExtendedNavigator.of(context)
+              .push(Routes.llenadoFormPage, arguments: res);
+          // mostar el mensaje que viene desde la pantalla de llenado
+          Scaffold.of(context)
+            ..removeCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text("$mensajeLlenado")));
+        }
+      },
+      icon: Icon(Icons.add),
+      label: Text("Inspeccion"),
     );
   }
 }

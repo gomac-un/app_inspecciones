@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 
 import 'package:inspecciones/router.gr.dart';
+import 'package:kt_dart/kt.dart';
 import '../../infrastructure/moor_database.dart';
 
 @injectable
@@ -37,6 +38,9 @@ class BorradoresPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final borrador = borradores[index];
               final f = borrador.inspeccion.momentoBorradorGuardado;
+              final fechaBorrador = f == null
+                  ? ''
+                  : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute} \n";
               return ListTile(
                 tileColor: Theme.of(context).cardColor,
                 title: Text(borrador.activo.identificador +
@@ -44,8 +48,7 @@ class BorradoresPage extends StatelessWidget {
                     borrador.activo.modelo),
                 subtitle: Text(
                     "Tipo de inspeccion: ${borrador.cuestionarioDeModelo.tipoDeInspeccion} \n" +
-                        "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute}  \n" +
-                        "Estado: " +
+                        "$fechaBorrador Estado: " +
                         EnumToString.convertToString(
                             borrador.inspeccion.estado)),
                 leading: Icon(Icons.edit),
@@ -64,6 +67,14 @@ class BorradoresPage extends StatelessWidget {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          //TODO: implementar la subida de inspecciones al server
+          throw NotImplementedException();
+        },
+        icon: Icon(Icons.upload_file),
+        label: Text("Subir inspecciones"),
       ),
     );
   }

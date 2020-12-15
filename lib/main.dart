@@ -16,17 +16,15 @@ void main() {
         ),
       ), //InspeccionScreen(),
     ),
-    /*MaterialApp(
-      home: Testing(),
-    ),*/
   );
 }
 
 final customTheme = ThemeData(
+  //brightness: Brightness.dark,
   brightness: Brightness.light,
-  primaryColor: Colors.lightBlue,
+  primaryColor: Colors.blue,
   accentColor: Colors.deepPurple,
-  scaffoldBackgroundColor: Colors.lightBlue,
+  scaffoldBackgroundColor: Colors.blue,
   visualDensity: VisualDensity.compact,
   inputDecorationTheme: InputDecorationTheme(
     border: const UnderlineInputBorder(),

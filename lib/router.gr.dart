@@ -77,6 +77,36 @@ class AutoRouter extends RouterBase {
 }
 
 /// ************************************************************************
+/// Navigation helper methods extension
+/// *************************************************************************
+
+extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
+  Future<dynamic> pushHomeScreen() => push<dynamic>(Routes.homeScreen);
+
+  Future<dynamic> pushCreacionFormPage() =>
+      push<dynamic>(Routes.creacionFormPage);
+
+  Future<dynamic> pushLlenadoFormPage({
+    Key key,
+    String vehiculo,
+    int cuestionarioId,
+  }) =>
+      push<dynamic>(
+        Routes.llenadoFormPage,
+        arguments: LlenadoFormPageArguments(
+            key: key, vehiculo: vehiculo, cuestionarioId: cuestionarioId),
+      );
+
+  Future<dynamic> pushBorradoresPage({
+    @required Database db,
+  }) =>
+      push<dynamic>(
+        Routes.borradoresPage,
+        arguments: BorradoresPageArguments(db: db),
+      );
+}
+
+/// ************************************************************************
 /// Arguments holder classes
 /// *************************************************************************
 

@@ -7,6 +7,7 @@ import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
 import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
+import 'package:inspecciones/mvvc/reactive_multiselect_dialog_field.dart';
 import 'package:inspecciones/presentation/widgets/image_shower.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
@@ -66,9 +67,8 @@ class SeleccionSimpleCard extends StatelessWidget {
             ),
           if (formGroup.pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta)
             ReactiveDropdownField<OpcionDeRespuesta>(
-              formControl: (formGroup.control('respuestas') as FormArray)
-                  .controls
-                  .first, //La de seleccion unica usa el control de la primer pregunta de la lista
+              formControl: (formGroup.control('respuestas') as FormControl<
+                  OpcionDeRespuesta>), //La de seleccion unica usa el control de la primer pregunta de la lista
               items: formGroup.pregunta.opcionesDeRespuesta
                   .map((e) => DropdownMenuItem<OpcionDeRespuesta>(
                       value: e, child: Text(e.texto)))
@@ -79,18 +79,20 @@ class SeleccionSimpleCard extends StatelessWidget {
             ),
           if (formGroup.pregunta.pregunta.tipo ==
               TipoDePregunta.multipleRespuesta)
-            MultiSelectDialogField<OpcionDeRespuesta>(
+            ReactiveMultiSelectDialogField<OpcionDeRespuesta>(
               buttonText: Text('Seleccione entre las opciones'),
               items: formGroup.pregunta.opcionesDeRespuesta
                   .map((e) => MultiSelectItem(e, e.texto))
                   .toList(),
-              initialValue: (formGroup.control('respuestas')
+              formControl: formGroup.control('respuestas')
+                  as FormControl<List<OpcionDeRespuesta>>,
+              /*initialValue: (formGroup.control('respuestas')
                       as FormArray<OpcionDeRespuesta>)
                   .value,
               listType: MultiSelectListType.CHIP,
               onConfirm: (values) {
                 formGroup.control('respuestas').updateValue(values);
-              },
+              },*/
             ),
           SizedBox(height: 10),
           ReactiveTextField(

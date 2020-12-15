@@ -58,8 +58,6 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                       valueListenable: viewModel.cargada,
                       builder: (context, cargada, child) {
                         if (!cargada) return CircularProgressIndicator();
-                        if (estado == EstadoDeInspeccion.enviada)
-                          return CircularProgressIndicator();
                         return ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -136,19 +134,11 @@ class BotonesGuardado extends StatelessWidget {
                       children: [
                         Text("La inspeccion tiene errores"),
                         FlatButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                    title: Text("Errores: "),
-                                    content: Text(
-                                      /*JsonEncoder.withIndent('  ')
-                                          .convert(json.encode(form.errors)),*/
-                                      form.errors.toString(),
-                                    )),
-                              );
-                            },
-                            child: Text("ver errores"))
+                          onPressed: () => showDialog(
+                              context: context,
+                              builder: (context) => ErroresDialog(form: form)),
+                          child: Text("ver errores"),
+                        ),
                       ],
                     )));
                   }
@@ -165,23 +155,16 @@ class BotonesGuardado extends StatelessWidget {
                           await viewModel.guardarInspeccionEnLocal(
                               estado: EstadoDeInspeccion.reparacion);
                           LoadingDialog.hide(context);
-                        } else {
-                          await guardarYSalir(
-                            context,
-                            accion: () => viewModel.guardarInspeccionEnLocal(
-                              estado: EstadoDeInspeccion.enviada,
-                            ),
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertReparacion(),
                           );
+                        } else {
+                          await guardarYSalir(context);
                         }
                         break;
                       case EstadoDeInspeccion.reparacion:
-                        await guardarYSalir(
-                          context,
-                          accion: () => viewModel.guardarInspeccionEnLocal(
-                            estado: EstadoDeInspeccion.enviada,
-                          ),
-                        );
-
+                        await guardarYSalir(context);
                         break;
                       default:
                     }
@@ -192,13 +175,46 @@ class BotonesGuardado extends StatelessWidget {
     );
   }
 
-  Future guardarYSalir(BuildContext context, {AsyncCallback accion}) async {
+  Future guardarYSalir(BuildContext context) async {
     final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
     viewModel.estado.value = EstadoDeInspeccion.enviada;
     LoadingDialog.show(context);
-    await accion();
+    await viewModel.guardarInspeccionEnLocal(
+      estado: EstadoDeInspeccion.enviada,
+    );
     LoadingDialog.hide(context);
-    ExtendedNavigator.of(context).pop();
+    ExtendedNavigator.of(context).pop("Inspeccion finalizada");
     //TODO: mostrar mensaje de exito en la pantalla de destino
+  }
+}
+
+class ErroresDialog extends StatelessWidget {
+  final AbstractControl form;
+
+  const ErroresDialog({Key key, this.form}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text("Errores: "),
+      content: Text(
+        /*JsonEncoder.withIndent('  ')
+        .convert(json.encode(form.errors)),*/
+        form.errors.toString(), //TODO: darle un formato adecuado
+      ),
+    );
+  }
+}
+
+class AlertReparacion extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text("Inicio reparacion"),
+      content: Text("Por favor realize las reparaciones necesarias"),
+      actions: [
+        TextButton(
+            onPressed: ExtendedNavigator.of(context).pop, child: Text("ok"))
+      ],
+    );
   }
 }
