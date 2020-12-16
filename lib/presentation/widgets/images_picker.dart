@@ -2,14 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:inspecciones/presentation/widgets/imagen_full_screen.dart';
-import 'package:reactive_forms/reactive_forms.dart';
 //import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'image_source_sheet.dart';
 import 'package:image_picker/image_picker.dart';
 
 class FormBuilderImagePicker extends StatelessWidget {
-  final FormArray<File> formArray;
+  final ListFieldBloc<InputFieldBloc<File, Object>> imagenesFieldBlocs;
 
   final List<FormFieldValidator> validators;
   final List initialValue;
@@ -52,7 +52,7 @@ class FormBuilderImagePicker extends StatelessWidget {
 
   FormBuilderImagePicker({
     Key key,
-    @required this.formArray,
+    @required this.imagenesFieldBlocs,
     this.initialValue,
     this.defaultImage,
     this.validators = const [],
@@ -106,8 +106,11 @@ class FormBuilderImagePicker extends StatelessWidget {
 
             //onChanged?.call(field.value);
 
-            formArray.add(FormControl(value: image));
-
+            imagenesFieldBlocs.addFieldBloc(InputFieldBloc(
+              name: "foto",
+              initialValue: image,
+              toJson: (file) => file.path,
+            ));
             Navigator.of(context).pop();
           },
           onImage: (image) {
@@ -131,7 +134,8 @@ class FormBuilderImagePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     //_readOnly = _formState?.readOnly == true || widget.readOnly;
 
-    return ReactiveValueListenableBuilder(
+    return BlocBuilder<ListFieldBloc<InputFieldBloc<File, Object>>,
+        ListFieldBlocState<InputFieldBloc<File, Object>>>(
       //key: _fieldKey,
       //enabled: !_readOnly,
       //initialValue: [],
@@ -147,13 +151,12 @@ class FormBuilderImagePicker extends StatelessWidget {
         }
         widget.onSaved?.call(transformed ?? val);*/
       },*/
-      formControl: formArray,
-      builder: (context, control, child) {
+      cubit: imagenesFieldBlocs,
+      builder: (context, state) {
         var theme = Theme.of(context);
 
         return InputDecorator(
           decoration: decoration.copyWith(
-              filled: false,
               enabled: !readOnly,
               //errorText: field.errorText,
               // ignore: deprecated_member_use_from_same_package
@@ -165,7 +168,7 @@ class FormBuilderImagePicker extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 const SizedBox(height: 8),
-                formArray.controls.length == 0
+                state.fieldBlocs.length == 0
                     ? GestureDetector(
                         child: Icon(Icons.camera_enhance,
                             color: iconColor ?? theme.accentColor),
@@ -173,11 +176,10 @@ class FormBuilderImagePicker extends StatelessWidget {
                       )
                     : Container(
                         height: imageHeight,
-                        width: double.maxFinite,
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children: [
-                            ...(formArray.controls.map<Widget>((item) {
+                            ...(state.fieldBlocs.map<Widget>((item) {
                               return Stack(
                                 alignment: Alignment.topRight,
                                 children: <Widget>[
@@ -219,8 +221,10 @@ class FormBuilderImagePicker extends StatelessWidget {
                                   if (!readOnly)
                                     InkWell(
                                       onTap: () {
-                                        item.value.deleteSync();
-                                        formArray.remove(item);
+                                        item.state.value.deleteSync();
+                                        imagenesFieldBlocs
+                                            .removeFieldBlocsWhere(
+                                                (e) => e == item);
                                         /*field.didChange(
                                         [...field.value]..remove(item));
                                     onChanged?.call(field.value);*/

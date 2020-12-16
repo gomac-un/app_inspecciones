@@ -8,28 +8,27 @@
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:inspecciones/presentation/pages/login_screen.dart';
 
-import 'mvvc/creacion_form_page.dart';
-import 'mvvc/llenado_form_page.dart';
+import 'application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
+import 'infrastructure/moor_database.dart';
 import 'presentation/pages/borradores_screen.dart';
+import 'presentation/pages/crear_cuestionario_form_page.dart';
 import 'presentation/pages/home_screen.dart';
-import 'presentation/pages/login_screen.dart';
-import 'presentation/pages/splash_screen.dart';
+import 'presentation/pages/llenar_cuestionario_form_page.dart';
 
 class Routes {
-  static const String splashPage = '/';
-  static const String loginScreen = '/login-screen';
-  static const String homeScreen = '/home-screen';
-  static const String creacionFormPage = '/creacion-form-page';
-  static const String llenadoFormPage = '/llenado-form-page';
+  static const String homeScreen = '/';
   static const String borradoresPage = '/borradores-page';
+  static const String llenarCuestionarioFormPage =
+      '/llenar-cuestionario-form-page';
+  static const String crearCuestionarioFormPage =
+      '/crear-cuestionario-form-page';
   static const all = <String>{
-    splashPage,
-    loginScreen,
     homeScreen,
-    creacionFormPage,
-    llenadoFormPage,
     borradoresPage,
+    llenarCuestionarioFormPage,
+    crearCuestionarioFormPage,
   };
 }
 
@@ -37,56 +36,42 @@ class AutoRouter extends RouterBase {
   @override
   List<RouteDef> get routes => _routes;
   final _routes = <RouteDef>[
-    RouteDef(Routes.splashPage, page: SplashPage),
-    RouteDef(Routes.loginScreen, page: LoginScreen),
     RouteDef(Routes.homeScreen, page: HomeScreen),
-    RouteDef(Routes.creacionFormPage, page: CreacionFormPage),
-    RouteDef(Routes.llenadoFormPage, page: LlenadoFormPage),
     RouteDef(Routes.borradoresPage, page: BorradoresPage),
+    RouteDef(Routes.llenarCuestionarioFormPage,
+        page: LlenarCuestionarioFormPage),
+    RouteDef(Routes.crearCuestionarioFormPage, page: CrearCuestionarioFormPage),
   ];
   @override
   Map<Type, AutoRouteFactory> get pagesMap => _pagesMap;
   final _pagesMap = <Type, AutoRouteFactory>{
-    SplashPage: (data) {
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => SplashPage(),
-        settings: data,
-      );
-    },
-    LoginScreen: (data) {
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => LoginScreen(),
-        settings: data,
-      );
-    },
     HomeScreen: (data) {
       return MaterialPageRoute<dynamic>(
         builder: (context) => HomeScreen(),
         settings: data,
       );
     },
-    CreacionFormPage: (data) {
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => const CreacionFormPage().wrappedRoute(context),
-        settings: data,
-      );
-    },
-    LlenadoFormPage: (data) {
-      final args = data.getArgs<LlenadoFormPageArguments>(
-        orElse: () => LlenadoFormPageArguments(),
-      );
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => LlenadoFormPage(
-          key: args.key,
-          vehiculo: args.vehiculo,
-          cuestionarioId: args.cuestionarioId,
-        ).wrappedRoute(context),
-        settings: data,
-      );
-    },
     BorradoresPage: (data) {
+      final args = data.getArgs<BorradoresPageArguments>(nullOk: false);
       return MaterialPageRoute<dynamic>(
-        builder: (context) => BorradoresPage(),
+        builder: (context) => BorradoresPage(args.db),
+        settings: data,
+      );
+    },
+    LlenarCuestionarioFormPage: (data) {
+      final args =
+          data.getArgs<LlenarCuestionarioFormPageArguments>(nullOk: false);
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => LlenarCuestionarioFormPage(
+          args.formBloc,
+          key: args.key,
+        ),
+        settings: data,
+      );
+    },
+    CrearCuestionarioFormPage: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => const CrearCuestionarioFormPage(),
         settings: data,
       );
     },
@@ -94,41 +79,18 @@ class AutoRouter extends RouterBase {
 }
 
 /// ************************************************************************
-/// Navigation helper methods extension
-/// *************************************************************************
-
-extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
-  Future<dynamic> pushSplashPage() => push<dynamic>(Routes.splashPage);
-
-  Future<dynamic> pushLoginScreen() => push<dynamic>(Routes.loginScreen);
-
-  Future<dynamic> pushHomeScreen() => push<dynamic>(Routes.homeScreen);
-
-  Future<dynamic> pushCreacionFormPage() =>
-      push<dynamic>(Routes.creacionFormPage);
-
-  Future<dynamic> pushLlenadoFormPage({
-    Key key,
-    String vehiculo,
-    int cuestionarioId,
-  }) =>
-      push<dynamic>(
-        Routes.llenadoFormPage,
-        arguments: LlenadoFormPageArguments(
-            key: key, vehiculo: vehiculo, cuestionarioId: cuestionarioId),
-      );
-
-  Future<dynamic> pushBorradoresPage() => push<dynamic>(Routes.borradoresPage);
-}
-
-/// ************************************************************************
 /// Arguments holder classes
 /// *************************************************************************
 
-/// LlenadoFormPage arguments holder class
-class LlenadoFormPageArguments {
+/// BorradoresPage arguments holder class
+class BorradoresPageArguments {
+  final Database db;
+  BorradoresPageArguments({@required this.db});
+}
+
+/// LlenarCuestionarioFormPage arguments holder class
+class LlenarCuestionarioFormPageArguments {
+  final LlenarCuestionarioFormBloc formBloc;
   final Key key;
-  final String vehiculo;
-  final int cuestionarioId;
-  LlenadoFormPageArguments({this.key, this.vehiculo, this.cuestionarioId});
+  LlenarCuestionarioFormPageArguments({@required this.formBloc, this.key});
 }

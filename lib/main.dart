@@ -1,42 +1,18 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:inspecciones/application/auth/auth_bloc.dart';
-import 'package:inspecciones/mvvc/auth_listener_widget.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'injection.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await configureDependencies();
-  final navigatorKey = GlobalKey<NavigatorState>();
+  configureDependencies();
   runApp(
     MaterialApp(
       builder: ExtendedNavigator.builder(
-        observers: [ClearFocusOnPop()],
-        navigatorKey: navigatorKey,
         router: AutoRouter(),
-        builder: (context, extendedNav) => GestureDetector(
-          onTap: () {
-            // esto quita el foco (y esconde el teclado) al hacer tap
-            // en cualquier lugar no-interactivo de la pantalla https://flutterigniter.com/dismiss-keyboard-form-lose-focus/
-            FocusScopeNode currentFocus = FocusScope.of(context);
-            if (!currentFocus.hasPrimaryFocus &&
-                currentFocus.focusedChild != null) {
-              currentFocus.focusedChild.unfocus();
-            }
-          },
-          child: Theme(
-            data: customTheme, //TODO: seleccion de tema
-            child: BlocProvider(
-              create: (context) => getIt<AuthBloc>()..add(AppStarted()),
-              child: AuthListener(
-                child: extendedNav,
-                navigatorKey: navigatorKey,
-              ),
-            ),
-          ),
+        builder: (context, extendedNav) => Theme(
+          data: customTheme, //TODO: seleccion de tema
+          child: extendedNav,
         ),
       ), //InspeccionScreen(),
     ),
@@ -47,9 +23,14 @@ void main() async {
 }
 
 final customTheme = ThemeData(
-    super.didPop(route, previousRoute);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await Future.delayed(Duration.zero);
-      SystemChannels.textInput.invokeMethod('TextInput.hide');
-    });
-  }
+  brightness: Brightness.light,
+  primaryColor: Colors.lightBlue,
+  accentColor: Colors.deepPurple,
+  scaffoldBackgroundColor: Colors.lightBlue,
+  visualDensity: VisualDensity.compact,
+  inputDecorationTheme: InputDecorationTheme(
+    border: const UnderlineInputBorder(),
+    fillColor: Colors.grey.withOpacity(.3),
+    filled: true,
+  ),
+);

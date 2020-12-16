@@ -1,5 +1,3 @@
-class ServerException implements Exception {
-  ServerException(String msg);
-}
+class ServerException implements Exception {}
 
 class CacheException implements Exception {}

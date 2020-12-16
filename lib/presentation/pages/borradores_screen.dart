@@ -1,5 +1,3 @@
-import 'package:auto_route/auto_route.dart';
-import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/crear_cuestionario_form/llenar_cuestionario_form_bloc.dart';
@@ -14,15 +12,20 @@ import 'package:auto_route/auto_route.dart';
 import '../../router.gr.dart';
 import 'package:provider/provider.dart';
 import 'package:inspecciones/infrastructure/database/usuario.dart';
-import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/router.gr.dart';
 
-import '../../infrastructure/moor_database.dart';
-
+@injectable
 class BorradoresPage extends StatelessWidget {
-  final Database _db = getIt<Database>();
+  void _pushScreen(BuildContext context, Widget screen) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => screen),
+    );
+  }
 
-  BorradoresPage();
+  Database _db;
+
+  BorradoresPage(
+    this._db,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +35,7 @@ class BorradoresPage extends StatelessWidget {
       ),
       drawer: Opciones(),
       body: StreamBuilder<List<Borrador>>(
-        stream: _db.borradoresDao.borradores(),
+        stream: _db.borradores(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Align(
@@ -43,36 +46,38 @@ class BorradoresPage extends StatelessWidget {
 
           final borradores = snapshot.data;
 
-          return ListView.separated(
-            separatorBuilder: (BuildContext context, int index) => Divider(),
-            itemCount: borradores.length,
-            itemBuilder: (context, index) {
-              final borrador = borradores[index];
-              final f = borrador.inspeccion.momentoBorradorGuardado;
-              final fechaBorrador = f == null
-                  ? ''
-                  : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute} \n";
-              return ListTile(
-                tileColor: Theme.of(context).cardColor,
-                title: Text(borrador.activo.identificador +
-                    " - " +
-                    borrador.activo.modelo),
-                subtitle: Text(
-                    "Tipo de inspeccion: ${borrador.cuestionarioDeModelo.tipoDeInspeccion} \n" +
-                        "$fechaBorrador Estado: " +
-                        EnumToString.convertToString(
-                            borrador.inspeccion.estado)),
-                leading: Icon(Icons.edit),
-                trailing: IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () => eliminarBorrador(borradores[index], context),
-                ),
-                onTap: () => ExtendedNavigator.of(context).push(
-                  Routes.llenadoFormPage,
-                  arguments: LlenadoFormPageArguments(
-                    vehiculo: borrador.activo.identificador,
-                    cuestionarioId: borrador.inspeccion.cuestionarioId,
-                  ),
+          return Column(
+            children: <Widget>[
+              Expanded(
+                child: ListView.builder(
+                  itemCount: borradores.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      tileColor: Colors.white24,
+                      title: Text(borradores[index].activo.identificador +
+                          " - " +
+                          borradores[index].activo.modelo),
+                      subtitle: Text(borradores[index]
+                          .cuestionarioDeModelo
+                          .tipoDeInspeccion),
+                      leading: Icon(Icons.edit),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () =>
+                            eliminarBorrador(borradores[index], context),
+                      ),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => LlenarCuestionarioFormPage(
+                            LlenarCuestionarioFormBloc.withBorrador(
+                              getIt<Database>(),
+                              borradores[index],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -83,12 +88,6 @@ class BorradoresPage extends StatelessWidget {
         onPressed: () => _inicioInspeccion(context),
         icon: Icon(Icons.add),
         label: Text("Inspeccion"),
-        onPressed: () {
-          //TODO: implementar la subida de inspecciones al server
-          throw Exception();
-        },
-        icon: Icon(Icons.upload_file),
-        label: Text("Subir inspecciones"),
       ),
     );
   }
@@ -103,7 +102,7 @@ class BorradoresPage extends StatelessWidget {
       child: Text("Eliminar"),
       onPressed: () async {
         Navigator.of(context).pop();
-        await _db.borradoresDao.eliminarBorrador(borrador);
+        await _db.eliminarBorrador(borrador);
         Scaffold.of(context).showSnackBar(SnackBar(
           content: Text("Borrador eliminado"),
           duration: Duration(seconds: 3),
