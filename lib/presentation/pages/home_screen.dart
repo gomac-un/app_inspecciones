@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/pages/inicio_inspeccion_form_widget.dart';
+import 'package:inspecciones/presentation/widgets/drawer.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:moor_db_viewer/moor_db_viewer.dart';
 
@@ -13,6 +14,7 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Pantallas de ejemplo'),
       ),
+      drawer: UserDrawer(),
       body: ListView(
         children: <Widget>[
           ListTile(

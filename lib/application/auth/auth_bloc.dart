@@ -40,6 +40,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             await userRepository.authenticateUser(userLogin: event.user);
         await userRepository.saveLocalUser(user: validUser);
         yield Authenticated(validUser);
+        print("authenticated");
       } catch (e) {
         print(e);
       }
@@ -49,6 +50,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       yield Loading();
       await userRepository.deleteLocalUser();
       yield Unauthenticated();
+      print("UNauthenticated");
     }
   }
 }

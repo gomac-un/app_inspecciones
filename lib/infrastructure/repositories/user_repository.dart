@@ -16,13 +16,10 @@ class UserRepository {
 
   Future<Usuario> authenticateUser({UserLogin userLogin}) async {
     //TODO: revisar si esta en linea
-    Token token = await api.getToken(userLogin);
-    Usuario user = Usuario(
-      userLogin.username,
-      userLogin.password,
-      true,
-      token,
-    );
+    //Token token = await api.getToken(userLogin);
+    Usuario user =
+        Usuario(userLogin.username, userLogin.password, true, null //token,
+            );
     return user;
   }
 

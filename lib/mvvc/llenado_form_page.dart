@@ -113,7 +113,7 @@ class BotonesGuardado extends StatelessWidget {
             },
           ),
           ActionButton(
-            iconData: Icons.send,
+            iconData: Icons.done_all_outlined,
             label: 'Finalizar',
             onPressed: !form.valid
                 ? () {

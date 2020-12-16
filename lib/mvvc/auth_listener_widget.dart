@@ -7,18 +7,21 @@ import 'package:inspecciones/router.gr.dart';
 /// escuha eventos del authbloc para realizar la navegacion de acuerdo a estos
 class AuthListener extends StatelessWidget {
   final Widget child;
+  final GlobalKey<NavigatorState> navigatorKey;
 
-  const AuthListener({Key key, this.child}) : super(key: key);
+  const AuthListener({Key key, this.child, this.navigatorKey})
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (BuildContext context, state) {
+        final navState = navigatorKey.currentState;
         if (state is Uninitialized)
-          ExtendedNavigator.of(context).replace(Routes.splashPage);
+          navState.pushReplacementNamed(Routes.splashPage);
         if (state is Unauthenticated)
-          ExtendedNavigator.of(context).replace(Routes.loginScreen);
+          navState.pushReplacementNamed(Routes.loginScreen);
         if (state is Authenticated)
-          ExtendedNavigator.of(context).replace(Routes.homeScreen);
+          navState.pushReplacementNamed(Routes.homeScreen);
       },
       child: child,
     );

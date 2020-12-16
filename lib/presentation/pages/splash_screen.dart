@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
-import 'package:inspecciones/mvvc/auth_lister_widget.dart';
+import 'package:inspecciones/mvvc/auth_listener_widget.dart';
 import 'package:provider/provider.dart';
 
 class SplashPage extends StatelessWidget {
@@ -24,19 +24,17 @@ class SplashPage extends StatelessWidget {
         ),
       ),
     );*/
-    return AuthListener(
-      child: Scaffold(
-        body: Center(
-          child: Column(
-            children: [
-              CircularProgressIndicator(),
-              FlatButton(
-                  onPressed: () {
-                    authbloc.add(AppStarted());
-                  },
-                  child: Text("emit appstarted"))
-            ],
-          ),
+    return Scaffold(
+      body: Center(
+        child: Column(
+          children: [
+            CircularProgressIndicator(),
+            FlatButton(
+                onPressed: () {
+                  authbloc.add(AppStarted());
+                },
+                child: Text("emit appstarted"))
+          ],
         ),
       ),
     );
