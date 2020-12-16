@@ -8,7 +8,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 part 'creacion_datos_test.dart';
 
 //TODO: implementar la edicion de cuestionarios
-
+//TODO: este viewmodel podria extender de FormGroup
 class CreacionFormViewModel {
   final _db = getIt<Database>();
 

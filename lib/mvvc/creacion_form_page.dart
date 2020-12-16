@@ -107,6 +107,10 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                     decoration: InputDecoration(
                       labelText: 'Seleccione un contratista',
                     ),
+                    onTap: () {
+                      FocusScope.of(context)
+                          .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+                    },
                   );
                 },
               ),
@@ -137,48 +141,60 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
           ],
         ),
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            ActionButton(
-              iconData: Icons.send,
-              label: 'Finalizar',
-              onPressed: !viewModel.form.valid
-                  ? () {
-                      viewModel.form.markAllAsTouched();
-                      Scaffold.of(context).showSnackBar(SnackBar(
-                          content: Row(
-                        children: [
-                          Text("La inspeccion tiene errores"),
-                          FlatButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                      title: Text("Errores: "),
-                                      content: Text(
-                                        /*JsonEncoder.withIndent('  ')
-                                          .convert(json.encode(form.errors)),*/
-                                        viewModel.form.errors.toString(),
-                                      )),
-                                );
-                              },
-                              child: Text("ver errores"))
-                        ],
-                      )));
-                    }
-                  : () async {
-                      LoadingDialog.show(context);
-                      await viewModel.enviar();
-                      LoadingDialog.hide(context);
-                      ExtendedNavigator.of(context)
-                          .pop(); //TODO: mostrar mensaje de exito en la pantalla de destino
-                    },
-            ),
-          ],
-        ),
+      floatingActionButton: BotonFinalizar(),
+    );
+  }
+}
+
+class BotonFinalizar extends StatelessWidget {
+  const BotonFinalizar({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = Provider.of<CreacionFormViewModel>(context);
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          ActionButton(
+            iconData: Icons.done_all_outlined,
+            label: 'Finalizar',
+            onPressed: !viewModel.form.valid
+                ? () {
+                    viewModel.form.markAllAsTouched();
+                    Scaffold.of(context).showSnackBar(SnackBar(
+                        content: Row(
+                      children: [
+                        Text("La inspeccion tiene errores"),
+                        FlatButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                    title: Text("Errores: "),
+                                    content: Text(
+                                      /*JsonEncoder.withIndent('  ')
+                                        .convert(json.encode(form.errors)),*/
+                                      viewModel.form.errors.toString(),
+                                    )),
+                              );
+                            },
+                            child: Text("ver errores"))
+                      ],
+                    )));
+                  }
+                : () async {
+                    LoadingDialog.show(context);
+                    await viewModel.enviar();
+                    LoadingDialog.hide(context);
+                    ExtendedNavigator.of(context)
+                        .pop("Cuestionario creado exitosamente");
+                  },
+          ),
+        ],
       ),
     );
   }

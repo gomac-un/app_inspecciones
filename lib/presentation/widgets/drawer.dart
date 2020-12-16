@@ -49,8 +49,13 @@ class UserDrawer extends StatelessWidget {
                 leading: Icon(
                   Icons.add, /* color: Colors.white, */
                 ),
-                onTap: () =>
-                    ExtendedNavigator.of(context).pushCreacionFormPage(),
+                onTap: () async {
+                  final res = await ExtendedNavigator.of(context)
+                      .pushCreacionFormPage();
+                  if (res != null && res is String)
+                    Scaffold.of(context)
+                        .showSnackBar(SnackBar(content: Text(res)));
+                },
               ),
               SizedBox(
                 height: 5.0,

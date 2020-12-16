@@ -4,7 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/router.gr.dart';
 
-/// escuha eventos del authbloc para realizar la navegacion de acuerdo a estos
+/// escucha eventos del authbloc y realiza la navegacion (login o pantalla de usuario)
+/// automaticamente
 class AuthListener extends StatelessWidget {
   final Widget child;
   final GlobalKey<NavigatorState> navigatorKey;

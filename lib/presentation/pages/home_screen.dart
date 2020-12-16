@@ -23,7 +23,12 @@ class HomeScreen extends StatelessWidget {
           ),
           ListTile(
             title: Chip(label: Text('Creación de Inspecciones')),
-            onTap: () => ExtendedNavigator.of(context).pushCreacionFormPage(),
+            onTap: () async {
+              final res =
+                  await ExtendedNavigator.of(context).pushCreacionFormPage();
+              if (res != null && res is String)
+                Scaffold.of(context).showSnackBar(SnackBar(content: Text(res)));
+            },
           ),
           ListTile(
             title: Chip(label: Text('Borradores')),

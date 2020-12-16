@@ -75,6 +75,10 @@ class SeleccionSimpleCard extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: 'Seleccione una opción',
               ),
+              onTap: () {
+                FocusScope.of(context)
+                    .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+              },
             ),
           if (formGroup.pregunta.pregunta.tipo ==
               TipoDePregunta.multipleRespuesta)
@@ -85,6 +89,10 @@ class SeleccionSimpleCard extends StatelessWidget {
                   .toList(),
               formControl: formGroup.control('respuestas')
                   as FormControl<List<OpcionDeRespuesta>>,
+              onTap: () {
+                print("tap");
+                FocusScope.of(context).unfocus();
+              },
             ),
           SizedBox(height: 10),
           ReactiveTextField(
@@ -204,6 +212,7 @@ class CuadriculaCard extends StatelessWidget {
                             )
                           : Icon(Icons.remove_red_eye),
                       onPressed: () async {
+                        //FocusScope.of(context).unfocus();
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
