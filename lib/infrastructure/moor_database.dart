@@ -1,49 +1,23 @@
-export 'package:moor_flutter/moor_flutter.dart' show Value;
-
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:enum_to_string/enum_to_string.dart';
-import 'package:json_annotation/json_annotation.dart' as j;
+import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
+import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
+import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
+import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
-import 'package:inspecciones/domain/core/enums.dart';
+export 'package:moor_flutter/moor_flutter.dart' show Value;
+
 export 'database/shared.dart';
 
-part 'moor_database.g.dart';
 part 'bdDePrueba.dart';
+part 'moor_database.g.dart';
 part 'tablas.dart';
-
-class BloqueConPregunta {
-  final Bloque bloque;
-  final Pregunta pregunta;
-
-  BloqueConPregunta({
-    @required this.bloque,
-    @required this.pregunta,
-  });
-}
-
-class BloqueConPreguntaRespondida {
-  Bloque bloque;
-  Pregunta pregunta;
-  RespuestasCompanion respuesta;
-
-  BloqueConPreguntaRespondida({
-    @required this.bloque,
-    @required this.pregunta,
-    @required this.respuesta,
-  });
-}
-
-class Borrador {
-  Inspeccion inspeccion;
-  CuestionarioDeModelo cuestionarioDeModelo;
-  Activo activo;
-  Borrador(this.inspeccion, this.cuestionarioDeModelo, this.activo);
-}
+part 'tablas_unidas.dart';
 
 @UseMoor(
   tables: [
@@ -51,19 +25,24 @@ class Borrador {
     CuestionarioDeModelos,
     Cuestionarios,
     Bloques,
+    Titulos,
+    CuadriculasDePreguntas,
     Preguntas,
+    OpcionesDeRespuesta,
     Inspecciones,
     Respuestas,
+    RespuestasXOpcionesDeRespuesta,
     Contratistas,
     Sistemas,
     SubSistemas,
   ],
+  daos: [LlenadoDao, CreacionDao, BorradoresDao],
 )
 class Database extends _$Database {
   Database(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 1;
 
   @override
   MigrationStrategy get migration {
@@ -96,7 +75,7 @@ class Database extends _$Database {
     dbFile.deleteSync();*/
     final m = this.createMigrator();
     await customStatement('PRAGMA foreign_keys = OFF');
-    // changed to this
+
     for (final table in allTables) {
       await m.deleteTable(table.actualTableName);
 
@@ -108,272 +87,117 @@ class Database extends _$Database {
   }
 
   //datos para la creacion de cuestionarios
-  Future<List<String>> getModelos() {
-    final query = selectOnly(activos, distinct: true)
-      ..addColumns([activos.modelo]);
-
-    return query.map((row) => row.read(activos.modelo)).get();
-  }
-
-  Future<List<String>> getTiposDeInspecciones() {
-    final query = selectOnly(cuestionarioDeModelos, distinct: true)
-      ..addColumns([cuestionarioDeModelos.tipoDeInspeccion]);
-
-    return query
-        .map((row) => row.read(cuestionarioDeModelos.tipoDeInspeccion))
-        .get();
-  }
-
-  Future<List<Contratista>> getContratistas() {
-    return select(contratistas).get();
-  }
-
-  Future<List<Sistema>> getSistemas() {
-    return select(sistemas).get();
-  }
-
-  Future<List<SubSistema>> getSubSistemas(Sistema sistema) {
-    //return (select(subSistemas)..where(subSistemas.sistemaId.equals(1))).get();
-    final query = select(subSistemas)
-      ..where((u) => u.sistemaId.equals(sistema.id));
-
-    return query.get();
-  }
-
-  Future<List<CuestionarioDeModelo>> getCuestionarios(
-      String tipoDeInspeccion, List<String> modelos) {
-    final query = select(cuestionarioDeModelos)
-      ..where((cm) =>
-          cm.tipoDeInspeccion.equals(tipoDeInspeccion) &
-          cm.modelo.isIn(modelos));
-
-    return query.get();
-  }
-
-  Future crearCuestionario(Map<String, dynamic> f) async {
-    return transaction(() async {
-      final ins1 = CuestionariosCompanion.insert();
-      int cid = await into(cuestionarios).insert(ins1);
-
-      String tipoDeInspeccion = f["tipoDeInspeccion"] == "otra"
-          ? f["nuevoTipoDeInspeccion"]
-          : f["tipoDeInspeccion"];
-
-      await batch((batch) {
-        // asociar a cada modelo con este cuestionario
-        batch.insertAll(
-            cuestionarioDeModelos,
-            (f["modelos"] as List<String>)
-                .map((String modelo) => CuestionarioDeModelosCompanion.insert(
-                    modelo: modelo,
-                    tipoDeInspeccion: tipoDeInspeccion,
-                    periodicidad: int.parse(f["periodicidad"]),
-                    contratistaId: f["contratista"].id,
-                    cuestionarioId: cid))
-                .toList()); //TODO: distintas periodicidades y contratistas por cuestionarioDeModelo
-      });
-
-      int i = -1;
-      for (var b in f["bloques"]) {
-        i++;
-        var bfi = BloquesCompanion.insert(
-            cuestionarioId: cid,
-            nOrden: i,
-            titulo: b["titulo"],
-            descripcion: b["descripcion"]);
-        int bid = await into(bloques).insert(bfi);
-
-        if (b["criticidad"] == null)
-          continue; //si es null entonces es un titulo entonces siga al siguiente bloque
-
-        //construccion de las opciones de respuesta
-        List<OpcionDeRespuesta> l = [];
-        for (var r in b["respuestas"]) {
-          l.add(OpcionDeRespuesta.fromJson(r));
-        }
-
-        final appDir = await getApplicationDocumentsDirectory();
-
-        final List<Future<String>> fotosGuia =
-            b["imagenes"].map<Future<String>>((imageURl) async {
-          final image = File(imageURl);
-          if (path.isWithin(appDir.path, image.path)) {
-            // la imagen ya esta en la carpeta de datos
-            return image.path;
-          } else {
-            //mover la foto a la carpeta de datos
-            final fileName = path.basename(image.path);
-            final newPath = path.join(
-                appDir.path, 'fotos', "cuestionario", cid.toString(), fileName);
-            await File(newPath).create(recursive: true);
-            final savedImage = await image.copy(newPath);
-            return savedImage.path;
-          }
-        }).toList();
-        final fotosGuiaProcesadas = await Future.wait(fotosGuia);
-
-        var pfi = PreguntasCompanion.insert(
-          bloqueId: bid,
-          sistemaId: b["sistema"].id,
-          subSistemaId: b["subsistema"].id,
-          posicion: b["posicion"],
-          tipo: EnumToString.fromString(
-              TipoDePregunta.values, b["tipoDePregunta"]),
-          fotosGuia: Value(fotosGuiaProcesadas.toList()),
-          criticidad: b["criticidad"],
-          opcionesDeRespuesta: Value(l),
-        );
-        await into(preguntas).insert(pfi);
-      }
-    });
-  }
 
   //datos para el llenado de inspecciones
 
-  Future<List<CuestionarioDeModelo>> cuestionariosParaVehiculo(
-      String vehiculo) {
-    final query = select(activos).join([
-      leftOuterJoin(cuestionarioDeModelos,
-          cuestionarioDeModelos.modelo.equalsExp(activos.modelo)),
-    ])
-      ..where(activos.identificador.equals(vehiculo));
-
-    return query.map((row) {
-      return row.readTable(cuestionarioDeModelos);
-    }).get();
-  }
-
-  Future<List<BloqueConPreguntaRespondida>> cargarInspeccion(
-      int cuestionarioId, String vehiculo) async {
-    //revisar si hay una inspeccion de ese cuestionario empezada
-    if (cuestionarioId == null || vehiculo == null) return null;
-    final query1 = select(inspecciones)
-      ..where(
-        (ins) =>
-            ins.cuestionarioId.equals(cuestionarioId) &
-            ins.identificadorActivo.equals(vehiculo),
-      );
-
-    final res = await query1.get();
-
-    Inspeccion borrador;
-    if (res.length > 0) borrador = res.first;
-
-    //carga los bloques y si tiene preguntas y respuestas las agrega
-    final query2 = select(bloques).join([
-      leftOuterJoin(preguntas, preguntas.bloqueId.equalsExp(bloques.id)),
-      leftOuterJoin(
-          respuestas,
-          respuestas.preguntaId.equalsExp(preguntas.id) &
-              respuestas.inspeccionId.equals(borrador?.id)),
-    ])
-      ..where(bloques.cuestionarioId.equals(cuestionarioId))
-      ..orderBy([OrderingTerm(expression: bloques.nOrden)]);
-
-    return query2
-        .map(
-          (row) => BloqueConPreguntaRespondida(
-            bloque: row.readTable(bloques),
-            pregunta: row.readTable(preguntas),
-            respuesta: row.readTable(respuestas)?.toCompanion(
-                    true) ?? //si no hay respuesta devuelve una vacía con inspeccion nula que se debe llenar despues
-                RespuestasCompanion.insert(
-                    inspeccionId: null,
-                    preguntaId: row.readTable(preguntas)?.id),
-          ),
-        )
-        .get();
-  }
-
   Future<Inspeccion> crearInspeccion(
-      int cuestionarioId, String activo, bool esBorrador) async {
+      int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
     final ins = InspeccionesCompanion.insert(
       cuestionarioId: cuestionarioId,
-      estado: esBorrador
-          ? EstadoDeInspeccion.enBorrador
-          : EstadoDeInspeccion.enviada,
+      estado: estado,
       identificadorActivo: activo,
       momentoInicio: Value(DateTime.now()),
     );
     final id = await into(inspecciones).insert(ins);
-    return Inspeccion(
-      id: id,
-      cuestionarioId: cuestionarioId,
-      estado: esBorrador
-          ? EstadoDeInspeccion.enBorrador
-          : EstadoDeInspeccion.enviada,
-      identificadorActivo: activo,
-    );
+    return (select(inspecciones)..where((i) => i.id.equals(id))).getSingle();
   }
 
-  //esta funcion para actualizar primero borra todo lo anterior y lo reemplaza con datos actualizados, no es lo mas eficiente
-  //TODO: Actualizar en lugar de borrar y recrear
-  Future guardarInspeccion(List<RespuestasCompanion> respuestasForm,
-      int cuestionarioId, String activo, bool esBorrador) async {
-    if (respuestasForm.first.inspeccionId.value == null) {
-      //si la primera respuesta no tiene inspeccion asociada, asocia todas a una nueva inspeccion
-      Inspeccion i = await crearInspeccion(cuestionarioId, activo, esBorrador);
-      respuestasForm = respuestasForm
-          .map((r) => r.copyWith(inspeccionId: Value(i.id)))
-          .toList();
+  Future guardarInspeccion(List<RespuestaConOpcionesDeRespuesta> respuestasForm,
+      int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
+    Inspeccion ins = await llenadoDao.getInspeccion(activo, cuestionarioId);
+    if (ins == null) {
+      //si no hay inspeccion creada, asocia todas las respuestas a una nueva inspeccion
+      ins = await crearInspeccion(cuestionarioId, activo, estado);
     }
-
+    respuestasForm.forEach((rf) {
+      rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
+    });
     return transaction(() async {
-      await (update(inspecciones)
-            ..where(
-                (i) => i.id.equals(respuestasForm.first.inspeccionId.value)))
-          .write(
-        esBorrador
+      await (update(inspecciones)..where((i) => i.id.equals(ins.id))).write(
+        estado == EstadoDeInspeccion.enviada
             ? InspeccionesCompanion(
-                momentoBorradorGuardado: Value(DateTime.now()),
+                momentoEnvio: Value(DateTime.now()),
+                estado: Value(estado),
               )
             : InspeccionesCompanion(
-                momentoEnvio: Value(DateTime.now()),
+                momentoBorradorGuardado: Value(DateTime.now()),
+                estado: Value(estado),
               ),
       );
-      // borrar todas las respuestas anteriores
-      await (delete(respuestas)
-            ..where((r) =>
-                r.inspeccionId.equals(respuestasForm.first.inspeccionId.value)))
-          .go();
+      await Future.forEach<RespuestaConOpcionesDeRespuesta>(respuestasForm,
+          (e) async {
+        //Mover las fotos a una carpeta unica para cada inspeccion
+        final appDir = await getApplicationDocumentsDirectory();
+        final idform =
+            respuestasForm.first.respuesta.inspeccionId.value.toString();
+        final fotosBaseProc = await Future.wait(organizarFotos(
+            e.respuesta.fotosBase.value,
+            appDir.path,
+            "fotosInspecciones",
+            idform));
+        final fotosRepProc = await Future.wait(organizarFotos(
+            e.respuesta.fotosBase.value,
+            appDir.path,
+            "fotosInspecciones",
+            idform));
+        e.respuesta.copyWith(
+          fotosBase: Value(fotosBaseProc.toImmutableList()),
+          fotosReparacion: Value(fotosRepProc.toImmutableList()),
+        );
 
-      //agregar las nuevas
-      await batch((batch) {
-        // functions in a batch don't have to be awaited - just
-        // await the whole batch afterwards.
-        batch.insertAll(respuestas, respuestasForm);
+        int res;
+        if (e.respuesta.id.present) {
+          await into(respuestas).insertOnConflictUpdate(e.respuesta);
+          res = e.respuesta.id.value;
+        } else {
+          res = await into(respuestas).insert(e.respuesta);
+        }
+
+        await (delete(respuestasXOpcionesDeRespuesta)
+              ..where((rxor) => rxor.respuestaId.equals(res)))
+            .go();
+        await Future.forEach<OpcionDeRespuesta>(
+            e.opcionesDeRespuesta.where((e) => e != null), (opres) async {
+          await into(respuestasXOpcionesDeRespuesta).insert(
+              RespuestasXOpcionesDeRespuestaCompanion.insert(
+                  respuestaId: res, opcionDeRespuestaId: opres.id));
+        });
       });
     });
   }
 
-  Stream<List<Borrador>> borradores() {
-    final query = select(inspecciones).join([
-      //TODO: eliminar la inspeccion de los borradores porque solo se necesita el activo y el cm, ya que la inspeccion se consulta con base a estos
-      innerJoin(activos,
-          activos.identificador.equalsExp(inspecciones.identificadorActivo)),
-      innerJoin(cuestionarios,
-          cuestionarios.id.equalsExp(inspecciones.cuestionarioId)),
+  Iterable<Future<String>> organizarFotos(
+      KtList<String> fotos,
+      String appDir,
+      String subDir, //fotosInspecciones
+      String idform) {
+    return fotos.iter.toList().map((pathFoto) async {
+      final dir = path.join(appDir, subDir, idform);
+      if (path.isWithin(dir, pathFoto)) {
+        // la imagen ya esta en la carpeta de datos
+        return pathFoto;
+      } else {
+        //mover la foto a la carpeta de datos
+        final fileName = path.basename(pathFoto);
+        final newPath = path.join(dir, fileName);
+        await File(newPath).create(recursive: true);
+        final savedImage = await File(pathFoto).copy(newPath);
+        return savedImage.path;
+      }
+    });
+  }
+
+  Future<CuestionarioDeModelo> getCuestionarioDeModelo(Inspeccion inspeccion) {
+    final query = select(cuestionarios).join([
       innerJoin(cuestionarioDeModelos,
-          cuestionarioDeModelos.cuestionarioId.equalsExp(cuestionarios.id)),
-    ]);
-
-    return query
-        .map(
-          (row) => Borrador(
-            row.readTable(inspecciones),
-            row.readTable(cuestionarioDeModelos),
-            row.readTable(activos),
-          ),
-        )
-        .watch();
+          cuestionarioDeModelos.cuestionarioId.equalsExp(cuestionarios.id))
+    ])
+      ..where(cuestionarios.id.equals(inspeccion.cuestionarioId));
+    return query.map((row) => row.readTable(cuestionarioDeModelos)).getSingle();
   }
 
-  Future eliminarBorrador(Borrador borrador) async {
-    await (delete(inspecciones)
-          ..where((r) => r.id.equals(borrador.inspeccion.id)))
-        .go();
-  }
-
+  // Esta funcion deberá exportar las inspecciones llenadas de manera
+  // local al servidor
   Future exportarInspeccion() async {
     // TODO: WIP
     final ins = await (select(inspecciones)
@@ -382,51 +206,5 @@ class Database extends _$Database {
           ))
         .get();
     print(ins.map((e) => e.toJson()).toList());
-  }
-  
-}
-
-/////////////////converters
-
-class ListInColumnConverter extends TypeConverter<List<String>, String> {
-  const ListInColumnConverter();
-  @override
-  List<String> mapToDart(String fromDb) {
-    if (fromDb == null) {
-      return null;
-    }
-    return (jsonDecode(fromDb) as List).map((e) => e as String).toList();
-  }
-
-  @override
-  String mapToSql(List<String> value) {
-    if (value == null) {
-      return null;
-    }
-
-    return jsonEncode(value);
-  }
-}
-
-class OpcionDeRespuestaConverter
-    extends TypeConverter<List<OpcionDeRespuesta>, String> {
-  const OpcionDeRespuestaConverter();
-  @override
-  List<OpcionDeRespuesta> mapToDart(String fromDb) {
-    if (fromDb == null) {
-      return null;
-    }
-    return (jsonDecode(fromDb) as List)
-        .map((e) => OpcionDeRespuesta.fromJson(e))
-        .toList();
-  }
-
-  @override
-  String mapToSql(List<OpcionDeRespuesta> value) {
-    if (value == null) {
-      return null;
-    }
-
-    return jsonEncode(value);
   }
 }
