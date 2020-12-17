@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
@@ -17,12 +16,13 @@ class AuthListener extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       listener: (BuildContext context, state) {
         final navState = navigatorKey.currentState;
-        if (state is Uninitialized)
-          navState.pushReplacementNamed(Routes.splashPage);
-        if (state is Unauthenticated)
-          navState.pushReplacementNamed(Routes.loginScreen);
-        if (state is Authenticated)
-          navState.pushReplacementNamed(Routes.homeScreen);
+        state.map(
+            initial: (_) => navState.pushReplacementNamed(Routes.splashPage),
+            authenticated: (_) =>
+                navState.pushReplacementNamed(Routes.homeScreen),
+            unauthenticated: (_) =>
+                navState.pushReplacementNamed(Routes.loginScreen),
+            loading: (_) {});
       },
       child: child,
     );

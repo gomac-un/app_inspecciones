@@ -5,8 +5,6 @@ import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_validators.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-part 'creacion_datos_test.dart';
-
 //TODO: implementar la edicion de cuestionarios
 //TODO: este viewmodel podria extender de FormGroup
 class CreacionFormViewModel {
@@ -63,27 +61,26 @@ class CreacionFormViewModel {
   }
 
   /// Metodo que funciona sorprendentemente bien con los nulos y los casos extremos
-  agregarBloqueDespuesDe({AbstractControl bloque, AbstractControl despuesDe}) {
+  void agregarBloqueDespuesDe(
+      {AbstractControl bloque, AbstractControl despuesDe}) {
     bloques.insert(bloques.controls.indexOf(despuesDe) + 1, bloque);
   }
 
-  borrarBloque(AbstractControl e) {
+  void borrarBloque(AbstractControl e) {
     //TODO hacerle dispose si se requiere
     try {
       bloques.remove(e);
-    } on FormControlNotFoundException {
-      print("que pendejo");
-    }
+      // ignore: empty_catches
+    } on FormControlNotFoundException {}
   }
 
-  enviar() async {
-    print(form.controls);
+  Future enviar() async {
     form.markAllAsTouched();
     await _db.creacionDao.crearCuestionario(form.controls);
   }
 
   /// Cierra todos los streams para evitar fugas de memoria, se suele llamar desde el provider
-  dispose() {
+  void dispose() {
     tiposDeInspeccion.dispose();
     modelos.dispose();
     contratistas.dispose();

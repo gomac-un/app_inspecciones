@@ -7,14 +7,15 @@ Future<Map<String, dynamic>> cuestionariosExistentes(
     AbstractControl<dynamic> control) async {
   final form = control as FormGroup;
 
-  final tipoDeInspeccion = form.control('tipoDeInspeccion');
-  final modelos = form.control('modelos');
+  final tipoDeInspeccion =
+      form.control('tipoDeInspeccion') as FormControl<String>;
+  final modelos = form.control('modelos') as FormControl<List<String>>;
 
   final cuestionariosExistentes = await getIt<Database>()
       .creacionDao
       .getCuestionarios(tipoDeInspeccion.value, modelos.value);
 
-  if (cuestionariosExistentes.length > 0) {
+  if (cuestionariosExistentes.isNotEmpty) {
     modelos.setErrors({'yaExiste': cuestionariosExistentes.first.modelo});
     modelos.markAsTouched();
   } else {

@@ -26,7 +26,7 @@ class InicioInspeccionForm extends StatelessWidget {
                       .cuestionariosParaVehiculo(activo);
                   tiposDeInspeccion.value = res;
 
-                  tipoInspeccionCtrl.value = res.length > 0 ? res.first : null;
+                  tipoInspeccionCtrl.value = res.isNotEmpty ? res.first : null;
                 }),
               'tipoDeInspeccion': tipoInspeccionCtrl,
             });
@@ -37,12 +37,12 @@ class InicioInspeccionForm extends StatelessWidget {
               children: [
                 ReactiveTextField(
                   formControlName: 'activo',
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Escriba el ID del vehiculo',
                     prefixIcon: Icon(Icons.directions_car),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 ValueListenableBuilder(
                   valueListenable: tiposDeInspeccion,
                   builder: (context, value, child) => ReactiveDropdownField(
@@ -51,7 +51,7 @@ class InicioInspeccionForm extends StatelessWidget {
                         .map((e) => DropdownMenuItem(
                             value: e, child: Text(e.tipoDeInspeccion)))
                         .toList(),
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Seleccione una opción',
                     ),
                   ),
@@ -80,14 +80,14 @@ class _BotonInicioInspeccion extends StatelessWidget {
   Widget build(BuildContext context) {
     final form = ReactiveForm.of(context) as FormGroup;
     return RaisedButton(
-      child: Text('Inspeccionar'),
       onPressed: form.valid
           ? () => _onPressed(
                 context,
-                form.control('activo').value,
-                form.control('tipoDeInspeccion').value.cuestionarioId,
+                form.control('activo').value as String,
+                form.control('tipoDeInspeccion').value.cuestionarioId as int,
               )
           : null,
+      child: const Text('Inspeccionar'),
     );
   }
 

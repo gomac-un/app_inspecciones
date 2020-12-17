@@ -2,11 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:inspecciones/presentation/widgets/imagen_full_screen.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+
 //import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'image_source_sheet.dart';
-import 'package:image_picker/image_picker.dart';
 
 class FormBuilderImagePicker extends StatelessWidget {
   final FormArray<File> formArray;
@@ -50,7 +51,7 @@ class FormBuilderImagePicker extends StatelessWidget {
   final Widget galleryLabel;
   final EdgeInsets bottomSheetPadding;
 
-  FormBuilderImagePicker({
+  const FormBuilderImagePicker({
     Key key,
     @required this.formArray,
     this.initialValue,
@@ -76,17 +77,6 @@ class FormBuilderImagePicker extends StatelessWidget {
     this.galleryLabel = const Text('Gallery'),
     this.bottomSheetPadding = const EdgeInsets.all(0),
   }) : super(key: key);
-
-  bool get _hasMaxImages {
-    if (maxImages == null) {
-      return false;
-    } else {
-      //TODO
-      /*return /*_fieldKey.currentState.value != null &&*/ _fieldKey
-              .currentState.value.length >=
-          widget.maxImages;*/
-    }
-  }
 
   void modal(BuildContext context) {
     showModalBottomSheet(
@@ -149,7 +139,7 @@ class FormBuilderImagePicker extends StatelessWidget {
       },*/
       formControl: formArray,
       builder: (context, control, child) {
-        var theme = Theme.of(context);
+        final theme = Theme.of(context);
 
         return InputDecorator(
           decoration: decoration.copyWith(
@@ -158,118 +148,115 @@ class FormBuilderImagePicker extends StatelessWidget {
               //errorText: field.errorText,
               // ignore: deprecated_member_use_from_same_package
               labelText: decoration.labelText ?? labelText,
-              contentPadding: EdgeInsets.all(8.0)),
+              contentPadding: const EdgeInsets.all(8.0)),
           child: Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 const SizedBox(height: 8),
-                formArray.controls.length == 0
-                    ? GestureDetector(
-                        child: Icon(Icons.camera_enhance,
-                            color: iconColor ?? theme.accentColor),
-                        onTap: () => modal(context),
-                      )
-                    : Container(
-                        height: imageHeight,
-                        width: double.maxFinite,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            ...(formArray.controls.map<Widget>((item) {
-                              return Stack(
-                                alignment: Alignment.topRight,
-                                children: <Widget>[
-                                  Container(
-                                    width: imageWidth,
-                                    height: imageHeight,
-                                    margin: imageMargin,
-                                    /*child: kIsWeb
+                if (formArray.controls.isEmpty)
+                  GestureDetector(
+                    onTap: () => modal(context),
+                    child: Icon(Icons.camera_enhance,
+                        color: iconColor ?? theme.accentColor),
+                  )
+                else
+                  SizedBox(
+                    height: imageHeight,
+                    width: double.maxFinite,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        ...formArray.controls.map<Widget>((item) {
+                          return Stack(
+                            alignment: Alignment.topRight,
+                            children: <Widget>[
+                              Container(
+                                width: imageWidth,
+                                height: imageHeight,
+                                margin: imageMargin,
+                                /*child: kIsWeb
                                 ? Image.memory(item, fit: BoxFit.cover)
                                 : item is String
                                     ? Image.network(item, fit: BoxFit.cover)
                                     : Image.file(item, fit: BoxFit.cover),*/
-                                    child: //TODO: arreglar cuando se implemente el web
-                                        /*kIsWeb
+                                child: //TODO: arreglar cuando se implemente el web
+                                    /*kIsWeb
                                       ? Image.memory(item, fit: BoxFit.cover)
                                       : item.value is String
                                           ? Image.network(item.value,
                                               fit: BoxFit.cover)
                                           :*/
-                                        item.value is File
-                                            ? GestureDetector(
-                                                child: Hero(
-                                                  tag: item.value.hashCode,
-                                                  child: Image.file(item.value,
-                                                      fit: BoxFit.cover),
-                                                ),
-                                                onTap: () {
-                                                  Navigator.push(context,
-                                                      MaterialPageRoute(
-                                                          builder: (_) {
-                                                    return FotoFullScreen(
-                                                        item.value,
-                                                        item.value.hashCode);
-                                                  }));
-                                                },
-                                              )
-                                            : item.value,
+
+                                    GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(context,
+                                        MaterialPageRoute(builder: (_) {
+                                      return FotoFullScreen(
+                                          item.value, item.value.hashCode);
+                                    }));
+                                  },
+                                  child: Hero(
+                                    tag: item.value.hashCode,
+                                    child: Image.file(item.value,
+                                        fit: BoxFit.cover),
                                   ),
-                                  if (!readOnly)
-                                    InkWell(
-                                      onTap: () {
-                                        item.value.deleteSync();
-                                        formArray.remove(item);
-                                        /*field.didChange(
+                                ),
+                              ),
+                              if (!readOnly)
+                                InkWell(
+                                  onTap: () {
+                                    item.value.deleteSync();
+                                    formArray.remove(item);
+                                    /*field.didChange(
                                         [...field.value]..remove(item));
                                     onChanged?.call(field.value);*/
-                                      },
-                                      child: Container(
-                                        margin: const EdgeInsets.all(3),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.withOpacity(.7),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        alignment: Alignment.center,
-                                        height: 22,
-                                        width: 22,
-                                        child: const Icon(
-                                          Icons.close,
-                                          size: 18,
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.all(3),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.withOpacity(.7),
+                                      shape: BoxShape.circle,
                                     ),
-                                ],
-                              );
-                            }).toList()),
-                            if (!readOnly && !_hasMaxImages)
-                              GestureDetector(
-                                  child: defaultImage != null
-                                      ? Image(
-                                          width: imageWidth,
-                                          height: imageHeight,
-                                          image: defaultImage,
-                                        )
-                                      : Container(
-                                          width: imageWidth,
-                                          height: imageHeight,
-                                          child: Icon(Icons.camera_enhance,
-                                              color: readOnly
-                                                  ? theme.disabledColor
-                                                  : iconColor ??
-                                                      theme.primaryColor),
-                                          color: (readOnly
-                                                  ? theme.disabledColor
-                                                  : iconColor ??
-                                                      theme.primaryColor)
-                                              .withAlpha(50),
-                                        ),
-                                  onTap: () => modal(context)),
-                          ],
-                        ),
-                      ),
+                                    alignment: Alignment.center,
+                                    height: 22,
+                                    width: 22,
+                                    child: const Icon(
+                                      Icons.close,
+                                      size: 18,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        }).toList(),
+                        if (!readOnly /*&& !_hasMaxImages*/)
+                          GestureDetector(
+                            onTap: () => modal(context),
+                            child: defaultImage != null
+                                ? Image(
+                                    width: imageWidth,
+                                    height: imageHeight,
+                                    image: defaultImage,
+                                  )
+                                : Container(
+                                    width: imageWidth,
+                                    height: imageHeight,
+                                    color: (readOnly
+                                            ? theme.disabledColor
+                                            : iconColor ?? theme.primaryColor)
+                                        .withAlpha(50),
+                                    child: Icon(Icons.camera_enhance,
+                                        color: readOnly
+                                            ? theme.disabledColor
+                                            : iconColor ?? theme.primaryColor),
+                                  ),
+                          ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),

@@ -14,7 +14,7 @@ export 'package:moor_flutter/moor_flutter.dart' show Value;
 
 export 'database/shared.dart';
 
-part 'bdDePrueba.dart';
+part 'datos_de_prueba.dart';
 part 'moor_database.g.dart';
 part 'tablas.dart';
 part 'tablas_unidas.dart';
@@ -73,7 +73,7 @@ class Database extends _$Database {
     /*final dataDir = await paths.getApplicationDocumentsDirectory();
     final dbFile = File(path.join(dataDir.path, 'db.sqlite'));
     dbFile.deleteSync();*/
-    final m = this.createMigrator();
+    final m = createMigrator();
     await customStatement('PRAGMA foreign_keys = OFF');
 
     for (final table in allTables) {
@@ -105,13 +105,10 @@ class Database extends _$Database {
   Future guardarInspeccion(List<RespuestaConOpcionesDeRespuesta> respuestasForm,
       int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
     Inspeccion ins = await llenadoDao.getInspeccion(activo, cuestionarioId);
-    if (ins == null) {
-      //si no hay inspeccion creada, asocia todas las respuestas a una nueva inspeccion
-      ins = await crearInspeccion(cuestionarioId, activo, estado);
-    }
-    respuestasForm.forEach((rf) {
+    ins ??= await crearInspeccion(cuestionarioId, activo, estado);
+    for (final rf in respuestasForm) {
       rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
-    });
+    }
     return transaction(() async {
       await (update(inspecciones)..where((i) => i.id.equals(ins.id))).write(
         estado == EstadoDeInspeccion.enviada
@@ -200,11 +197,12 @@ class Database extends _$Database {
   // local al servidor
   Future exportarInspeccion() async {
     // TODO: WIP
+    // ignore: unused_local_variable
     final ins = await (select(inspecciones)
           ..where(
             (e) => e.id.equals(1),
           ))
         .get();
-    print(ins.map((e) => e.toJson()).toList());
+    //print(ins.map((e) => e.toJson()).toList());
   }
 }

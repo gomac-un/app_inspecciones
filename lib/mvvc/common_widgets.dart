@@ -25,7 +25,7 @@ class PreguntaCard extends StatelessWidget {
                 descripcion,
                 style: Theme.of(context).textTheme.bodyText2,
               ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             child,
           ],
         ),

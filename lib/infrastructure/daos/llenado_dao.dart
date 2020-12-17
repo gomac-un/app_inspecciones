@@ -40,7 +40,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
 
   Future<Inspeccion> getInspeccion(String activo, int cuestionarioId) {
     //revisar si hay una inspeccion de ese cuestionario empezada
-    if (cuestionarioId == null || activo == null) return null;
+    if (cuestionarioId == null || activo == null) return Future.value();
     final query = select(inspecciones)
       ..where(
         (ins) =>
@@ -90,14 +90,14 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     return Future.wait(
       groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
         return BloqueConPreguntaSimple(
-          entry.value.first['bloque'],
+          entry.value.first['bloque'] as Bloque,
           PreguntaConOpcionesDeRespuesta(
-            entry.key,
+            entry.key as Pregunta,
             entry.value
                 .map((item) => item['opcionesDePregunta'] as OpcionDeRespuesta)
                 .toList(),
           ),
-          await getRespuestas(entry.key.id, inspeccionId),
+          await getRespuestas(entry.key.id as int, inspeccionId),
           //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
         );
       }),
@@ -107,8 +107,9 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   Future<RespuestaConOpcionesDeRespuesta> getRespuestas(int preguntaId,
       [int inspeccionId]) async {
     //TODO: mirar el caso donde se presenten varias respuestas a una preguntaXinspeccion
-    if (inspeccionId == null)
+    if (inspeccionId == null) {
       return RespuestaConOpcionesDeRespuesta(null, null);
+    }
     final query = select(respuestas).join([
       leftOuterJoin(
         //left outer join para que carguen las respuestas sin opciones seleccionadas
@@ -131,7 +132,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         .get();
     //si la inspeccion es nueva entonces no existe una respuesta y se envia nulo
     //para que el control cree una por defecto
-    if (res.length == 0) return RespuestaConOpcionesDeRespuesta(null, null);
+    if (res.isEmpty) return RespuestaConOpcionesDeRespuesta(null, null);
 
     return RespuestaConOpcionesDeRespuesta(
         (res.first[0] as Respuesta)
@@ -164,7 +165,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         return BloqueConCuadricula(
           entry.key,
           CuadriculaDePreguntasConOpcionesDeRespuesta(
-            entry.value.first['cuadricula'],
+            entry.value.first['cuadricula'] as CuadriculaDePreguntas,
             await respuestasDeCuadricula(
                 (entry.value.first['cuadricula'] as CuadriculaDePreguntas).id),
           ),

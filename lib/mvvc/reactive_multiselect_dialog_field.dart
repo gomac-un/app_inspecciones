@@ -13,7 +13,7 @@ class ReactiveMultiSelectDialogField<V> extends ReactiveFormField<List<V>> {
     ValidationMessagesFunction validationMessages,
     @required this.items,
     this.buttonText,
-    Function onTap,
+    void Function() onTap,
   }) : super(
             formControlName: formControlName,
             formControl: formControl,
@@ -30,10 +30,9 @@ class ReactiveMultiSelectDialogField<V> extends ReactiveFormField<List<V>> {
                   decoration:
                       effectiveDecoration.copyWith(errorText: field.errorText),
                   child: MultiSelectDialogField<V>(
-                    height: 30,
                     buttonText: buttonText,
                     items: items,
-                    initialValue: field.value,
+                    initialValue: field.value as List<V>,
                     listType: MultiSelectListType.CHIP,
                     onConfirm: (values) {
                       field.didChange(values);

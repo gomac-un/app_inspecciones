@@ -13,8 +13,8 @@ class UserDrawer extends StatelessWidget {
     final authBloc = Provider.of<AuthBloc>(context);
 
     final authState = authBloc.state;
-    if (!(authState is Authenticated)) return Text("error");
-    if (authState is Authenticated)
+
+    if (authState is Authenticated) {
       return SafeArea(
         child: Drawer(
           child: ListView(
@@ -26,7 +26,7 @@ class UserDrawer extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 30.0),
                   child: UserAccountsDrawerHeader(
                     accountName: Text(
-                      (authBloc.state as Authenticated).usuario.esAdministrador
+                      (authBloc.state as Authenticated).usuario.esAdmin
                           ? "Administrador"
                           : "inspector",
                     ),
@@ -35,36 +35,35 @@ class UserDrawer extends StatelessWidget {
                       backgroundColor: Colors.deepPurple,
                       child: Text(
                         authState.usuario.documento[0],
-                        style: TextStyle(fontSize: 35),
+                        style: const TextStyle(fontSize: 35),
                       ),
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: 25.0),
+              const SizedBox(height: 25.0),
               ListTile(
                 selectedTileColor: Colors.deepPurple,
-                title: Text('Creación de Inspecciones',
+                title: const Text('Creación de Inspecciones',
                     style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
-                leading: Icon(
+                leading: const Icon(
                   Icons.add, /* color: Colors.white, */
                 ),
                 onTap: () async {
                   final res = await ExtendedNavigator.of(context)
                       .pushCreacionFormPage();
-                  if (res != null && res is String)
+                  if (res != null && res is String) {
                     Scaffold.of(context)
                         .showSnackBar(SnackBar(content: Text(res)));
+                  }
                 },
               ),
-              SizedBox(
-                height: 5.0,
-              ),
+              const SizedBox(height: 5.0),
               ListTile(
                 tileColor: Colors.deepPurple,
-                title: Text('Ver base de Datos',
+                title: const Text('Ver base de Datos',
                     style: TextStyle(color: Colors.white, fontSize: 15)),
-                leading: Icon(
+                leading: const Icon(
                   Icons.view_array,
                   color: Colors.white,
                 ),
@@ -79,34 +78,33 @@ class UserDrawer extends StatelessWidget {
                   ),
                 },
               ),
-              SizedBox(
-                height: 5.0,
-              ),
+              const SizedBox(height: 5.0),
               ListTile(
                 tileColor: Colors.deepPurple,
-                title: Text(
+                title: const Text(
                   'Reiniciar base de datos',
                   style: TextStyle(color: Colors.white, fontSize: 15),
                 ),
-                leading: Icon(
+                leading: const Icon(
                   Icons.replay_outlined,
                   color: Colors.white,
                 ),
                 onTap: () => getIt<Database>().dbdePrueba(),
               ),
-              SizedBox(
-                height: 200.0,
-              ),
+              const SizedBox(height: 200.0),
               Padding(
                 padding: const EdgeInsets.only(left: 160.0),
                 child: ListTile(
-                    title: Text('Cerrar Sesión'),
-                    leading: Icon(Icons.exit_to_app),
-                    onTap: () => authBloc.add(LoggingOut())),
+                    title: const Text('Cerrar Sesión'),
+                    leading: const Icon(Icons.exit_to_app),
+                    onTap: () => authBloc.add(const AuthEvent.loggingOut())),
               ),
             ],
           ),
         ),
       );
+    } else {
+      return const Text("error");
+    }
   }
 }

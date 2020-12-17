@@ -6,6 +6,7 @@ import 'package:inspecciones/infrastructure/datasources/local_preferences_dataso
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
 import 'package:inspecciones/infrastructure/repositories/api_model.dart';
 import 'package:meta/meta.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 
 @injectable
 class UserRepository {
@@ -15,11 +16,16 @@ class UserRepository {
   UserRepository(this.api, this.localPreferences);
 
   Future<Usuario> authenticateUser({UserLogin userLogin}) async {
-    //TODO: revisar si esta en linea
-    //Token token = await api.getToken(userLogin);
-    Usuario user =
-        Usuario(userLogin.username, userLogin.password, true, null //token,
-            );
+    String token;
+    if (await hayInternet()) {
+      //token = await api.getToken(userLogin);
+    }
+
+    final user = Usuario(
+        documento: userLogin.documento,
+        password: userLogin.password,
+        esAdmin: true,
+        token: token);
     return user;
   }
 
@@ -36,4 +42,6 @@ class UserRepository {
     final res = localPreferences.getUser();
     return res;
   }
+
+  Future<bool> hayInternet() async => DataConnectionChecker().hasConnection;
 }

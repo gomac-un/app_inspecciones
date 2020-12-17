@@ -15,14 +15,13 @@ class BorradoresPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Borradores'),
+        title: const Text('Borradores'),
       ),
       body: StreamBuilder<List<Borrador>>(
         stream: _db.borradoresDao.borradores(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Align(
-              alignment: Alignment.center,
               child: CircularProgressIndicator(),
             );
           }
@@ -30,7 +29,8 @@ class BorradoresPage extends StatelessWidget {
           final borradores = snapshot.data;
 
           return ListView.separated(
-            separatorBuilder: (BuildContext context, int index) => Divider(),
+            separatorBuilder: (BuildContext context, int index) =>
+                const Divider(),
             itemCount: borradores.length,
             itemBuilder: (context, index) {
               final borrador = borradores[index];
@@ -40,17 +40,16 @@ class BorradoresPage extends StatelessWidget {
                   : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute} \n";
               return ListTile(
                 tileColor: Theme.of(context).cardColor,
-                title: Text(borrador.activo.identificador +
-                    " - " +
-                    borrador.activo.modelo),
+                title: Text(
+                    "${borrador.activo.identificador} - ${borrador.activo.modelo}"),
                 subtitle: Text(
                     "Tipo de inspeccion: ${borrador.cuestionarioDeModelo.tipoDeInspeccion} \n" +
                         "$fechaBorrador Estado: " +
                         EnumToString.convertToString(
                             borrador.inspeccion.estado)),
-                leading: Icon(Icons.edit),
+                leading: const Icon(Icons.edit),
                 trailing: IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: const Icon(Icons.delete),
                   onPressed: () => eliminarBorrador(borradores[index], context),
                 ),
                 onTap: () => ExtendedNavigator.of(context).push(
@@ -70,33 +69,33 @@ class BorradoresPage extends StatelessWidget {
           //TODO: implementar la subida de inspecciones al server
           throw Exception();
         },
-        icon: Icon(Icons.upload_file),
-        label: Text("Subir inspecciones"),
+        icon: const Icon(Icons.upload_file),
+        label: const Text("Subir inspecciones"),
       ),
     );
   }
 
   void eliminarBorrador(Borrador borrador, BuildContext context) {
     // set up the buttons
-    Widget cancelButton = FlatButton(
-      child: Text("Cancelar"),
-      onPressed: () => Navigator.of(context).pop(), // OJO con el context
+    final cancelButton = FlatButton(
+      onPressed: () => Navigator.of(context).pop(),
+      child: const Text("Cancelar"), // OJO con el context
     );
-    Widget continueButton = FlatButton(
-      child: Text("Eliminar"),
+    final Widget continueButton = FlatButton(
       onPressed: () async {
         Navigator.of(context).pop();
         await _db.borradoresDao.eliminarBorrador(borrador);
-        Scaffold.of(context).showSnackBar(SnackBar(
+        Scaffold.of(context).showSnackBar(const SnackBar(
           content: Text("Borrador eliminado"),
           duration: Duration(seconds: 3),
         ));
       },
+      child: const Text("Eliminar"),
     );
     // set up the AlertDialog
-    AlertDialog alert = AlertDialog(
-      title: Text("Alerta"),
-      content: Text("¿Está seguro que desea eliminar este borrador?"),
+    final alert = AlertDialog(
+      title: const Text("Alerta"),
+      content: const Text("¿Está seguro que desea eliminar este borrador?"),
       actions: [
         cancelButton,
         continueButton,

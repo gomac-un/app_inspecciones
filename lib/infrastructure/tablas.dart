@@ -229,7 +229,9 @@ class ListInColumnConverter extends TypeConverter<KtList<String>, String> {
     if (fromDb == null) {
       return null;
     }
-    return (jsonDecode(fromDb) as List).map<String>((e) => e).toImmutableList();
+    return (jsonDecode(fromDb) as List)
+        .map((e) => e as String)
+        .toImmutableList();
   }
 
   @override
@@ -238,7 +240,7 @@ class ListInColumnConverter extends TypeConverter<KtList<String>, String> {
       return null;
     }
     if (value.size == 0) return "[]";
-    final str = value.fold<String>("[", (acc, val) => acc + '"$val",');
+    final str = value.fold<String>("[", (acc, val) => '$acc"$val",');
     return str.replaceRange(str.length - 1, str.length, ']');
   }
 }

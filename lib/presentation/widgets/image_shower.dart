@@ -20,17 +20,17 @@ class ImageShower extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           const SizedBox(height: 8),
-          Container(
+          SizedBox(
             height: imageHeight,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                ...(imagenes.map<Widget>((item) {
+                ...imagenes.map<Widget>((item) {
                   return Stack(
                     alignment: Alignment.topRight,
                     children: <Widget>[
@@ -50,26 +50,23 @@ class ImageShower extends StatelessWidget {
                                           ? Image.network(item.value,
                                               fit: BoxFit.cover)
                                           :*/
-                            item is File
-                                ? GestureDetector(
-                                    child: Hero(
-                                      tag: item.hashCode,
-                                      child:
-                                          Image.file(item, fit: BoxFit.cover),
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(context,
-                                          MaterialPageRoute(builder: (_) {
-                                        return FotoFullScreen(
-                                            item, item.hashCode);
-                                      }));
-                                    },
-                                  )
-                                : item,
+
+                            GestureDetector(
+                          onTap: () {
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (_) {
+                              return FotoFullScreen(item, item.hashCode);
+                            }));
+                          },
+                          child: Hero(
+                            tag: item.hashCode,
+                            child: Image.file(item, fit: BoxFit.cover),
+                          ),
+                        ),
                       ),
                     ],
                   );
-                }).toList()),
+                }).toList(),
               ],
             ),
           ),

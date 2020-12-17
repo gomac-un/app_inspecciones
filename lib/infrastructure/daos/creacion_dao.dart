@@ -72,12 +72,12 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
 
   Future crearCuestionario(Map<String, AbstractControl> form) {
     return transaction(() async {
-      int cid =
+      final int cid =
           await into(cuestionarios).insert(CuestionariosCompanion.insert());
 
       final String tipoDeInspeccion = form["tipoDeInspeccion"].value == "otra"
-          ? form["nuevoTipoDeInspeccion"].value
-          : form["tipoDeInspeccion"].value;
+          ? form["nuevoTipoDeInspeccion"].value as String
+          : form["tipoDeInspeccion"].value as String;
 
       await batch((batch) {
         // asociar a cada modelo con este cuestionario
@@ -98,7 +98,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
       await Future.forEach(
           (form["bloques"] as FormArray).controls.asMap().entries,
           (entry) async {
-        final i = entry.key;
+        final i = entry.key as int;
         final control = entry.value;
         final bid = await into(bloques)
             .insert(BloquesCompanion.insert(cuestionarioId: cid, nOrden: i));
@@ -107,8 +107,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
         if (control is CreadorTituloFormGroup) {
           await into(titulos).insert(TitulosCompanion.insert(
             bloqueId: bid,
-            titulo: control.value["titulo"],
-            descripcion: control.value["descripcion"],
+            titulo: control.value["titulo"] as String,
+            descripcion: control.value["descripcion"] as String,
           ));
         }
         if (control is CreadorPreguntaSeleccionSimpleFormGroup) {
@@ -128,13 +128,13 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
           final pid = await into(preguntas).insert(
             PreguntasCompanion.insert(
               bloqueId: bid,
-              titulo: control.value["titulo"],
-              descripcion: control.value["descripcion"],
-              sistemaId: control.value["sistema"].id,
-              subSistemaId: control.value["subSistema"].id,
-              posicion: control.value["posicion"],
-              tipo: control.value["tipoDePregunta"],
-              criticidad: control.value["criticidad"].round(),
+              titulo: control.value["titulo"] as String,
+              descripcion: control.value["descripcion"] as String,
+              sistemaId: control.value["sistema"].id as int,
+              subSistemaId: control.value["subSistema"].id as int,
+              posicion: control.value["posicion"] as String,
+              tipo: control.value["tipoDePregunta"] as TipoDePregunta,
+              criticidad: control.value["criticidad"].round() as int,
               fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
               parteDeCuadricula: false,
             ),
@@ -146,8 +146,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               (control.value["respuestas"] as List<Map>)
                   .map((e) => OpcionesDeRespuestaCompanion.insert(
                         preguntaId: Value(pid),
-                        texto: e["texto"],
-                        criticidad: e["criticidad"].round(),
+                        texto: e["texto"] as String,
+                        criticidad: e["criticidad"].round() as int,
                       ))
                   .toList(),
             );
@@ -157,8 +157,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
           final cuadrId = await into(cuadriculasDePreguntas).insert(
               CuadriculasDePreguntasCompanion.insert(
                   bloqueId: bid,
-                  titulo: control.value["titulo"],
-                  descripcion: control.value["descripcion"]));
+                  titulo: control.value["titulo"] as String,
+                  descripcion: control.value["descripcion"] as String));
 
           //Asociacion de las preguntas con esta cuadricula
           await batch((batch) {
@@ -167,15 +167,15 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               (control.value["preguntas"] as List<Map>)
                   .map((e) => PreguntasCompanion.insert(
                         bloqueId: bid,
-                        titulo: e["titulo"],
-                        descripcion: e["descripcion"],
-                        sistemaId: control.value["sistema"]
-                            .id, //TODO: sistema/subsistema/posicion diferente para cada pregunta
-                        subSistemaId: control.value["subSistema"].id,
-                        posicion: control.value["posicion"],
+                        titulo: e["titulo"] as String,
+                        descripcion: e["descripcion"] as String,
+                        sistemaId: control.value["sistema"].id
+                            as int, //TODO: sistema/subsistema/posicion diferente para cada pregunta
+                        subSistemaId: control.value["subSistema"].id as int,
+                        posicion: control.value["posicion"] as String,
                         tipo: TipoDePregunta
                             .unicaRespuesta, //TODO: multiple respuesta para cuadriculas
-                        criticidad: e["criticidad"].round(),
+                        criticidad: e["criticidad"].round() as int,
                         parteDeCuadricula:
                             true, //TODO: fotos para cada pregunta
                       ))
@@ -189,8 +189,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               (control.value["respuestas"] as List<Map>)
                   .map((e) => OpcionesDeRespuestaCompanion.insert(
                         cuadriculaId: Value(cuadrId),
-                        texto: e["texto"],
-                        criticidad: e["criticidad"].round(),
+                        texto: e["texto"] as String,
+                        criticidad: e["criticidad"].round() as int,
                       ))
                   .toList(),
             );

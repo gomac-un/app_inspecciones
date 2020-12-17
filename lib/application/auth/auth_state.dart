@@ -1,20 +1,9 @@
 part of 'auth_bloc.dart';
 
-@immutable
-abstract class AuthState extends Equatable {
-  @override
-  List<Object> get props => [];
+@freezed
+abstract class AuthState with _$AuthState {
+  const factory AuthState.initial() = Initial;
+  const factory AuthState.authenticated({Usuario usuario}) = Authenticated;
+  const factory AuthState.unauthenticated() = Unauthenticated;
+  const factory AuthState.loading() = Loading;
 }
-
-class Uninitialized extends AuthState {}
-
-class Authenticated extends AuthState {
-  final Usuario usuario;
-
-  Authenticated(this.usuario);
-  List<Object> get props => [usuario];
-}
-
-class Unauthenticated extends AuthState {}
-
-class Loading extends AuthState {}

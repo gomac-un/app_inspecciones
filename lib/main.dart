@@ -7,7 +7,7 @@ import 'package:inspecciones/mvvc/auth_listener_widget.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'injection.dart';
 
-void main() async {
+Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
   final navigatorKey = GlobalKey<NavigatorState>();
@@ -21,7 +21,7 @@ void main() async {
           onTap: () {
             // esto quita el foco (y esconde el teclado) al hacer tap
             // en cualquier lugar no-interactivo de la pantalla https://flutterigniter.com/dismiss-keyboard-form-lose-focus/
-            FocusScopeNode currentFocus = FocusScope.of(context);
+            final currentFocus = FocusScope.of(context);
             if (!currentFocus.hasPrimaryFocus &&
                 currentFocus.focusedChild != null) {
               currentFocus.focusedChild.unfocus();
@@ -30,10 +30,11 @@ void main() async {
           child: Theme(
             data: customTheme, //TODO: seleccion de tema
             child: BlocProvider(
-              create: (context) => getIt<AuthBloc>()..add(AppStarted()),
+              create: (context) =>
+                  getIt<AuthBloc>()..add(const AuthEvent.startingApp()),
               child: AuthListener(
-                child: extendedNav,
                 navigatorKey: navigatorKey,
+                child: extendedNav,
               ),
             ),
           ),
@@ -63,9 +64,15 @@ class ClearFocusOnPop extends NavigatorObserver {
   @override
   void didPop(Route route, Route previousRoute) {
     super.didPop(route, previousRoute);
+
+    //El que sigue solo quita el teclado pero deja el focus
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Future.delayed(Duration.zero);
-      SystemChannels.textInput.invokeMethod('TextInput.hide');
+      // solo quita el teclado pero deja el focus
+      //SystemChannels.textInput.invokeMethod('TextInput.hide');
+      // quita el focus despues de un pop
+      final focus = FocusManager.instance.primaryFocus;
+      focus?.unfocus();
     });
   }
 }

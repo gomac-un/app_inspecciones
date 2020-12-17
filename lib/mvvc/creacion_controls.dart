@@ -17,10 +17,6 @@ class CreadorTituloFormGroup extends FormGroup {
 class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup
     implements ConRespuestas {
   final ValueNotifier<List<SubSistema>> subSistemas;
-  //constructor que le envia los controles a la clase padre
-  CreadorPreguntaSeleccionSimpleFormGroup._(
-      Map<String, AbstractControl<dynamic>> controles, this.subSistemas)
-      : super(controles);
 
   factory CreadorPreguntaSeleccionSimpleFormGroup() {
     final sistema = fb.control<Sistema>(null, [Validators.required]);
@@ -47,16 +43,22 @@ class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup
     return CreadorPreguntaSeleccionSimpleFormGroup._(controles, subSistemas);
   }
 
-  agregarRespuesta() {
-    (control('respuestas') as FormArray).add(CreadorRespuestaFormGroup());
-  }
+  //constructor que le envia los controles a la clase padre
+  CreadorPreguntaSeleccionSimpleFormGroup._(
+      Map<String, AbstractControl<dynamic>> controles, this.subSistemas)
+      : super(controles);
 
-  borrarRespuesta(AbstractControl e) {
+  @override
+  void agregarRespuesta() =>
+      (control('respuestas') as FormArray).add(CreadorRespuestaFormGroup());
+
+  @override
+  void borrarRespuesta(AbstractControl e) {
     try {
       (control('respuestas') as FormArray).remove(e);
-    } on FormControlNotFoundException {
-      print("que pendejo");
-    }
+      // ignore: empty_catches
+    } on FormControlNotFoundException {}
+    return;
   }
 
   @override
@@ -75,18 +77,13 @@ class CreadorRespuestaFormGroup extends FormGroup {
 }
 
 abstract class ConRespuestas {
-  agregarRespuesta();
-  borrarRespuesta(AbstractControl e);
+  void agregarRespuesta();
+  void borrarRespuesta(AbstractControl e);
 }
 
 class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     implements ConRespuestas {
   final ValueNotifier<List<SubSistema>> subSistemas;
-
-  CreadorPreguntaCuadriculaFormGroup._(
-    Map<String, AbstractControl<dynamic>> controles,
-    this.subSistemas,
-  ) : super(controles);
 
   factory CreadorPreguntaCuadriculaFormGroup() {
     final sistema = fb.control<Sistema>(null, [Validators.required]);
@@ -112,25 +109,33 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
 
     return CreadorPreguntaCuadriculaFormGroup._(controles, subSistemas);
   }
+  CreadorPreguntaCuadriculaFormGroup._(
+    Map<String, AbstractControl<dynamic>> controles,
+    this.subSistemas,
+  ) : super(controles);
 
-  agregarPregunta() {
+  void agregarPregunta() {
     (control('preguntas') as FormArray)
         .add(CreadorSubPreguntaCuadriculaFormGroup());
   }
 
-  borrarPregunta(AbstractControl e) {
+  void borrarPregunta(AbstractControl e) {
     try {
       (control('preguntas') as FormArray).remove(e);
+      // ignore: empty_catches
     } on FormControlNotFoundException {}
   }
 
-  agregarRespuesta() {
+  @override
+  void agregarRespuesta() {
     (control('respuestas') as FormArray).add(CreadorRespuestaFormGroup());
   }
 
-  borrarRespuesta(AbstractControl e) {
+  @override
+  void borrarRespuesta(AbstractControl e) {
     try {
       (control('respuestas') as FormArray).remove(e);
+      // ignore: empty_catches
     } on FormControlNotFoundException {}
   }
 

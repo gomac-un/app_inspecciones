@@ -12,50 +12,62 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pantallas de ejemplo'),
+        title: const Text('Pantallas de ejemplo'),
       ),
       drawer: UserDrawer(),
-      body: ListView(
-        children: <Widget>[
-          ListTile(
-            title: Chip(label: Text('Ingreso')),
-            //onTap: () => _pushScreen(context, LoginScreen()),
-          ),
-          ListTile(
-            title: Chip(label: Text('Creación de Inspecciones')),
-            onTap: () async {
-              final res =
-                  await ExtendedNavigator.of(context).pushCreacionFormPage();
-              if (res != null && res is String)
-                Scaffold.of(context).showSnackBar(SnackBar(content: Text(res)));
-            },
-          ),
-          ListTile(
-            title: Chip(label: Text('Borradores')),
-            onTap: () => ExtendedNavigator.of(context).pushBorradoresPage(),
-          ),
-          RaisedButton(
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => MoorDbViewer(getIt<Database>())));
-            },
-            child: Text("ver BD"),
-          ),
-          RaisedButton(
-            onPressed: () {
-              getIt<Database>().dbdePrueba();
-            },
-            child: Text("Reiniciar BD"),
-          ),
-          RaisedButton(
-            onPressed: () {
-              getIt<Database>().exportarInspeccion();
-            },
-            child: Text("exportarInspeccion"),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButtonInicioInspeccion(),
+      body: const ListaDeOpciones(),
+      floatingActionButton: const FloatingActionButtonInicioInspeccion(),
+    );
+  }
+}
+
+class ListaDeOpciones extends StatelessWidget {
+  const ListaDeOpciones({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: <Widget>[
+        const ListTile(
+          title: Chip(label: Text('Ingreso')),
+          //onTap: () => _pushScreen(context, LoginScreen()),
+        ),
+        ListTile(
+          title: const Chip(label: Text('Creación de Inspecciones')),
+          onTap: () async {
+            final res =
+                await ExtendedNavigator.of(context).pushCreacionFormPage();
+            if (res != null && res is String) {
+              Scaffold.of(context).showSnackBar(SnackBar(content: Text(res)));
+            }
+          },
+        ),
+        ListTile(
+          title: const Chip(label: Text('Borradores')),
+          onTap: () => ExtendedNavigator.of(context).pushBorradoresPage(),
+        ),
+        RaisedButton(
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => MoorDbViewer(getIt<Database>())));
+          },
+          child: const Text("ver BD"),
+        ),
+        RaisedButton(
+          onPressed: () {
+            getIt<Database>().dbdePrueba();
+          },
+          child: const Text("Reiniciar BD"),
+        ),
+        RaisedButton(
+          onPressed: () {
+            getIt<Database>().exportarInspeccion();
+          },
+          child: const Text("exportarInspeccion"),
+        ),
+      ],
     );
   }
 }
@@ -72,7 +84,7 @@ class FloatingActionButtonInicioInspeccion extends StatelessWidget {
         final res = await showDialog<LlenadoFormPageArguments>(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Inicio de inspección'),
+            title: const Text('Inicio de inspección'),
             content: InicioInspeccionForm(),
           ),
         );
@@ -81,14 +93,15 @@ class FloatingActionButtonInicioInspeccion extends StatelessWidget {
           final mensajeLlenado = await ExtendedNavigator.of(context)
               .push(Routes.llenadoFormPage, arguments: res);
           // mostar el mensaje que viene desde la pantalla de llenado
-          if (mensajeLlenado != null)
+          if (mensajeLlenado != null) {
             Scaffold.of(context)
               ..removeCurrentSnackBar()
               ..showSnackBar(SnackBar(content: Text("$mensajeLlenado")));
+          }
         }
       },
-      icon: Icon(Icons.add),
-      label: Text("Inspeccion"),
+      icon: const Icon(Icons.add),
+      label: const Text("Inspeccion"),
     );
   }
 }

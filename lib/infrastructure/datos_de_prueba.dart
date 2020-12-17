@@ -6,31 +6,31 @@ Function initialize(db) {
         batch.insertAll(db.activos, [
           ...*/
 
-Function initialize(Database db) {
-  return (batch) {
-    return _initialize0(batch, db);
-  };
+dynamic Function(Batch) initialize(Database db) {
+  return (Batch batch) => _initialize(batch, db);
 }
 
-void _initialize0(Batch batch, Database db) {
+dynamic _initialize(Batch batch, Database db) {
   batch.insertAll(db.activos, [
     ActivosCompanion.insert(modelo: 'DT-Kenworth', identificador: '1'),
     ActivosCompanion.insert(modelo: 'sencillo-Kenworth', identificador: '2'),
   ]);
 
   batch.insertAll(db.contratistas, [
-    ContratistasCompanion.insert(id: Value(1), nombre: "El mejor contratista"),
-    ContratistasCompanion.insert(id: Value(2), nombre: "El otro contratista"),
+    ContratistasCompanion.insert(
+        id: const Value(1), nombre: "El mejor contratista"),
+    ContratistasCompanion.insert(
+        id: const Value(2), nombre: "El otro contratista"),
   ]);
 
   batch.insertAll(db.sistemas, [
-    SistemasCompanion.insert(id: Value(1), nombre: "Estructura"),
-    SistemasCompanion.insert(id: Value(2), nombre: "Transmisión"),
-    SistemasCompanion.insert(id: Value(3), nombre: "Eléctrico"),
-    SistemasCompanion.insert(id: Value(4), nombre: "Frenos"),
-    SistemasCompanion.insert(id: Value(5), nombre: "Hidráulico"),
-    SistemasCompanion.insert(id: Value(6), nombre: "Motor"),
-    SistemasCompanion.insert(id: Value(7), nombre: "No aplica"),
+    SistemasCompanion.insert(id: const Value(1), nombre: "Estructura"),
+    SistemasCompanion.insert(id: const Value(2), nombre: "Transmisión"),
+    SistemasCompanion.insert(id: const Value(3), nombre: "Eléctrico"),
+    SistemasCompanion.insert(id: const Value(4), nombre: "Frenos"),
+    SistemasCompanion.insert(id: const Value(5), nombre: "Hidráulico"),
+    SistemasCompanion.insert(id: const Value(6), nombre: "Motor"),
+    SistemasCompanion.insert(id: const Value(7), nombre: "No aplica"),
   ]);
 
   batch.insertAll(db.subSistemas, [
@@ -86,13 +86,15 @@ void _initialize0(Batch batch, Database db) {
       ));
   batch.insertAll(db.opcionesDeRespuesta, [
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: Value(1), texto: "Indica cambio de filtro", criticidad: 2),
+        preguntaId: const Value(1),
+        texto: "Indica cambio de filtro",
+        criticidad: 2),
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: Value(1), texto: "No lo posee", criticidad: 0),
+        preguntaId: const Value(1), texto: "No lo posee", criticidad: 0),
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: Value(1), texto: "Mal estado", criticidad: 4),
+        preguntaId: const Value(1), texto: "Mal estado", criticidad: 4),
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: Value(1), texto: "Sin novedad", criticidad: 0),
+        preguntaId: const Value(1), texto: "Sin novedad", criticidad: 0),
   ]);
   //Una pregunta de seleccion multiple
   batch.insert(
@@ -110,15 +112,15 @@ void _initialize0(Batch batch, Database db) {
       ));
   batch.insertAll(db.opcionesDeRespuesta, [
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: Value(2), texto: "Condicion normal", criticidad: 0),
+        preguntaId: const Value(2), texto: "Condicion normal", criticidad: 0),
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: Value(2),
+        preguntaId: const Value(2),
         texto: "Posible dilucion por combustible",
         criticidad: 3),
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: Value(2), texto: "Color lechoso", criticidad: 3),
+        preguntaId: const Value(2), texto: "Color lechoso", criticidad: 3),
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: Value(2),
+        preguntaId: const Value(2),
         texto: "Presencia de particulas extrañas",
         criticidad: 3),
   ]);
@@ -158,8 +160,10 @@ void _initialize0(Batch batch, Database db) {
   //Las respuestas de la cuadricula
   batch.insertAll(db.opcionesDeRespuesta, [
     OpcionesDeRespuestaCompanion.insert(
-        texto: "requiere intervencion", criticidad: 4, cuadriculaId: Value(1)),
+        texto: "requiere intervencion",
+        criticidad: 4,
+        cuadriculaId: const Value(1)),
     OpcionesDeRespuestaCompanion.insert(
-        texto: "sin novedad", criticidad: 0, cuadriculaId: Value(1)),
+        texto: "sin novedad", criticidad: 0, cuadriculaId: const Value(1)),
   ]);
 }

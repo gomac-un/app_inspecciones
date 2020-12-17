@@ -51,11 +51,13 @@ class LlenadoFormViewModel {
             ))
           .map<AbstractControl>((e) {
         if (e is BloqueConTitulo) return TituloFormGroup(e.titulo);
-        if (e is BloqueConPreguntaSimple)
+        if (e is BloqueConPreguntaSimple) {
           return RespuestaSeleccionSimpleFormGroup(e.pregunta, e.respuesta);
-        if (e is BloqueConCuadricula)
+        }
+        if (e is BloqueConCuadricula) {
           return RespuestaCuadriculaFormArray(
               e.cuadricula, e.preguntasRespondidas);
+        }
         throw Exception("Tipo de bloque no reconocido");
       }).toList(),
     );
@@ -82,7 +84,5 @@ class LlenadoFormViewModel {
   void finalizar() {
     //TODO: implementar
     form.markAllAsTouched();
-    if (form.valid) print("valida");
-    print(form.value);
   }
 }

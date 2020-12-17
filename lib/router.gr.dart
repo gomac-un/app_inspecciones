@@ -55,7 +55,7 @@ class AutoRouter extends RouterBase {
     },
     LoginScreen: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => LoginScreen(),
+        builder: (context) => LoginScreen().wrappedRoute(context),
         settings: data,
       );
     },

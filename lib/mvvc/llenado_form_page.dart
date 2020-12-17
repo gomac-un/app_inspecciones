@@ -7,7 +7,7 @@ import 'package:inspecciones/mvvc/llenado_cards.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
 import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
-import 'package:inspecciones/presentation/widgets/widgets.dart';
+import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -24,8 +24,8 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
         create: (ctx) => LlenadoFormViewModel(vehiculo, cuestionarioId),
-        child: this,
         dispose: (context, LlenadoFormViewModel value) => value.form.dispose(),
+        child: this,
       );
 
   @override
@@ -41,12 +41,17 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
               title: Text(estado == EstadoDeInspeccion.reparacion
                   ? 'Reparación de problemas'
                   : 'Llenado de inspeccion'),
+              actions: [
+                BotonGuardarBorrador(
+                  estado: estado,
+                ),
+              ],
               body: Column(
                 children: [
                   ValueListenableBuilder<bool>(
                       valueListenable: viewModel.cargada,
                       builder: (context, cargada, child) {
-                        if (!cargada) return CircularProgressIndicator();
+                        if (!cargada) return const CircularProgressIndicator();
                         return ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -55,9 +60,9 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                               final element = viewModel.bloques.controls[i]
                                   as BloqueDeFormulario;
                               if (estado == EstadoDeInspeccion.reparacion &&
-                                  element.criticidad ==
-                                      0) //esconder las de criticidad 0 en la reparacion
-                                return SizedBox.shrink();
+                                  element.criticidad == 0) {
+                                return const SizedBox.shrink();
+                              }
                               if (element is TituloFormGroup) {
                                 return TituloCard(formGroup: element);
                               }
@@ -72,7 +77,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                                   "error: el bloque $i no tiene una card que lo renderice");
                             });
                       }),
-                  SizedBox(height: 60),
+                  const SizedBox(height: 60),
                 ],
               ),
               floatingActionButton: BotonesGuardado(
@@ -80,6 +85,31 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
               ),
             );
           }),
+    );
+  }
+}
+
+class BotonGuardarBorrador extends StatelessWidget {
+  const BotonGuardarBorrador({
+    Key key,
+    @required this.estado,
+  }) : super(key: key);
+
+  final EstadoDeInspeccion estado;
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = Provider.of<LlenadoFormViewModel>(context);
+    return IconButton(
+      icon: const Icon(Icons.archive),
+      //label: 'Guardar borrador',
+      onPressed: () async {
+        LoadingDialog.show(context);
+        await viewModel.guardarInspeccionEnLocal(estado: estado);
+        LoadingDialog.hide(context);
+        Scaffold.of(context)
+            .showSnackBar(const SnackBar(content: Text("Guardado exitoso")));
+      },
     );
   }
 }
@@ -102,17 +132,6 @@ class BotonesGuardado extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           ActionButton(
-            iconData: Icons.archive,
-            label: 'Guardar borrador',
-            onPressed: () async {
-              LoadingDialog.show(context);
-              await viewModel.guardarInspeccionEnLocal(estado: estado);
-              LoadingDialog.hide(context);
-              Scaffold.of(context)
-                  .showSnackBar(SnackBar(content: Text("Guardado exitoso")));
-            },
-          ),
-          ActionButton(
             iconData: Icons.done_all_outlined,
             label: 'Finalizar',
             onPressed: !form.valid
@@ -121,12 +140,12 @@ class BotonesGuardado extends StatelessWidget {
                     Scaffold.of(context).showSnackBar(SnackBar(
                         content: Row(
                       children: [
-                        Text("La inspeccion tiene errores"),
+                        const Text("La inspeccion tiene errores"),
                         FlatButton(
                           onPressed: () => showDialog(
                               context: context,
                               builder: (context) => ErroresDialog(form: form)),
-                          child: Text("ver errores"),
+                          child: const Text("ver errores"),
                         ),
                       ],
                     )));
@@ -134,9 +153,11 @@ class BotonesGuardado extends StatelessWidget {
                 : () async {
                     switch (estado) {
                       case EstadoDeInspeccion.borrador:
-                        final criticidadTotal = viewModel.bloques.controls.fold(
-                            0,
-                            (p, c) => p + (c as BloqueDeFormulario).criticidad);
+                        final criticidadTotal = viewModel.bloques.controls
+                            .fold<int>(
+                                0,
+                                (p, c) =>
+                                    p + (c as BloqueDeFormulario).criticidad);
                         if (criticidadTotal > 0) {
                           viewModel.estado.value =
                               EstadoDeInspeccion.reparacion;
@@ -183,7 +204,7 @@ class ErroresDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("Errores: "),
+      title: const Text("Errores: "),
       content: Text(
         /*JsonEncoder.withIndent('  ')
         .convert(json.encode(form.errors)),*/
@@ -197,11 +218,12 @@ class AlertReparacion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("Inicio reparacion"),
-      content: Text("Por favor realize las reparaciones necesarias"),
+      title: const Text("Inicio reparacion"),
+      content: const Text("Por favor realize las reparaciones necesarias"),
       actions: [
         TextButton(
-            onPressed: ExtendedNavigator.of(context).pop, child: Text("ok"))
+            onPressed: ExtendedNavigator.of(context).pop,
+            child: const Text("ok"))
       ],
     );
   }
