@@ -19,9 +19,9 @@ class _$AuthEventTearOff {
   }
 
 // ignore: unused_element
-  LoggingIn loggingIn({UserLogin login}) {
+  LoggingIn loggingIn({Usuario usuario}) {
     return LoggingIn(
-      login: login,
+      usuario: usuario,
     );
   }
 
@@ -40,13 +40,13 @@ mixin _$AuthEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult startingApp(),
-    @required TResult loggingIn(UserLogin login),
+    @required TResult loggingIn(Usuario usuario),
     @required TResult loggingOut(),
   });
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult startingApp(),
-    TResult loggingIn(UserLogin login),
+    TResult loggingIn(Usuario usuario),
     TResult loggingOut(),
     @required TResult orElse(),
   });
@@ -119,7 +119,7 @@ class _$StartingApp implements StartingApp {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult startingApp(),
-    @required TResult loggingIn(UserLogin login),
+    @required TResult loggingIn(Usuario usuario),
     @required TResult loggingOut(),
   }) {
     assert(startingApp != null);
@@ -132,7 +132,7 @@ class _$StartingApp implements StartingApp {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult startingApp(),
-    TResult loggingIn(UserLogin login),
+    TResult loggingIn(Usuario usuario),
     TResult loggingOut(),
     @required TResult orElse(),
   }) {
@@ -180,9 +180,9 @@ abstract class StartingApp implements AuthEvent {
 abstract class $LoggingInCopyWith<$Res> {
   factory $LoggingInCopyWith(LoggingIn value, $Res Function(LoggingIn) then) =
       _$LoggingInCopyWithImpl<$Res>;
-  $Res call({UserLogin login});
+  $Res call({Usuario usuario});
 
-  $UserLoginCopyWith<$Res> get login;
+  $UsuarioCopyWith<$Res> get usuario;
 }
 
 /// @nodoc
@@ -196,47 +196,47 @@ class _$LoggingInCopyWithImpl<$Res> extends _$AuthEventCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object login = freezed,
+    Object usuario = freezed,
   }) {
     return _then(LoggingIn(
-      login: login == freezed ? _value.login : login as UserLogin,
+      usuario: usuario == freezed ? _value.usuario : usuario as Usuario,
     ));
   }
 
   @override
-  $UserLoginCopyWith<$Res> get login {
-    if (_value.login == null) {
+  $UsuarioCopyWith<$Res> get usuario {
+    if (_value.usuario == null) {
       return null;
     }
-    return $UserLoginCopyWith<$Res>(_value.login, (value) {
-      return _then(_value.copyWith(login: value));
+    return $UsuarioCopyWith<$Res>(_value.usuario, (value) {
+      return _then(_value.copyWith(usuario: value));
     });
   }
 }
 
 /// @nodoc
 class _$LoggingIn implements LoggingIn {
-  const _$LoggingIn({this.login});
+  const _$LoggingIn({this.usuario});
 
   @override
-  final UserLogin login;
+  final Usuario usuario;
 
   @override
   String toString() {
-    return 'AuthEvent.loggingIn(login: $login)';
+    return 'AuthEvent.loggingIn(usuario: $usuario)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other is LoggingIn &&
-            (identical(other.login, login) ||
-                const DeepCollectionEquality().equals(other.login, login)));
+            (identical(other.usuario, usuario) ||
+                const DeepCollectionEquality().equals(other.usuario, usuario)));
   }
 
   @override
   int get hashCode =>
-      runtimeType.hashCode ^ const DeepCollectionEquality().hash(login);
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(usuario);
 
   @override
   $LoggingInCopyWith<LoggingIn> get copyWith =>
@@ -246,26 +246,26 @@ class _$LoggingIn implements LoggingIn {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult startingApp(),
-    @required TResult loggingIn(UserLogin login),
+    @required TResult loggingIn(Usuario usuario),
     @required TResult loggingOut(),
   }) {
     assert(startingApp != null);
     assert(loggingIn != null);
     assert(loggingOut != null);
-    return loggingIn(login);
+    return loggingIn(usuario);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult startingApp(),
-    TResult loggingIn(UserLogin login),
+    TResult loggingIn(Usuario usuario),
     TResult loggingOut(),
     @required TResult orElse(),
   }) {
     assert(orElse != null);
     if (loggingIn != null) {
-      return loggingIn(login);
+      return loggingIn(usuario);
     }
     return orElse();
   }
@@ -300,9 +300,9 @@ class _$LoggingIn implements LoggingIn {
 }
 
 abstract class LoggingIn implements AuthEvent {
-  const factory LoggingIn({UserLogin login}) = _$LoggingIn;
+  const factory LoggingIn({Usuario usuario}) = _$LoggingIn;
 
-  UserLogin get login;
+  Usuario get usuario;
   $LoggingInCopyWith<LoggingIn> get copyWith;
 }
 
@@ -344,7 +344,7 @@ class _$LoggingOut implements LoggingOut {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult startingApp(),
-    @required TResult loggingIn(UserLogin login),
+    @required TResult loggingIn(Usuario usuario),
     @required TResult loggingOut(),
   }) {
     assert(startingApp != null);
@@ -357,7 +357,7 @@ class _$LoggingOut implements LoggingOut {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult startingApp(),
-    TResult loggingIn(UserLogin login),
+    TResult loggingIn(Usuario usuario),
     TResult loggingOut(),
     @required TResult orElse(),
   }) {

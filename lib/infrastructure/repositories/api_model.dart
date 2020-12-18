@@ -6,7 +6,7 @@ part 'api_model.g.dart';
 @freezed
 abstract class UserLogin implements _$UserLogin {
   factory UserLogin({
-    String documento,
+    String username,
     String password,
   }) = _UserLogin;
 
@@ -14,7 +14,4 @@ abstract class UserLogin implements _$UserLogin {
 
   factory UserLogin.fromJson(Map<String, dynamic> json) =>
       _$UserLoginFromJson(json);
-
-  Map<String, dynamic> toDatabaseJson() =>
-      {"username": documento, "password": password};
 }

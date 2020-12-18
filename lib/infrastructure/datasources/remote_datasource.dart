@@ -23,18 +23,21 @@ class DjangoAPI implements InspeccionesRemoteDataSource {
   @override
   Future<String> getToken(UserLogin userLogin) async {
     const _tokenURL = _server + _apiBase + _tokenEndpoint;
-    final http.Response response = await http.post(
-      _tokenURL,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(userLogin.toDatabaseJson()),
-    );
+    final http.Response response = await http
+        .post(
+          _tokenURL,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(userLogin.toJson()),
+        )
+        .timeout(const Duration(seconds: 5));
+
     if (response.statusCode == 200) {
       return (json.decode(response.body) as Map<String, dynamic>)['token']
           as String;
     } else {
-      //TODO: mirar los tipos de errores que pueden ocurrir
+      //TODO: mirar los tipos de errores que pueden venir de la api
       throw ServerException();
     }
   }

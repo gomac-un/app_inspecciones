@@ -25,29 +25,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Stream<AuthState> mapEventToState(
     AuthEvent event,
   ) async* {
-    yield* event.map(
+    yield* event.when(
       //TODO: pulir los errores
-      startingApp: (e) async* {
+      startingApp: () async* {
         final usuario = userRepository.getLocalUser();
 
-        if (usuario != null) {
-          yield AuthState.authenticated(usuario: usuario);
-        } else {
-          yield const AuthState.unauthenticated();
-        }
+        yield usuario.fold(
+          () => const AuthState.unauthenticated(),
+          (u) => AuthState.authenticated(usuario: u),
+        );
       },
-      loggingIn: (e) async* {
-        yield const AuthState.loading();
-        try {
-          final validUser =
-              await userRepository.authenticateUser(userLogin: e.login);
-          await userRepository.saveLocalUser(user: validUser);
-          yield AuthState.authenticated(usuario: validUser);
-        } catch (e) {
-          yield const AuthState.unauthenticated();
-        }
+      loggingIn: (usuario) async* {
+        await userRepository.saveLocalUser(user: usuario);
+        yield AuthState.authenticated(usuario: usuario);
       },
-      loggingOut: (e) async* {
+      loggingOut: () async* {
         yield const AuthState.loading();
         await userRepository.deleteLocalUser();
         yield const AuthState.unauthenticated();

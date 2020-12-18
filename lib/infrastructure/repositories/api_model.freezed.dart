@@ -17,9 +17,9 @@ class _$UserLoginTearOff {
   const _$UserLoginTearOff();
 
 // ignore: unused_element
-  _UserLogin call({String documento, String password}) {
+  _UserLogin call({String username, String password}) {
     return _UserLogin(
-      documento: documento,
+      username: username,
       password: password,
     );
   }
@@ -36,7 +36,7 @@ const $UserLogin = _$UserLoginTearOff();
 
 /// @nodoc
 mixin _$UserLogin {
-  String get documento;
+  String get username;
   String get password;
 
   Map<String, dynamic> toJson();
@@ -47,7 +47,7 @@ mixin _$UserLogin {
 abstract class $UserLoginCopyWith<$Res> {
   factory $UserLoginCopyWith(UserLogin value, $Res Function(UserLogin) then) =
       _$UserLoginCopyWithImpl<$Res>;
-  $Res call({String documento, String password});
+  $Res call({String username, String password});
 }
 
 /// @nodoc
@@ -60,11 +60,11 @@ class _$UserLoginCopyWithImpl<$Res> implements $UserLoginCopyWith<$Res> {
 
   @override
   $Res call({
-    Object documento = freezed,
+    Object username = freezed,
     Object password = freezed,
   }) {
     return _then(_value.copyWith(
-      documento: documento == freezed ? _value.documento : documento as String,
+      username: username == freezed ? _value.username : username as String,
       password: password == freezed ? _value.password : password as String,
     ));
   }
@@ -76,7 +76,7 @@ abstract class _$UserLoginCopyWith<$Res> implements $UserLoginCopyWith<$Res> {
           _UserLogin value, $Res Function(_UserLogin) then) =
       __$UserLoginCopyWithImpl<$Res>;
   @override
-  $Res call({String documento, String password});
+  $Res call({String username, String password});
 }
 
 /// @nodoc
@@ -90,11 +90,11 @@ class __$UserLoginCopyWithImpl<$Res> extends _$UserLoginCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object documento = freezed,
+    Object username = freezed,
     Object password = freezed,
   }) {
     return _then(_UserLogin(
-      documento: documento == freezed ? _value.documento : documento as String,
+      username: username == freezed ? _value.username : username as String,
       password: password == freezed ? _value.password : password as String,
     ));
   }
@@ -104,28 +104,28 @@ class __$UserLoginCopyWithImpl<$Res> extends _$UserLoginCopyWithImpl<$Res>
 
 /// @nodoc
 class _$_UserLogin extends _UserLogin {
-  _$_UserLogin({this.documento, this.password}) : super._();
+  _$_UserLogin({this.username, this.password}) : super._();
 
   factory _$_UserLogin.fromJson(Map<String, dynamic> json) =>
       _$_$_UserLoginFromJson(json);
 
   @override
-  final String documento;
+  final String username;
   @override
   final String password;
 
   @override
   String toString() {
-    return 'UserLogin(documento: $documento, password: $password)';
+    return 'UserLogin(username: $username, password: $password)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other is _UserLogin &&
-            (identical(other.documento, documento) ||
+            (identical(other.username, username) ||
                 const DeepCollectionEquality()
-                    .equals(other.documento, documento)) &&
+                    .equals(other.username, username)) &&
             (identical(other.password, password) ||
                 const DeepCollectionEquality()
                     .equals(other.password, password)));
@@ -134,7 +134,7 @@ class _$_UserLogin extends _UserLogin {
   @override
   int get hashCode =>
       runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(documento) ^
+      const DeepCollectionEquality().hash(username) ^
       const DeepCollectionEquality().hash(password);
 
   @override
@@ -149,13 +149,13 @@ class _$_UserLogin extends _UserLogin {
 
 abstract class _UserLogin extends UserLogin {
   _UserLogin._() : super._();
-  factory _UserLogin({String documento, String password}) = _$_UserLogin;
+  factory _UserLogin({String username, String password}) = _$_UserLogin;
 
   factory _UserLogin.fromJson(Map<String, dynamic> json) =
       _$_UserLogin.fromJson;
 
   @override
-  String get documento;
+  String get username;
   @override
   String get password;
   @override

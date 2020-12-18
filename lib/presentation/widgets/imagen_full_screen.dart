@@ -16,7 +16,7 @@ class FotoFullScreen extends StatelessWidget {
         child: Center(
           child: Hero(
             tag: tag,
-            child: Image.file(foto),
+            child: InteractiveViewer(child: Image.file(foto)),
           ),
         ),
       ),
