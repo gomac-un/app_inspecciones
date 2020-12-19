@@ -47,9 +47,28 @@ void main() async {
 }
 
 final customTheme = ThemeData(
+  //brightness: Brightness.dark,
+  brightness: Brightness.light,
+  primaryColor: Colors.blue,
+  accentColor: Colors.deepPurple,
+  highlightColor: Colors.purple,
+  scaffoldBackgroundColor: Colors.blue,
+  visualDensity: VisualDensity.compact,
+  inputDecorationTheme: InputDecorationTheme(
+    border: const UnderlineInputBorder(),
+    fillColor: Colors.grey.withOpacity(.3),
+    filled: true,
+  ),
+);
+
+
+class ClearFocusOnPop extends NavigatorObserver {
+  @override
+  void didPop(Route route, Route previousRoute) {
     super.didPop(route, previousRoute);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Future.delayed(Duration.zero);
       SystemChannels.textInput.invokeMethod('TextInput.hide');
     });
   }
+}

@@ -42,12 +42,12 @@ class UserDrawer extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 25.0),
-              ListTile(
-                selectedTileColor: Colors.deepPurple,
+              ListTile(/* 
+                selectedTileColor: Colors.deepPurple, */
                 title: Text('Creación de Inspecciones',
                     style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
                 leading: Icon(
-                  Icons.add, /* color: Colors.white, */
+                  Icons.add,  color: Colors.black,
                 ),
                 onTap: () async {
                   final res = await ExtendedNavigator.of(context)
@@ -60,13 +60,13 @@ class UserDrawer extends StatelessWidget {
               SizedBox(
                 height: 5.0,
               ),
-              ListTile(
-                tileColor: Colors.deepPurple,
+              ListTile(/* 
+                tileColor: Colors.deepPurple, */
                 title: Text('Ver base de Datos',
-                    style: TextStyle(color: Colors.white, fontSize: 15)),
+                    style: TextStyle(/* color: Colors.white, */ fontSize: 15)),
                 leading: Icon(
                   Icons.view_array,
-                  color: Colors.white,
+                   color: Colors.black, 
                 ),
                 onTap: () => {
                   Navigator.pop(context),
@@ -82,15 +82,15 @@ class UserDrawer extends StatelessWidget {
               SizedBox(
                 height: 5.0,
               ),
-              ListTile(
-                tileColor: Colors.deepPurple,
+              ListTile(/* 
+                tileColor: Colors.deepPurple, */
                 title: Text(
                   'Reiniciar base de datos',
-                  style: TextStyle(color: Colors.white, fontSize: 15),
+                  style: TextStyle(/* color: Colors.white, */ fontSize: 15),
                 ),
                 leading: Icon(
                   Icons.replay_outlined,
-                  color: Colors.white,
+                   color: Colors.black,
                 ),
                 onTap: () => getIt<Database>().dbdePrueba(),
               ),

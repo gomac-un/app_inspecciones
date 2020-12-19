@@ -1,11 +1,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/tablas_api.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/pages/inicio_inspeccion_form_widget.dart';
 import 'package:inspecciones/presentation/widgets/drawer.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:moor_db_viewer/moor_db_viewer.dart';
+import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
 
 class HomeScreen extends StatelessWidget {
   /* void _pushScreen(BuildContext context, Widget screen) {
@@ -13,7 +15,8 @@ class HomeScreen extends StatelessWidget {
       MaterialPageRoute(builder: (_) => screen),
     );
   } */
-
+  
+  final DjangoAPI tabla = DjangoAPI();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,10 +26,6 @@ class HomeScreen extends StatelessWidget {
       drawer: UserDrawer(),
       body: ListView(
         children: <Widget>[
-          ListTile(
-            title: Chip(label: Text('Ingreso')),
-            //onTap: () => _pushScreen(context, LoginScreen()),
-          ),
           ListTile(
             title: Chip(label: Text('Creación de Inspecciones')),
             onTap: () async {
@@ -39,6 +38,11 @@ class HomeScreen extends StatelessWidget {
           ListTile(
             title: Chip(label: Text('Borradores')),
             onTap: () => ExtendedNavigator.of(context).pushBorradoresPage(),
+          ),
+          
+          ListTile(
+            title: Chip(label: Text('obtener tabla sistema')),
+            onTap : ()  async =>   { print( await tabla.tablaSistema()),print('Hello')}
           ),
           RaisedButton(
             onPressed: () {
@@ -98,3 +102,5 @@ class FloatingActionButtonInicioInspeccion extends StatelessWidget {
     );
   }
 }
+
+
