@@ -56,6 +56,7 @@ class UserDrawer extends StatelessWidget {
                     Scaffold.of(context)
                         .showSnackBar(SnackBar(content: Text(res)));
                   }
+                  ExtendedNavigator.of(context).pop();
                 },
               ),
               const SizedBox(height: 5.0),
@@ -67,15 +68,15 @@ class UserDrawer extends StatelessWidget {
                   Icons.view_array,
                   color: Colors.white,
                 ),
-                onTap: () => {
-                  Navigator.pop(context),
+                onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => MoorDbViewer(
                         getIt<Database>(),
                       ),
                     ),
-                  ),
+                  );
+                  Navigator.of(context).pop();
                 },
               ),
               const SizedBox(height: 5.0),

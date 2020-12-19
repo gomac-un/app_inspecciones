@@ -1504,7 +1504,7 @@ class $CuadriculasDePreguntasTable extends CuadriculasDePreguntas
   GeneratedTextColumn get titulo => _titulo ??= _constructTitulo();
   GeneratedTextColumn _constructTitulo() {
     return GeneratedTextColumn('titulo', $tableName, false,
-        minTextLength: 1, maxTextLength: 100);
+        minTextLength: 0, maxTextLength: 100);
   }
 
   final VerificationMeta _descripcionMeta =

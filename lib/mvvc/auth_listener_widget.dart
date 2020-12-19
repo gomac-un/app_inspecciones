@@ -19,7 +19,7 @@ class AuthListener extends StatelessWidget {
         state.map(
             initial: (_) => navState.pushReplacementNamed(Routes.splashPage),
             authenticated: (_) =>
-                navState.pushReplacementNamed(Routes.homeScreen),
+                navState.pushReplacementNamed(Routes.borradoresPage),
             unauthenticated: (_) =>
                 navState.pushReplacementNamed(Routes.loginScreen),
             loading: (_) {});

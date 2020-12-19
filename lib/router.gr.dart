@@ -12,24 +12,21 @@ import 'package:flutter/material.dart';
 import 'mvvc/creacion_form_page.dart';
 import 'mvvc/llenado_form_page.dart';
 import 'presentation/pages/borradores_screen.dart';
-import 'presentation/pages/home_screen.dart';
 import 'presentation/pages/login_screen.dart';
 import 'presentation/pages/splash_screen.dart';
 
 class Routes {
   static const String splashPage = '/';
   static const String loginScreen = '/login-screen';
-  static const String homeScreen = '/home-screen';
+  static const String borradoresPage = '/borradores-page';
   static const String creacionFormPage = '/creacion-form-page';
   static const String llenadoFormPage = '/llenado-form-page';
-  static const String borradoresPage = '/borradores-page';
   static const all = <String>{
     splashPage,
     loginScreen,
-    homeScreen,
+    borradoresPage,
     creacionFormPage,
     llenadoFormPage,
-    borradoresPage,
   };
 }
 
@@ -39,10 +36,9 @@ class AutoRouter extends RouterBase {
   final _routes = <RouteDef>[
     RouteDef(Routes.splashPage, page: SplashPage),
     RouteDef(Routes.loginScreen, page: LoginScreen),
-    RouteDef(Routes.homeScreen, page: HomeScreen),
+    RouteDef(Routes.borradoresPage, page: BorradoresPage),
     RouteDef(Routes.creacionFormPage, page: CreacionFormPage),
     RouteDef(Routes.llenadoFormPage, page: LlenadoFormPage),
-    RouteDef(Routes.borradoresPage, page: BorradoresPage),
   ];
   @override
   Map<Type, AutoRouteFactory> get pagesMap => _pagesMap;
@@ -59,9 +55,9 @@ class AutoRouter extends RouterBase {
         settings: data,
       );
     },
-    HomeScreen: (data) {
+    BorradoresPage: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => HomeScreen(),
+        builder: (context) => BorradoresPage(),
         settings: data,
       );
     },
@@ -84,12 +80,6 @@ class AutoRouter extends RouterBase {
         settings: data,
       );
     },
-    BorradoresPage: (data) {
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => BorradoresPage(),
-        settings: data,
-      );
-    },
   };
 }
 
@@ -102,7 +92,7 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
 
   Future<dynamic> pushLoginScreen() => push<dynamic>(Routes.loginScreen);
 
-  Future<dynamic> pushHomeScreen() => push<dynamic>(Routes.homeScreen);
+  Future<dynamic> pushBorradoresPage() => push<dynamic>(Routes.borradoresPage);
 
   Future<dynamic> pushCreacionFormPage() =>
       push<dynamic>(Routes.creacionFormPage);
@@ -117,8 +107,6 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
         arguments: LlenadoFormPageArguments(
             key: key, vehiculo: vehiculo, cuestionarioId: cuestionarioId),
       );
-
-  Future<dynamic> pushBorradoresPage() => push<dynamic>(Routes.borradoresPage);
 }
 
 /// ************************************************************************

@@ -4,7 +4,6 @@ import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/auth/usuario.dart';
-import 'package:inspecciones/infrastructure/repositories/api_model.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import 'package:meta/meta.dart';
 

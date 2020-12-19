@@ -2,6 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/injection.dart';
+import 'package:inspecciones/presentation/pages/inicio_inspeccion_form_widget.dart';
+import 'package:inspecciones/presentation/widgets/drawer.dart';
 import 'package:inspecciones/router.gr.dart';
 
 import '../../infrastructure/moor_database.dart';
@@ -16,7 +18,18 @@ class BorradoresPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Borradores'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              //TODO: implementar la subida de inspecciones al server
+              throw Exception();
+            },
+            icon: Icon(Icons.upload_file),
+            tooltip: "Subir inspecciones",
+          )
+        ],
       ),
+      drawer: UserDrawer(),
       body: StreamBuilder<List<Borrador>>(
         stream: _db.borradoresDao.borradores(),
         builder: (context, snapshot) {
@@ -25,8 +38,15 @@ class BorradoresPage extends StatelessWidget {
               child: CircularProgressIndicator(),
             );
           }
-
           final borradores = snapshot.data;
+
+          if (borradores.isEmpty) {
+            return Center(
+                child: Text(
+              "No tiene borradores sin terminar",
+              style: Theme.of(context).textTheme.headline5,
+            ));
+          }
 
           return ListView.separated(
             separatorBuilder: (BuildContext context, int index) =>
@@ -64,14 +84,7 @@ class BorradoresPage extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          //TODO: implementar la subida de inspecciones al server
-          throw Exception();
-        },
-        icon: const Icon(Icons.upload_file),
-        label: const Text("Subir inspecciones"),
-      ),
+      floatingActionButton: const FloatingActionButtonInicioInspeccion(),
     );
   }
 
@@ -107,6 +120,40 @@ class BorradoresPage extends StatelessWidget {
       builder: (BuildContext context) {
         return alert;
       },
+    );
+  }
+}
+
+class FloatingActionButtonInicioInspeccion extends StatelessWidget {
+  const FloatingActionButtonInicioInspeccion({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton.extended(
+      onPressed: () async {
+        final res = await showDialog<LlenadoFormPageArguments>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Inicio de inspección'),
+            content: InicioInspeccionForm(),
+          ),
+        );
+
+        if (res != null) {
+          final mensajeLlenado = await ExtendedNavigator.of(context)
+              .push(Routes.llenadoFormPage, arguments: res);
+          // mostar el mensaje que viene desde la pantalla de llenado
+          if (mensajeLlenado != null) {
+            Scaffold.of(context)
+              ..removeCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text("$mensajeLlenado")));
+          }
+        }
+      },
+      icon: const Icon(Icons.add),
+      label: const Text("Inspeccion"),
     );
   }
 }

@@ -179,7 +179,7 @@ class BotonFinalizar extends StatelessWidget {
                                     content: Text(
                                       /*JsonEncoder.withIndent('  ')
                                         .convert(json.encode(form.errors)),*/
-                                      form.toString(),
+                                      form.errors.toString(),
                                     )),
                               );
                             },

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
@@ -106,6 +104,17 @@ class LoginControl extends FormGroup {
           login,
           razon: 'Ocurrió un error desconocido',
         );
+      }, usuarioOPasswordInvalidos: () {
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  content: const Text("Usuario o contraseña invalidos"),
+                  actions: [
+                    FlatButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text("ok"))
+                  ],
+                ));
       }),
       (usuario) {
         authBloc.add(AuthEvent.loggingIn(usuario: usuario));

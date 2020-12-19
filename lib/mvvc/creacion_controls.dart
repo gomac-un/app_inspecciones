@@ -87,8 +87,7 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
 
   factory CreadorPreguntaCuadriculaFormGroup() {
     final sistema = fb.control<Sistema>(null, [Validators.required]);
-    final subSistemas =
-        ValueNotifier<List<SubSistema>>([]); //! hay que hacerle dispose
+    final subSistemas = ValueNotifier<List<SubSistema>>([]);
 
     sistema.valueChanges.asBroadcastStream().listen((sistema) async {
       subSistemas.value =

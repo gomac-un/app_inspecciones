@@ -103,7 +103,7 @@ class CuadriculasDePreguntas extends Table {
   IntColumn get bloqueId => integer().customConstraint(
       'REFERENCES bloques(id) ON DELETE CASCADE')(); //debe ser unico por ser uno a uno, sera que es pk?
 
-  TextColumn get titulo => text().withLength(min: 1, max: 100)();
+  TextColumn get titulo => text().withLength(min: 0, max: 100)();
 
   TextColumn get descripcion => text().withLength(min: 0, max: 200)();
   //List<OpcionesDeRespuesta>

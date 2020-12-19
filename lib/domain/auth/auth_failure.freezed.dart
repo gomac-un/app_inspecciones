@@ -24,6 +24,11 @@ class _$AuthFailureTearOff {
   }
 
 // ignore: unused_element
+  UsuarioOPasswordInvalidos usuarioOPasswordInvalidos() {
+    return const UsuarioOPasswordInvalidos();
+  }
+
+// ignore: unused_element
   ServerError serverError() {
     return const ServerError();
   }
@@ -39,12 +44,14 @@ mixin _$AuthFailure {
   TResult when<TResult extends Object>({
     @required TResult noHayInternet(),
     @required TResult noHayConexionAlServidor(),
+    @required TResult usuarioOPasswordInvalidos(),
     @required TResult serverError(),
   });
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult noHayInternet(),
     TResult noHayConexionAlServidor(),
+    TResult usuarioOPasswordInvalidos(),
     TResult serverError(),
     @required TResult orElse(),
   });
@@ -52,12 +59,15 @@ mixin _$AuthFailure {
   TResult map<TResult extends Object>({
     @required TResult noHayInternet(NoHayInternet value),
     @required TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    @required
+        TResult usuarioOPasswordInvalidos(UsuarioOPasswordInvalidos value),
     @required TResult serverError(ServerError value),
   });
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object>({
     TResult noHayInternet(NoHayInternet value),
     TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    TResult usuarioOPasswordInvalidos(UsuarioOPasswordInvalidos value),
     TResult serverError(ServerError value),
     @required TResult orElse(),
   });
@@ -119,10 +129,12 @@ class _$NoHayInternet implements NoHayInternet {
   TResult when<TResult extends Object>({
     @required TResult noHayInternet(),
     @required TResult noHayConexionAlServidor(),
+    @required TResult usuarioOPasswordInvalidos(),
     @required TResult serverError(),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
+    assert(usuarioOPasswordInvalidos != null);
     assert(serverError != null);
     return noHayInternet();
   }
@@ -132,6 +144,7 @@ class _$NoHayInternet implements NoHayInternet {
   TResult maybeWhen<TResult extends Object>({
     TResult noHayInternet(),
     TResult noHayConexionAlServidor(),
+    TResult usuarioOPasswordInvalidos(),
     TResult serverError(),
     @required TResult orElse(),
   }) {
@@ -147,10 +160,13 @@ class _$NoHayInternet implements NoHayInternet {
   TResult map<TResult extends Object>({
     @required TResult noHayInternet(NoHayInternet value),
     @required TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    @required
+        TResult usuarioOPasswordInvalidos(UsuarioOPasswordInvalidos value),
     @required TResult serverError(ServerError value),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
+    assert(usuarioOPasswordInvalidos != null);
     assert(serverError != null);
     return noHayInternet(this);
   }
@@ -160,6 +176,7 @@ class _$NoHayInternet implements NoHayInternet {
   TResult maybeMap<TResult extends Object>({
     TResult noHayInternet(NoHayInternet value),
     TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    TResult usuarioOPasswordInvalidos(UsuarioOPasswordInvalidos value),
     TResult serverError(ServerError value),
     @required TResult orElse(),
   }) {
@@ -216,10 +233,12 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
   TResult when<TResult extends Object>({
     @required TResult noHayInternet(),
     @required TResult noHayConexionAlServidor(),
+    @required TResult usuarioOPasswordInvalidos(),
     @required TResult serverError(),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
+    assert(usuarioOPasswordInvalidos != null);
     assert(serverError != null);
     return noHayConexionAlServidor();
   }
@@ -229,6 +248,7 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
   TResult maybeWhen<TResult extends Object>({
     TResult noHayInternet(),
     TResult noHayConexionAlServidor(),
+    TResult usuarioOPasswordInvalidos(),
     TResult serverError(),
     @required TResult orElse(),
   }) {
@@ -244,10 +264,13 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
   TResult map<TResult extends Object>({
     @required TResult noHayInternet(NoHayInternet value),
     @required TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    @required
+        TResult usuarioOPasswordInvalidos(UsuarioOPasswordInvalidos value),
     @required TResult serverError(ServerError value),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
+    assert(usuarioOPasswordInvalidos != null);
     assert(serverError != null);
     return noHayConexionAlServidor(this);
   }
@@ -257,6 +280,7 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
   TResult maybeMap<TResult extends Object>({
     TResult noHayInternet(NoHayInternet value),
     TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    TResult usuarioOPasswordInvalidos(UsuarioOPasswordInvalidos value),
     TResult serverError(ServerError value),
     @required TResult orElse(),
   }) {
@@ -270,6 +294,111 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
 
 abstract class NoHayConexionAlServidor implements AuthFailure {
   const factory NoHayConexionAlServidor() = _$NoHayConexionAlServidor;
+}
+
+/// @nodoc
+abstract class $UsuarioOPasswordInvalidosCopyWith<$Res> {
+  factory $UsuarioOPasswordInvalidosCopyWith(UsuarioOPasswordInvalidos value,
+          $Res Function(UsuarioOPasswordInvalidos) then) =
+      _$UsuarioOPasswordInvalidosCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class _$UsuarioOPasswordInvalidosCopyWithImpl<$Res>
+    extends _$AuthFailureCopyWithImpl<$Res>
+    implements $UsuarioOPasswordInvalidosCopyWith<$Res> {
+  _$UsuarioOPasswordInvalidosCopyWithImpl(UsuarioOPasswordInvalidos _value,
+      $Res Function(UsuarioOPasswordInvalidos) _then)
+      : super(_value, (v) => _then(v as UsuarioOPasswordInvalidos));
+
+  @override
+  UsuarioOPasswordInvalidos get _value =>
+      super._value as UsuarioOPasswordInvalidos;
+}
+
+/// @nodoc
+class _$UsuarioOPasswordInvalidos implements UsuarioOPasswordInvalidos {
+  const _$UsuarioOPasswordInvalidos();
+
+  @override
+  String toString() {
+    return 'AuthFailure.usuarioOPasswordInvalidos()';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) || (other is UsuarioOPasswordInvalidos);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object>({
+    @required TResult noHayInternet(),
+    @required TResult noHayConexionAlServidor(),
+    @required TResult usuarioOPasswordInvalidos(),
+    @required TResult serverError(),
+  }) {
+    assert(noHayInternet != null);
+    assert(noHayConexionAlServidor != null);
+    assert(usuarioOPasswordInvalidos != null);
+    assert(serverError != null);
+    return usuarioOPasswordInvalidos();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object>({
+    TResult noHayInternet(),
+    TResult noHayConexionAlServidor(),
+    TResult usuarioOPasswordInvalidos(),
+    TResult serverError(),
+    @required TResult orElse(),
+  }) {
+    assert(orElse != null);
+    if (usuarioOPasswordInvalidos != null) {
+      return usuarioOPasswordInvalidos();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object>({
+    @required TResult noHayInternet(NoHayInternet value),
+    @required TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    @required
+        TResult usuarioOPasswordInvalidos(UsuarioOPasswordInvalidos value),
+    @required TResult serverError(ServerError value),
+  }) {
+    assert(noHayInternet != null);
+    assert(noHayConexionAlServidor != null);
+    assert(usuarioOPasswordInvalidos != null);
+    assert(serverError != null);
+    return usuarioOPasswordInvalidos(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object>({
+    TResult noHayInternet(NoHayInternet value),
+    TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    TResult usuarioOPasswordInvalidos(UsuarioOPasswordInvalidos value),
+    TResult serverError(ServerError value),
+    @required TResult orElse(),
+  }) {
+    assert(orElse != null);
+    if (usuarioOPasswordInvalidos != null) {
+      return usuarioOPasswordInvalidos(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class UsuarioOPasswordInvalidos implements AuthFailure {
+  const factory UsuarioOPasswordInvalidos() = _$UsuarioOPasswordInvalidos;
 }
 
 /// @nodoc
@@ -312,10 +441,12 @@ class _$ServerError implements ServerError {
   TResult when<TResult extends Object>({
     @required TResult noHayInternet(),
     @required TResult noHayConexionAlServidor(),
+    @required TResult usuarioOPasswordInvalidos(),
     @required TResult serverError(),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
+    assert(usuarioOPasswordInvalidos != null);
     assert(serverError != null);
     return serverError();
   }
@@ -325,6 +456,7 @@ class _$ServerError implements ServerError {
   TResult maybeWhen<TResult extends Object>({
     TResult noHayInternet(),
     TResult noHayConexionAlServidor(),
+    TResult usuarioOPasswordInvalidos(),
     TResult serverError(),
     @required TResult orElse(),
   }) {
@@ -340,10 +472,13 @@ class _$ServerError implements ServerError {
   TResult map<TResult extends Object>({
     @required TResult noHayInternet(NoHayInternet value),
     @required TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    @required
+        TResult usuarioOPasswordInvalidos(UsuarioOPasswordInvalidos value),
     @required TResult serverError(ServerError value),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
+    assert(usuarioOPasswordInvalidos != null);
     assert(serverError != null);
     return serverError(this);
   }
@@ -353,6 +488,7 @@ class _$ServerError implements ServerError {
   TResult maybeMap<TResult extends Object>({
     TResult noHayInternet(NoHayInternet value),
     TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    TResult usuarioOPasswordInvalidos(UsuarioOPasswordInvalidos value),
     TResult serverError(ServerError value),
     @required TResult orElse(),
   }) {
