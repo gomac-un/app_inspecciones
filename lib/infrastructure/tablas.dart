@@ -87,7 +87,7 @@ class Titulos extends Table {
 
   TextColumn get titulo => text().withLength(min: 1, max: 100)();
 
-  TextColumn get descripcion => text().withLength(min: 0, max: 200)();
+  TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
 
   TextColumn get fotos => text()
       .map(const ListInColumnConverter())
@@ -105,7 +105,7 @@ class CuadriculasDePreguntas extends Table {
 
   TextColumn get titulo => text().withLength(min: 0, max: 100)();
 
-  TextColumn get descripcion => text().withLength(min: 0, max: 200)();
+  TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
   //List<OpcionesDeRespuesta>
 
 }
@@ -125,7 +125,7 @@ class Preguntas extends Table {
 
   TextColumn get titulo => text().withLength(min: 1, max: 100)();
 
-  TextColumn get descripcion => text().withLength(min: 0, max: 200)();
+  TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
 
   IntColumn get sistemaId =>
       integer().customConstraint('REFERENCES sistemas(id)')();

@@ -1216,7 +1216,7 @@ class $TitulosTable extends Titulos with TableInfo<$TitulosTable, Titulo> {
       _descripcion ??= _constructDescripcion();
   GeneratedTextColumn _constructDescripcion() {
     return GeneratedTextColumn('descripcion', $tableName, false,
-        minTextLength: 0, maxTextLength: 200);
+        minTextLength: 0, maxTextLength: 1500);
   }
 
   final VerificationMeta _fotosMeta = const VerificationMeta('fotos');
@@ -1515,7 +1515,7 @@ class $CuadriculasDePreguntasTable extends CuadriculasDePreguntas
       _descripcion ??= _constructDescripcion();
   GeneratedTextColumn _constructDescripcion() {
     return GeneratedTextColumn('descripcion', $tableName, false,
-        minTextLength: 0, maxTextLength: 200);
+        minTextLength: 0, maxTextLength: 1500);
   }
 
   @override
@@ -2017,7 +2017,7 @@ class $PreguntasTable extends Preguntas
       _descripcion ??= _constructDescripcion();
   GeneratedTextColumn _constructDescripcion() {
     return GeneratedTextColumn('descripcion', $tableName, false,
-        minTextLength: 0, maxTextLength: 200);
+        minTextLength: 0, maxTextLength: 1500);
   }
 
   final VerificationMeta _sistemaIdMeta = const VerificationMeta('sistemaId');

@@ -34,18 +34,27 @@ dynamic _initialize(Batch batch, Database db) {
   ]);
 
   batch.insertAll(db.subSistemas, [
-    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 1),
-    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 2),
-    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 3),
-    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 4),
-    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 5),
-    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 6),
-    SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 7),
+    SubSistemasCompanion.insert(
+        id: const Value(1), nombre: "n/s", sistemaId: 1),
+    SubSistemasCompanion.insert(
+        id: const Value(2), nombre: "n/s", sistemaId: 2),
+    SubSistemasCompanion.insert(
+        id: const Value(3), nombre: "n/s", sistemaId: 3),
+    SubSistemasCompanion.insert(
+        id: const Value(4), nombre: "n/s", sistemaId: 4),
+    SubSistemasCompanion.insert(
+        id: const Value(5), nombre: "n/s", sistemaId: 5),
+    SubSistemasCompanion.insert(
+        id: const Value(6), nombre: "n/s", sistemaId: 6),
+    SubSistemasCompanion.insert(
+        id: const Value(7), nombre: "n/s", sistemaId: 7),
   ]);
   //Inicio de una inspeccion de prueba
   //Datos de la inspeccion
   batch.insertAll(db.cuestionarios, [
-    CuestionariosCompanion.insert(),
+    CuestionariosCompanion.insert(
+      id: const Value(1),
+    ),
   ]);
   batch.insertAll(db.cuestionarioDeModelos, [
     CuestionarioDeModelosCompanion.insert(
@@ -56,15 +65,16 @@ dynamic _initialize(Batch batch, Database db) {
         contratistaId: 1)
   ]);
   batch.insertAll(db.bloques, [
-    BloquesCompanion.insert(cuestionarioId: 1, nOrden: 0),
-    BloquesCompanion.insert(cuestionarioId: 1, nOrden: 1),
-    BloquesCompanion.insert(cuestionarioId: 1, nOrden: 2),
-    BloquesCompanion.insert(cuestionarioId: 1, nOrden: 3),
+    BloquesCompanion.insert(id: const Value(1), cuestionarioId: 1, nOrden: 0),
+    BloquesCompanion.insert(id: const Value(2), cuestionarioId: 1, nOrden: 1),
+    BloquesCompanion.insert(id: const Value(3), cuestionarioId: 1, nOrden: 2),
+    BloquesCompanion.insert(id: const Value(4), cuestionarioId: 1, nOrden: 3),
   ]);
   //Un bloque de cada tipo
   //Un titulo
   batch.insertAll(db.titulos, [
     TitulosCompanion.insert(
+        id: const Value(1),
         bloqueId: 1,
         titulo: "Motor y dirección DT Kenworth",
         descripcion:
@@ -74,6 +84,7 @@ dynamic _initialize(Batch batch, Database db) {
   batch.insert(
       db.preguntas,
       PreguntasCompanion.insert(
+        id: const Value(1),
         bloqueId: 2,
         titulo: "Estado del restrictor del aire",
         descripcion: "",
@@ -86,20 +97,31 @@ dynamic _initialize(Batch batch, Database db) {
       ));
   batch.insertAll(db.opcionesDeRespuesta, [
     OpcionesDeRespuestaCompanion.insert(
+        id: const Value(1),
         preguntaId: const Value(1),
         texto: "Indica cambio de filtro",
         criticidad: 2),
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: const Value(1), texto: "No lo posee", criticidad: 0),
+        id: const Value(2),
+        preguntaId: const Value(1),
+        texto: "No lo posee",
+        criticidad: 0),
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: const Value(1), texto: "Mal estado", criticidad: 4),
+        id: const Value(3),
+        preguntaId: const Value(1),
+        texto: "Mal estado",
+        criticidad: 4),
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: const Value(1), texto: "Sin novedad", criticidad: 0),
+        id: const Value(4),
+        preguntaId: const Value(1),
+        texto: "Sin novedad",
+        criticidad: 0),
   ]);
   //Una pregunta de seleccion multiple
   batch.insert(
       db.preguntas,
       PreguntasCompanion.insert(
+        id: const Value(2),
         bloqueId: 3,
         titulo: "Estado aceite lubricante",
         descripcion: "",
@@ -112,14 +134,22 @@ dynamic _initialize(Batch batch, Database db) {
       ));
   batch.insertAll(db.opcionesDeRespuesta, [
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: const Value(2), texto: "Condicion normal", criticidad: 0),
+        id: const Value(5),
+        preguntaId: const Value(2),
+        texto: "Condicion normal",
+        criticidad: 0),
     OpcionesDeRespuestaCompanion.insert(
+        id: const Value(6),
         preguntaId: const Value(2),
         texto: "Posible dilucion por combustible",
         criticidad: 3),
     OpcionesDeRespuestaCompanion.insert(
-        preguntaId: const Value(2), texto: "Color lechoso", criticidad: 3),
+        id: const Value(7),
+        preguntaId: const Value(2),
+        texto: "Color lechoso",
+        criticidad: 3),
     OpcionesDeRespuestaCompanion.insert(
+        id: const Value(8),
         preguntaId: const Value(2),
         texto: "Presencia de particulas extrañas",
         criticidad: 3),
@@ -128,6 +158,7 @@ dynamic _initialize(Batch batch, Database db) {
   batch.insert(
       db.cuadriculasDePreguntas,
       CuadriculasDePreguntasCompanion.insert(
+        id: const Value(1),
         bloqueId: 4,
         titulo: "Fugas en el motor",
         descripcion: "",
@@ -135,6 +166,7 @@ dynamic _initialize(Batch batch, Database db) {
   //Las preguntas de la cuadricula
   batch.insertAll(db.preguntas, [
     PreguntasCompanion.insert(
+      id: const Value(3),
       bloqueId: 4,
       titulo: "Fugas/estado en mangueras",
       descripcion: "",
@@ -146,6 +178,7 @@ dynamic _initialize(Batch batch, Database db) {
       parteDeCuadricula: true,
     ),
     PreguntasCompanion.insert(
+      id: const Value(4),
       bloqueId: 4,
       titulo: "Fugas en base del filtro de aceite",
       descripcion: "",
@@ -160,10 +193,14 @@ dynamic _initialize(Batch batch, Database db) {
   //Las respuestas de la cuadricula
   batch.insertAll(db.opcionesDeRespuesta, [
     OpcionesDeRespuestaCompanion.insert(
+        id: const Value(9),
         texto: "requiere intervencion",
         criticidad: 4,
         cuadriculaId: const Value(1)),
     OpcionesDeRespuestaCompanion.insert(
-        texto: "sin novedad", criticidad: 0, cuadriculaId: const Value(1)),
+        id: const Value(10),
+        texto: "sin novedad",
+        criticidad: 0,
+        cuadriculaId: const Value(1)),
   ]);
 }

@@ -104,6 +104,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
             .insert(BloquesCompanion.insert(cuestionarioId: cid, nOrden: i));
 
         //TODO: guardar inserts de cada tipo en listas para luego insertarlos en batch
+        //TODO: usar los metodos toDataClass para obtener los datos de cada bloque
         if (control is CreadorTituloFormGroup) {
           await into(titulos).insert(TitulosCompanion.insert(
             bloqueId: bid,

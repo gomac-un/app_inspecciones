@@ -26,13 +26,17 @@ class BorradoresPage extends StatelessWidget {
             },
             icon: const Icon(Icons.upload_file),
             tooltip: "Subir inspecciones",
-          )
+          ),
         ],
       ),
       drawer: UserDrawer(),
       body: StreamBuilder<List<Borrador>>(
         stream: _db.borradoresDao.borradores(),
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            throw snapshot.error;
+            return Text("error: ${snapshot.error}");
+          }
           if (!snapshot.hasData) {
             return const Align(
               child: CircularProgressIndicator(),

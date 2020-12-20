@@ -69,6 +69,7 @@ class UserDrawer extends StatelessWidget {
                   color: Colors.white,
                 ),
                 onTap: () {
+                  Navigator.of(context).pop();
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => MoorDbViewer(
@@ -76,7 +77,6 @@ class UserDrawer extends StatelessWidget {
                       ),
                     ),
                   );
-                  Navigator.of(context).pop();
                 },
               ),
               const SizedBox(height: 5.0),

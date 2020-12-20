@@ -47,8 +47,8 @@ class Database extends _$Database {
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
-      onCreate: (Migrator m) {
-        return m.createAll();
+      onCreate: (Migrator m) async {
+        await m.createAll();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
@@ -80,7 +80,16 @@ class Database extends _$Database {
       await m.deleteTable(table.actualTableName);
 
       await m.createTable(table);
+
+      /*await customStatement(
+          "UPDATE SQLITE_SEQUENCE SET SEQ=100000000000000 WHERE NAME='${table.actualTableName}';"); //1e14*/
+      //TODO: pedirle el deviceId al servidor para coordinar las BDs
+      const deviceId = 1;
+      await customStatement(
+          "insert into SQLITE_SEQUENCE (name,seq) values('${table.actualTableName}',${deviceId}00000000000000);"); //1e14
+
     }
+
     await customStatement('PRAGMA foreign_keys = ON');
 
     await batch(initialize(this));
