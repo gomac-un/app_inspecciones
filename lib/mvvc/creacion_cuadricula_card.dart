@@ -30,6 +30,9 @@ class CreadorCuadriculaCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Descripción',
             ),
+            keyboardType: TextInputType.multiline,
+            minLines: 1,
+            maxLines: 50,
           ),
           const SizedBox(height: 10),
           ValueListenableBuilder<List<Sistema>>(

@@ -81,22 +81,15 @@ class _BotonInicioInspeccion extends StatelessWidget {
     final form = ReactiveForm.of(context) as FormGroup;
     return RaisedButton(
       onPressed: form.valid
-          ? () => _onPressed(
-                context,
-                form.control('activo').value as String,
-                form.control('tipoDeInspeccion').value.id as int,
+          ? () => ExtendedNavigator.of(context).pop(
+                LlenadoFormPageArguments(
+                  vehiculo: form.control('activo').value as String,
+                  cuestionarioId:
+                      form.control('tipoDeInspeccion').value.id as int,
+                ),
               )
           : null,
       child: const Text('Inspeccionar'),
-    );
-  }
-
-  void _onPressed(BuildContext context, String activo, int cuestionarioId) {
-    ExtendedNavigator.of(context).pop(
-      LlenadoFormPageArguments(
-        vehiculo: activo,
-        cuestionarioId: cuestionarioId,
-      ),
     );
   }
 }
