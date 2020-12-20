@@ -203,13 +203,10 @@ class Database extends _$Database {
     });
   }
 
-  Future<CuestionarioDeModelo> getCuestionarioDeModelo(Inspeccion inspeccion) {
-    final query = select(cuestionarios).join([
-      innerJoin(cuestionarioDeModelos,
-          cuestionarioDeModelos.cuestionarioId.equalsExp(cuestionarios.id))
-    ])
-      ..where(cuestionarios.id.equals(inspeccion.cuestionarioId));
-    return query.map((row) => row.readTable(cuestionarioDeModelos)).getSingle();
+  Future<Cuestionario> getCuestionario(Inspeccion inspeccion) {
+    final query = select(cuestionarios)
+      ..where((c) => c.id.equals(inspeccion.cuestionarioId));
+    return query.getSingle();
   }
 
   // Esta funcion deberá exportar las inspecciones llenadas de manera

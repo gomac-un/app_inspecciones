@@ -54,12 +54,12 @@ dynamic _initialize(Batch batch, Database db) {
   batch.insertAll(db.cuestionarios, [
     CuestionariosCompanion.insert(
       id: const Value(1),
+      tipoDeInspeccion: "preoperacional",
     ),
   ]);
   batch.insertAll(db.cuestionarioDeModelos, [
     CuestionarioDeModelosCompanion.insert(
         modelo: 'DT-Kenworth',
-        tipoDeInspeccion: "preoperacional",
         periodicidad: 100,
         cuestionarioId: 1,
         contratistaId: 1)

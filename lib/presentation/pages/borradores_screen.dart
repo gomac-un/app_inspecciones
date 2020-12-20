@@ -34,7 +34,7 @@ class BorradoresPage extends StatelessWidget {
         stream: _db.borradoresDao.borradores(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            throw snapshot.error;
+            //throw snapshot.error;
             return Text("error: ${snapshot.error}");
           }
           if (!snapshot.hasData) {
@@ -67,7 +67,7 @@ class BorradoresPage extends StatelessWidget {
                 title: Text(
                     "${borrador.activo.identificador} - ${borrador.activo.modelo}"),
                 subtitle: Text(
-                    "Tipo de inspeccion: ${borrador.cuestionarioDeModelo.tipoDeInspeccion} \n" +
+                    "Tipo de inspeccion: ${borrador.cuestionario.tipoDeInspeccion} \n" +
                         "$fechaBorrador Estado: " +
                         EnumToString.convertToString(
                             borrador.inspeccion.estado)),

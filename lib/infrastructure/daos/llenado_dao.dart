@@ -25,16 +25,17 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   // of this object.
   LlenadoDao(Database db) : super(db);
 
-  Future<List<CuestionarioDeModelo>> cuestionariosParaVehiculo(
-      String vehiculo) {
+  Future<List<Cuestionario>> cuestionariosParaVehiculo(String vehiculo) {
     final query = select(activos).join([
       innerJoin(cuestionarioDeModelos,
           cuestionarioDeModelos.modelo.equalsExp(activos.modelo)),
+      innerJoin(cuestionarios,
+          cuestionarios.id.equalsExp(cuestionarioDeModelos.cuestionarioId))
     ])
       ..where(activos.identificador.equals(vehiculo));
 
     return query.map((row) {
-      return row.readTable(cuestionarioDeModelos);
+      return row.readTable(cuestionarios);
     }).get();
   }
 

@@ -10,14 +10,14 @@ class InicioInspeccionForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => ValueNotifier<List<CuestionarioDeModelo>>([]),
+      create: (context) => ValueNotifier<List<Cuestionario>>([]),
       builder: (context, child) {
         final tiposDeInspeccion =
-            Provider.of<ValueNotifier<List<CuestionarioDeModelo>>>(context);
+            Provider.of<ValueNotifier<List<Cuestionario>>>(context);
         return ReactiveFormBuilder(
           form: () {
             final tipoInspeccionCtrl =
-                fb.control<CuestionarioDeModelo>(null, [Validators.required]);
+                fb.control<Cuestionario>(null, [Validators.required]);
             return fb.group({
               'activo': fb.control<String>('', [Validators.required])
                 ..valueChanges.listen((activo) async {
@@ -84,7 +84,7 @@ class _BotonInicioInspeccion extends StatelessWidget {
           ? () => _onPressed(
                 context,
                 form.control('activo').value as String,
-                form.control('tipoDeInspeccion').value.cuestionarioId as int,
+                form.control('tipoDeInspeccion').value.id as int,
               )
           : null,
       child: const Text('Inspeccionar'),

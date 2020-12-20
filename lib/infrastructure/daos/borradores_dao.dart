@@ -37,8 +37,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
         .watch()
         .asyncMap<List<Borrador>>((l) async => Future.wait<Borrador>(l.map(
               (e) async => e.copyWith(
-                cuestionarioDeModelo:
-                    await db.getCuestionarioDeModelo(e.inspeccion),
+                cuestionario: await db.getCuestionario(e.inspeccion),
               ),
             )));
   }

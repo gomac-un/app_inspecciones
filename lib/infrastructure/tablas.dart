@@ -34,9 +34,9 @@ class SubSistemas extends Table {
 
 //Tabla para asignar cuestionarios a modelos y a contratistas
 class CuestionarioDeModelos extends Table {
-  TextColumn get modelo => text()();
+  IntColumn get id => integer().autoIncrement()();
 
-  TextColumn get tipoDeInspeccion => text()();
+  TextColumn get modelo => text()();
 
   IntColumn get periodicidad => integer()();
 
@@ -45,14 +45,15 @@ class CuestionarioDeModelos extends Table {
 
   IntColumn get contratistaId => integer()
       .customConstraint('REFERENCES contratistas(id) ON DELETE SET NULL')();
-
+/*
   @override
-  Set<Column> get primaryKey => {modelo, tipoDeInspeccion};
+  Set<Column> get primaryKey => {modelo, tipoDeInspeccion};*/
 }
 
 class Cuestionarios extends Table {
-  IntColumn get id =>
-      integer().autoIncrement()(); //se podria agregar mas informacion aquí
+  IntColumn get id => integer().autoIncrement()();
+
+  TextColumn get tipoDeInspeccion => text()();
   // List<Inspecciones>
   // List<Bloques>
   //List<CuestionariosDeModelos>

@@ -39,12 +39,10 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   }
 
   Future<List<String>> getTiposDeInspecciones() {
-    final query = selectOnly(cuestionarioDeModelos, distinct: true)
-      ..addColumns([cuestionarioDeModelos.tipoDeInspeccion]);
+    final query = selectOnly(cuestionarios, distinct: true)
+      ..addColumns([cuestionarios.tipoDeInspeccion]);
 
-    return query
-        .map((row) => row.read(cuestionarioDeModelos.tipoDeInspeccion))
-        .get();
+    return query.map((row) => row.read(cuestionarios.tipoDeInspeccion)).get();
   }
 
   Future<List<Contratista>> getContratistas() => select(contratistas).get();
@@ -60,24 +58,26 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     return query.get();
   }
 
-  Future<List<CuestionarioDeModelo>> getCuestionarios(
+  Future<List<Cuestionario>> getCuestionarios(
       String tipoDeInspeccion, List<String> modelos) {
-    final query = select(cuestionarioDeModelos)
-      ..where((cm) =>
-          cm.tipoDeInspeccion.equals(tipoDeInspeccion) &
-          cm.modelo.isIn(modelos));
+    final query = select(cuestionarioDeModelos).join([
+      innerJoin(cuestionarios,
+          cuestionarios.id.equalsExp(cuestionarioDeModelos.cuestionarioId))
+    ])
+      ..where(cuestionarios.tipoDeInspeccion.equals(tipoDeInspeccion) &
+          cuestionarioDeModelos.modelo.isIn(modelos));
 
-    return query.get();
+    return query.map((row) => row.readTable(cuestionarios)).get();
   }
 
   Future crearCuestionario(Map<String, AbstractControl> form) {
     return transaction(() async {
-      final int cid =
-          await into(cuestionarios).insert(CuestionariosCompanion.insert());
-
       final String tipoDeInspeccion = form["tipoDeInspeccion"].value == "otra"
           ? form["nuevoTipoDeInspeccion"].value as String
           : form["tipoDeInspeccion"].value as String;
+
+      final int cid = await into(cuestionarios).insert(
+          CuestionariosCompanion.insert(tipoDeInspeccion: tipoDeInspeccion));
 
       await batch((batch) {
         // asociar a cada modelo con este cuestionario
@@ -86,7 +86,6 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
             (form["modelos"].value as List<String>)
                 .map((String modelo) => CuestionarioDeModelosCompanion.insert(
                     modelo: modelo,
-                    tipoDeInspeccion: tipoDeInspeccion,
                     periodicidad:
                         (form["periodicidad"].value as double).round(),
                     contratistaId:

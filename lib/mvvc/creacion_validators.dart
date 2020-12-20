@@ -17,7 +17,8 @@ Future<Map<String, dynamic>> cuestionariosExistentes(
       .getCuestionarios(tipoDeInspeccion.value, modelos.value);
 
   if (cuestionariosExistentes.isNotEmpty) {
-    modelos.setErrors({'yaExiste': cuestionariosExistentes.first.modelo});
+    modelos
+        .setErrors({'yaExiste': true /*cuestionariosExistentes.first.modelo*/});
     modelos.markAsTouched();
   } else {
     modelos.removeError('yaExiste');
