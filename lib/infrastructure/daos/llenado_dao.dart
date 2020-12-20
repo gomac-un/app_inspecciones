@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:moor/moor.dart';
-
 part 'llenado_dao.g.dart';
 
 @UseDao(tables: [

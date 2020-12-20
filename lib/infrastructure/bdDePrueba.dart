@@ -1,5 +1,5 @@
-part of 'moor_database.dart';
 
+part of 'moor_database.dart';
 /* otra posible forma del closure
 Function initialize(db) {
   return (batch) => (Batch batch, db) {
@@ -12,7 +12,7 @@ Function initialize(Database db) {
   };
 }
 
-void _initialize0(Batch batch, Database db) {
+Future<void> _initialize0(Batch batch, Database db) async {
   batch.insertAll(db.activos, [
     ActivosCompanion.insert(modelo: 'DT-Kenworth', identificador: '1'),
     ActivosCompanion.insert(modelo: 'sencillo-Kenworth', identificador: '2'),
@@ -23,15 +23,25 @@ void _initialize0(Batch batch, Database db) {
     ContratistasCompanion.insert(id: Value(2), nombre: "El otro contratista"),
   ]);
 
-  batch.insertAll(db.sistemas, [
-    SistemasCompanion.insert(id: Value(1), nombre: "Estructura"),
-    SistemasCompanion.insert(id: Value(2), nombre: "Transmisión"),
-    SistemasCompanion.insert(id: Value(3), nombre: "Eléctrico"),
-    SistemasCompanion.insert(id: Value(4), nombre: "Frenos"),
-    SistemasCompanion.insert(id: Value(5), nombre: "Hidráulico"),
-    SistemasCompanion.insert(id: Value(6), nombre: "Motor"),
-    SistemasCompanion.insert(id: Value(7), nombre: "No aplica"),
-  ]);
+   final ap.DjangoAPI tabla = ap.DjangoAPI();
+    for (final  item in await tabla.tablaSistema())  {
+      print(tabla.tablaSistema());
+      batch.insertAll(db.sistemas, [
+        SistemasCompanion.insert(id: Value(item.id), nombre: item.nombre),
+        ]);
+    } 
+  
+/* batch.insertAll(db.sistemas, [
+    SistemasCompanion.insert(id: Value(1), nombre: 'Estructura'),
+    SistemasCompanion.insert(id: Value(2), nombre: 'Transmision'),
+    SistemasCompanion.insert(id: Value(3), nombre: 'Estructura'),
+    SistemasCompanion.insert(id: Value(4), nombre: 'Estructura'),
+    SistemasCompanion.insert(id: Value(5), nombre: 'Estructura'),
+    SistemasCompanion.insert(id: Value(6), nombre: 'Estructura'),
+    SistemasCompanion.insert(id: Value(7), nombre: 'Estructura'),
+  ]);  */
+
+
 
   batch.insertAll(db.subSistemas, [
     SubSistemasCompanion.insert(nombre: "n/s", sistemaId: 1),

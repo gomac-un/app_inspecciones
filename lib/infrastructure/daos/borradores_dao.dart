@@ -1,6 +1,5 @@
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:moor/moor.dart';
-
 part 'borradores_dao.g.dart';
 
 @UseDao(tables: [

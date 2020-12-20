@@ -2,7 +2,6 @@ import 'package:injectable/injectable.dart';
 import 'package:meta/meta.dart';
 
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
 import 'package:inspecciones/infrastructure/core/network_info.dart';
 /*
 @LazySingleton() //@LazySingleton(as: IInspeccionesRepository)
