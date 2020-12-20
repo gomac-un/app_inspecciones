@@ -58,6 +58,15 @@ class CuadriculaDePreguntasConOpcionesDeRespuesta {
       this.cuadricula, this.opcionesDeRespuesta);
 }
 
+class CuadriculaConPreguntasYConOpcionesDeRespuesta {
+  final CuadriculaDePreguntas cuadricula;
+  final List<PreguntaConOpcionesDeRespuesta> preguntas;
+  final List<OpcionDeRespuesta> opcionesDeRespuesta;
+
+  CuadriculaConPreguntasYConOpcionesDeRespuesta(
+      this.cuadricula, this.preguntas, this.opcionesDeRespuesta);
+}
+
 abstract class IBloqueOrdenable {
   final Bloque bloque;
 

@@ -111,7 +111,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
             descripcion: control.value["descripcion"] as String,
           ));
         }
-        if (control is CreadorPreguntaSeleccionSimpleFormGroup) {
+        if (control is CreadorPreguntaFormGroup) {
           final appDir = await getApplicationDocumentsDirectory();
           //Mover las fotos a una carpeta unica para cada cuestionario
           final fotosGuiaProcesadas = await Future.wait(

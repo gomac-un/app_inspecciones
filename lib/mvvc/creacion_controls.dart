@@ -30,12 +30,15 @@ class CreadorTituloFormGroup extends FormGroup implements Copiable {
       );
 }
 
-class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup
+class CreadorPreguntaFormGroup extends FormGroup
     implements ConRespuestas, Copiable {
   final ValueNotifier<List<SubSistema>> subSistemas;
 
-  factory CreadorPreguntaSeleccionSimpleFormGroup(
-      [PreguntaConOpcionesDeRespuesta d]) {
+  factory CreadorPreguntaFormGroup({
+    PreguntaConOpcionesDeRespuesta defaultValue,
+    bool parteDeCuadricula = false,
+  }) {
+    final d = defaultValue;
     final sistema = fb.control<Sistema>(null, [Validators.required]);
     final subSistemas = ValueNotifier<List<SubSistema>>([]);
 
@@ -50,48 +53,57 @@ class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup
       'descripcion': fb.control<String>(d?.pregunta?.descripcion ?? ""),
       'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
-      'posicion': fb.control<String>("no aplica"),
+      'posicion': fb.control<String>(d?.pregunta?.posicion ?? "no aplica"),
       'criticidad':
           fb.control<double>(d?.pregunta?.criticidad?.toDouble() ?? 0),
       'fotosGuia': fb.array<File>(
           d?.pregunta?.fotosGuia?.iter?.map((e) => File(e))?.toList() ?? []),
-      'tipoDePregunta':
-          fb.control<TipoDePregunta>(d?.pregunta?.tipo, [Validators.required]),
+      'tipoDePregunta': fb.control<TipoDePregunta>(
+          d?.pregunta?.tipo, [if (!parteDeCuadricula) Validators.required]),
       'respuestas': fb.array<Map<String, dynamic>>(
-          d?.opcionesDeRespuesta
-                  ?.map((e) => CreadorRespuestaFormGroup(e))
-                  ?.toList() ??
-              [],
-          [Validators.minLength(1)]),
+        d?.opcionesDeRespuesta
+                ?.map((e) => CreadorRespuestaFormGroup(e))
+                ?.toList() ??
+            [],
+        [if (!parteDeCuadricula) Validators.minLength(1)],
+      ),
     };
 
-    return CreadorPreguntaSeleccionSimpleFormGroup._(controles, subSistemas);
+    return CreadorPreguntaFormGroup._(controles, subSistemas, d: d);
   }
 
   //constructor que le envia los controles a la clase padre
-  CreadorPreguntaSeleccionSimpleFormGroup._(
-      Map<String, AbstractControl<dynamic>> controles, this.subSistemas)
-      : super(controles);
+  CreadorPreguntaFormGroup._(
+      Map<String, AbstractControl<dynamic>> controles, this.subSistemas,
+      {PreguntaConOpcionesDeRespuesta d})
+      : super(controles) {
+    instanciarControls(d);
+    // Machetazo que puede dar resultados inesperados si se utiliza el
+    // constructor en codigo sincrono ya que no se está esperando a que termine esta funcion asincrona
+  }
 
   /// debido a que las instancias de sistema y subsistema se deben obtener desde la bd,
   /// se debe usar esta factory que los busca en la bd, de lo contrario quedan null
-  static Future<CreadorPreguntaSeleccionSimpleFormGroup> crearAsync(
+  /*static Future<CreadorPreguntaFormGroup> crearAsync(
       [PreguntaConOpcionesDeRespuesta d]) async {
-    final instancia = CreadorPreguntaSeleccionSimpleFormGroup(d);
+    final instancia = CreadorPreguntaFormGroup(defaultValue: d);
 
     // Do initialization that requires async
-    instancia.controls['sistema'].value =
-        await getIt<Database>().getSistemaPorId(d.pregunta.sistemaId);
-    instancia.controls['subSistema'].value =
-        await getIt<Database>().getSubSistemaPorId(d.pregunta.subSistemaId);
+    
 
     // Return the fully initialized object
     return instancia;
+  }*/
+  Future<void> instanciarControls(PreguntaConOpcionesDeRespuesta d) async {
+    controls['sistema'].value =
+        await getIt<Database>().getSistemaPorId(d?.pregunta?.sistemaId);
+    controls['subSistema'].value =
+        await getIt<Database>().getSubSistemaPorId(d?.pregunta?.subSistemaId);
   }
 
   @override
-  Future<CreadorPreguntaSeleccionSimpleFormGroup> copiar() async {
-    return CreadorPreguntaSeleccionSimpleFormGroup.crearAsync(toDataclass());
+  Future<CreadorPreguntaFormGroup> copiar() async {
+    return CreadorPreguntaFormGroup(defaultValue: toDataclass());
   }
 
   PreguntaConOpcionesDeRespuesta toDataclass() =>
@@ -113,12 +125,8 @@ class CreadorPreguntaSeleccionSimpleFormGroup extends FormGroup
           tipo: value['tipoDePregunta'] as TipoDePregunta,
         ),
         (control('respuestas') as FormArray).controls.map((e) {
-          final formGroup = e as FormGroup;
-          return OpcionDeRespuesta(
-            id: null,
-            texto: formGroup.value['texto'] as String,
-            criticidad: (formGroup.value['criticidad'] as double).round(),
-          );
+          final formGroup = e as CreadorRespuestaFormGroup;
+          return formGroup.toDataClass();
         }).toList(),
       );
 
@@ -148,13 +156,21 @@ class CreadorRespuestaFormGroup extends FormGroup {
           'texto': fb.control<String>(d?.texto ?? "", [Validators.required]),
           'criticidad': fb.control<double>(d?.criticidad?.toDouble() ?? 0)
         });
+
+  OpcionDeRespuesta toDataClass() => OpcionDeRespuesta(
+        id: null,
+        texto: value['texto'] as String,
+        criticidad: (value['criticidad'] as double).round(),
+      );
 }
 
 class CreadorPreguntaCuadriculaFormGroup extends FormGroup
-    implements ConRespuestas {
+    implements ConRespuestas, Copiable {
   final ValueNotifier<List<SubSistema>> subSistemas;
 
-  factory CreadorPreguntaCuadriculaFormGroup() {
+  factory CreadorPreguntaCuadriculaFormGroup(
+      {CuadriculaConPreguntasYConOpcionesDeRespuesta defaultValue}) {
+    final d = defaultValue;
     final sistema = fb.control<Sistema>(null, [Validators.required]);
     final subSistemas = ValueNotifier<List<SubSistema>>([]);
 
@@ -164,15 +180,26 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     });
 
     final Map<String, AbstractControl<dynamic>> controles = {
-      'titulo': fb.control<String>(""),
-      'descripcion': fb.control<String>(""),
+      'titulo': fb.control<String>(d?.cuadricula?.titulo ?? ""),
+      'descripcion': fb.control<String>(d?.cuadricula?.descripcion ?? ""),
       'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
       'posicion': fb.control<String>("no aplica"),
-      'preguntas':
-          fb.array<Map<String, dynamic>>([], [Validators.minLength(1)]),
-      'respuestas':
-          fb.array<Map<String, dynamic>>([], [Validators.minLength(1)]),
+      'preguntas': fb.array<Map<String, dynamic>>(
+        d?.preguntas
+                ?.map((e) => CreadorPreguntaFormGroup(
+                    defaultValue: e, parteDeCuadricula: true))
+                ?.toList() ??
+            [],
+        [Validators.minLength(1)],
+      ),
+      'respuestas': fb.array<Map<String, dynamic>>(
+        d?.opcionesDeRespuesta
+                ?.map((e) => CreadorRespuestaFormGroup(e))
+                ?.toList() ??
+            [],
+        [Validators.minLength(1)],
+      ),
     };
 
     return CreadorPreguntaCuadriculaFormGroup._(controles, subSistemas);
@@ -182,9 +209,16 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     this.subSistemas,
   ) : super(controles);
 
-  void agregarPregunta() {
-    (control('preguntas') as FormArray)
-        .add(CreadorSubPreguntaCuadriculaFormGroup());
+  /// Se le agrega el sistema y subsistema por defecto de la cuadricula,
+  /// similar a lo que realiza la factory crearAsync pero sin otros valores por defecto
+  Future<void> agregarPregunta() async {
+    final instancia = CreadorPreguntaFormGroup(parteDeCuadricula: true);
+    await Future.delayed(const Duration(
+        seconds:
+            1)); //machete para poder asignar el sistema sin que el constructor le asigne null despues
+    instancia.controls['sistema'].value = value['sistema'] as Sistema;
+    instancia.controls['subSistema'].value = value['subSistema'] as SubSistema;
+    (control('preguntas') as FormArray).add(instancia);
   }
 
   void borrarPregunta(AbstractControl e) {
@@ -212,8 +246,36 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     super.dispose();
     subSistemas.dispose();
   }
+
+  @override
+  Future<CreadorPreguntaCuadriculaFormGroup> copiar() async {
+    //instanciar los sistemas y subsitemas de las preguntas
+
+    return CreadorPreguntaCuadriculaFormGroup(defaultValue: toDataclass());
+  }
+
+  CuadriculaConPreguntasYConOpcionesDeRespuesta toDataclass() =>
+      CuadriculaConPreguntasYConOpcionesDeRespuesta(
+        CuadriculaDePreguntas(
+          id: null,
+          bloqueId: null,
+          titulo: value['titulo'] as String,
+          descripcion: value['descripcion'] as String,
+        ),
+        (controls['preguntas'] as FormArray).controls.map((e) {
+          final formGroup = e as CreadorPreguntaFormGroup;
+          return formGroup.toDataclass();
+        }).toList(),
+        (control('respuestas') as FormArray).controls.map((e) {
+          final formGroup = e as CreadorRespuestaFormGroup;
+          return formGroup.toDataClass();
+        }).toList(),
+        /*List<PreguntaConOpcionesDeRespuesta>
+        List<OpcionDeRespuesta>*/
+      );
 }
 
+/*
 class CreadorSubPreguntaCuadriculaFormGroup extends FormGroup {
   CreadorSubPreguntaCuadriculaFormGroup()
       : super({
@@ -223,7 +285,7 @@ class CreadorSubPreguntaCuadriculaFormGroup extends FormGroup {
           'criticidad': fb.control<double>(0),
         });
 }
-
+*/
 abstract class ConRespuestas {
   void agregarRespuesta();
   void borrarRespuesta(AbstractControl e);
