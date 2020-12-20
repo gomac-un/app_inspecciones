@@ -3,6 +3,7 @@ import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+//FIXME: no recalcula cuando cambia el tipo de inspeccion
 Future<Map<String, dynamic>> cuestionariosExistentes(
     AbstractControl<dynamic> control) async {
   final form = control as FormGroup;

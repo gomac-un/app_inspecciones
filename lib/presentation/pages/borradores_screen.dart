@@ -24,7 +24,7 @@ class BorradoresPage extends StatelessWidget {
               //TODO: implementar la subida de inspecciones al server
               throw Exception();
             },
-            icon: Icon(Icons.upload_file),
+            icon: const Icon(Icons.upload_file),
             tooltip: "Subir inspecciones",
           )
         ],

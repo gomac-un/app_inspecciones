@@ -87,7 +87,14 @@ class Database extends _$Database {
   }
 
   //datos para la creacion de cuestionarios
-
+  Future<Sistema> getSistemaPorId(int id) {
+    final query = select(sistemas)..where((s) => s.id.equals(id));
+    return query.getSingle();
+  }
+  Future<SubSistema> getSubSistemaPorId(int id) {
+    final query = select(subSistemas)..where((s) => s.id.equals(id));
+    return query.getSingle();
+  }
   //datos para el llenado de inspecciones
 
   Future<Inspeccion> crearInspeccion(

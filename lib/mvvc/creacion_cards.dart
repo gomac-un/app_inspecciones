@@ -445,7 +445,6 @@ class BotonesDeBloque extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<CreacionFormViewModel>(context);
     return ButtonBar(
       //TODO: estilizar mejor estos iconos
       alignment: MainAxisAlignment.spaceBetween,
@@ -453,46 +452,72 @@ class BotonesDeBloque extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.add_circle_outline),
           tooltip: 'agregar pregunta',
-          onPressed: () => agregar(
-              context, viewModel, CreadorPreguntaSeleccionSimpleFormGroup()),
+          onPressed: () =>
+              agregarBloque(context, CreadorPreguntaSeleccionSimpleFormGroup()),
         ),
         IconButton(
           icon: const Icon(Icons.format_size),
           tooltip: 'agregar titulo',
-          onPressed: () =>
-              agregar(context, viewModel, CreadorTituloFormGroup()),
+          onPressed: () => agregarBloque(context, CreadorTituloFormGroup()),
         ),
         IconButton(
           icon: const Icon(Icons.view_module),
           tooltip: 'agregar cuadricula',
           onPressed: () =>
-              agregar(context, viewModel, CreadorPreguntaCuadriculaFormGroup()),
+              agregarBloque(context, CreadorPreguntaCuadriculaFormGroup()),
+        ),
+        IconButton(
+          icon: const Icon(Icons.copy),
+          tooltip: 'copiar bloque',
+          onPressed: () => copiarBloque(context),
+        ),
+        IconButton(
+          icon: const Icon(Icons.paste),
+          tooltip: 'pegar bloque',
+          onPressed: () => pegarBloque(context),
         ),
         IconButton(
           icon: const Icon(Icons.delete),
           tooltip: 'borrar bloque',
-          onPressed: () {
-            final index =
-                (formGroup.parent as FormArray).controls.indexOf(formGroup);
-            if (index == 0) return; //no borre el primer titulo
-            AnimatedList.of(context).removeItem(
-              index,
-              (context, animation) => ControlWidgetAnimado(
-                element: formGroup,
-                index: index,
-                animation: animation,
-              ),
-            );
-            viewModel.borrarBloque(formGroup);
-          },
+          onPressed: () => borrarBloque(context),
         ),
         if (nro != null) Text('${nro + 1}'),
       ],
     );
   }
 
-  void agregar(BuildContext context, CreacionFormViewModel viewModel,
-      AbstractControl nuevo) {
+  void copiarBloque(BuildContext context) {
+    final viewModel =
+        Provider.of<CreacionFormViewModel>(context, listen: false);
+    viewModel.bloqueCopiado = formGroup as Copiable;
+  }
+
+  Future<void> pegarBloque(BuildContext context) async {
+    final viewModel =
+        Provider.of<CreacionFormViewModel>(context, listen: false);
+    agregarBloque(context, await viewModel.bloqueCopiado.copiar());
+  }
+
+  void borrarBloque(BuildContext context) {
+    final viewModel =
+        Provider.of<CreacionFormViewModel>(context, listen: false);
+
+    final index = (formGroup.parent as FormArray).controls.indexOf(formGroup);
+    if (index == 0) return; //no borre el primer titulo
+    AnimatedList.of(context).removeItem(
+      index,
+      (context, animation) => ControlWidgetAnimado(
+        element: formGroup,
+        index: index,
+        animation: animation,
+      ),
+    );
+    viewModel.borrarBloque(formGroup);
+  }
+
+  void agregarBloque(BuildContext context, AbstractControl nuevo) {
+    final viewModel =
+        Provider.of<CreacionFormViewModel>(context, listen: false);
     AnimatedList.of(context).insertItem(
         (formGroup.parent as FormArray).controls.indexOf(formGroup) + 1);
     viewModel.agregarBloqueDespuesDe(bloque: nuevo, despuesDe: formGroup);

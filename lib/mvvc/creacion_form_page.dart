@@ -17,18 +17,18 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
 
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
-        create: (ctx) => CreacionFormViewModel(),
+        create: (ctx) => CreacionFormViewModel()..cargarDatos(),
         dispose: (context, CreacionFormViewModel value) => value.dispose(),
         child: this,
       );
 
   @override
   Widget build(BuildContext context) {
-    final viewModel =
+    final formGroup =
         Provider.of<CreacionFormViewModel>(context, listen: false);
 
     return ReactiveForm(
-      formGroup: viewModel.form,
+      formGroup: formGroup,
       child: FormScaffold(
         title: const Text('Creación de inspeccion'),
         body: Column(
@@ -38,10 +38,10 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
               child: Column(
                 children: [
                   ValueListenableBuilder<List<String>>(
-                    valueListenable: viewModel.tiposDeInspeccion,
+                    valueListenable: formGroup.tiposDeInspeccion,
                     builder: (context, value, child) {
                       return ReactiveDropdownField<String>(
-                        formControl: viewModel.tipoDeInspeccion,
+                        formControlName: "tipoDeInspeccion",
                         items: value
                             .map((e) => DropdownMenuItem<String>(
                                   value: e,
@@ -56,11 +56,11 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                   ),
                   const SizedBox(height: 10),
                   ReactiveValueListenableBuilder<String>(
-                      formControl: viewModel.tipoDeInspeccion,
+                      formControlName: "tipoDeInspeccion",
                       builder: (context, value, child) {
                         if (value.value == "otra") {
                           return ReactiveTextField(
-                            formControl: viewModel.nuevoTipoDeinspeccion,
+                            formControlName: "nuevoTipoDeInspeccion",
                             decoration: const InputDecoration(
                               labelText: 'Escriba el tipo de inspeccion',
                               prefixIcon: Icon(Icons.text_fields),
@@ -75,10 +75,10 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
             PreguntaCard(
               titulo: 'Modelos de vehiculo',
               child: ValueListenableBuilder<List<String>>(
-                  valueListenable: viewModel.modelos,
+                  valueListenable: formGroup.modelos,
                   builder: (context, modelos, child) {
                     return ReactiveMultiSelectDialogField(
-                        formControl: viewModel.modelosSeleccionados,
+                        formControlName: 'modelos',
                         items:
                             modelos.map((e) => MultiSelectItem(e, e)).toList(),
                         buttonText: const Text(
@@ -94,10 +94,10 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
             PreguntaCard(
               titulo: 'Contratista',
               child: ValueListenableBuilder<List<Contratista>>(
-                valueListenable: viewModel.contratistas,
+                valueListenable: formGroup.contratistas,
                 builder: (context, value, child) {
                   return ReactiveDropdownField(
-                    formControl: viewModel.contratista,
+                    formControlName: 'contratista',
                     items: value
                         .map((e) => DropdownMenuItem(
                               value: e,
@@ -119,7 +119,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
               titulo: 'periodicidad',
               descripcion: '(en dias)',
               child: ReactiveSlider(
-                formControl: viewModel.periodicidad,
+                formControlName: 'periodicidad',
                 max: 100.0,
                 divisions: 100,
                 labelBuilder: (v) => v.round().toString(),
@@ -128,10 +128,12 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
             AnimatedList(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              initialItemCount: viewModel.bloques.controls.length,
+              initialItemCount:
+                  (formGroup.control("bloques") as FormArray).controls.length,
               itemBuilder: (context, index, animation) {
                 return ControlWidgetAnimado(
-                  element: viewModel.bloques.controls[index],
+                  element: (formGroup.control("bloques") as FormArray)
+                      .controls[index],
                   index: index,
                   animation: animation,
                 );
@@ -154,7 +156,6 @@ class BotonFinalizar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final form = ReactiveForm.of(context);
-    final viewModel = Provider.of<CreacionFormViewModel>(context);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -165,7 +166,7 @@ class BotonFinalizar extends StatelessWidget {
             label: 'Finalizar',
             onPressed: !form.valid
                 ? () {
-                    viewModel.form.markAllAsTouched();
+                    form.markAllAsTouched();
                     Scaffold.of(context).showSnackBar(SnackBar(
                         content: Row(
                       children: [
@@ -189,7 +190,7 @@ class BotonFinalizar extends StatelessWidget {
                   }
                 : () async {
                     LoadingDialog.show(context);
-                    await viewModel.enviar();
+                    await (form as CreacionFormViewModel).enviar();
                     LoadingDialog.hide(context);
                     ExtendedNavigator.of(context)
                         .pop("Cuestionario creado exitosamente");
