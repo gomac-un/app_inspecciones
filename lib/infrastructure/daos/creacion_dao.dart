@@ -169,10 +169,9 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                         bloqueId: bid,
                         titulo: e["titulo"] as String,
                         descripcion: e["descripcion"] as String,
-                        sistemaId: control.value["sistema"].id
-                            as int, //TODO: sistema/subsistema/posicion diferente para cada pregunta
-                        subSistemaId: control.value["subSistema"].id as int,
-                        posicion: control.value["posicion"] as String,
+                        sistemaId: e["sistema"].id as int,
+                        subSistemaId: e["subSistema"].id as int,
+                        posicion: e["posicion"] as String,
                         tipo: TipoDePregunta
                             .unicaRespuesta, //TODO: multiple respuesta para cuadriculas
                         criticidad: e["criticidad"].round() as int,

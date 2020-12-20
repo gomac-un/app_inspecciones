@@ -35,7 +35,7 @@ class SubSistemas extends Table {
 //Tabla para asignar cuestionarios a modelos y a contratistas
 class CuestionarioDeModelos extends Table {
   IntColumn get id => integer().autoIncrement()();
-
+  //El modelo especial "todos" aplica para todos los vehiculos
   TextColumn get modelo => text()();
 
   IntColumn get periodicidad => integer()();
@@ -45,9 +45,6 @@ class CuestionarioDeModelos extends Table {
 
   IntColumn get contratistaId => integer()
       .customConstraint('REFERENCES contratistas(id) ON DELETE SET NULL')();
-/*
-  @override
-  Set<Column> get primaryKey => {modelo, tipoDeInspeccion};*/
 }
 
 class Cuestionarios extends Table {
@@ -167,7 +164,8 @@ class OpcionesDeRespuesta extends Table {
 
 @DataClassName('Inspeccion')
 class Inspecciones extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  // este id tiene el formato: yymmddhhmm(activoId)
+  IntColumn get id => integer()();
 
   IntColumn get estado => intEnum<EstadoDeInspeccion>()();
 
@@ -182,6 +180,9 @@ class Inspecciones extends Table {
   DateTimeColumn get momentoBorradorGuardado => dateTime().nullable()();
 
   DateTimeColumn get momentoEnvio => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 class Respuestas extends Table {

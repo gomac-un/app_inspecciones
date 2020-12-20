@@ -25,7 +25,11 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   // of this object.
   LlenadoDao(Database db) : super(db);
 
-  Future<List<Cuestionario>> cuestionariosParaVehiculo(String vehiculo) {
+  /// Trae una lista con todos los cuestionarios disponibles para un activo,
+  /// incluyendo los cuestionarios que son asignados a todos los activos
+  Future<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
+    if (activo == null) return null;
+    /*
     final query = select(activos).join([
       innerJoin(cuestionarioDeModelos,
           cuestionarioDeModelos.modelo.equalsExp(activos.modelo)),
@@ -36,7 +40,19 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
 
     return query.map((row) {
       return row.readTable(cuestionarios);
-    }).get();
+    }).get();*/
+
+    return customSelect(
+      '''
+      SELECT cuestionarios.* FROM activos
+      INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.modelo = activos.modelo
+      INNER JOIN cuestionarios ON cuestionarios.id = cuestionario_de_modelos.cuestionario_id
+      WHERE activos.identificador = $activo
+      UNION
+      SELECT cuestionarios.* FROM cuestionarios
+      INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.modelo = 'todos'
+      ;''',
+    ).map((row) => Cuestionario.fromData(row.data, db)).get();
   }
 
   Future<Inspeccion> getInspeccion(String activo, int cuestionarioId) {

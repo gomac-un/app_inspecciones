@@ -41,6 +41,8 @@ class CreacionFormViewModel extends FormGroup {
     tiposDeInspeccion.value.add("otra");
 
     modelos.value = await _db.creacionDao.getModelos();
+    modelos.value.add("todos");
+
     contratistas.value = await _db.creacionDao.getContratistas();
     sistemas.value = await _db.creacionDao.getSistemas();
   }

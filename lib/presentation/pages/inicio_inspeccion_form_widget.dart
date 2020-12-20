@@ -23,7 +23,7 @@ class InicioInspeccionForm extends StatelessWidget {
                 ..valueChanges.listen((activo) async {
                   final res = await getIt<Database>()
                       .llenadoDao
-                      .cuestionariosParaVehiculo(activo);
+                      .cuestionariosParaActivo(activo);
                   tiposDeInspeccion.value = res;
 
                   tipoInspeccionCtrl.value = res.isNotEmpty ? res.first : null;
