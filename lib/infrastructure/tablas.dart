@@ -164,7 +164,7 @@ class OpcionesDeRespuesta extends Table {
 
 @DataClassName('Inspeccion')
 class Inspecciones extends Table {
-  // este id tiene el formato: yymmddhhmm(activoId)
+  // este id tiene el formato: yymmddhhmm(activoId) ver [Database.generarId()]
   IntColumn get id => integer()();
 
   IntColumn get estado => intEnum<EstadoDeInspeccion>()();

@@ -5,6 +5,7 @@ import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
+import 'package:intl/intl.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
 import 'package:path/path.dart' as path;
@@ -107,11 +108,19 @@ class Database extends _$Database {
     final query = select(subSistemas)..where((s) => s.id.equals(id));
     return query.getSingle();
   }
+
   //datos para el llenado de inspecciones
+  int generarId(String activo) {
+    final fechaFormateada = DateFormat("yyMMddHm").format(DateTime.now());
+
+    return int.parse('$fechaFormateada$activo');
+  }
 
   Future<Inspeccion> crearInspeccion(
       int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
+    if (activo == null) throw Exception("activo nulo");
     final ins = InspeccionesCompanion.insert(
+      id: Value(generarId(activo)),
       cuestionarioId: cuestionarioId,
       estado: estado,
       identificadorActivo: activo,
@@ -125,6 +134,7 @@ class Database extends _$Database {
       int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
     Inspeccion ins = await llenadoDao.getInspeccion(activo, cuestionarioId);
     ins ??= await crearInspeccion(cuestionarioId, activo, estado);
+
     for (final rf in respuestasForm) {
       rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
     }
