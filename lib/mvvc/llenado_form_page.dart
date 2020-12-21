@@ -24,7 +24,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
         create: (ctx) => LlenadoFormViewModel(vehiculo, cuestionarioId),
-        dispose: (context, LlenadoFormViewModel value) => value.form.dispose(),
+        dispose: (context, LlenadoFormViewModel value) => value.dispose(),
         child: this,
       );
 
@@ -61,7 +61,8 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                                   as BloqueDeFormulario;
                               if (estado == EstadoDeInspeccion.reparacion &&
                                   element.criticidad == 0) {
-                                return const SizedBox.shrink();
+                                return const SizedBox
+                                    .shrink(); //Esconde los que tienen criticidad 0 si la inspeccion esta en reparacion
                               }
                               if (element is TituloFormGroup) {
                                 return TituloCard(formGroup: element);

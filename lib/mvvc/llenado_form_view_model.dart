@@ -9,8 +9,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 part 'llenado_datos_test.dart';
 
-//TODO: agregar todas las validaciones necesarias
-
+//TODO: verificar y asociar al usuario
 class LlenadoFormViewModel {
   final _db = getIt<Database>();
 
@@ -84,5 +83,11 @@ class LlenadoFormViewModel {
   void finalizar() {
     //TODO: implementar
     form.markAllAsTouched();
+  }
+
+  void dispose() {
+    cargada.dispose();
+    estado.dispose();
+    form.dispose();
   }
 }

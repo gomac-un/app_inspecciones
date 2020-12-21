@@ -2,12 +2,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/injection.dart';
+import 'package:inspecciones/presentation/pages/generar_pdf.dart';
 import 'package:inspecciones/presentation/pages/inicio_inspeccion_form_widget.dart';
 import 'package:inspecciones/presentation/widgets/drawer.dart';
 import 'package:inspecciones/router.gr.dart';
 
 import '../../infrastructure/moor_database.dart';
 
+//TODO: creacion de inpecciones con excel
 class BorradoresPage extends StatelessWidget {
   final Database _db = getIt<Database>();
 
@@ -25,6 +27,13 @@ class BorradoresPage extends StatelessWidget {
               throw Exception();
             },
             icon: const Icon(Icons.upload_file),
+            tooltip: "Subir inspecciones",
+          ),
+          IconButton(
+            onPressed: () {
+              generarPDF();
+            },
+            icon: const Icon(Icons.ac_unit),
             tooltip: "Subir inspecciones",
           ),
         ],

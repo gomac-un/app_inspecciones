@@ -74,6 +74,6 @@ class CreacionFormViewModel extends FormGroup {
     modelos.dispose();
     contratistas.dispose();
     sistemas.dispose();
-    dispose();
+    super.dispose();
   }
 }
