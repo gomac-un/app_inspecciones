@@ -40,7 +40,7 @@ class ImageSourceBottomSheet extends StatelessWidget {
   final Widget galleryLabel;
   final EdgeInsets bottomSheetPadding;
 
-  ImageSourceBottomSheet({
+  const ImageSourceBottomSheet({
     Key key,
     this.maxHeight,
     this.maxWidth,
@@ -58,7 +58,7 @@ class ImageSourceBottomSheet extends StatelessWidget {
 
   Future<void> _onPickImage(ImageSource source) async {
     final imagePicker = ImagePicker();
-    var pickedFile;
+    PickedFile pickedFile;
     try {
       pickedFile = await imagePicker.getImage(
         source: source,
@@ -68,7 +68,6 @@ class ImageSourceBottomSheet extends StatelessWidget {
         preferredCameraDevice: preferredCameraDevice,
       );
     } catch (e) {
-      print(e);
       //TODO: tipos de errores
       pickedFile = null;
     }

@@ -15,8 +15,7 @@ class ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
-      heroTag: null,
-      label: label != null ? Text(label) : Text(''),
+      label: label != null ? Text(label) : const Text(''),
       icon: Icon(iconData),
       onPressed: onPressed,
     );

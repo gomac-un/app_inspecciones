@@ -39,12 +39,10 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   }
 
   Future<List<String>> getTiposDeInspecciones() {
-    final query = selectOnly(cuestionarioDeModelos, distinct: true)
-      ..addColumns([cuestionarioDeModelos.tipoDeInspeccion]);
+    final query = selectOnly(cuestionarios, distinct: true)
+      ..addColumns([cuestionarios.tipoDeInspeccion]);
 
-    return query
-        .map((row) => row.read(cuestionarioDeModelos.tipoDeInspeccion))
-        .get();
+    return query.map((row) => row.read(cuestionarios.tipoDeInspeccion)).get();
   }
 
   Future<List<Contratista>> getContratistas() => select(contratistas).get();
@@ -60,24 +58,26 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     return query.get();
   }
 
-  Future<List<CuestionarioDeModelo>> getCuestionarios(
+  Future<List<Cuestionario>> getCuestionarios(
       String tipoDeInspeccion, List<String> modelos) {
-    final query = select(cuestionarioDeModelos)
-      ..where((cm) =>
-          cm.tipoDeInspeccion.equals(tipoDeInspeccion) &
-          cm.modelo.isIn(modelos));
+    final query = select(cuestionarioDeModelos).join([
+      innerJoin(cuestionarios,
+          cuestionarios.id.equalsExp(cuestionarioDeModelos.cuestionarioId))
+    ])
+      ..where(cuestionarios.tipoDeInspeccion.equals(tipoDeInspeccion) &
+          cuestionarioDeModelos.modelo.isIn(modelos));
 
-    return query.get();
+    return query.map((row) => row.readTable(cuestionarios)).get();
   }
 
   Future crearCuestionario(Map<String, AbstractControl> form) {
     return transaction(() async {
-      int cid =
-          await into(cuestionarios).insert(CuestionariosCompanion.insert());
-
       final String tipoDeInspeccion = form["tipoDeInspeccion"].value == "otra"
-          ? form["nuevoTipoDeInspeccion"].value
-          : form["tipoDeInspeccion"].value;
+          ? form["nuevoTipoDeInspeccion"].value as String
+          : form["tipoDeInspeccion"].value as String;
+
+      final int cid = await into(cuestionarios).insert(
+          CuestionariosCompanion.insert(tipoDeInspeccion: tipoDeInspeccion));
 
       await batch((batch) {
         // asociar a cada modelo con este cuestionario
@@ -86,7 +86,6 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
             (form["modelos"].value as List<String>)
                 .map((String modelo) => CuestionarioDeModelosCompanion.insert(
                     modelo: modelo,
-                    tipoDeInspeccion: tipoDeInspeccion,
                     periodicidad:
                         (form["periodicidad"].value as double).round(),
                     contratistaId:
@@ -98,20 +97,21 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
       await Future.forEach(
           (form["bloques"] as FormArray).controls.asMap().entries,
           (entry) async {
-        final i = entry.key;
+        final i = entry.key as int;
         final control = entry.value;
         final bid = await into(bloques)
             .insert(BloquesCompanion.insert(cuestionarioId: cid, nOrden: i));
 
         //TODO: guardar inserts de cada tipo en listas para luego insertarlos en batch
+        //TODO: usar los metodos toDataClass de los formGroups para obtener los datos de cada bloque
         if (control is CreadorTituloFormGroup) {
           await into(titulos).insert(TitulosCompanion.insert(
             bloqueId: bid,
-            titulo: control.value["titulo"],
-            descripcion: control.value["descripcion"],
+            titulo: control.value["titulo"] as String,
+            descripcion: control.value["descripcion"] as String,
           ));
         }
-        if (control is CreadorPreguntaSeleccionSimpleFormGroup) {
+        if (control is CreadorPreguntaFormGroup) {
           final appDir = await getApplicationDocumentsDirectory();
           //Mover las fotos a una carpeta unica para cada cuestionario
           final fotosGuiaProcesadas = await Future.wait(
@@ -128,13 +128,13 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
           final pid = await into(preguntas).insert(
             PreguntasCompanion.insert(
               bloqueId: bid,
-              titulo: control.value["titulo"],
-              descripcion: control.value["descripcion"],
-              sistemaId: control.value["sistema"].id,
-              subSistemaId: control.value["subSistema"].id,
-              posicion: control.value["posicion"],
-              tipo: control.value["tipoDePregunta"],
-              criticidad: control.value["criticidad"].round(),
+              titulo: control.value["titulo"] as String,
+              descripcion: control.value["descripcion"] as String,
+              sistemaId: control.value["sistema"].id as int,
+              subSistemaId: control.value["subSistema"].id as int,
+              posicion: control.value["posicion"] as String,
+              tipo: control.value["tipoDePregunta"] as TipoDePregunta,
+              criticidad: control.value["criticidad"].round() as int,
               fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
               parteDeCuadricula: false,
             ),
@@ -146,8 +146,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               (control.value["respuestas"] as List<Map>)
                   .map((e) => OpcionesDeRespuestaCompanion.insert(
                         preguntaId: Value(pid),
-                        texto: e["texto"],
-                        criticidad: e["criticidad"].round(),
+                        texto: e["texto"] as String,
+                        criticidad: e["criticidad"].round() as int,
                       ))
                   .toList(),
             );
@@ -157,8 +157,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
           final cuadrId = await into(cuadriculasDePreguntas).insert(
               CuadriculasDePreguntasCompanion.insert(
                   bloqueId: bid,
-                  titulo: control.value["titulo"],
-                  descripcion: control.value["descripcion"]));
+                  titulo: control.value["titulo"] as String,
+                  descripcion: control.value["descripcion"] as String));
 
           //Asociacion de las preguntas con esta cuadricula
           await batch((batch) {
@@ -167,15 +167,14 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               (control.value["preguntas"] as List<Map>)
                   .map((e) => PreguntasCompanion.insert(
                         bloqueId: bid,
-                        titulo: e["titulo"],
-                        descripcion: e["descripcion"],
-                        sistemaId: control.value["sistema"]
-                            .id, //TODO: sistema/subsistema/posicion diferente para cada pregunta
-                        subSistemaId: control.value["subSistema"].id,
-                        posicion: control.value["posicion"],
+                        titulo: e["titulo"] as String,
+                        descripcion: e["descripcion"] as String,
+                        sistemaId: e["sistema"].id as int,
+                        subSistemaId: e["subSistema"].id as int,
+                        posicion: e["posicion"] as String,
                         tipo: TipoDePregunta
                             .unicaRespuesta, //TODO: multiple respuesta para cuadriculas
-                        criticidad: e["criticidad"].round(),
+                        criticidad: e["criticidad"].round() as int,
                         parteDeCuadricula:
                             true, //TODO: fotos para cada pregunta
                       ))
@@ -189,8 +188,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               (control.value["respuestas"] as List<Map>)
                   .map((e) => OpcionesDeRespuestaCompanion.insert(
                         cuadriculaId: Value(cuadrId),
-                        texto: e["texto"],
-                        criticidad: e["criticidad"].round(),
+                        texto: e["texto"] as String,
+                        criticidad: e["criticidad"].round() as int,
                       ))
                   .toList(),
             );

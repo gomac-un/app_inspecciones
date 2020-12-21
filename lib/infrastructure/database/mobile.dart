@@ -13,7 +13,7 @@ import '../moor_database.dart';
 abstract class RegisterModule {
   @lazySingleton
   Database constructDb() {
-    bool logStatements = true;
+    const logStatements = true;
     if (Platform.isIOS || Platform.isAndroid) {
       final executor = LazyDatabase(() async {
         final dataDir = await paths.getApplicationDocumentsDirectory();

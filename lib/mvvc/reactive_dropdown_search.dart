@@ -30,7 +30,7 @@ class ReactiveDropdownSearch<V> extends ReactiveFormField<V> {
                 onChanged: (value) {
                   field.didChange(value);
                 },
-                selectedItem: field.value,
+                selectedItem: field.value as V,
                 itemAsString: itemAsString,
               );
             });

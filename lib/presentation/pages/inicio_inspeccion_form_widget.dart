@@ -10,23 +10,23 @@ class InicioInspeccionForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => ValueNotifier<List<CuestionarioDeModelo>>([]),
+      create: (context) => ValueNotifier<List<Cuestionario>>([]),
       builder: (context, child) {
         final tiposDeInspeccion =
-            Provider.of<ValueNotifier<List<CuestionarioDeModelo>>>(context);
+            Provider.of<ValueNotifier<List<Cuestionario>>>(context);
         return ReactiveFormBuilder(
           form: () {
             final tipoInspeccionCtrl =
-                fb.control<CuestionarioDeModelo>(null, [Validators.required]);
+                fb.control<Cuestionario>(null, [Validators.required]);
             return fb.group({
               'activo': fb.control<String>('', [Validators.required])
                 ..valueChanges.listen((activo) async {
                   final res = await getIt<Database>()
                       .llenadoDao
-                      .cuestionariosParaVehiculo(activo);
+                      .cuestionariosParaActivo(activo);
                   tiposDeInspeccion.value = res;
 
-                  tipoInspeccionCtrl.value = res.length > 0 ? res.first : null;
+                  tipoInspeccionCtrl.value = res.isNotEmpty ? res.first : null;
                 }),
               'tipoDeInspeccion': tipoInspeccionCtrl,
             });
@@ -37,12 +37,12 @@ class InicioInspeccionForm extends StatelessWidget {
               children: [
                 ReactiveTextField(
                   formControlName: 'activo',
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Escriba el ID del vehiculo',
                     prefixIcon: Icon(Icons.directions_car),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 ValueListenableBuilder(
                   valueListenable: tiposDeInspeccion,
                   builder: (context, value, child) => ReactiveDropdownField(
@@ -51,7 +51,7 @@ class InicioInspeccionForm extends StatelessWidget {
                         .map((e) => DropdownMenuItem(
                             value: e, child: Text(e.tipoDeInspeccion)))
                         .toList(),
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Seleccione una opción',
                     ),
                   ),
@@ -80,23 +80,16 @@ class _BotonInicioInspeccion extends StatelessWidget {
   Widget build(BuildContext context) {
     final form = ReactiveForm.of(context) as FormGroup;
     return RaisedButton(
-      child: Text('Inspeccionar'),
       onPressed: form.valid
-          ? () => _onPressed(
-                context,
-                form.control('activo').value,
-                form.control('tipoDeInspeccion').value.cuestionarioId,
+          ? () => ExtendedNavigator.of(context).pop(
+                LlenadoFormPageArguments(
+                  vehiculo: form.control('activo').value as String,
+                  cuestionarioId:
+                      form.control('tipoDeInspeccion').value.id as int,
+                ),
               )
           : null,
-    );
-  }
-
-  void _onPressed(BuildContext context, String activo, int cuestionarioId) {
-    ExtendedNavigator.of(context).pop(
-      LlenadoFormPageArguments(
-        vehiculo: activo,
-        cuestionarioId: cuestionarioId,
-      ),
+      child: const Text('Inspeccionar'),
     );
   }
 }

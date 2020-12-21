@@ -212,14 +212,14 @@ class $ActivosTable extends Activos with TableInfo<$ActivosTable, Activo> {
 
 class CuestionarioDeModelo extends DataClass
     implements Insertable<CuestionarioDeModelo> {
+  final int id;
   final String modelo;
-  final String tipoDeInspeccion;
   final int periodicidad;
   final int cuestionarioId;
   final int contratistaId;
   CuestionarioDeModelo(
-      {@required this.modelo,
-      @required this.tipoDeInspeccion,
+      {@required this.id,
+      @required this.modelo,
       @required this.periodicidad,
       @required this.cuestionarioId,
       @required this.contratistaId});
@@ -227,13 +227,12 @@ class CuestionarioDeModelo extends DataClass
       Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
-    final stringType = db.typeSystem.forDartType<String>();
     final intType = db.typeSystem.forDartType<int>();
+    final stringType = db.typeSystem.forDartType<String>();
     return CuestionarioDeModelo(
+      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       modelo:
           stringType.mapFromDatabaseResponse(data['${effectivePrefix}modelo']),
-      tipoDeInspeccion: stringType.mapFromDatabaseResponse(
-          data['${effectivePrefix}tipo_de_inspeccion']),
       periodicidad: intType
           .mapFromDatabaseResponse(data['${effectivePrefix}periodicidad']),
       cuestionarioId: intType
@@ -245,11 +244,11 @@ class CuestionarioDeModelo extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
     if (!nullToAbsent || modelo != null) {
       map['modelo'] = Variable<String>(modelo);
-    }
-    if (!nullToAbsent || tipoDeInspeccion != null) {
-      map['tipo_de_inspeccion'] = Variable<String>(tipoDeInspeccion);
     }
     if (!nullToAbsent || periodicidad != null) {
       map['periodicidad'] = Variable<int>(periodicidad);
@@ -265,11 +264,9 @@ class CuestionarioDeModelo extends DataClass
 
   CuestionarioDeModelosCompanion toCompanion(bool nullToAbsent) {
     return CuestionarioDeModelosCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
       modelo:
           modelo == null && nullToAbsent ? const Value.absent() : Value(modelo),
-      tipoDeInspeccion: tipoDeInspeccion == null && nullToAbsent
-          ? const Value.absent()
-          : Value(tipoDeInspeccion),
       periodicidad: periodicidad == null && nullToAbsent
           ? const Value.absent()
           : Value(periodicidad),
@@ -286,8 +283,8 @@ class CuestionarioDeModelo extends DataClass
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return CuestionarioDeModelo(
+      id: serializer.fromJson<int>(json['id']),
       modelo: serializer.fromJson<String>(json['modelo']),
-      tipoDeInspeccion: serializer.fromJson<String>(json['tipoDeInspeccion']),
       periodicidad: serializer.fromJson<int>(json['periodicidad']),
       cuestionarioId: serializer.fromJson<int>(json['cuestionarioId']),
       contratistaId: serializer.fromJson<int>(json['contratistaId']),
@@ -297,8 +294,8 @@ class CuestionarioDeModelo extends DataClass
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
       'modelo': serializer.toJson<String>(modelo),
-      'tipoDeInspeccion': serializer.toJson<String>(tipoDeInspeccion),
       'periodicidad': serializer.toJson<int>(periodicidad),
       'cuestionarioId': serializer.toJson<int>(cuestionarioId),
       'contratistaId': serializer.toJson<int>(contratistaId),
@@ -306,14 +303,14 @@ class CuestionarioDeModelo extends DataClass
   }
 
   CuestionarioDeModelo copyWith(
-          {String modelo,
-          String tipoDeInspeccion,
+          {int id,
+          String modelo,
           int periodicidad,
           int cuestionarioId,
           int contratistaId}) =>
       CuestionarioDeModelo(
+        id: id ?? this.id,
         modelo: modelo ?? this.modelo,
-        tipoDeInspeccion: tipoDeInspeccion ?? this.tipoDeInspeccion,
         periodicidad: periodicidad ?? this.periodicidad,
         cuestionarioId: cuestionarioId ?? this.cuestionarioId,
         contratistaId: contratistaId ?? this.contratistaId,
@@ -321,8 +318,8 @@ class CuestionarioDeModelo extends DataClass
   @override
   String toString() {
     return (StringBuffer('CuestionarioDeModelo(')
+          ..write('id: $id, ')
           ..write('modelo: $modelo, ')
-          ..write('tipoDeInspeccion: $tipoDeInspeccion, ')
           ..write('periodicidad: $periodicidad, ')
           ..write('cuestionarioId: $cuestionarioId, ')
           ..write('contratistaId: $contratistaId')
@@ -332,17 +329,17 @@ class CuestionarioDeModelo extends DataClass
 
   @override
   int get hashCode => $mrjf($mrjc(
-      modelo.hashCode,
+      id.hashCode,
       $mrjc(
-          tipoDeInspeccion.hashCode,
+          modelo.hashCode,
           $mrjc(periodicidad.hashCode,
               $mrjc(cuestionarioId.hashCode, contratistaId.hashCode)))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is CuestionarioDeModelo &&
+          other.id == this.id &&
           other.modelo == this.modelo &&
-          other.tipoDeInspeccion == this.tipoDeInspeccion &&
           other.periodicidad == this.periodicidad &&
           other.cuestionarioId == this.cuestionarioId &&
           other.contratistaId == this.contratistaId);
@@ -350,39 +347,38 @@ class CuestionarioDeModelo extends DataClass
 
 class CuestionarioDeModelosCompanion
     extends UpdateCompanion<CuestionarioDeModelo> {
+  final Value<int> id;
   final Value<String> modelo;
-  final Value<String> tipoDeInspeccion;
   final Value<int> periodicidad;
   final Value<int> cuestionarioId;
   final Value<int> contratistaId;
   const CuestionarioDeModelosCompanion({
+    this.id = const Value.absent(),
     this.modelo = const Value.absent(),
-    this.tipoDeInspeccion = const Value.absent(),
     this.periodicidad = const Value.absent(),
     this.cuestionarioId = const Value.absent(),
     this.contratistaId = const Value.absent(),
   });
   CuestionarioDeModelosCompanion.insert({
+    this.id = const Value.absent(),
     @required String modelo,
-    @required String tipoDeInspeccion,
     @required int periodicidad,
     @required int cuestionarioId,
     @required int contratistaId,
   })  : modelo = Value(modelo),
-        tipoDeInspeccion = Value(tipoDeInspeccion),
         periodicidad = Value(periodicidad),
         cuestionarioId = Value(cuestionarioId),
         contratistaId = Value(contratistaId);
   static Insertable<CuestionarioDeModelo> custom({
+    Expression<int> id,
     Expression<String> modelo,
-    Expression<String> tipoDeInspeccion,
     Expression<int> periodicidad,
     Expression<int> cuestionarioId,
     Expression<int> contratistaId,
   }) {
     return RawValuesInsertable({
+      if (id != null) 'id': id,
       if (modelo != null) 'modelo': modelo,
-      if (tipoDeInspeccion != null) 'tipo_de_inspeccion': tipoDeInspeccion,
       if (periodicidad != null) 'periodicidad': periodicidad,
       if (cuestionarioId != null) 'cuestionario_id': cuestionarioId,
       if (contratistaId != null) 'contratista_id': contratistaId,
@@ -390,14 +386,14 @@ class CuestionarioDeModelosCompanion
   }
 
   CuestionarioDeModelosCompanion copyWith(
-      {Value<String> modelo,
-      Value<String> tipoDeInspeccion,
+      {Value<int> id,
+      Value<String> modelo,
       Value<int> periodicidad,
       Value<int> cuestionarioId,
       Value<int> contratistaId}) {
     return CuestionarioDeModelosCompanion(
+      id: id ?? this.id,
       modelo: modelo ?? this.modelo,
-      tipoDeInspeccion: tipoDeInspeccion ?? this.tipoDeInspeccion,
       periodicidad: periodicidad ?? this.periodicidad,
       cuestionarioId: cuestionarioId ?? this.cuestionarioId,
       contratistaId: contratistaId ?? this.contratistaId,
@@ -407,11 +403,11 @@ class CuestionarioDeModelosCompanion
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
     if (modelo.present) {
       map['modelo'] = Variable<String>(modelo.value);
-    }
-    if (tipoDeInspeccion.present) {
-      map['tipo_de_inspeccion'] = Variable<String>(tipoDeInspeccion.value);
     }
     if (periodicidad.present) {
       map['periodicidad'] = Variable<int>(periodicidad.value);
@@ -428,8 +424,8 @@ class CuestionarioDeModelosCompanion
   @override
   String toString() {
     return (StringBuffer('CuestionarioDeModelosCompanion(')
+          ..write('id: $id, ')
           ..write('modelo: $modelo, ')
-          ..write('tipoDeInspeccion: $tipoDeInspeccion, ')
           ..write('periodicidad: $periodicidad, ')
           ..write('cuestionarioId: $cuestionarioId, ')
           ..write('contratistaId: $contratistaId')
@@ -443,6 +439,15 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
   final GeneratedDatabase _db;
   final String _alias;
   $CuestionarioDeModelosTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedIntColumn _id;
+  @override
+  GeneratedIntColumn get id => _id ??= _constructId();
+  GeneratedIntColumn _constructId() {
+    return GeneratedIntColumn('id', $tableName, false,
+        hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
   final VerificationMeta _modeloMeta = const VerificationMeta('modelo');
   GeneratedTextColumn _modelo;
   @override
@@ -450,20 +455,6 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
   GeneratedTextColumn _constructModelo() {
     return GeneratedTextColumn(
       'modelo',
-      $tableName,
-      false,
-    );
-  }
-
-  final VerificationMeta _tipoDeInspeccionMeta =
-      const VerificationMeta('tipoDeInspeccion');
-  GeneratedTextColumn _tipoDeInspeccion;
-  @override
-  GeneratedTextColumn get tipoDeInspeccion =>
-      _tipoDeInspeccion ??= _constructTipoDeInspeccion();
-  GeneratedTextColumn _constructTipoDeInspeccion() {
-    return GeneratedTextColumn(
-      'tipo_de_inspeccion',
       $tableName,
       false,
     );
@@ -507,7 +498,7 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
 
   @override
   List<GeneratedColumn> get $columns =>
-      [modelo, tipoDeInspeccion, periodicidad, cuestionarioId, contratistaId];
+      [id, modelo, periodicidad, cuestionarioId, contratistaId];
   @override
   $CuestionarioDeModelosTable get asDslTable => this;
   @override
@@ -520,19 +511,14 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    }
     if (data.containsKey('modelo')) {
       context.handle(_modeloMeta,
           modelo.isAcceptableOrUnknown(data['modelo'], _modeloMeta));
     } else if (isInserting) {
       context.missing(_modeloMeta);
-    }
-    if (data.containsKey('tipo_de_inspeccion')) {
-      context.handle(
-          _tipoDeInspeccionMeta,
-          tipoDeInspeccion.isAcceptableOrUnknown(
-              data['tipo_de_inspeccion'], _tipoDeInspeccionMeta));
-    } else if (isInserting) {
-      context.missing(_tipoDeInspeccionMeta);
     }
     if (data.containsKey('periodicidad')) {
       context.handle(
@@ -562,7 +548,7 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {modelo, tipoDeInspeccion};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   CuestionarioDeModelo map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
@@ -577,13 +563,17 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
 
 class Cuestionario extends DataClass implements Insertable<Cuestionario> {
   final int id;
-  Cuestionario({@required this.id});
+  final String tipoDeInspeccion;
+  Cuestionario({@required this.id, @required this.tipoDeInspeccion});
   factory Cuestionario.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
+    final stringType = db.typeSystem.forDartType<String>();
     return Cuestionario(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      tipoDeInspeccion: stringType.mapFromDatabaseResponse(
+          data['${effectivePrefix}tipo_de_inspeccion']),
     );
   }
   @override
@@ -592,12 +582,18 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     if (!nullToAbsent || id != null) {
       map['id'] = Variable<int>(id);
     }
+    if (!nullToAbsent || tipoDeInspeccion != null) {
+      map['tipo_de_inspeccion'] = Variable<String>(tipoDeInspeccion);
+    }
     return map;
   }
 
   CuestionariosCompanion toCompanion(bool nullToAbsent) {
     return CuestionariosCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      tipoDeInspeccion: tipoDeInspeccion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tipoDeInspeccion),
     );
   }
 
@@ -606,6 +602,7 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return Cuestionario(
       id: serializer.fromJson<int>(json['id']),
+      tipoDeInspeccion: serializer.fromJson<String>(json['tipoDeInspeccion']),
     );
   }
   @override
@@ -613,44 +610,59 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'tipoDeInspeccion': serializer.toJson<String>(tipoDeInspeccion),
     };
   }
 
-  Cuestionario copyWith({int id}) => Cuestionario(
+  Cuestionario copyWith({int id, String tipoDeInspeccion}) => Cuestionario(
         id: id ?? this.id,
+        tipoDeInspeccion: tipoDeInspeccion ?? this.tipoDeInspeccion,
       );
   @override
   String toString() {
-    return (StringBuffer('Cuestionario(')..write('id: $id')..write(')'))
+    return (StringBuffer('Cuestionario(')
+          ..write('id: $id, ')
+          ..write('tipoDeInspeccion: $tipoDeInspeccion')
+          ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => $mrjf(id.hashCode);
+  int get hashCode => $mrjf($mrjc(id.hashCode, tipoDeInspeccion.hashCode));
   @override
   bool operator ==(dynamic other) =>
-      identical(this, other) || (other is Cuestionario && other.id == this.id);
+      identical(this, other) ||
+      (other is Cuestionario &&
+          other.id == this.id &&
+          other.tipoDeInspeccion == this.tipoDeInspeccion);
 }
 
 class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
   final Value<int> id;
+  final Value<String> tipoDeInspeccion;
   const CuestionariosCompanion({
     this.id = const Value.absent(),
+    this.tipoDeInspeccion = const Value.absent(),
   });
   CuestionariosCompanion.insert({
     this.id = const Value.absent(),
-  });
+    @required String tipoDeInspeccion,
+  }) : tipoDeInspeccion = Value(tipoDeInspeccion);
   static Insertable<Cuestionario> custom({
     Expression<int> id,
+    Expression<String> tipoDeInspeccion,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (tipoDeInspeccion != null) 'tipo_de_inspeccion': tipoDeInspeccion,
     });
   }
 
-  CuestionariosCompanion copyWith({Value<int> id}) {
+  CuestionariosCompanion copyWith(
+      {Value<int> id, Value<String> tipoDeInspeccion}) {
     return CuestionariosCompanion(
       id: id ?? this.id,
+      tipoDeInspeccion: tipoDeInspeccion ?? this.tipoDeInspeccion,
     );
   }
 
@@ -660,13 +672,17 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
+    if (tipoDeInspeccion.present) {
+      map['tipo_de_inspeccion'] = Variable<String>(tipoDeInspeccion.value);
+    }
     return map;
   }
 
   @override
   String toString() {
     return (StringBuffer('CuestionariosCompanion(')
-          ..write('id: $id')
+          ..write('id: $id, ')
+          ..write('tipoDeInspeccion: $tipoDeInspeccion')
           ..write(')'))
         .toString();
   }
@@ -686,8 +702,22 @@ class $CuestionariosTable extends Cuestionarios
         hasAutoIncrement: true, declaredAsPrimaryKey: true);
   }
 
+  final VerificationMeta _tipoDeInspeccionMeta =
+      const VerificationMeta('tipoDeInspeccion');
+  GeneratedTextColumn _tipoDeInspeccion;
   @override
-  List<GeneratedColumn> get $columns => [id];
+  GeneratedTextColumn get tipoDeInspeccion =>
+      _tipoDeInspeccion ??= _constructTipoDeInspeccion();
+  GeneratedTextColumn _constructTipoDeInspeccion() {
+    return GeneratedTextColumn(
+      'tipo_de_inspeccion',
+      $tableName,
+      false,
+    );
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, tipoDeInspeccion];
   @override
   $CuestionariosTable get asDslTable => this;
   @override
@@ -701,6 +731,14 @@ class $CuestionariosTable extends Cuestionarios
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    }
+    if (data.containsKey('tipo_de_inspeccion')) {
+      context.handle(
+          _tipoDeInspeccionMeta,
+          tipoDeInspeccion.isAcceptableOrUnknown(
+              data['tipo_de_inspeccion'], _tipoDeInspeccionMeta));
+    } else if (isInserting) {
+      context.missing(_tipoDeInspeccionMeta);
     }
     return context;
   }
@@ -1216,7 +1254,7 @@ class $TitulosTable extends Titulos with TableInfo<$TitulosTable, Titulo> {
       _descripcion ??= _constructDescripcion();
   GeneratedTextColumn _constructDescripcion() {
     return GeneratedTextColumn('descripcion', $tableName, false,
-        minTextLength: 0, maxTextLength: 200);
+        minTextLength: 0, maxTextLength: 1500);
   }
 
   final VerificationMeta _fotosMeta = const VerificationMeta('fotos');
@@ -1504,7 +1542,7 @@ class $CuadriculasDePreguntasTable extends CuadriculasDePreguntas
   GeneratedTextColumn get titulo => _titulo ??= _constructTitulo();
   GeneratedTextColumn _constructTitulo() {
     return GeneratedTextColumn('titulo', $tableName, false,
-        minTextLength: 1, maxTextLength: 100);
+        minTextLength: 0, maxTextLength: 100);
   }
 
   final VerificationMeta _descripcionMeta =
@@ -1515,7 +1553,7 @@ class $CuadriculasDePreguntasTable extends CuadriculasDePreguntas
       _descripcion ??= _constructDescripcion();
   GeneratedTextColumn _constructDescripcion() {
     return GeneratedTextColumn('descripcion', $tableName, false,
-        minTextLength: 0, maxTextLength: 200);
+        minTextLength: 0, maxTextLength: 1500);
   }
 
   @override
@@ -2017,7 +2055,7 @@ class $PreguntasTable extends Preguntas
       _descripcion ??= _constructDescripcion();
   GeneratedTextColumn _constructDescripcion() {
     return GeneratedTextColumn('descripcion', $tableName, false,
-        minTextLength: 0, maxTextLength: 200);
+        minTextLength: 0, maxTextLength: 1500);
   }
 
   final VerificationMeta _sistemaIdMeta = const VerificationMeta('sistemaId');
@@ -2848,8 +2886,11 @@ class $InspeccionesTable extends Inspecciones
   @override
   GeneratedIntColumn get id => _id ??= _constructId();
   GeneratedIntColumn _constructId() {
-    return GeneratedIntColumn('id', $tableName, false,
-        hasAutoIncrement: true, declaredAsPrimaryKey: true);
+    return GeneratedIntColumn(
+      'id',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _estadoMeta = const VerificationMeta('estado');

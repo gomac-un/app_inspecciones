@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:moor/moor.dart';
-
 part 'llenado_dao.g.dart';
 
 @UseDao(tables: [
@@ -25,22 +24,39 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   // of this object.
   LlenadoDao(Database db) : super(db);
 
-  Future<List<CuestionarioDeModelo>> cuestionariosParaVehiculo(
-      String vehiculo) {
+  /// Trae una lista con todos los cuestionarios disponibles para un activo,
+  /// incluyendo los cuestionarios que son asignados a todos los activos
+  Future<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
+    if (activo == null) return null;
+    /*
     final query = select(activos).join([
       innerJoin(cuestionarioDeModelos,
           cuestionarioDeModelos.modelo.equalsExp(activos.modelo)),
+      innerJoin(cuestionarios,
+          cuestionarios.id.equalsExp(cuestionarioDeModelos.cuestionarioId))
     ])
       ..where(activos.identificador.equals(vehiculo));
 
     return query.map((row) {
-      return row.readTable(cuestionarioDeModelos);
-    }).get();
+      return row.readTable(cuestionarios);
+    }).get();*/
+
+    return customSelect(
+      '''
+      SELECT cuestionarios.* FROM activos
+      INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.modelo = activos.modelo
+      INNER JOIN cuestionarios ON cuestionarios.id = cuestionario_de_modelos.cuestionario_id
+      WHERE activos.identificador = $activo
+      UNION
+      SELECT cuestionarios.* FROM cuestionarios
+      INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.modelo = 'todos'
+      ;''',
+    ).map((row) => Cuestionario.fromData(row.data, db)).get();
   }
 
   Future<Inspeccion> getInspeccion(String activo, int cuestionarioId) {
     //revisar si hay una inspeccion de ese cuestionario empezada
-    if (cuestionarioId == null || activo == null) return null;
+    if (cuestionarioId == null || activo == null) return Future.value();
     final query = select(inspecciones)
       ..where(
         (ins) =>
@@ -90,14 +106,14 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     return Future.wait(
       groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
         return BloqueConPreguntaSimple(
-          entry.value.first['bloque'],
+          entry.value.first['bloque'] as Bloque,
           PreguntaConOpcionesDeRespuesta(
-            entry.key,
+            entry.key as Pregunta,
             entry.value
                 .map((item) => item['opcionesDePregunta'] as OpcionDeRespuesta)
                 .toList(),
           ),
-          await getRespuestas(entry.key.id, inspeccionId),
+          await getRespuestas(entry.key.id as int, inspeccionId),
           //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
         );
       }),
@@ -107,8 +123,9 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   Future<RespuestaConOpcionesDeRespuesta> getRespuestas(int preguntaId,
       [int inspeccionId]) async {
     //TODO: mirar el caso donde se presenten varias respuestas a una preguntaXinspeccion
-    if (inspeccionId == null)
+    if (inspeccionId == null) {
       return RespuestaConOpcionesDeRespuesta(null, null);
+    }
     final query = select(respuestas).join([
       leftOuterJoin(
         //left outer join para que carguen las respuestas sin opciones seleccionadas
@@ -131,7 +148,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         .get();
     //si la inspeccion es nueva entonces no existe una respuesta y se envia nulo
     //para que el control cree una por defecto
-    if (res.length == 0) return RespuestaConOpcionesDeRespuesta(null, null);
+    if (res.isEmpty) return RespuestaConOpcionesDeRespuesta(null, null);
 
     return RespuestaConOpcionesDeRespuesta(
         (res.first[0] as Respuesta)
@@ -164,7 +181,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         return BloqueConCuadricula(
           entry.key,
           CuadriculaDePreguntasConOpcionesDeRespuesta(
-            entry.value.first['cuadricula'],
+            entry.value.first['cuadricula'] as CuadriculaDePreguntas,
             await respuestasDeCuadricula(
                 (entry.value.first['cuadricula'] as CuadriculaDePreguntas).id),
           ),

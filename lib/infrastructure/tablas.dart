@@ -34,9 +34,9 @@ class SubSistemas extends Table {
 
 //Tabla para asignar cuestionarios a modelos y a contratistas
 class CuestionarioDeModelos extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  //El modelo especial "todos" aplica para todos los vehiculos
   TextColumn get modelo => text()();
-
-  TextColumn get tipoDeInspeccion => text()();
 
   IntColumn get periodicidad => integer()();
 
@@ -45,14 +45,12 @@ class CuestionarioDeModelos extends Table {
 
   IntColumn get contratistaId => integer()
       .customConstraint('REFERENCES contratistas(id) ON DELETE SET NULL')();
-
-  @override
-  Set<Column> get primaryKey => {modelo, tipoDeInspeccion};
 }
 
 class Cuestionarios extends Table {
-  IntColumn get id =>
-      integer().autoIncrement()(); //se podria agregar mas informacion aquí
+  IntColumn get id => integer().autoIncrement()();
+
+  TextColumn get tipoDeInspeccion => text()();
   // List<Inspecciones>
   // List<Bloques>
   //List<CuestionariosDeModelos>
@@ -87,7 +85,7 @@ class Titulos extends Table {
 
   TextColumn get titulo => text().withLength(min: 1, max: 100)();
 
-  TextColumn get descripcion => text().withLength(min: 0, max: 200)();
+  TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
 
   TextColumn get fotos => text()
       .map(const ListInColumnConverter())
@@ -103,9 +101,9 @@ class CuadriculasDePreguntas extends Table {
   IntColumn get bloqueId => integer().customConstraint(
       'REFERENCES bloques(id) ON DELETE CASCADE')(); //debe ser unico por ser uno a uno, sera que es pk?
 
-  TextColumn get titulo => text().withLength(min: 1, max: 100)();
+  TextColumn get titulo => text().withLength(min: 0, max: 100)();
 
-  TextColumn get descripcion => text().withLength(min: 0, max: 200)();
+  TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
   //List<OpcionesDeRespuesta>
 
 }
@@ -125,7 +123,7 @@ class Preguntas extends Table {
 
   TextColumn get titulo => text().withLength(min: 1, max: 100)();
 
-  TextColumn get descripcion => text().withLength(min: 0, max: 200)();
+  TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
 
   IntColumn get sistemaId =>
       integer().customConstraint('REFERENCES sistemas(id)')();
@@ -166,7 +164,8 @@ class OpcionesDeRespuesta extends Table {
 
 @DataClassName('Inspeccion')
 class Inspecciones extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  // este id tiene el formato: yymmddhhmm(activoId) ver [Database.generarId()]
+  IntColumn get id => integer()();
 
   IntColumn get estado => intEnum<EstadoDeInspeccion>()();
 
@@ -181,6 +180,9 @@ class Inspecciones extends Table {
   DateTimeColumn get momentoBorradorGuardado => dateTime().nullable()();
 
   DateTimeColumn get momentoEnvio => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 class Respuestas extends Table {
@@ -229,7 +231,9 @@ class ListInColumnConverter extends TypeConverter<KtList<String>, String> {
     if (fromDb == null) {
       return null;
     }
-    return (jsonDecode(fromDb) as List).map<String>((e) => e).toImmutableList();
+    return (jsonDecode(fromDb) as List)
+        .map((e) => e as String)
+        .toImmutableList();
   }
 
   @override
@@ -238,7 +242,7 @@ class ListInColumnConverter extends TypeConverter<KtList<String>, String> {
       return null;
     }
     if (value.size == 0) return "[]";
-    final str = value.fold<String>("[", (acc, val) => acc + '"$val",');
+    final str = value.fold<String>("[", (acc, val) => '$acc"$val",');
     return str.replaceRange(str.length - 1, str.length, ']');
   }
 }

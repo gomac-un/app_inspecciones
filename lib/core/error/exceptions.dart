@@ -1,5 +1,8 @@
 class ServerException implements Exception {
-  ServerException(String msg);
+  //TODO: agregar mensaje
+  final String mensaje;
+
+  ServerException(this.mensaje);
 }
 
 class CacheException implements Exception {}

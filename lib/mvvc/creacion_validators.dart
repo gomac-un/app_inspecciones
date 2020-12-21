@@ -3,19 +3,22 @@ import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+//FIXME: no recalcula cuando cambia el tipo de inspeccion
 Future<Map<String, dynamic>> cuestionariosExistentes(
     AbstractControl<dynamic> control) async {
   final form = control as FormGroup;
 
-  final tipoDeInspeccion = form.control('tipoDeInspeccion');
-  final modelos = form.control('modelos');
+  final tipoDeInspeccion =
+      form.control('tipoDeInspeccion') as FormControl<String>;
+  final modelos = form.control('modelos') as FormControl<List<String>>;
 
   final cuestionariosExistentes = await getIt<Database>()
       .creacionDao
       .getCuestionarios(tipoDeInspeccion.value, modelos.value);
 
-  if (cuestionariosExistentes.length > 0) {
-    modelos.setErrors({'yaExiste': cuestionariosExistentes.first.modelo});
+  if (cuestionariosExistentes.isNotEmpty) {
+    modelos
+        .setErrors({'yaExiste': true /*cuestionariosExistentes.first.modelo*/});
     modelos.markAsTouched();
   } else {
     modelos.removeError('yaExiste');

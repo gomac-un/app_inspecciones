@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/auth/usuario.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,17 +16,20 @@ class SharedPreferencesDataSource implements ILocalPreferencesDataSource {
 
   SharedPreferencesDataSource(this.preferences);
 
+  @override
   Future saveUser(Usuario user) async {
-    await preferences.setString('user', user.toJson());
+    await preferences.setString('user', jsonEncode(user.toJson()));
   }
 
+  @override
   Future deleteUser() async {
     await preferences.remove('user');
   }
 
+  @override
   Usuario getUser() {
-    print(preferences.getString('user'));
     if (preferences.getString('user') == null) return null;
-    return Usuario.fromJson(preferences.getString('user'));
+    return Usuario.fromJson(
+        jsonDecode(preferences.getString('user')) as Map<String, dynamic>);
   }
 }

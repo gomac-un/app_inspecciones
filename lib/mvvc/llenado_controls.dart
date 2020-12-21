@@ -11,13 +11,6 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
   final RespuestaConOpcionesDeRespuesta respuesta;
   DateTime _momentoRespuesta;
 
-  //constructor que le envia los controles a la clase padre
-  RespuestaSeleccionSimpleFormGroup._(controles, this.pregunta, this.respuesta)
-      : super(controles) {
-    this.valueChanges.listen((_) => _momentoRespuesta =
-        DateTime.now()); //guarda el momento de la ultima edicion
-  }
-
   factory RespuestaSeleccionSimpleFormGroup(
       PreguntaConOpcionesDeRespuesta pregunta,
       RespuestaConOpcionesDeRespuesta respuesta) {
@@ -77,9 +70,16 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
       respuesta,
     );
   }
+  //constructor que le envia los controles a la clase padre
+  RespuestaSeleccionSimpleFormGroup._(
+      Map<String, AbstractControl> controles, this.pregunta, this.respuesta)
+      : super(controles) {
+    valueChanges.listen((_) => _momentoRespuesta =
+        DateTime.now()); //guarda el momento de la ultima edicion
+  }
 
   @override
-  get criticidad {
+  int get criticidad {
     /*TODO: calcular la criticidad de las multiples con las reglas de
       * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
       * solo para la pantalla de arreglos
@@ -110,16 +110,17 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
             .value
             .map((e) => e.path)
             .toImmutableList()),
-        observacion: Value(control('observacion').value),
-        reparado: Value(control('reparado').value),
-        observacionReparacion: Value(control('observacionReparacion').value),
+        observacion: Value(control('observacion').value as String),
+        reparado: Value(control('reparado').value as bool),
+        observacionReparacion:
+            Value(control('observacionReparacion').value as String),
         momentoRespuesta: Value(_momentoRespuesta),
       ),
       [
         if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta)
           ...control('respuestas').value,
         if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta)
-          control('respuestas').value,
+          control('respuestas').value as OpcionDeRespuesta,
       ],
     );
   }
@@ -130,18 +131,13 @@ class RespuestaCuadriculaFormArray extends FormArray
   final CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula;
   final List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas;
 
-  //constructor que le envia los controles a la clase padre
-  RespuestaCuadriculaFormArray._(
-      controles, this.cuadricula, this.preguntasRespondidas)
-      : super(controles);
-
   factory RespuestaCuadriculaFormArray(
     CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula,
     List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas,
   ) {
-    preguntasRespondidas.forEach((e) {
+    for (final e in preguntasRespondidas) {
       e.respuesta.respuesta ??= crearRespuestaPorDefecto(e.pregunta.id);
-    });
+    }
 
     final List<RespuestaSeleccionSimpleFormGroup> controles =
         preguntasRespondidas
@@ -159,6 +155,9 @@ class RespuestaCuadriculaFormArray extends FormArray
       preguntasRespondidas,
     );
   }
+  RespuestaCuadriculaFormArray._(List<AbstractControl> controles,
+      this.cuadricula, this.preguntasRespondidas)
+      : super(controles);
 
   List<RespuestaConOpcionesDeRespuesta> toDB([int inspeccionId]) {
     return controls.map((d) {
@@ -167,7 +166,8 @@ class RespuestaCuadriculaFormArray extends FormArray
     }).toList();
   }
 
-  get criticidad {
+  @override
+  int get criticidad {
     /*TODO: calcular la criticidad de las multiples con las reglas de
       * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
       * solo para la pantalla de arreglos
@@ -176,7 +176,7 @@ class RespuestaCuadriculaFormArray extends FormArray
     return controls.map((d) {
       final e = d as RespuestaSeleccionSimpleFormGroup;
       final ctrlPregunta =
-          (e.control('respuestas') as FormControl<OpcionDeRespuesta>);
+          e.control('respuestas') as FormControl<OpcionDeRespuesta>;
       return e.pregunta.pregunta.criticidad * ctrlPregunta.value.criticidad;
     }).fold(0, (p, c) => p + c);
 
@@ -193,13 +193,14 @@ class TituloFormGroup extends FormGroup implements BloqueDeFormulario {
   int get criticidad => 0;
 }
 
-crearRespuestaPorDefecto(int preguntaId) => RespuestasCompanion.insert(
+RespuestasCompanion crearRespuestaPorDefecto(int preguntaId) =>
+    RespuestasCompanion.insert(
       inspeccionId: null, //! agregar la inspeccion en el guardado de la db
       preguntaId: preguntaId,
-      observacion: Value(''),
+      observacion: const Value(''),
       fotosBase: Value(listOf()),
-      reparado: Value(false),
-      observacionReparacion: Value(""),
+      reparado: const Value(false),
+      observacionReparacion: const Value(""),
       fotosReparacion: Value(listOf()),
     );
 

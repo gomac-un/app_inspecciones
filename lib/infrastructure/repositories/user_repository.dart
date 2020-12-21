@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/auth/usuario.dart';
+import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
 import 'package:inspecciones/infrastructure/repositories/api_model.dart';
 import 'package:meta/meta.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 
 @injectable
 class UserRepository {
@@ -14,16 +17,28 @@ class UserRepository {
 
   UserRepository(this.api, this.localPreferences);
 
-  Future<Usuario> authenticateUser({UserLogin userLogin}) async {
-    //TODO: revisar si esta en linea
-    Token token = await api.getToken(userLogin);
-    Usuario user = Usuario(
-      userLogin.username,
-      userLogin.password,
-      true,
-      token,
-    );
-    return user;
+  Future<Either<AuthFailure, Usuario>> authenticateUser(
+      {UserLogin userLogin}) async {
+    String token;
+    final hayInternet = await _hayInternet();
+
+    if (!hayInternet) {
+      return const Left(AuthFailure.noHayInternet());
+    }
+
+    try {
+      token = await api.getToken(userLogin);
+    } on TimeoutException {
+      return const Left(AuthFailure.noHayConexionAlServidor());
+    }
+
+    final user = Usuario(
+        documento: userLogin.username,
+        password: userLogin.password,
+        esAdmin:
+            false, //TODO: averiguar si es admin desde el server o desde la bd local
+        token: token);
+    return Right(user);
   }
 
   Future<void> saveLocalUser({@required Usuario user}) async {
@@ -35,8 +50,7 @@ class UserRepository {
     await localPreferences.deleteUser();
   }
 
-  Usuario getLocalUser() {
-    final res = localPreferences.getUser();
-    return res;
-  }
+  Option<Usuario> getLocalUser() => optionOf(localPreferences.getUser());
+
+  Future<bool> _hayInternet() async => DataConnectionChecker().hasConnection;
 }

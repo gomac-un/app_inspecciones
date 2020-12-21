@@ -1,6 +1,5 @@
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:moor/moor.dart';
-
 part 'borradores_dao.g.dart';
 
 @UseDao(tables: [
@@ -35,10 +34,9 @@ class BorradoresDao extends DatabaseAccessor<Database>
         .map((row) =>
             Borrador(row.readTable(activos), row.readTable(inspecciones), null))
         .watch()
-        .asyncMap((l) async => await Future.wait<Borrador>(l.map(
+        .asyncMap<List<Borrador>>((l) async => Future.wait<Borrador>(l.map(
               (e) async => e.copyWith(
-                cuestionarioDeModelo:
-                    await db.getCuestionarioDeModelo(e.inspeccion),
+                cuestionario: await db.getCuestionario(e.inspeccion),
               ),
             )));
   }

@@ -1,4 +1,4 @@
-package com.example.bloc_example
+package com.gomac.inspecciones
 
 import io.flutter.embedding.android.FlutterActivity
 

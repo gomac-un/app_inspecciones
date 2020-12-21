@@ -9,8 +9,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 part 'llenado_datos_test.dart';
 
-//TODO: agregar todas las validaciones necesarias
-
+//TODO: verificar y asociar al usuario
 class LlenadoFormViewModel {
   final _db = getIt<Database>();
 
@@ -51,11 +50,13 @@ class LlenadoFormViewModel {
             ))
           .map<AbstractControl>((e) {
         if (e is BloqueConTitulo) return TituloFormGroup(e.titulo);
-        if (e is BloqueConPreguntaSimple)
+        if (e is BloqueConPreguntaSimple) {
           return RespuestaSeleccionSimpleFormGroup(e.pregunta, e.respuesta);
-        if (e is BloqueConCuadricula)
+        }
+        if (e is BloqueConCuadricula) {
           return RespuestaCuadriculaFormArray(
               e.cuadricula, e.preguntasRespondidas);
+        }
         throw Exception("Tipo de bloque no reconocido");
       }).toList(),
     );
@@ -82,7 +83,11 @@ class LlenadoFormViewModel {
   void finalizar() {
     //TODO: implementar
     form.markAllAsTouched();
-    if (form.valid) print("valida");
-    print(form.value);
+  }
+
+  void dispose() {
+    cargada.dispose();
+    estado.dispose();
+    form.dispose();
   }
 }

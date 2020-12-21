@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:inspecciones/application/auth/usuario.dart';
+import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart'
+    as ap;
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
+import 'package:intl/intl.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
 import 'package:path/path.dart' as path;
@@ -14,7 +17,7 @@ export 'package:moor_flutter/moor_flutter.dart' show Value;
 
 export 'database/shared.dart';
 
-part 'bdDePrueba.dart';
+part 'datos_de_prueba.dart';
 part 'moor_database.g.dart';
 part 'tablas.dart';
 part 'tablas_unidas.dart';
@@ -47,8 +50,8 @@ class Database extends _$Database {
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
-      onCreate: (Migrator m) {
-        return m.createAll();
+      onCreate: (Migrator m) async {
+        await m.createAll();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
@@ -73,26 +76,53 @@ class Database extends _$Database {
     /*final dataDir = await paths.getApplicationDocumentsDirectory();
     final dbFile = File(path.join(dataDir.path, 'db.sqlite'));
     dbFile.deleteSync();*/
-    final m = this.createMigrator();
+    final m = createMigrator();
     await customStatement('PRAGMA foreign_keys = OFF');
 
     for (final table in allTables) {
       await m.deleteTable(table.actualTableName);
 
       await m.createTable(table);
+
+      /*await customStatement(
+          "UPDATE SQLITE_SEQUENCE SET SEQ=100000000000000 WHERE NAME='${table.actualTableName}';"); //1e14*/
+      //TODO: pedirle el deviceId al servidor para coordinar las BDs
+      const deviceId = 1;
+      await customStatement(
+          "insert into SQLITE_SEQUENCE (name,seq) values('${table.actualTableName}',${deviceId}00000000000000);"); //1e14
+
     }
+
     await customStatement('PRAGMA foreign_keys = ON');
 
     await batch(initialize(this));
   }
 
   //datos para la creacion de cuestionarios
+  Future<Sistema> getSistemaPorId(int id) async {
+    if (id == null) return null;
+    final query = select(sistemas)..where((s) => s.id.equals(id));
+    return query.getSingle();
+  }
+
+  Future<SubSistema> getSubSistemaPorId(int id) async {
+    if (id == null) return null;
+    final query = select(subSistemas)..where((s) => s.id.equals(id));
+    return query.getSingle();
+  }
 
   //datos para el llenado de inspecciones
+  int generarId(String activo) {
+    final fechaFormateada = DateFormat("yyMMddHm").format(DateTime.now());
+
+    return int.parse('$fechaFormateada$activo');
+  }
 
   Future<Inspeccion> crearInspeccion(
       int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
+    if (activo == null) throw Exception("activo nulo");
     final ins = InspeccionesCompanion.insert(
+      id: Value(generarId(activo)),
       cuestionarioId: cuestionarioId,
       estado: estado,
       identificadorActivo: activo,
@@ -105,13 +135,11 @@ class Database extends _$Database {
   Future guardarInspeccion(List<RespuestaConOpcionesDeRespuesta> respuestasForm,
       int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
     Inspeccion ins = await llenadoDao.getInspeccion(activo, cuestionarioId);
-    if (ins == null) {
-      //si no hay inspeccion creada, asocia todas las respuestas a una nueva inspeccion
-      ins = await crearInspeccion(cuestionarioId, activo, estado);
-    }
-    respuestasForm.forEach((rf) {
+    ins ??= await crearInspeccion(cuestionarioId, activo, estado);
+
+    for (final rf in respuestasForm) {
       rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
-    });
+    }
     return transaction(() async {
       await (update(inspecciones)..where((i) => i.id.equals(ins.id))).write(
         estado == EstadoDeInspeccion.enviada
@@ -187,24 +215,22 @@ class Database extends _$Database {
     });
   }
 
-  Future<CuestionarioDeModelo> getCuestionarioDeModelo(Inspeccion inspeccion) {
-    final query = select(cuestionarios).join([
-      innerJoin(cuestionarioDeModelos,
-          cuestionarioDeModelos.cuestionarioId.equalsExp(cuestionarios.id))
-    ])
-      ..where(cuestionarios.id.equals(inspeccion.cuestionarioId));
-    return query.map((row) => row.readTable(cuestionarioDeModelos)).getSingle();
+  Future<Cuestionario> getCuestionario(Inspeccion inspeccion) {
+    final query = select(cuestionarios)
+      ..where((c) => c.id.equals(inspeccion.cuestionarioId));
+    return query.getSingle();
   }
 
   // Esta funcion deberá exportar las inspecciones llenadas de manera
   // local al servidor
   Future exportarInspeccion() async {
     // TODO: WIP
+    // ignore: unused_local_variable
     final ins = await (select(inspecciones)
           ..where(
             (e) => e.id.equals(1),
           ))
         .get();
-    print(ins.map((e) => e.toJson()).toList());
+    //print(ins.map((e) => e.toJson()).toList());
   }
 }

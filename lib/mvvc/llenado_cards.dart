@@ -22,9 +22,8 @@ class TituloCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       //TODO: destacar mejor los titulos
-      shape: new RoundedRectangleBorder(
-          side:
-              new BorderSide(color: Theme.of(context).accentColor, width: 2.0),
+      shape: RoundedRectangleBorder(
+          side: BorderSide(color: Theme.of(context).accentColor, width: 2.0),
           borderRadius: BorderRadius.circular(4.0)),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -66,33 +65,37 @@ class SeleccionSimpleCard extends StatelessWidget {
             ),
           if (formGroup.pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta)
             ReactiveDropdownField<OpcionDeRespuesta>(
-              formControl: (formGroup.control('respuestas') as FormControl<
-                  OpcionDeRespuesta>), //La de seleccion unica usa el control de la primer pregunta de la lista
+              formControl: formGroup.control('respuestas') as FormControl<
+                  OpcionDeRespuesta>, //La de seleccion unica usa el control de la primer pregunta de la lista
               items: formGroup.pregunta.opcionesDeRespuesta
                   .map((e) => DropdownMenuItem<OpcionDeRespuesta>(
                       value: e, child: Text(e.texto)))
                   .toList(),
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Seleccione una opción',
               ),
+              onTap: () {
+                FocusScope.of(context)
+                    .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+              },
             ),
           if (formGroup.pregunta.pregunta.tipo ==
               TipoDePregunta.multipleRespuesta)
             ReactiveMultiSelectDialogField<OpcionDeRespuesta>(
-              buttonText: Text('Seleccione entre las opciones'),
+              buttonText: const Text('Seleccione entre las opciones'),
               items: formGroup.pregunta.opcionesDeRespuesta
                   .map((e) => MultiSelectItem(e, e.texto))
                   .toList(),
               formControl: formGroup.control('respuestas')
                   as FormControl<List<OpcionDeRespuesta>>,
+              onTap: () => FocusScope.of(context).unfocus(),
             ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           ReactiveTextField(
-            formControl: formGroup.control('observacion'),
-            decoration: InputDecoration(
+            formControl: formGroup.control('observacion') as FormControl,
+            decoration: const InputDecoration(
               labelText: 'Observaciones',
               prefixIcon: Icon(Icons.remove_red_eye),
-              floatingLabelBehavior: FloatingLabelBehavior.auto,
             ),
             keyboardType: TextInputType.multiline,
             maxLines: null,
@@ -101,28 +104,29 @@ class SeleccionSimpleCard extends StatelessWidget {
           //TODO: mostrar los botones de agregar imagenes y el checkbox de
           //reparación de una manera mas optima, no uno en cada fila
           FormBuilderImagePicker(
-            formArray: formGroup.control('fotosBase'),
+            formArray: formGroup.control('fotosBase') as FormArray<File>,
             decoration: const InputDecoration(
               labelText: 'Fotos base',
             ),
           ),
           if (viewModel.estado.value == EstadoDeInspeccion.reparacion)
             ReactiveCheckboxListTile(
-              formControl: formGroup.control('reparado'),
-              title: Text('Reparado'),
+              formControl: formGroup.control('reparado') as FormControl,
+              title: const Text('Reparado'),
               controlAffinity: ListTileControlAffinity.leading,
             ),
           // Muestra las observaciones de la reparacion solo si reparado es true
           if (viewModel.estado.value == EstadoDeInspeccion.reparacion)
             ReactiveValueListenableBuilder(
               formControl: formGroup.control('reparado') as FormControl<bool>,
-              builder: (context, control, child) {
-                if (control.value)
+              builder: (context, AbstractControl<bool> control, child) {
+                if (control.value) {
                   return Column(
                     children: [
                       ReactiveTextField(
-                        formControl: formGroup.control('observacionReparacion'),
-                        decoration: InputDecoration(
+                        formControl: formGroup.control('observacionReparacion')
+                            as FormControl,
+                        decoration: const InputDecoration(
                           labelText: 'Observaciones de la reparación',
                           prefixIcon: Icon(Icons.remove_red_eye),
                         ),
@@ -131,14 +135,16 @@ class SeleccionSimpleCard extends StatelessWidget {
                         textInputAction: TextInputAction.next,
                       ),
                       FormBuilderImagePicker(
-                        formArray: formGroup.control('fotosReparacion'),
+                        formArray: formGroup.control('fotosReparacion')
+                            as FormArray<File>,
                         decoration: const InputDecoration(
                           labelText: 'Fotos de la reparación',
                         ),
                       ),
                     ],
                   );
-                return SizedBox.shrink();
+                }
+                return const SizedBox.shrink();
               },
             ),
         ],
@@ -161,24 +167,24 @@ class CuadriculaCard extends StatelessWidget {
       child: Column(
         children: [
           Table(
-            border: TableBorder(
+            border: const TableBorder(
                 horizontalInside: BorderSide(color: Colors.black26)),
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             columnWidths: {
-              0: FlexColumnWidth(2),
-              numeroDeColumnas + 1: FlexColumnWidth(0.5),
+              0: const FlexColumnWidth(2),
+              numeroDeColumnas + 1: const FlexColumnWidth(0.5),
             },
             children: [
               TableRow(
                 children: [
-                  SizedBox.shrink(),
+                  const SizedBox.shrink(),
                   ...formArray.cuadricula.opcionesDeRespuesta.map(
                     (e) => Text(
                       e.texto,
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  SizedBox.shrink(),
+                  const SizedBox.shrink(),
                 ],
               ),
               ...formArray.controls.map((d) {
@@ -191,19 +197,21 @@ class CuadriculaCard extends StatelessWidget {
                     ...formArray.cuadricula.opcionesDeRespuesta
                         .map((res) => ReactiveRadio(
                               value: res,
-                              formControl: e.control('respuestas'),
+                              formControl:
+                                  e.control('respuestas') as FormControl,
                             ))
                         .toList(),
                     IconButton(
                       icon: viewModel.estado.value !=
                                   EstadoDeInspeccion.borrador &&
                               e.criticidad > 0
-                          ? Icon(
+                          ? const Icon(
                               Icons.broken_image,
                               color: Colors.red,
                             )
-                          : Icon(Icons.remove_red_eye),
+                          : const Icon(Icons.remove_red_eye),
                       onPressed: () async {
+                        //FocusScope.of(context).unfocus();
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
@@ -215,7 +223,7 @@ class CuadriculaCard extends StatelessWidget {
                             actions: [
                               OutlineButton(
                                 onPressed: () => Navigator.of(context).pop(),
-                                child: Text("ok"),
+                                child: const Text("ok"),
                               )
                             ],
                           ),
