@@ -1,5 +1,4 @@
 part of 'moor_database.dart';
-
 /* otra posible forma del closure
 Function initialize(db) {
   return (batch) => (Batch batch, db) {
@@ -10,7 +9,7 @@ dynamic Function(Batch) initialize(Database db) {
   return (Batch batch) => _initialize(batch, db);
 }
 
-dynamic _initialize(Batch batch, Database db) {
+Future<void> _initialize(Batch batch, Database db) async {
   batch.insertAll(db.activos, [
     ActivosCompanion.insert(modelo: 'DT-Kenworth', identificador: '1'),
     ActivosCompanion.insert(modelo: 'sencillo-Kenworth', identificador: '2'),
@@ -23,6 +22,7 @@ dynamic _initialize(Batch batch, Database db) {
         id: const Value(2), nombre: "El otro contratista"),
   ]);
 
+/*
   batch.insertAll(db.sistemas, [
     SistemasCompanion.insert(id: const Value(1), nombre: "Estructura"),
     SistemasCompanion.insert(id: const Value(2), nombre: "Transmisión"),
@@ -32,6 +32,20 @@ dynamic _initialize(Batch batch, Database db) {
     SistemasCompanion.insert(id: const Value(6), nombre: "Motor"),
     SistemasCompanion.insert(id: const Value(7), nombre: "No aplica"),
   ]);
+*/
+  //TODO: mover esto a una clase encargada de sincronizar con la api
+
+  final ap.DjangoAPI tabla = ap.DjangoAPI();
+  //final List<Insertable<Sistema>> listaSistemas = [];
+
+  final sistemas = await tabla.getSistemas(Usuario()); //TODO: conseguir usuario
+
+  final List<Insertable<Sistema>> listaSistemas = sistemas
+      .map((item) =>
+          SistemasCompanion.insert(id: Value(item.id), nombre: item.nombre))
+      .toList();
+
+  batch.insertAll(db.sistemas, listaSistemas);
 
   batch.insertAll(db.subSistemas, [
     SubSistemasCompanion.insert(

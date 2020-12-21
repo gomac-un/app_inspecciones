@@ -43,11 +43,12 @@ class UserDrawer extends StatelessWidget {
               ),
               const SizedBox(height: 25.0),
               ListTile(
-                selectedTileColor: Colors.deepPurple,
+                selectedTileColor: Theme.of(context).accentColor,
                 title: const Text('Creación de Inspecciones',
                     style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
                 leading: const Icon(
-                  Icons.add, /* color: Colors.white, */
+                  Icons.add,
+                  color: Colors.black, /* color: Colors.white, */
                 ),
                 onTap: () async {
                   final res = await ExtendedNavigator.of(context)
@@ -61,12 +62,11 @@ class UserDrawer extends StatelessWidget {
               ),
               const SizedBox(height: 5.0),
               ListTile(
-                tileColor: Colors.deepPurple,
                 title: const Text('Ver base de Datos',
-                    style: TextStyle(color: Colors.white, fontSize: 15)),
+                    style: TextStyle(color: Colors.black, fontSize: 15)),
                 leading: const Icon(
                   Icons.view_array,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -81,14 +81,13 @@ class UserDrawer extends StatelessWidget {
               ),
               const SizedBox(height: 5.0),
               ListTile(
-                tileColor: Colors.deepPurple,
                 title: const Text(
                   'Reiniciar base de datos',
-                  style: TextStyle(color: Colors.white, fontSize: 15),
+                  style: TextStyle(/* color: Colors.white, */ fontSize: 15),
                 ),
                 leading: const Icon(
                   Icons.replay_outlined,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
                 onTap: () => getIt<Database>().dbdePrueba(),
               ),

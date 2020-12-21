@@ -14,7 +14,6 @@ import 'application/auth/auth_bloc.dart';
 import 'infrastructure/moor_database.dart';
 import 'infrastructure/datasources/local_preferences_datasource.dart';
 import 'infrastructure/datasources/remote_datasource.dart';
-import 'infrastructure/repositories/inspecciones_repository.dart';
 import 'presentation/pages/login_screen.dart';
 import 'infrastructure/core/network_info.dart';
 import 'infrastructure/database/mobile.dart';
@@ -46,11 +45,6 @@ Future<GetIt> $initGetIt(
   gh.factory<SharedPreferences>(() => sharedPreferences);
   gh.lazySingleton<ILocalPreferencesDataSource>(
       () => SharedPreferencesDataSource(get<SharedPreferences>()));
-  gh.lazySingleton<InspeccionesRepository>(() => InspeccionesRepository(
-        remoteDataSource: get<InspeccionesRemoteDataSource>(),
-        localDataBase: get<Database>(),
-        networkInfo: get<NetworkInfo>(),
-      ));
   gh.factory<UserRepository>(() => UserRepository(
       get<InspeccionesRemoteDataSource>(), get<ILocalPreferencesDataSource>()));
   gh.factory<AuthBloc>(() => AuthBloc(userRepository: get<UserRepository>()));

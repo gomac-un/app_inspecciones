@@ -41,6 +41,9 @@ Future main() async {
         ),
       ), //InspeccionScreen(),
     ),
+    /*MaterialApp(
+      home: Testing(),
+    ),*/
   );
 }
 
@@ -59,7 +62,7 @@ final customTheme = ThemeData(
   ),
 );
 
-/// Este obervador esconde el teclado luego de hacer pop
+
 class ClearFocusOnPop extends NavigatorObserver {
   @override
   void didPop(Route route, Route previousRoute) {
