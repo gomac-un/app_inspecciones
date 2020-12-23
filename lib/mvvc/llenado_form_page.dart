@@ -12,18 +12,18 @@ import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
-  final String vehiculo;
+  final int activo;
   final int cuestionarioId;
 
   const LlenadoFormPage({
     Key key,
-    this.vehiculo,
+    this.activo,
     this.cuestionarioId,
   }) : super(key: key);
 
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
-        create: (ctx) => LlenadoFormViewModel(vehiculo, cuestionarioId),
+        create: (ctx) => LlenadoFormViewModel(activo, cuestionarioId),
         dispose: (context, LlenadoFormViewModel value) => value.dispose(),
         child: this,
       );

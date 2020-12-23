@@ -73,8 +73,8 @@ class BorradoresPage extends StatelessWidget {
                   : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute} \n";
               return ListTile(
                 tileColor: Theme.of(context).cardColor,
-                title: Text(
-                    "${borrador.activo.identificador} - ${borrador.activo.modelo}"),
+                title:
+                    Text("${borrador.activo.id} - ${borrador.activo.modelo}"),
                 subtitle: Text(
                     "Tipo de inspeccion: ${borrador.cuestionario.tipoDeInspeccion} \n" +
                         "$fechaBorrador Estado: " +
@@ -88,7 +88,7 @@ class BorradoresPage extends StatelessWidget {
                 onTap: () => ExtendedNavigator.of(context).push(
                   Routes.llenadoFormPage,
                   arguments: LlenadoFormPageArguments(
-                    vehiculo: borrador.activo.identificador,
+                    activo: borrador.activo.id,
                     cuestionarioId: borrador.inspeccion.cuestionarioId,
                   ),
                 ),

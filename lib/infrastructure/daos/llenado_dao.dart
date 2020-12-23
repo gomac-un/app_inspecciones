@@ -26,7 +26,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
 
   /// Trae una lista con todos los cuestionarios disponibles para un activo,
   /// incluyendo los cuestionarios que son asignados a todos los activos
-  Future<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
+  Future<List<Cuestionario>> cuestionariosParaActivo(int activo) async {
     if (activo == null) return null;
     /*
     final query = select(activos).join([
@@ -46,7 +46,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       SELECT cuestionarios.* FROM activos
       INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.modelo = activos.modelo
       INNER JOIN cuestionarios ON cuestionarios.id = cuestionario_de_modelos.cuestionario_id
-      WHERE activos.identificador = $activo
+      WHERE activos.id = $activo
       UNION
       SELECT cuestionarios.* FROM cuestionarios
       INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.modelo = 'todos'
@@ -54,14 +54,14 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     ).map((row) => Cuestionario.fromData(row.data, db)).get();
   }
 
-  Future<Inspeccion> getInspeccion(String activo, int cuestionarioId) {
+  Future<Inspeccion> getInspeccion(int activoId, int cuestionarioId) {
     //revisar si hay una inspeccion de ese cuestionario empezada
-    if (cuestionarioId == null || activo == null) return Future.value();
+    if (cuestionarioId == null || activoId == null) return Future.value();
     final query = select(inspecciones)
       ..where(
         (ins) =>
             ins.cuestionarioId.equals(cuestionarioId) &
-            ins.identificadorActivo.equals(activo),
+            ins.activoId.equals(activoId),
       );
 
     return query.getSingle();
@@ -203,11 +203,11 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   }
 
   Future<List<IBloqueOrdenable>> cargarCuestionario(
-      int cuestionarioId, String activo) async {
+      int cuestionarioId, int activoId) async {
     final inspeccion = await (select(inspecciones)
           ..where((tbl) =>
               tbl.cuestionarioId.equals(cuestionarioId) &
-              tbl.identificadorActivo.equals(activo)))
+              tbl.activoId.equals(activoId)))
         .getSingle();
 
     final inspeccionId = inspeccion?.id;

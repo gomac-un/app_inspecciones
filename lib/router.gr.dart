@@ -74,7 +74,7 @@ class AutoRouter extends RouterBase {
       return MaterialPageRoute<dynamic>(
         builder: (context) => LlenadoFormPage(
           key: args.key,
-          vehiculo: args.vehiculo,
+          activo: args.activo,
           cuestionarioId: args.cuestionarioId,
         ).wrappedRoute(context),
         settings: data,
@@ -99,13 +99,13 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
 
   Future<dynamic> pushLlenadoFormPage({
     Key key,
-    String vehiculo,
+    int activo,
     int cuestionarioId,
   }) =>
       push<dynamic>(
         Routes.llenadoFormPage,
         arguments: LlenadoFormPageArguments(
-            key: key, vehiculo: vehiculo, cuestionarioId: cuestionarioId),
+            key: key, activo: activo, cuestionarioId: cuestionarioId),
       );
 }
 
@@ -116,7 +116,7 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
 /// LlenadoFormPage arguments holder class
 class LlenadoFormPageArguments {
   final Key key;
-  final String vehiculo;
+  final int activo;
   final int cuestionarioId;
-  LlenadoFormPageArguments({this.key, this.vehiculo, this.cuestionarioId});
+  LlenadoFormPageArguments({this.key, this.activo, this.cuestionarioId});
 }

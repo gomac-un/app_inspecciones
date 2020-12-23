@@ -23,7 +23,7 @@ class InicioInspeccionForm extends StatelessWidget {
                 ..valueChanges.listen((activo) async {
                   final res = await getIt<Database>()
                       .llenadoDao
-                      .cuestionariosParaActivo(activo);
+                      .cuestionariosParaActivo(int.parse(activo));
                   tiposDeInspeccion.value = res;
 
                   tipoInspeccionCtrl.value = res.isNotEmpty ? res.first : null;
@@ -83,7 +83,7 @@ class _BotonInicioInspeccion extends StatelessWidget {
       onPressed: form.valid
           ? () => ExtendedNavigator.of(context).pop(
                 LlenadoFormPageArguments(
-                  vehiculo: form.control('activo').value as String,
+                  activo: int.parse(form.control('activo').value as String),
                   cuestionarioId:
                       form.control('tipoDeInspeccion').value.id as int,
                 ),

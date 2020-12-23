@@ -17,7 +17,7 @@ class LlenadoFormViewModel {
   final ValueNotifier<EstadoDeInspeccion> estado =
       ValueNotifier(EstadoDeInspeccion.borrador);
 
-  final String _vehiculo;
+  final int _activo;
   final int _cuestionarioId;
 
   final form = FormGroup({});
@@ -27,7 +27,7 @@ class LlenadoFormViewModel {
 
   //List bloquesMutables;
 
-  LlenadoFormViewModel(this._vehiculo, this._cuestionarioId) {
+  LlenadoFormViewModel(this._activo, this._cuestionarioId) {
     /*form.addAll({
       'bloques': bloques,
     });*/
@@ -36,11 +36,11 @@ class LlenadoFormViewModel {
 
   Future cargarDatos() async {
     final inspeccion =
-        await _db.llenadoDao.getInspeccion(_vehiculo, _cuestionarioId);
+        await _db.llenadoDao.getInspeccion(_activo, _cuestionarioId);
     estado.value = inspeccion?.estado ?? EstadoDeInspeccion.borrador;
 
     final bloquesBD =
-        await _db.llenadoDao.cargarCuestionario(_cuestionarioId, _vehiculo);
+        await _db.llenadoDao.cargarCuestionario(_cuestionarioId, _activo);
 
     //ordenamiento y creacion de los controles dependiendo del tipo de elemento
     bloques = FormArray(
@@ -77,7 +77,7 @@ class LlenadoFormViewModel {
       throw Exception("Tipo de control no reconocido");
     }).toList();
 
-    await _db.guardarInspeccion(respuestas, _cuestionarioId, _vehiculo, estado);
+    await _db.guardarInspeccion(respuestas, _cuestionarioId, _activo, estado);
   }
 
   void finalizar() {

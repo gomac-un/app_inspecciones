@@ -89,7 +89,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                     periodicidad:
                         (form["periodicidad"].value as double).round(),
                     contratistaId:
-                        (form["contratista"].value as Contratista).id,
+                        Value((form["contratista"].value as Contratista).id),
                     cuestionarioId: cid))
                 .toList()); //TODO: distintas periodicidades y contratistas por cuestionarioDeModelo
       });
@@ -130,9 +130,9 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               bloqueId: bid,
               titulo: control.value["titulo"] as String,
               descripcion: control.value["descripcion"] as String,
-              sistemaId: control.value["sistema"].id as int,
-              subSistemaId: control.value["subSistema"].id as int,
-              posicion: control.value["posicion"] as String,
+              sistemaId: Value(control.value["sistema"].id as int),
+              subSistemaId: Value(control.value["subSistema"].id as int),
+              posicion: Value(control.value["posicion"] as String),
               tipo: control.value["tipoDePregunta"] as TipoDePregunta,
               criticidad: control.value["criticidad"].round() as int,
               fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
@@ -169,9 +169,9 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                         bloqueId: bid,
                         titulo: e["titulo"] as String,
                         descripcion: e["descripcion"] as String,
-                        sistemaId: e["sistema"].id as int,
-                        subSistemaId: e["subSistema"].id as int,
-                        posicion: e["posicion"] as String,
+                        sistemaId: Value(e["sistema"].id as int),
+                        subSistemaId: Value(e["subSistema"].id as int),
+                        posicion: Value(e["posicion"] as String),
                         tipo: TipoDePregunta
                             .unicaRespuesta, //TODO: multiple respuesta para cuadriculas
                         criticidad: e["criticidad"].round() as int,

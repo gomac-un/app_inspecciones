@@ -112,20 +112,20 @@ class Database extends _$Database {
   }
 
   //datos para el llenado de inspecciones
-  int generarId(String activo) {
+  int generarId(int activo) {
     final fechaFormateada = DateFormat("yyMMddHm").format(DateTime.now());
 
     return int.parse('$fechaFormateada$activo');
   }
 
   Future<Inspeccion> crearInspeccion(
-      int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
+      int cuestionarioId, int activo, EstadoDeInspeccion estado) async {
     if (activo == null) throw Exception("activo nulo");
     final ins = InspeccionesCompanion.insert(
       id: Value(generarId(activo)),
       cuestionarioId: cuestionarioId,
       estado: estado,
-      identificadorActivo: activo,
+      activoId: activo,
       momentoInicio: Value(DateTime.now()),
     );
     final id = await into(inspecciones).insert(ins);
@@ -133,9 +133,9 @@ class Database extends _$Database {
   }
 
   Future guardarInspeccion(List<RespuestaConOpcionesDeRespuesta> respuestasForm,
-      int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
-    Inspeccion ins = await llenadoDao.getInspeccion(activo, cuestionarioId);
-    ins ??= await crearInspeccion(cuestionarioId, activo, estado);
+      int cuestionarioId, int activoId, EstadoDeInspeccion estado) async {
+    Inspeccion ins = await llenadoDao.getInspeccion(activoId, cuestionarioId);
+    ins ??= await crearInspeccion(cuestionarioId, activoId, estado);
 
     for (final rf in respuestasForm) {
       rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));

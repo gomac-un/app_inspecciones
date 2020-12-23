@@ -26,8 +26,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
 
   Stream<List<Borrador>> borradores() {
     final query = select(inspecciones).join([
-      innerJoin(activos,
-          activos.identificador.equalsExp(inspecciones.identificadorActivo)),
+      innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
     ]);
 
     return query

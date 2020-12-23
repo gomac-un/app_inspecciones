@@ -1,12 +1,8 @@
 enum TipoDePregunta {
   unicaRespuesta,
-
   multipleRespuesta,
-
   binaria,
-
   fecha,
-
   rangoNumerico,
 }
 

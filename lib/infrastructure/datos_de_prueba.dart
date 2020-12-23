@@ -11,8 +11,8 @@ dynamic Function(Batch) initialize(Database db) {
 
 Future<void> _initialize(Batch batch, Database db) async {
   batch.insertAll(db.activos, [
-    ActivosCompanion.insert(modelo: 'DT-Kenworth', identificador: '1'),
-    ActivosCompanion.insert(modelo: 'sencillo-Kenworth', identificador: '2'),
+    ActivosCompanion.insert(modelo: 'DT-Kenworth', id: const Value(1)),
+    ActivosCompanion.insert(modelo: 'sencillo-Kenworth', id: const Value(2)),
   ]);
 
   batch.insertAll(db.contratistas, [
@@ -22,7 +22,6 @@ Future<void> _initialize(Batch batch, Database db) async {
         id: const Value(2), nombre: "El otro contratista"),
   ]);
 
-/*
   batch.insertAll(db.sistemas, [
     SistemasCompanion.insert(id: const Value(1), nombre: "Estructura"),
     SistemasCompanion.insert(id: const Value(2), nombre: "Transmisión"),
@@ -32,9 +31,9 @@ Future<void> _initialize(Batch batch, Database db) async {
     SistemasCompanion.insert(id: const Value(6), nombre: "Motor"),
     SistemasCompanion.insert(id: const Value(7), nombre: "No aplica"),
   ]);
-*/
-  //TODO: mover esto a una clase encargada de sincronizar con la api
 
+  //TODO: mover esto a una clase encargada de sincronizar con la api
+/*
   final ap.DjangoAPI tabla = ap.DjangoAPI();
   //final List<Insertable<Sistema>> listaSistemas = [];
 
@@ -46,7 +45,7 @@ Future<void> _initialize(Batch batch, Database db) async {
       .toList();
 
   batch.insertAll(db.sistemas, listaSistemas);
-
+*/
   batch.insertAll(db.subSistemas, [
     SubSistemasCompanion.insert(
         id: const Value(1), nombre: "n/s", sistemaId: 1),
@@ -76,7 +75,7 @@ Future<void> _initialize(Batch batch, Database db) async {
         modelo: 'DT-Kenworth',
         periodicidad: 100,
         cuestionarioId: 1,
-        contratistaId: 1)
+        contratistaId: const Value(1))
   ]);
   batch.insertAll(db.bloques, [
     BloquesCompanion.insert(id: const Value(1), cuestionarioId: 1, nOrden: 0),
@@ -102,9 +101,9 @@ Future<void> _initialize(Batch batch, Database db) async {
         bloqueId: 2,
         titulo: "Estado del restrictor del aire",
         descripcion: "",
-        sistemaId: 6,
-        subSistemaId: 6,
-        posicion: "no aplica",
+        sistemaId: const Value(6),
+        subSistemaId: const Value(6),
+        posicion: const Value("no aplica"),
         tipo: TipoDePregunta.unicaRespuesta,
         criticidad: 3,
         parteDeCuadricula: false,
@@ -139,9 +138,9 @@ Future<void> _initialize(Batch batch, Database db) async {
         bloqueId: 3,
         titulo: "Estado aceite lubricante",
         descripcion: "",
-        sistemaId: 6,
-        subSistemaId: 6,
-        posicion: "no aplica",
+        sistemaId: const Value(6),
+        subSistemaId: const Value(6),
+        posicion: const Value("no aplica"),
         tipo: TipoDePregunta.multipleRespuesta,
         criticidad: 3,
         parteDeCuadricula: false,
@@ -184,9 +183,9 @@ Future<void> _initialize(Batch batch, Database db) async {
       bloqueId: 4,
       titulo: "Fugas/estado en mangueras",
       descripcion: "",
-      sistemaId: 6,
-      subSistemaId: 6,
-      posicion: "n/a",
+      sistemaId: const Value(6),
+      subSistemaId: const Value(6),
+      posicion: const Value("n/a"),
       tipo: TipoDePregunta.unicaRespuesta,
       criticidad: 3,
       parteDeCuadricula: true,
@@ -196,9 +195,9 @@ Future<void> _initialize(Batch batch, Database db) async {
       bloqueId: 4,
       titulo: "Fugas en base del filtro de aceite",
       descripcion: "",
-      sistemaId: 6,
-      subSistemaId: 6,
-      posicion: "n/a",
+      sistemaId: const Value(6),
+      subSistemaId: const Value(6),
+      posicion: const Value("n/a"),
       tipo: TipoDePregunta.unicaRespuesta,
       criticidad: 3,
       parteDeCuadricula: true,
