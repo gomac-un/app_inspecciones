@@ -1,6 +1,12 @@
 import 'package:collection/collection.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:intl/intl.dart';
+import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
+import 'package:path_provider/path_provider.dart';
+
+import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
+
 part 'llenado_dao.g.dart';
 
 @UseDao(tables: [
@@ -221,5 +227,86 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         await getCuadriculas(cuestionarioId, inspeccionId);
 
     return [...titulos, ...preguntasSimples, ...cuadriculas];
+  }
+
+  int generarId(int activo) {
+    final fechaFormateada = DateFormat("yyMMddHHmm").format(DateTime.now());
+    return int.parse('$fechaFormateada$activo');
+  }
+
+  Future<Inspeccion> crearInspeccion(
+      int cuestionarioId, int activo, EstadoDeInspeccion estado) async {
+    if (activo == null) throw Exception("activo nulo");
+    final ins = InspeccionesCompanion.insert(
+      id: Value(generarId(activo)),
+      cuestionarioId: cuestionarioId,
+      estado: estado,
+      activoId: activo,
+      momentoInicio: Value(DateTime.now()),
+    );
+    final id = await into(inspecciones).insert(ins);
+    return (select(inspecciones)..where((i) => i.id.equals(id))).getSingle();
+  }
+
+  Future guardarInspeccion(List<RespuestaConOpcionesDeRespuesta> respuestasForm,
+      int cuestionarioId, int activoId, EstadoDeInspeccion estado) async {
+    return transaction(() async {
+      Inspeccion ins = await getInspeccion(activoId, cuestionarioId);
+      ins ??= await crearInspeccion(cuestionarioId, activoId, estado);
+
+      for (final rf in respuestasForm) {
+        rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
+      }
+      await (update(inspecciones)..where((i) => i.id.equals(ins.id))).write(
+        estado == EstadoDeInspeccion.enviada
+            ? InspeccionesCompanion(
+                momentoEnvio: Value(DateTime.now()),
+                estado: Value(estado),
+              )
+            : InspeccionesCompanion(
+                momentoBorradorGuardado: Value(DateTime.now()),
+                estado: Value(estado),
+              ),
+      );
+      await Future.forEach<RespuestaConOpcionesDeRespuesta>(respuestasForm,
+          (e) async {
+        //Mover las fotos a una carpeta unica para cada inspeccion
+        final appDir = await getApplicationDocumentsDirectory();
+        final idform =
+            respuestasForm.first.respuesta.inspeccionId.value.toString();
+        final fotosBaseProc = await Future.wait(db.organizarFotos(
+            e.respuesta.fotosBase.value,
+            appDir.path,
+            "fotosInspecciones",
+            idform));
+        final fotosRepProc = await Future.wait(db.organizarFotos(
+            e.respuesta.fotosBase.value,
+            appDir.path,
+            "fotosInspecciones",
+            idform));
+        e.respuesta.copyWith(
+          fotosBase: Value(fotosBaseProc.toImmutableList()),
+          fotosReparacion: Value(fotosRepProc.toImmutableList()),
+        );
+
+        int res;
+        if (e.respuesta.id.present) {
+          await into(respuestas).insertOnConflictUpdate(e.respuesta);
+          res = e.respuesta.id.value;
+        } else {
+          res = await into(respuestas).insert(e.respuesta);
+        }
+
+        await (delete(respuestasXOpcionesDeRespuesta)
+              ..where((rxor) => rxor.respuestaId.equals(res)))
+            .go();
+        await Future.forEach<OpcionDeRespuesta>(
+            e.opcionesDeRespuesta.where((e) => e != null), (opres) async {
+          await into(respuestasXOpcionesDeRespuesta).insert(
+              RespuestasXOpcionesDeRespuestaCompanion.insert(
+                  respuestaId: res, opcionDeRespuestaId: opres.id));
+        });
+      });
+    });
   }
 }

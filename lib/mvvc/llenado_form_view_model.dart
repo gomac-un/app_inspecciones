@@ -77,7 +77,8 @@ class LlenadoFormViewModel {
       throw Exception("Tipo de control no reconocido");
     }).toList();
 
-    await _db.guardarInspeccion(respuestas, _cuestionarioId, _activo, estado);
+    await _db.llenadoDao
+        .guardarInspeccion(respuestas, _cuestionarioId, _activo, estado);
   }
 
   void finalizar() {
