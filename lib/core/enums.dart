@@ -1,9 +1,11 @@
 enum TipoDePregunta {
   unicaRespuesta,
   multipleRespuesta,
+  parteDeCuadriculaUnica,
+  parteDeCuadriculaMultiple,
+  rangoNumerico,
   binaria,
   fecha,
-  rangoNumerico,
 }
 
 enum EstadoDeInspeccion {

@@ -58,8 +58,9 @@ class CreadorPreguntaFormGroup extends FormGroup
           fb.control<double>(d?.pregunta?.criticidad?.toDouble() ?? 0),
       'fotosGuia': fb.array<File>(
           d?.pregunta?.fotosGuia?.iter?.map((e) => File(e))?.toList() ?? []),
-      'tipoDePregunta': fb.control<TipoDePregunta>(
-          d?.pregunta?.tipo, [if (!parteDeCuadricula) Validators.required]),
+      'tipoDePregunta': fb.control<TipoDePregunta>(d?.pregunta?.tipo, [
+        if (!parteDeCuadricula) Validators.required
+      ]), //em realidad para las cuadriculas de debe manejar distinto pero se reescribira mas adelante
       'respuestas': fb.array<Map<String, dynamic>>(
         d?.opcionesDeRespuesta
                 ?.map((e) => CreadorRespuestaFormGroup(e))
@@ -121,7 +122,6 @@ class CreadorPreguntaFormGroup extends FormGroup
               .controls
               .map((e) => e.value.path)
               .toImmutableList(),
-          parteDeCuadricula: null,
           tipo: value['tipoDePregunta'] as TipoDePregunta,
         ),
         (control('respuestas') as FormArray).controls.map((e) {
@@ -294,22 +294,3 @@ abstract class ConRespuestas {
 abstract class Copiable {
   Future<AbstractControl> copiar();
 }
-/*
-extension XAbstractControl on AbstractControl {
-  AbstractControl copy() {
-    if (this is FormControl) return fb.control(value, validators);
-    if (this is FormArray) {
-      final thisarr = this as FormArray;
-      final copiedControls = thisarr.controls.map((e) => e.copy()).toList();
-      return FormArray(copiedControls, validators: validators);
-    }
-    if (this is FormGroup) {
-      final thisgroup = this as FormGroup;
-      final copiedControls =
-          thisgroup.controls.map((key, value) => MapEntry(key, value.copy()));
-      return FormGroup(copiedControls, validators: validators);
-    }
-    throw Exception();
-  }
-}
-*/

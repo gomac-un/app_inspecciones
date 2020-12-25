@@ -36,11 +36,29 @@ class PreguntaConOpcionesDeRespuesta {
   PreguntaConOpcionesDeRespuesta(this.pregunta, this.opcionesDeRespuesta);
 }
 
+//TODO: Refactorizar a RespuestaCompanionConOpcionesDeRespuesta
+// El enredo con los companions es porque al insertar la primera vez es mas
+// comodo trabajar con el companion pero luego, al traerlos de la bd es mejor trabajar con la dataclass
+// la clase RespuestaConOpcionesDeRespuesta2 en este momento maneja la dataclass en lugar del compnaion
 class RespuestaConOpcionesDeRespuesta {
   RespuestasCompanion respuesta;
   List<OpcionDeRespuesta> opcionesDeRespuesta;
 
   RespuestaConOpcionesDeRespuesta(this.respuesta, this.opcionesDeRespuesta);
+}
+
+@JsonSerializable()
+class RespuestaConOpcionesDeRespuesta2 {
+  Respuesta respuesta;
+  List<OpcionDeRespuesta> opcionesDeRespuesta;
+
+  RespuestaConOpcionesDeRespuesta2(this.respuesta, this.opcionesDeRespuesta);
+
+  factory RespuestaConOpcionesDeRespuesta2.fromJson(
+          Map<String, dynamic> json) =>
+      _$RespuestaConOpcionesDeRespuesta2FromJson(json);
+  Map<String, dynamic> toJson() =>
+      _$RespuestaConOpcionesDeRespuesta2ToJson(this);
 }
 
 class PreguntaConRespuestaConOpcionesDeRespuesta {

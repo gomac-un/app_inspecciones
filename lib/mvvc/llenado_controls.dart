@@ -21,7 +21,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     respuesta.respuesta ??= crearRespuestaPorDefecto(pregunta.pregunta.id);
 
     FormControl respuestas;
-
+    //TODO: hacer un switch para pregunta.pregunta.tipo
     if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta) {
       respuestas = FormControl<List<OpcionDeRespuesta>>(
         value: pregunta.opcionesDeRespuesta
@@ -34,7 +34,8 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
         validators: [Validators.minLength(1)],
       );
     }
-    if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta) {
+    if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta ||
+        pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaUnica) {
       respuestas = FormControl<OpcionDeRespuesta>(
         value: pregunta.opcionesDeRespuesta.firstWhere(
           (e) => respuesta.opcionesDeRespuesta?.first == e,
@@ -42,6 +43,9 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
         ),
         validators: [Validators.required],
       );
+    }
+    if (respuestas == null) {
+      throw Exception("Este form group no puede manejar este tipo de pregunta");
     }
 
     final Map<String, AbstractControl<dynamic>> controles = {
@@ -85,21 +89,46 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
       * solo para la pantalla de arreglos
       */
     int sumres;
-    if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta) {
-      sumres = (control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
-          .value
-          .fold(0, (p, c) => p + c.criticidad);
-    }
-    if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta) {
-      sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
-          .value
-          .criticidad;
+
+    switch (pregunta.pregunta.tipo) {
+      case TipoDePregunta.multipleRespuesta:
+        sumres = (control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
+            .value
+            .fold(0, (p, c) => p + c.criticidad);
+        break;
+      case TipoDePregunta.unicaRespuesta:
+        sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
+            .value
+            .criticidad;
+        break;
+      case TipoDePregunta.parteDeCuadriculaUnica:
+        sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
+            .value
+            .criticidad;
+        break;
+      default:
+        throw Exception("tipo de pregunta no esperado");
     }
 
     return pregunta.pregunta.criticidad * sumres;
   }
 
   RespuestaConOpcionesDeRespuesta toDB() {
+    List<OpcionDeRespuesta> respuestas;
+    switch (pregunta.pregunta.tipo) {
+      case TipoDePregunta.multipleRespuesta:
+        respuestas = control('respuestas').value as List<OpcionDeRespuesta>;
+        break;
+      case TipoDePregunta.unicaRespuesta:
+        respuestas = [control('respuestas').value as OpcionDeRespuesta];
+        break;
+      case TipoDePregunta.parteDeCuadriculaUnica:
+        respuestas = [control('respuestas').value as OpcionDeRespuesta];
+        break;
+      default:
+        throw Exception("tipo de pregunta no esperado");
+    }
+
     return RespuestaConOpcionesDeRespuesta(
       respuesta.respuesta.copyWith(
         fotosBase: Value((control('fotosBase') as FormArray<File>)
@@ -116,12 +145,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
             Value(control('observacionReparacion').value as String),
         momentoRespuesta: Value(_momentoRespuesta),
       ),
-      [
-        if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta)
-          ...control('respuestas').value,
-        if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta)
-          control('respuestas').value as OpcionDeRespuesta,
-      ],
+      respuestas,
     );
   }
 }

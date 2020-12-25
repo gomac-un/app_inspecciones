@@ -96,11 +96,8 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
           opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
     ])
       ..where(bloques.cuestionarioId.equals(cuestionarioId) &
-          /*((preguntas.tipo.equals(0) //seleccion unica
-                    |
-                    preguntas.tipo.equals(1)) //seleccion multiple
-                &*/
-          preguntas.parteDeCuadricula.equals(false));
+          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)));
+    //unicaRespuesta/multipleRespuesta
     final res = await query
         .map((row) => {
               'bloque': row.readTable(bloques),
@@ -119,15 +116,15 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
                 .map((item) => item['opcionesDePregunta'] as OpcionDeRespuesta)
                 .toList(),
           ),
-          await getRespuestas(entry.key.id as int, inspeccionId),
+          await getRespuestaDePregunta(entry.key.id as int, inspeccionId),
           //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
         );
       }),
     );
   }
 
-  Future<RespuestaConOpcionesDeRespuesta> getRespuestas(int preguntaId,
-      [int inspeccionId]) async {
+  Future<RespuestaConOpcionesDeRespuesta> getRespuestaDePregunta(
+      int preguntaId, int inspeccionId) async {
     //TODO: mirar el caso donde se presenten varias respuestas a una preguntaXinspeccion
     if (inspeccionId == null) {
       return RespuestaConOpcionesDeRespuesta(null, null);
@@ -169,10 +166,9 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       innerJoin(cuadriculasDePreguntas,
           cuadriculasDePreguntas.bloqueId.equalsExp(bloques.id)),
     ])
-      ..where(bloques.cuestionarioId.equals(cuestionarioId)
-          // & preguntas.tipo.equals(2) //parteDeCuadricula
-
-          );
+      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
+          preguntas.tipo.equals(2));
+    //parteDeCuadriculaUnica
 
     final res = await query
         .map((row) => {
@@ -194,7 +190,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
           await Future.wait(entry.value.map(
             (item) async => PreguntaConRespuestaConOpcionesDeRespuesta(
                 item['pregunta'] as Pregunta,
-                await getRespuestas(
+                await getRespuestaDePregunta(
                     (item['pregunta'] as Pregunta).id, inspeccionId)),
           )),
         );
@@ -308,5 +304,42 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         });
       });
     });
+  }
+
+  // funciones para subir al server
+  Future<List<RespuestaConOpcionesDeRespuesta2>> getRespuestasDeInspeccion(
+      Inspeccion inspeccion) async {
+    final query = select(respuestas).join([
+      leftOuterJoin(
+        //left outer join para que carguen las respuestas sin opciones seleccionadas
+        respuestasXOpcionesDeRespuesta,
+        respuestasXOpcionesDeRespuesta.respuestaId.equalsExp(respuestas.id),
+      ),
+      leftOuterJoin(
+        opcionesDeRespuesta,
+        opcionesDeRespuesta.id
+            .equalsExp(respuestasXOpcionesDeRespuesta.opcionDeRespuestaId),
+      ),
+    ])
+      ..where(
+        respuestas.inspeccionId.equals(inspeccion.id), //seleccion multiple
+      );
+    final res = await query
+        .map((row) => {
+              'respuesta': row.readTable(respuestas),
+              'opcionDeRespuesta': row.readTable(opcionesDeRespuesta)
+            })
+        .get();
+
+    return groupBy(res, (e) => e['respuesta'] as Respuesta)
+        .entries
+        .map((entry) {
+      return RespuestaConOpcionesDeRespuesta2(
+        entry.key,
+        entry.value
+            .map((e) => e['opcionDeRespuesta'] as OpcionDeRespuesta)
+            .toList(),
+      );
+    }).toList();
   }
 }

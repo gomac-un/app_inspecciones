@@ -136,7 +136,6 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               tipo: control.value["tipoDePregunta"] as TipoDePregunta,
               criticidad: control.value["criticidad"].round() as int,
               fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
-              parteDeCuadricula: false,
             ),
           );
           // Asociacion de las opciones de respuesta con esta pregunta
@@ -173,10 +172,9 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                         subSistemaId: Value(e["subSistema"].id as int),
                         posicion: Value(e["posicion"] as String),
                         tipo: TipoDePregunta
-                            .unicaRespuesta, //TODO: multiple respuesta para cuadriculas
+                            .parteDeCuadriculaUnica, //TODO: multiple respuesta para cuadriculas
                         criticidad: e["criticidad"].round() as int,
-                        parteDeCuadricula:
-                            true, //TODO: fotos para cada pregunta
+                        //TODO: fotos para cada pregunta
                       ))
                   .toList(),
             );

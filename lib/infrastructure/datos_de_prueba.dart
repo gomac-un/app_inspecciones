@@ -106,7 +106,6 @@ Future<void> _initialize(Batch batch, Database db) async {
         posicion: const Value("no aplica"),
         tipo: TipoDePregunta.unicaRespuesta,
         criticidad: 3,
-        parteDeCuadricula: false,
       ));
   batch.insertAll(db.opcionesDeRespuesta, [
     OpcionesDeRespuestaCompanion.insert(
@@ -143,7 +142,6 @@ Future<void> _initialize(Batch batch, Database db) async {
         posicion: const Value("no aplica"),
         tipo: TipoDePregunta.multipleRespuesta,
         criticidad: 3,
-        parteDeCuadricula: false,
       ));
   batch.insertAll(db.opcionesDeRespuesta, [
     OpcionesDeRespuestaCompanion.insert(
@@ -186,9 +184,8 @@ Future<void> _initialize(Batch batch, Database db) async {
       sistemaId: const Value(6),
       subSistemaId: const Value(6),
       posicion: const Value("n/a"),
-      tipo: TipoDePregunta.unicaRespuesta,
+      tipo: TipoDePregunta.parteDeCuadriculaUnica,
       criticidad: 3,
-      parteDeCuadricula: true,
     ),
     PreguntasCompanion.insert(
       id: const Value(4),
@@ -198,9 +195,8 @@ Future<void> _initialize(Batch batch, Database db) async {
       sistemaId: const Value(6),
       subSistemaId: const Value(6),
       posicion: const Value("n/a"),
-      tipo: TipoDePregunta.unicaRespuesta,
+      tipo: TipoDePregunta.parteDeCuadriculaUnica,
       criticidad: 3,
-      parteDeCuadricula: true,
     ),
   ]);
   //Las respuestas de la cuadricula

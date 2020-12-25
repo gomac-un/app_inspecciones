@@ -22,8 +22,9 @@ class DjangoAPI implements InspeccionesRemoteDataSource {
   static const _apiBase = '/inspecciones/api/v1';
   static const _tokenEndpoint = "/api-token-auth/";
   static const _sistema = '/sistemas/';
+  final Database _db;
 
-  DjangoAPI();
+  DjangoAPI(this._db);
 
   @override
   Future<String> getToken(UserLogin userLogin) async {
@@ -69,5 +70,35 @@ class DjangoAPI implements InspeccionesRemoteDataSource {
     } else {
       throw ServerException(json.decode(response.body).toString());
     }
+  }
+
+  Future subirInspeccion(Inspeccion inspeccion) async {
+    const endpointSubirInspeccion = '/inspecciones/';
+    const url = _server + _apiBase + endpointSubirInspeccion;
+
+    final respuestas =
+        await _db.llenadoDao.getRespuestasDeInspeccion(inspeccion);
+    final body = {'inspeccion': inspeccion, 'respuestas': respuestas};
+
+    final response = await http.put(
+      '$url${inspeccion.id}',
+      body: json.encode(body),
+      // Send authorization headers to the backend.
+      //headers: {HttpHeaders.authorizationHeader: "Token ${usuario.token}"},
+    );
+    print(json.decode(response.body));
+/*
+    if (response.statusCode == 200) {
+      final values = json.decode(response.body) as List<Map<String, dynamic>>;
+
+      final listaSistema = values
+          .where((e) => e != null)
+          .map((e) => Sistema.fromJson(e))
+          .toList();
+
+      return listaSistema;
+    } else {
+      throw ServerException(json.decode(response.body).toString());
+    }*/
   }
 }

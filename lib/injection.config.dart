@@ -38,7 +38,8 @@ Future<GetIt> $initGetIt(
   gh.factory<DataConnectionChecker>(
       () => thirdPartyInjections.dataConnectionChecker);
   gh.lazySingleton<Database>(() => registerModule.constructDb());
-  gh.lazySingleton<InspeccionesRemoteDataSource>(() => DjangoAPI());
+  gh.lazySingleton<InspeccionesRemoteDataSource>(
+      () => DjangoAPI(get<Database>()));
   gh.lazySingleton<NetworkInfo>(
       () => NetworkInfoImpl(get<DataConnectionChecker>()));
   final sharedPreferences = await sharedPreferencesInjectableModule.prefs;

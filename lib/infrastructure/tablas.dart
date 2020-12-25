@@ -140,8 +140,6 @@ class Preguntas extends Table {
       .map(const ListInColumnConverter())
       .withDefault(const Constant("[]"))();
 
-  BoolColumn get parteDeCuadricula => boolean()();
-
   @JsonKey('bloque_id')
   IntColumn get bloqueId =>
       integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();

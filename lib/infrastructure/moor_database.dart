@@ -7,6 +7,7 @@ import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
+import 'package:json_annotation/json_annotation.dart' show JsonSerializable;
 import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
 import 'package:path/path.dart' as path;

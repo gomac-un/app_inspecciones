@@ -3,6 +3,25 @@
 part of 'moor_database.dart';
 
 // **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+RespuestaConOpcionesDeRespuesta2 _$RespuestaConOpcionesDeRespuesta2FromJson(
+    Map<String, dynamic> json) {
+  return RespuestaConOpcionesDeRespuesta2(
+    json['respuesta'],
+    json['opcionesDeRespuesta'] as List,
+  );
+}
+
+Map<String, dynamic> _$RespuestaConOpcionesDeRespuesta2ToJson(
+        RespuestaConOpcionesDeRespuesta2 instance) =>
+    <String, dynamic>{
+      'respuesta': instance.respuesta,
+      'opcionesDeRespuesta': instance.opcionesDeRespuesta,
+    };
+
+// **************************************************************************
 // MoorGenerator
 // **************************************************************************
 
@@ -1601,7 +1620,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
   final int criticidad;
   final String posicion;
   final KtList<String> fotosGuia;
-  final bool parteDeCuadricula;
   final int bloqueId;
   final int sistemaId;
   final int subSistemaId;
@@ -1613,7 +1631,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       @required this.criticidad,
       this.posicion,
       @required this.fotosGuia,
-      @required this.parteDeCuadricula,
       @required this.bloqueId,
       this.sistemaId,
       this.subSistemaId,
@@ -1623,7 +1640,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
     final stringType = db.typeSystem.forDartType<String>();
-    final boolType = db.typeSystem.forDartType<bool>();
     return Pregunta(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       titulo:
@@ -1636,8 +1652,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           .mapFromDatabaseResponse(data['${effectivePrefix}posicion']),
       fotosGuia: $PreguntasTable.$converter0.mapToDart(stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}fotos_guia'])),
-      parteDeCuadricula: boolType.mapFromDatabaseResponse(
-          data['${effectivePrefix}parte_de_cuadricula']),
       bloqueId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}bloque_id']),
       sistemaId:
@@ -1669,9 +1683,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
     if (!nullToAbsent || fotosGuia != null) {
       final converter = $PreguntasTable.$converter0;
       map['fotos_guia'] = Variable<String>(converter.mapToSql(fotosGuia));
-    }
-    if (!nullToAbsent || parteDeCuadricula != null) {
-      map['parte_de_cuadricula'] = Variable<bool>(parteDeCuadricula);
     }
     if (!nullToAbsent || bloqueId != null) {
       map['bloque_id'] = Variable<int>(bloqueId);
@@ -1706,9 +1717,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       fotosGuia: fotosGuia == null && nullToAbsent
           ? const Value.absent()
           : Value(fotosGuia),
-      parteDeCuadricula: parteDeCuadricula == null && nullToAbsent
-          ? const Value.absent()
-          : Value(parteDeCuadricula),
       bloqueId: bloqueId == null && nullToAbsent
           ? const Value.absent()
           : Value(bloqueId),
@@ -1732,7 +1740,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       criticidad: serializer.fromJson<int>(json['criticidad']),
       posicion: serializer.fromJson<String>(json['posicion']),
       fotosGuia: serializer.fromJson<KtList<String>>(json['fotosGuia']),
-      parteDeCuadricula: serializer.fromJson<bool>(json['parteDeCuadricula']),
       bloqueId: serializer.fromJson<int>(json['bloque_id']),
       sistemaId: serializer.fromJson<int>(json['sistema_id']),
       subSistemaId: serializer.fromJson<int>(json['subSistema_id']),
@@ -1749,7 +1756,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       'criticidad': serializer.toJson<int>(criticidad),
       'posicion': serializer.toJson<String>(posicion),
       'fotosGuia': serializer.toJson<KtList<String>>(fotosGuia),
-      'parteDeCuadricula': serializer.toJson<bool>(parteDeCuadricula),
       'bloque_id': serializer.toJson<int>(bloqueId),
       'sistema_id': serializer.toJson<int>(sistemaId),
       'subSistema_id': serializer.toJson<int>(subSistemaId),
@@ -1764,7 +1770,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           int criticidad,
           String posicion,
           KtList<String> fotosGuia,
-          bool parteDeCuadricula,
           int bloqueId,
           int sistemaId,
           int subSistemaId,
@@ -1776,7 +1781,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
         criticidad: criticidad ?? this.criticidad,
         posicion: posicion ?? this.posicion,
         fotosGuia: fotosGuia ?? this.fotosGuia,
-        parteDeCuadricula: parteDeCuadricula ?? this.parteDeCuadricula,
         bloqueId: bloqueId ?? this.bloqueId,
         sistemaId: sistemaId ?? this.sistemaId,
         subSistemaId: subSistemaId ?? this.subSistemaId,
@@ -1791,7 +1795,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           ..write('criticidad: $criticidad, ')
           ..write('posicion: $posicion, ')
           ..write('fotosGuia: $fotosGuia, ')
-          ..write('parteDeCuadricula: $parteDeCuadricula, ')
           ..write('bloqueId: $bloqueId, ')
           ..write('sistemaId: $sistemaId, ')
           ..write('subSistemaId: $subSistemaId, ')
@@ -1814,13 +1817,11 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
                       $mrjc(
                           fotosGuia.hashCode,
                           $mrjc(
-                              parteDeCuadricula.hashCode,
+                              bloqueId.hashCode,
                               $mrjc(
-                                  bloqueId.hashCode,
-                                  $mrjc(
-                                      sistemaId.hashCode,
-                                      $mrjc(subSistemaId.hashCode,
-                                          tipo.hashCode)))))))))));
+                                  sistemaId.hashCode,
+                                  $mrjc(subSistemaId.hashCode,
+                                      tipo.hashCode))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -1831,7 +1832,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           other.criticidad == this.criticidad &&
           other.posicion == this.posicion &&
           other.fotosGuia == this.fotosGuia &&
-          other.parteDeCuadricula == this.parteDeCuadricula &&
           other.bloqueId == this.bloqueId &&
           other.sistemaId == this.sistemaId &&
           other.subSistemaId == this.subSistemaId &&
@@ -1845,7 +1845,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
   final Value<int> criticidad;
   final Value<String> posicion;
   final Value<KtList<String>> fotosGuia;
-  final Value<bool> parteDeCuadricula;
   final Value<int> bloqueId;
   final Value<int> sistemaId;
   final Value<int> subSistemaId;
@@ -1857,7 +1856,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     this.criticidad = const Value.absent(),
     this.posicion = const Value.absent(),
     this.fotosGuia = const Value.absent(),
-    this.parteDeCuadricula = const Value.absent(),
     this.bloqueId = const Value.absent(),
     this.sistemaId = const Value.absent(),
     this.subSistemaId = const Value.absent(),
@@ -1870,7 +1868,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     @required int criticidad,
     this.posicion = const Value.absent(),
     this.fotosGuia = const Value.absent(),
-    @required bool parteDeCuadricula,
     @required int bloqueId,
     this.sistemaId = const Value.absent(),
     this.subSistemaId = const Value.absent(),
@@ -1878,7 +1875,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
   })  : titulo = Value(titulo),
         descripcion = Value(descripcion),
         criticidad = Value(criticidad),
-        parteDeCuadricula = Value(parteDeCuadricula),
         bloqueId = Value(bloqueId),
         tipo = Value(tipo);
   static Insertable<Pregunta> custom({
@@ -1888,7 +1884,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     Expression<int> criticidad,
     Expression<String> posicion,
     Expression<String> fotosGuia,
-    Expression<bool> parteDeCuadricula,
     Expression<int> bloqueId,
     Expression<int> sistemaId,
     Expression<int> subSistemaId,
@@ -1901,7 +1896,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       if (criticidad != null) 'criticidad': criticidad,
       if (posicion != null) 'posicion': posicion,
       if (fotosGuia != null) 'fotos_guia': fotosGuia,
-      if (parteDeCuadricula != null) 'parte_de_cuadricula': parteDeCuadricula,
       if (bloqueId != null) 'bloque_id': bloqueId,
       if (sistemaId != null) 'sistema_id': sistemaId,
       if (subSistemaId != null) 'sub_sistema_id': subSistemaId,
@@ -1916,7 +1910,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       Value<int> criticidad,
       Value<String> posicion,
       Value<KtList<String>> fotosGuia,
-      Value<bool> parteDeCuadricula,
       Value<int> bloqueId,
       Value<int> sistemaId,
       Value<int> subSistemaId,
@@ -1928,7 +1921,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       criticidad: criticidad ?? this.criticidad,
       posicion: posicion ?? this.posicion,
       fotosGuia: fotosGuia ?? this.fotosGuia,
-      parteDeCuadricula: parteDeCuadricula ?? this.parteDeCuadricula,
       bloqueId: bloqueId ?? this.bloqueId,
       sistemaId: sistemaId ?? this.sistemaId,
       subSistemaId: subSistemaId ?? this.subSistemaId,
@@ -1958,9 +1950,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       final converter = $PreguntasTable.$converter0;
       map['fotos_guia'] = Variable<String>(converter.mapToSql(fotosGuia.value));
     }
-    if (parteDeCuadricula.present) {
-      map['parte_de_cuadricula'] = Variable<bool>(parteDeCuadricula.value);
-    }
     if (bloqueId.present) {
       map['bloque_id'] = Variable<int>(bloqueId.value);
     }
@@ -1986,7 +1975,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
           ..write('criticidad: $criticidad, ')
           ..write('posicion: $posicion, ')
           ..write('fotosGuia: $fotosGuia, ')
-          ..write('parteDeCuadricula: $parteDeCuadricula, ')
           ..write('bloqueId: $bloqueId, ')
           ..write('sistemaId: $sistemaId, ')
           ..write('subSistemaId: $subSistemaId, ')
@@ -2060,20 +2048,6 @@ class $PreguntasTable extends Preguntas
         defaultValue: const Constant("[]"));
   }
 
-  final VerificationMeta _parteDeCuadriculaMeta =
-      const VerificationMeta('parteDeCuadricula');
-  GeneratedBoolColumn _parteDeCuadricula;
-  @override
-  GeneratedBoolColumn get parteDeCuadricula =>
-      _parteDeCuadricula ??= _constructParteDeCuadricula();
-  GeneratedBoolColumn _constructParteDeCuadricula() {
-    return GeneratedBoolColumn(
-      'parte_de_cuadricula',
-      $tableName,
-      false,
-    );
-  }
-
   final VerificationMeta _bloqueIdMeta = const VerificationMeta('bloqueId');
   GeneratedIntColumn _bloqueId;
   @override
@@ -2123,7 +2097,6 @@ class $PreguntasTable extends Preguntas
         criticidad,
         posicion,
         fotosGuia,
-        parteDeCuadricula,
         bloqueId,
         sistemaId,
         subSistemaId,
@@ -2170,14 +2143,6 @@ class $PreguntasTable extends Preguntas
           posicion.isAcceptableOrUnknown(data['posicion'], _posicionMeta));
     }
     context.handle(_fotosGuiaMeta, const VerificationResult.success());
-    if (data.containsKey('parte_de_cuadricula')) {
-      context.handle(
-          _parteDeCuadriculaMeta,
-          parteDeCuadricula.isAcceptableOrUnknown(
-              data['parte_de_cuadricula'], _parteDeCuadriculaMeta));
-    } else if (isInserting) {
-      context.missing(_parteDeCuadriculaMeta);
-    }
     if (data.containsKey('bloque_id')) {
       context.handle(_bloqueIdMeta,
           bloqueId.isAcceptableOrUnknown(data['bloque_id'], _bloqueIdMeta));
