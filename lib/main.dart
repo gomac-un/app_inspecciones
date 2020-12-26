@@ -41,9 +41,6 @@ Future main() async {
         ),
       ), //InspeccionScreen(),
     ),
-    /*MaterialApp(
-      home: Testing(),
-    ),*/
   );
 }
 
@@ -61,7 +58,6 @@ final customTheme = ThemeData(
     filled: true,
   ),
 );
-
 
 class ClearFocusOnPop extends NavigatorObserver {
   @override

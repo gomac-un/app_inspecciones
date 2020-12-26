@@ -91,6 +91,19 @@ class UserDrawer extends StatelessWidget {
                 ),
                 onTap: () => getIt<Database>().dbdePrueba(),
               ),
+              ListTile(
+                selectedTileColor: Theme.of(context).accentColor,
+                title: const Text('Actualizar inspecciones',
+                    style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
+                leading: const Icon(
+                  Icons.update,
+                  color: Colors.black, /* color: Colors.white, */
+                ),
+                onTap: () async {
+                  await ExtendedNavigator.of(context).pushSincronizacionPage();
+                  ExtendedNavigator.of(context).pop();
+                },
+              ),
               const SizedBox(height: 200.0),
               Padding(
                 padding: const EdgeInsets.only(left: 160.0),
