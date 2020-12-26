@@ -292,8 +292,8 @@ class CuestionarioDeModelo extends DataClass
       id: serializer.fromJson<int>(json['id']),
       modelo: serializer.fromJson<String>(json['modelo']),
       periodicidad: serializer.fromJson<int>(json['periodicidad']),
-      cuestionarioId: serializer.fromJson<int>(json['cuestionario_id']),
-      contratistaId: serializer.fromJson<int>(json['contratista_id']),
+      cuestionarioId: serializer.fromJson<int>(json['cuestionario']),
+      contratistaId: serializer.fromJson<int>(json['contratista']),
     );
   }
   @override
@@ -303,8 +303,8 @@ class CuestionarioDeModelo extends DataClass
       'id': serializer.toJson<int>(id),
       'modelo': serializer.toJson<String>(modelo),
       'periodicidad': serializer.toJson<int>(periodicidad),
-      'cuestionario_id': serializer.toJson<int>(cuestionarioId),
-      'contratista_id': serializer.toJson<int>(contratistaId),
+      'cuestionario': serializer.toJson<int>(cuestionarioId),
+      'contratista': serializer.toJson<int>(contratistaId),
     };
   }
 
@@ -812,7 +812,7 @@ class Bloque extends DataClass implements Insertable<Bloque> {
     return Bloque(
       id: serializer.fromJson<int>(json['id']),
       nOrden: serializer.fromJson<int>(json['nOrden']),
-      cuestionarioId: serializer.fromJson<int>(json['cuestionario_id']),
+      cuestionarioId: serializer.fromJson<int>(json['cuestionario']),
     );
   }
   @override
@@ -821,7 +821,7 @@ class Bloque extends DataClass implements Insertable<Bloque> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'nOrden': serializer.toJson<int>(nOrden),
-      'cuestionario_id': serializer.toJson<int>(cuestionarioId),
+      'cuestionario': serializer.toJson<int>(cuestionarioId),
     };
   }
 
@@ -1072,7 +1072,7 @@ class Titulo extends DataClass implements Insertable<Titulo> {
       titulo: serializer.fromJson<String>(json['titulo']),
       descripcion: serializer.fromJson<String>(json['descripcion']),
       fotos: serializer.fromJson<KtList<String>>(json['fotos']),
-      bloqueId: serializer.fromJson<int>(json['bloque_id']),
+      bloqueId: serializer.fromJson<int>(json['bloque']),
     );
   }
   @override
@@ -1083,7 +1083,7 @@ class Titulo extends DataClass implements Insertable<Titulo> {
       'titulo': serializer.toJson<String>(titulo),
       'descripcion': serializer.toJson<String>(descripcion),
       'fotos': serializer.toJson<KtList<String>>(fotos),
-      'bloque_id': serializer.toJson<int>(bloqueId),
+      'bloque': serializer.toJson<int>(bloqueId),
     };
   }
 
@@ -1393,7 +1393,7 @@ class CuadriculaDePreguntas extends DataClass
       id: serializer.fromJson<int>(json['id']),
       titulo: serializer.fromJson<String>(json['titulo']),
       descripcion: serializer.fromJson<String>(json['descripcion']),
-      bloqueId: serializer.fromJson<int>(json['bloque_id']),
+      bloqueId: serializer.fromJson<int>(json['bloque']),
     );
   }
   @override
@@ -1403,7 +1403,7 @@ class CuadriculaDePreguntas extends DataClass
       'id': serializer.toJson<int>(id),
       'titulo': serializer.toJson<String>(titulo),
       'descripcion': serializer.toJson<String>(descripcion),
-      'bloque_id': serializer.toJson<int>(bloqueId),
+      'bloque': serializer.toJson<int>(bloqueId),
     };
   }
 
@@ -1740,9 +1740,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       criticidad: serializer.fromJson<int>(json['criticidad']),
       posicion: serializer.fromJson<String>(json['posicion']),
       fotosGuia: serializer.fromJson<KtList<String>>(json['fotosGuia']),
-      bloqueId: serializer.fromJson<int>(json['bloque_id']),
-      sistemaId: serializer.fromJson<int>(json['sistema_id']),
-      subSistemaId: serializer.fromJson<int>(json['subSistema_id']),
+      bloqueId: serializer.fromJson<int>(json['bloque']),
+      sistemaId: serializer.fromJson<int>(json['sistema']),
+      subSistemaId: serializer.fromJson<int>(json['subSistema']),
       tipo: serializer.fromJson<TipoDePregunta>(json['tipo']),
     );
   }
@@ -1756,9 +1756,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       'criticidad': serializer.toJson<int>(criticidad),
       'posicion': serializer.toJson<String>(posicion),
       'fotosGuia': serializer.toJson<KtList<String>>(fotosGuia),
-      'bloque_id': serializer.toJson<int>(bloqueId),
-      'sistema_id': serializer.toJson<int>(sistemaId),
-      'subSistema_id': serializer.toJson<int>(subSistemaId),
+      'bloque': serializer.toJson<int>(bloqueId),
+      'sistema': serializer.toJson<int>(sistemaId),
+      'subSistema': serializer.toJson<int>(subSistemaId),
       'tipo': serializer.toJson<TipoDePregunta>(tipo),
     };
   }
@@ -2256,8 +2256,8 @@ class OpcionDeRespuesta extends DataClass
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return OpcionDeRespuesta(
       id: serializer.fromJson<int>(json['id']),
-      preguntaId: serializer.fromJson<int>(json['pregunta_id']),
-      cuadriculaId: serializer.fromJson<int>(json['cuadricula_id']),
+      preguntaId: serializer.fromJson<int>(json['pregunta']),
+      cuadriculaId: serializer.fromJson<int>(json['cuadricula']),
       texto: serializer.fromJson<String>(json['texto']),
       criticidad: serializer.fromJson<int>(json['criticidad']),
     );
@@ -2267,8 +2267,8 @@ class OpcionDeRespuesta extends DataClass
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'pregunta_id': serializer.toJson<int>(preguntaId),
-      'cuadricula_id': serializer.toJson<int>(cuadriculaId),
+      'pregunta': serializer.toJson<int>(preguntaId),
+      'cuadricula': serializer.toJson<int>(cuadriculaId),
       'texto': serializer.toJson<String>(texto),
       'criticidad': serializer.toJson<int>(criticidad),
     };
@@ -2623,8 +2623,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       momentoBorradorGuardado:
           serializer.fromJson<DateTime>(json['momentoBorradorGuardado']),
       momentoEnvio: serializer.fromJson<DateTime>(json['momentoEnvio']),
-      cuestionarioId: serializer.fromJson<int>(json['cuestionario_id']),
-      activoId: serializer.fromJson<int>(json['activo_id']),
+      cuestionarioId: serializer.fromJson<int>(json['cuestionario']),
+      activoId: serializer.fromJson<int>(json['activo']),
     );
   }
   @override
@@ -2637,8 +2637,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       'momentoBorradorGuardado':
           serializer.toJson<DateTime>(momentoBorradorGuardado),
       'momentoEnvio': serializer.toJson<DateTime>(momentoEnvio),
-      'cuestionario_id': serializer.toJson<int>(cuestionarioId),
-      'activo_id': serializer.toJson<int>(activoId),
+      'cuestionario': serializer.toJson<int>(cuestionarioId),
+      'activo': serializer.toJson<int>(activoId),
     };
   }
 
@@ -3105,8 +3105,8 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       observacionReparacion:
           serializer.fromJson<String>(json['observacionReparacion']),
       momentoRespuesta: serializer.fromJson<DateTime>(json['momentoRespuesta']),
-      inspeccionId: serializer.fromJson<int>(json['inspeccion_id']),
-      preguntaId: serializer.fromJson<int>(json['pregunta_id']),
+      inspeccionId: serializer.fromJson<int>(json['inspeccion']),
+      preguntaId: serializer.fromJson<int>(json['pregunta']),
     );
   }
   @override
@@ -3120,8 +3120,8 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       'reparado': serializer.toJson<bool>(reparado),
       'observacionReparacion': serializer.toJson<String>(observacionReparacion),
       'momentoRespuesta': serializer.toJson<DateTime>(momentoRespuesta),
-      'inspeccion_id': serializer.toJson<int>(inspeccionId),
-      'pregunta_id': serializer.toJson<int>(preguntaId),
+      'inspeccion': serializer.toJson<int>(inspeccionId),
+      'pregunta': serializer.toJson<int>(preguntaId),
     };
   }
 
@@ -3572,9 +3572,8 @@ class RespuestasXOpcionesDeRespuestaData extends DataClass
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return RespuestasXOpcionesDeRespuestaData(
       id: serializer.fromJson<int>(json['id']),
-      respuestaId: serializer.fromJson<int>(json['respuesta_id']),
-      opcionDeRespuestaId:
-          serializer.fromJson<int>(json['opcionDeRespuesta_id']),
+      respuestaId: serializer.fromJson<int>(json['respuesta']),
+      opcionDeRespuestaId: serializer.fromJson<int>(json['opcionDeRespuesta']),
     );
   }
   @override
@@ -3582,8 +3581,8 @@ class RespuestasXOpcionesDeRespuestaData extends DataClass
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'respuesta_id': serializer.toJson<int>(respuestaId),
-      'opcionDeRespuesta_id': serializer.toJson<int>(opcionDeRespuestaId),
+      'respuesta': serializer.toJson<int>(respuestaId),
+      'opcionDeRespuesta': serializer.toJson<int>(opcionDeRespuestaId),
     };
   }
 
@@ -4206,7 +4205,7 @@ class SubSistema extends DataClass implements Insertable<SubSistema> {
     return SubSistema(
       id: serializer.fromJson<int>(json['id']),
       nombre: serializer.fromJson<String>(json['nombre']),
-      sistemaId: serializer.fromJson<int>(json['sistema_id']),
+      sistemaId: serializer.fromJson<int>(json['sistema']),
     );
   }
   @override
@@ -4215,7 +4214,7 @@ class SubSistema extends DataClass implements Insertable<SubSistema> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'nombre': serializer.toJson<String>(nombre),
-      'sistema_id': serializer.toJson<int>(sistemaId),
+      'sistema': serializer.toJson<int>(sistemaId),
     };
   }
 

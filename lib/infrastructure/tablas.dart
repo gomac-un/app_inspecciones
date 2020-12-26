@@ -28,7 +28,7 @@ class SubSistemas extends Table {
 
   TextColumn get nombre => text()();
 
-  @JsonKey('sistema_id')
+  @JsonKey('sistema')
   IntColumn get sistemaId =>
       integer().customConstraint('REFERENCES sistemas(id) ON DELETE CASCADE')();
 
@@ -53,11 +53,11 @@ class CuestionarioDeModelos extends Table {
 
   IntColumn get periodicidad => integer()();
 
-  @JsonKey('cuestionario_id')
+  @JsonKey('cuestionario')
   IntColumn get cuestionarioId => integer()
       .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
-  @JsonKey('contratista_id')
+  @JsonKey('contratista')
   IntColumn get contratistaId => integer()
       .nullable()
       .customConstraint('REFERENCES contratistas(id) ON DELETE SET NULL')();
@@ -68,7 +68,7 @@ class Bloques extends Table {
 
   IntColumn get nOrden => integer()();
 
-  @JsonKey('cuestionario_id')
+  @JsonKey('cuestionario')
   IntColumn get cuestionarioId => integer()
       .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
@@ -95,7 +95,7 @@ class Titulos extends Table {
       .map(const ListInColumnConverter())
       .withDefault(const Constant("[]"))();
 
-  @JsonKey('bloque_id')
+  @JsonKey('bloque')
   IntColumn get bloqueId =>
       integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();
 }
@@ -110,7 +110,7 @@ class CuadriculasDePreguntas extends Table {
 
   TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
 
-  @JsonKey('bloque_id')
+  @JsonKey('bloque')
   IntColumn get bloqueId => integer().customConstraint(
       'UNIQUE REFERENCES bloques(id) ON DELETE CASCADE')(); //debe ser unico por ser uno a uno, sera que es pk?
 
@@ -140,15 +140,15 @@ class Preguntas extends Table {
       .map(const ListInColumnConverter())
       .withDefault(const Constant("[]"))();
 
-  @JsonKey('bloque_id')
+  @JsonKey('bloque')
   IntColumn get bloqueId =>
       integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();
 
-  @JsonKey('sistema_id')
+  @JsonKey('sistema')
   IntColumn get sistemaId =>
       integer().nullable().customConstraint('REFERENCES sistemas(id)')();
 
-  @JsonKey('subSistema_id')
+  @JsonKey('subSistema')
   IntColumn get subSistemaId =>
       integer().nullable().customConstraint('REFERENCES sub_sistemas(id)')();
 
@@ -162,10 +162,10 @@ class OpcionesDeRespuesta extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   //uno de estos 2 debe ser no nulo
-  @JsonKey('pregunta_id')
+  @JsonKey('pregunta')
   IntColumn get preguntaId => integer().nullable()();
   //.customConstraint('REFERENCES preguntas(id)')();
-  @JsonKey('cuadricula_id')
+  @JsonKey('cuadricula')
   IntColumn get cuadriculaId => integer().nullable()();
   //.customConstraint('REFERENCES cuadriculas_de_preguntas(id) ')();
 
@@ -187,11 +187,11 @@ class Inspecciones extends Table {
 
   DateTimeColumn get momentoEnvio => dateTime().nullable()();
 
-  @JsonKey('cuestionario_id')
+  @JsonKey('cuestionario')
   IntColumn get cuestionarioId => integer()
       .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
-  @JsonKey('activo_id')
+  @JsonKey('activo')
   IntColumn get activoId => integer()
       .customConstraint('REFERENCES activos(id) ON DELETE NO ACTION')();
 
@@ -219,11 +219,11 @@ class Respuestas extends Table {
 
   DateTimeColumn get momentoRespuesta => dateTime().nullable()();
 
-  @JsonKey('inspeccion_id')
+  @JsonKey('inspeccion')
   IntColumn get inspeccionId => integer()
       .customConstraint('REFERENCES inspecciones(id) ON DELETE CASCADE')();
 
-  @JsonKey('pregunta_id')
+  @JsonKey('pregunta')
   IntColumn get preguntaId => integer()
       .customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
 
@@ -233,11 +233,11 @@ class Respuestas extends Table {
 class RespuestasXOpcionesDeRespuesta extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  @JsonKey('respuesta_id')
+  @JsonKey('respuesta')
   IntColumn get respuestaId => integer()
       .customConstraint('REFERENCES respuestas(id) ON DELETE CASCADE')();
 
-  @JsonKey('opcionDeRespuesta_id')
+  @JsonKey('opcionDeRespuesta')
   IntColumn get opcionDeRespuestaId => integer().customConstraint(
       'REFERENCES opciones_de_respuesta(id) ON DELETE CASCADE')();
 }
