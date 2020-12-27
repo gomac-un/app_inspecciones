@@ -2,34 +2,51 @@ import 'dart:convert';
 
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/auth/usuario.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class ILocalPreferencesDataSource {
-  Future saveUser(Usuario user);
-  Future deleteUser();
+  Future<bool> saveUser(Usuario user);
+  Future<bool> deleteUser();
   Usuario getUser();
+  Future<bool> saveUltimaActualizacion();
+  DateTime getUltimaActualizacion();
 }
 
 @LazySingleton(as: ILocalPreferencesDataSource)
 class SharedPreferencesDataSource implements ILocalPreferencesDataSource {
+  //TODO: mirar si los datasource realmente deberian retornar datos crudos https://bloclibrary.dev/#/architecture
+  static const userKey = 'user';
+  static const ultimaActualizacionKey = 'ultimaActualizacion';
+  //TODO: si hay que guardar mas preferencias considerar guardarlas todas en un solo json
   final SharedPreferences preferences;
 
   SharedPreferencesDataSource(this.preferences);
 
   @override
-  Future saveUser(Usuario user) async {
-    await preferences.setString('user', jsonEncode(user.toJson()));
-  }
+  Future<bool> saveUser(Usuario user) async =>
+      preferences.setString(userKey, jsonEncode(user.toJson()));
 
   @override
-  Future deleteUser() async {
-    await preferences.remove('user');
-  }
+  Future<bool> deleteUser() async => preferences.remove(userKey);
 
   @override
   Usuario getUser() {
-    if (preferences.getString('user') == null) return null;
+    if (preferences.getString(userKey) == null) return null;
     return Usuario.fromJson(
-        jsonDecode(preferences.getString('user')) as Map<String, dynamic>);
+        jsonDecode(preferences.getString(userKey)) as Map<String, dynamic>);
+  }
+
+  @override
+  Future<bool> saveUltimaActualizacion() {
+    String date = DateFormat("yyyy-MM-dd hh:mm:ss").format(DateTime.now());
+    return preferences.setString(ultimaActualizacionKey, date);
+  }
+
+  @override
+  DateTime getUltimaActualizacion() {
+    if (preferences.getString(ultimaActualizacionKey) == null) return null;
+    return DateFormat("yyyy-MM-dd hh:mm:ss")
+        .parse(preferences.getString(ultimaActualizacionKey));
   }
 }

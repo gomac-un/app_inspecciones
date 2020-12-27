@@ -41,6 +41,8 @@ part 'tablas_unidas.dart';
   daos: [LlenadoDao, CreacionDao, BorradoresDao],
 )
 class Database extends _$Database {
+  // En el caso de que la db crezca mucho y las consultas empiecen a relentizar
+  //la UI se debe considerar el uso de los isolates https://moor.simonbinder.eu/docs/advanced-features/isolates/
   Database(QueryExecutor e) : super(e);
 
   @override
@@ -60,10 +62,6 @@ class Database extends _$Database {
       beforeOpen: (details) async {
         if (details.wasCreated) {
           // create default data
-
-          /*await into(inspecciones).insert(InspeccionesCompanion(
-            fechaDeInicio: Value(DateTime.now()),
-          ));*/
         }
         await customStatement('PRAGMA foreign_keys = ON');
       },
@@ -87,6 +85,7 @@ class Database extends _$Database {
           "UPDATE SQLITE_SEQUENCE SET SEQ=100000000000000 WHERE NAME='${table.actualTableName}';"); //1e14*/
       //TODO: pedirle el deviceId al servidor para coordinar las BDs
       const deviceId = 1;
+      // Inicializa todos los autoincrement con el prefijo del deviceid desde el digito 14
       await customStatement(
           "insert into SQLITE_SEQUENCE (name,seq) values('${table.actualTableName}',${deviceId}00000000000000);"); //1e14
 
@@ -94,7 +93,93 @@ class Database extends _$Database {
 
     await customStatement('PRAGMA foreign_keys = ON');
 
-    await batch(initialize(this));
+    //await batch(initialize(this));
+  }
+
+  Future instalarBD(Map<String, dynamic> json) async {
+    /*TODO: hacer este proceso sin repetir tanto codigo, por ejemplo usando una estructura asi:
+    final tablasPorActualizar = [
+      InstaladorHelper("Activo", Activo, activos),
+    ];
+    pero no se puede hasta que se implemente esto https://github.com/dart-lang/language/issues/216
+    */
+    final activosParseados = (json["Activo"] as List)
+        .map((e) => Activo.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final contratistasParseados = (json["Contratista"] as List)
+        .map((e) => Contratista.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final sistemasParseados = (json["Sistema"] as List)
+        .map((e) => Sistema.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final subSistemasParseados = (json["Subsistema"] as List)
+        .map((e) => SubSistema.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final cuestionariosParseados = (json["Cuestionario"] as List)
+        .map((e) => Cuestionario.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final cuestionariosDeModelosParseados = (json["CuestionarioDeModelo"]
+            as List)
+        .map((e) => CuestionarioDeModelo.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final bloquesParseados = (json["Bloque"] as List)
+        .map((e) => Bloque.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final titulosParseados = (json["Titulo"] as List)
+        .map((e) => Titulo.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final cuadriculasDePreguntasParseados = (json["CuadriculaDePreguntas"]
+            as List)
+        .map((e) => CuadriculaDePreguntas.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final preguntasParseados = (json["Pregunta"] as List)
+        .map((e) => Pregunta.fromJson(e as Map<String, dynamic>,
+            serializer: const CustomSerializer()))
+        .toList();
+
+    final opcionesDeRespuestaParseados = (json["OpcionDeRespuesta"] as List)
+        .map((e) => OpcionDeRespuesta.fromJson(e as Map<String, dynamic>))
+        .toList();
+    await customStatement('PRAGMA foreign_keys = OFF');
+    await transaction(() async {
+      final deletes = [
+        delete(activos).go(),
+        delete(contratistas).go(),
+        delete(sistemas).go(),
+        delete(subSistemas).go(),
+        delete(cuestionarios).go(),
+        delete(cuestionarioDeModelos).go(),
+        delete(bloques).go(),
+        delete(titulos).go(),
+        delete(cuadriculasDePreguntas).go(),
+        delete(preguntas).go(),
+        delete(opcionesDeRespuesta).go(),
+      ];
+      await Future.wait(deletes);
+      await batch((b) {
+        b.insertAll(activos, activosParseados);
+        b.insertAll(contratistas, contratistasParseados);
+        b.insertAll(sistemas, sistemasParseados);
+        b.insertAll(subSistemas, subSistemasParseados);
+        b.insertAll(cuestionarios, cuestionariosParseados);
+        b.insertAll(cuestionarioDeModelos, cuestionariosDeModelosParseados);
+        b.insertAll(bloques, bloquesParseados);
+        b.insertAll(titulos, titulosParseados);
+        b.insertAll(cuadriculasDePreguntas, cuadriculasDePreguntasParseados);
+        b.insertAll(preguntas, preguntasParseados);
+        b.insertAll(opcionesDeRespuesta, opcionesDeRespuestaParseados);
+      });
+    });
+    await customStatement('PRAGMA foreign_keys = ON');
   }
 
   //datos para la creacion de cuestionarios
@@ -148,5 +233,59 @@ class Database extends _$Database {
           ))
         .get();
     //print(ins.map((e) => e.toJson()).toList());
+  }
+}
+
+class CustomSerializer extends ValueSerializer {
+  const CustomSerializer();
+  static const tipoPreguntaConverter =
+      EnumIndexConverter<TipoDePregunta>(TipoDePregunta.values);
+
+  //static const Type ktstring = KtList<String>;
+
+  @override
+  T fromJson<T>(dynamic json) {
+    if (json == null) {
+      return null;
+    }
+
+    // nuevo
+    /*if (T == KtList) {
+      return (json as List<String>).toImmutableList() as T;
+    }*/
+    if (json is List) {
+      //machetazo que convierte todas las listas a KtList<String> dado que no se puede preguntar por T == KtList<String>, puede que se pueda arreglar cuando los de dart implementen los alias de tipos
+      return json.cast<String>().toImmutableList() as T;
+    }
+
+    if (T == TipoDePregunta) {
+      return tipoPreguntaConverter.mapToDart(json as int) as T;
+    }
+
+    if (T == DateTime) {
+      return DateTime.fromMillisecondsSinceEpoch(json as int) as T;
+    }
+
+    if (T == double && json is int) {
+      return json.toDouble() as T;
+    }
+
+    // blobs are encoded as a regular json array, so we manually convert that to
+    // a Uint8List
+    if (T == Uint8List && json is! Uint8List) {
+      final asList = (json as List).cast<int>();
+      return Uint8List.fromList(asList) as T;
+    }
+
+    return json as T;
+  }
+
+  @override
+  dynamic toJson<T>(T value) {
+    if (value is DateTime) {
+      return value.millisecondsSinceEpoch;
+    }
+
+    return value;
   }
 }

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/mvvc/auth_listener_widget.dart';
 import 'package:inspecciones/router.gr.dart';
@@ -11,6 +12,7 @@ Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
   final navigatorKey = GlobalKey<NavigatorState>();
+  await FlutterDownloader.initialize(debug: true);
   runApp(
     MaterialApp(
       builder: ExtendedNavigator.builder(

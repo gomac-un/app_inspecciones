@@ -18,6 +18,7 @@ import 'presentation/pages/login_screen.dart';
 import 'infrastructure/core/network_info.dart';
 import 'infrastructure/database/mobile.dart';
 import 'infrastructure/datasources/injectable_module.dart';
+import 'application/sincronizacion/sincronizacion_cubit.dart';
 import 'infrastructure/core/third_party_injections.dart';
 import 'infrastructure/repositories/user_repository.dart';
 
@@ -46,6 +47,8 @@ Future<GetIt> $initGetIt(
   gh.factory<SharedPreferences>(() => sharedPreferences);
   gh.lazySingleton<ILocalPreferencesDataSource>(
       () => SharedPreferencesDataSource(get<SharedPreferences>()));
+  gh.factory<SincronizacionCubit>(() =>
+      SincronizacionCubit(get<Database>(), get<ILocalPreferencesDataSource>()));
   gh.factory<UserRepository>(() => UserRepository(
       get<InspeccionesRemoteDataSource>(), get<ILocalPreferencesDataSource>()));
   gh.factory<AuthBloc>(() => AuthBloc(userRepository: get<UserRepository>()));
