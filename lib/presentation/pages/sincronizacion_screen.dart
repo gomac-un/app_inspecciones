@@ -6,7 +6,6 @@ import 'package:inspecciones/application/sincronizacion/sincronizacion_cubit.dar
 import 'package:inspecciones/injection.dart';
 
 import 'package:inspecciones/presentation/widgets/drawer.dart';
-import 'package:inspecciones/router.gr.dart';
 
 class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
   @override

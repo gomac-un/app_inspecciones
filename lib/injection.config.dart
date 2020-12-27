@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'application/auth/auth_bloc.dart';
 import 'infrastructure/moor_database.dart';
 import 'infrastructure/datasources/local_preferences_datasource.dart';
+import 'infrastructure/repositories/inspeccion_repository.dart';
 import 'infrastructure/datasources/remote_datasource.dart';
 import 'presentation/pages/login_screen.dart';
 import 'infrastructure/core/network_info.dart';
@@ -39,14 +40,19 @@ Future<GetIt> $initGetIt(
   gh.factory<DataConnectionChecker>(
       () => thirdPartyInjections.dataConnectionChecker);
   gh.lazySingleton<Database>(() => registerModule.constructDb());
-  gh.lazySingleton<InspeccionesRemoteDataSource>(
-      () => DjangoAPI(get<Database>()));
+  gh.lazySingleton<InspeccionesRemoteDataSource>(() => DjangoJsonAPI());
   gh.lazySingleton<NetworkInfo>(
       () => NetworkInfoImpl(get<DataConnectionChecker>()));
   final sharedPreferences = await sharedPreferencesInjectableModule.prefs;
   gh.factory<SharedPreferences>(() => sharedPreferences);
   gh.lazySingleton<ILocalPreferencesDataSource>(
       () => SharedPreferencesDataSource(get<SharedPreferences>()));
+  gh.factoryParam<InspeccionRepository, String, dynamic>(
+      (_token, _) => InspeccionRepository(
+            get<InspeccionesRemoteDataSource>(),
+            get<Database>(),
+            _token,
+          ));
   gh.factory<SincronizacionCubit>(() =>
       SincronizacionCubit(get<Database>(), get<ILocalPreferencesDataSource>()));
   gh.factory<UserRepository>(() => UserRepository(

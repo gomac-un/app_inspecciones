@@ -39,7 +39,7 @@ class SharedPreferencesDataSource implements ILocalPreferencesDataSource {
 
   @override
   Future<bool> saveUltimaActualizacion() {
-    String date = DateFormat("yyyy-MM-dd hh:mm:ss").format(DateTime.now());
+    final date = DateFormat("yyyy-MM-dd hh:mm:ss").format(DateTime.now());
     return preferences.setString(ultimaActualizacionKey, date);
   }
 

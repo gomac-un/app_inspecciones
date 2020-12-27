@@ -1,5 +1,8 @@
 part of 'moor_database.dart';
 
+//Esto es una mazamorra de clases que ayudan a manejar mejor las respuestas de las consultas
+// pero no es muy mantenible
+// TODO: mirar como hacer esto mantenible
 class BloqueConPreguntaRespondida {
   Bloque bloque;
   Pregunta pregunta;
@@ -113,6 +116,25 @@ class BloqueConCuadricula extends IBloqueOrdenable {
 
   BloqueConCuadricula(Bloque bloque, this.cuadricula, this.preguntasRespondidas)
       : super(bloque);
+}
+
+/*
+@JsonSerializable()
+class InspeccionConRespuestas {
+  final Inspeccion inspeccion;
+  final List<RespuestaConOpcionesDeRespuesta2> respuestas;
+
+  InspeccionConRespuestas(this.inspeccion, this.respuestas);
+
+  factory InspeccionConRespuestas.fromJson(Map<String, dynamic> json) =>
+      _$InspeccionConRespuestasFromJson(json);
+  Map<String, dynamic> toJson() => _$InspeccionConRespuestasToJson(this);
+}*/
+class RespuestaconOpcionDeRespuestaId {
+  final Respuesta respuesta;
+  final int opcionDeRespuestaId;
+
+  RespuestaconOpcionDeRespuestaId(this.respuesta, this.opcionDeRespuestaId);
 }
 
 class Borrador {

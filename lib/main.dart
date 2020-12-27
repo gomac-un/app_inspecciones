@@ -12,7 +12,7 @@ Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
   final navigatorKey = GlobalKey<NavigatorState>();
-  await FlutterDownloader.initialize(debug: true);
+  await FlutterDownloader.initialize();
   runApp(
     MaterialApp(
       builder: ExtendedNavigator.builder(

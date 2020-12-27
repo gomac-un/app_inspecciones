@@ -39,9 +39,11 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
   //TODO: manejo de errores
   Future descargarServer() async {
     //inicializacion del downloader sacada del ejemplo flutter_downloader donde
-    // se muestra como hacer descargas de una lista de links
+    // se muestra como hacer descargas de una lista de links y agregar opcion de pausa
     // https://github.com/fluttercommunity/flutter_downloader/blob/master/example/lib/main.dart
-
+    // En realidad esta descarga se puede hacer con un http.get sencillo desde
+    // un repositorio pero el paquete flutter_downloader permite mostrar la barra de progreso
+    // y como es en un isolate no bloquea la UI
     _bindBackgroundIsolate();
 
     FlutterDownloader.registerCallback(downloadCallback);
@@ -87,9 +89,11 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     final dir = await _localPath;
     final archivoDescargado = File(path.join(dir, nombreArchivo));
     final jsonString = await archivoDescargado.readAsString();
+    //parsear el json en un isolate para no volver la UI lenta
+    // https://flutter.dev/docs/cookbook/networking/background-parsing
     final parsed =
         await compute(jsonDecode, jsonString) as Map<String, dynamic>;
-    //final parsed = jsonDecode(jsonString).cast<Map<String, dynamic>>();
+
     print("parsed json");
     await _db.instalarBD(parsed);
     await _localPreferences.saveUltimaActualizacion();

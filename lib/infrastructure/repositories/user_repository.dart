@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/auth/usuario.dart';
+import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
@@ -27,9 +28,11 @@ class UserRepository {
     }
 
     try {
-      token = await api.getToken(userLogin);
+      token = await _getToken(userLogin);
     } on TimeoutException {
       return const Left(AuthFailure.noHayConexionAlServidor());
+    } on CredencialesException {
+      return const Left(AuthFailure.usuarioOPasswordInvalidos());
     }
 
     final user = Usuario(
@@ -39,6 +42,15 @@ class UserRepository {
             false, //TODO: averiguar si es admin desde el server o desde la bd local
         token: token);
     return Right(user);
+  }
+
+  Future<String> _getToken(UserLogin userLogin) async {
+    final res = await api.postRecurso(
+      '/api-token-auth/',
+      userLogin.toJson(),
+      token: null,
+    );
+    return res['token'] as String;
   }
 
   Future<void> saveLocalUser({@required Usuario user}) async {

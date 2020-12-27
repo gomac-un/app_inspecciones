@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:inspecciones/application/auth/usuario.dart';
-import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart'
-    as ap;
+import 'package:collection/collection.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
@@ -96,6 +94,39 @@ class Database extends _$Database {
     //await batch(initialize(this));
   }
 
+  Future<Map<String, dynamic>> getInspeccionConRespuestas(
+      int inspeccionId) async {
+    //get inspeccion
+    final queryIns = select(inspecciones)
+      ..where((i) => i.id.equals(inspeccionId));
+    final ins = await queryIns.getSingle();
+    final jsonIns = ins.toJson(serializer: const CustomSerializer());
+
+    //get respuestas
+    final queryRes = select(respuestas).join([
+      leftOuterJoin(respuestasXOpcionesDeRespuesta,
+          respuestasXOpcionesDeRespuesta.respuestaId.equalsExp(respuestas.id)),
+    ])
+      ..where(respuestas.inspeccionId.equals(inspeccionId));
+
+    final res = await queryRes
+        .map((row) => RespuestaconOpcionDeRespuestaId(row.readTable(respuestas),
+            row.readTable(respuestasXOpcionesDeRespuesta).opcionDeRespuestaId))
+        .get();
+
+    final resAgrupadas = groupBy<RespuestaconOpcionDeRespuestaId, Respuesta>(
+        res, (e) => e.respuesta).entries.map((entry) {
+      final respuesta = entry.key.toJson(serializer: const CustomSerializer());
+      respuesta['respuestas'] =
+          entry.value.map((e) => e.opcionDeRespuestaId).toList();
+      return respuesta;
+    }).toList();
+
+    jsonIns['respuestas'] = resAgrupadas;
+
+    return jsonIns;
+  }
+
   Future instalarBD(Map<String, dynamic> json) async {
     /*TODO: hacer este proceso sin repetir tanto codigo, por ejemplo usando una estructura asi:
     final tablasPorActualizar = [
@@ -103,6 +134,7 @@ class Database extends _$Database {
     ];
     pero no se puede hasta que se implemente esto https://github.com/dart-lang/language/issues/216
     */
+
     final activosParseados = (json["Activo"] as List)
         .map((e) => Activo.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -240,6 +272,8 @@ class CustomSerializer extends ValueSerializer {
   const CustomSerializer();
   static const tipoPreguntaConverter =
       EnumIndexConverter<TipoDePregunta>(TipoDePregunta.values);
+  static const estadoDeInspeccionConverter =
+      EnumIndexConverter<EstadoDeInspeccion>(EstadoDeInspeccion.values);
 
   //static const Type ktstring = KtList<String>;
 
@@ -254,7 +288,10 @@ class CustomSerializer extends ValueSerializer {
       return (json as List<String>).toImmutableList() as T;
     }*/
     if (json is List) {
-      //machetazo que convierte todas las listas a KtList<String> dado que no se puede preguntar por T == KtList<String>, puede que se pueda arreglar cuando los de dart implementen los alias de tipos
+      // https://stackoverflow.com/questions/50188729/checking-what-type-is-passed-into-a-generic-method
+      // machetazo que convierte todas las listas a KtList<String> dado que no
+      // se puede preguntar por T == KtList<String>, puede que se pueda arreglar
+      // cuando los de dart implementen los alias de tipos https://github.com/dart-lang/language/issues/65
       return json.cast<String>().toImmutableList() as T;
     }
 
@@ -262,8 +299,12 @@ class CustomSerializer extends ValueSerializer {
       return tipoPreguntaConverter.mapToDart(json as int) as T;
     }
 
+    if (T == EstadoDeInspeccion) {
+      return estadoDeInspeccionConverter.mapToDart(json as int) as T;
+    }
+
     if (T == DateTime) {
-      return DateTime.fromMillisecondsSinceEpoch(json as int) as T;
+      return DateTime.parse(json as String) as T;
     }
 
     if (T == double && json is int) {
@@ -283,7 +324,19 @@ class CustomSerializer extends ValueSerializer {
   @override
   dynamic toJson<T>(T value) {
     if (value is DateTime) {
-      return value.millisecondsSinceEpoch;
+      return value.toIso8601String();
+    }
+
+    if (value is TipoDePregunta) {
+      return tipoPreguntaConverter.mapToSql(value);
+    }
+
+    if (value is EstadoDeInspeccion) {
+      return estadoDeInspeccionConverter.mapToSql(value);
+    }
+
+    if (value is KtList) {
+      return value.iter.toList();
     }
 
     return value;

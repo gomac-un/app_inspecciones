@@ -40,6 +40,9 @@ class Cuestionarios extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   TextColumn get tipoDeInspeccion => text()();
+
+  // campo usado solo en la app para identificar los cuestionarios nuevos que deben ser enviados al server
+  BoolColumn get esLocal => boolean().withDefault(const Constant(true))();
   // List<Inspecciones>
   // List<Bloques>
   //List<CuestionariosDeModelos>
