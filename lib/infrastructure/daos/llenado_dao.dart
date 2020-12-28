@@ -61,7 +61,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       ..where(
         (ins) =>
             ins.cuestionarioId.equals(cuestionarioId) &
-            ins.identificadorActivo.equals(activo),
+            ins.identificadorActivo.equals(int.parse(activo)),
       );
 
     return query.getSingle();
@@ -71,7 +71,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     final query = select(titulos).join([
       innerJoin(bloques, bloques.id.equalsExp(titulos.bloqueId)),
     ])
-      ..where(bloques.cuestionarioId.equals(cuestionarioId));
+      ..where(bloques.cuestionario_id.equals(cuestionarioId));
     return query
         .map((row) => BloqueConTitulo(
               row.readTable(bloques),
@@ -87,9 +87,9 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
       leftOuterJoin(opcionesPregunta,
-          opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
+          opcionesPregunta.pregunta.equalsExp(preguntas.id)),
     ])
-      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
+      ..where(bloques.cuestionario_id.equals(cuestionarioId) &
           /*((preguntas.tipo.equals(0) //seleccion unica
                     |
                     preguntas.tipo.equals(1)) //seleccion multiple
@@ -130,12 +130,12 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       leftOuterJoin(
         //left outer join para que carguen las respuestas sin opciones seleccionadas
         respuestasXOpcionesDeRespuesta,
-        respuestasXOpcionesDeRespuesta.respuestaId.equalsExp(respuestas.id),
+        respuestasXOpcionesDeRespuesta.respuesta_id.equalsExp(respuestas.id),
       ),
       leftOuterJoin(
         opcionesDeRespuesta,
         opcionesDeRespuesta.id
-            .equalsExp(respuestasXOpcionesDeRespuesta.opcionDeRespuestaId),
+            .equalsExp(respuestasXOpcionesDeRespuesta.preguntaRespuesta_id),
       ),
     ])
       ..where(
@@ -163,7 +163,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       innerJoin(cuadriculasDePreguntas,
           cuadriculasDePreguntas.bloqueId.equalsExp(bloques.id)),
     ])
-      ..where(bloques.cuestionarioId.equals(cuestionarioId)
+      ..where(bloques.cuestionario_id.equals(cuestionarioId)
           // & preguntas.tipo.equals(2) //parteDeCuadricula
 
           );
@@ -207,7 +207,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     final inspeccion = await (select(inspecciones)
           ..where((tbl) =>
               tbl.cuestionarioId.equals(cuestionarioId) &
-              tbl.identificadorActivo.equals(activo)))
+              tbl.identificadorActivo.equals(int.parse(activo))))
         .getSingle();
 
     final inspeccionId = inspeccion?.id;

@@ -26,8 +26,8 @@ final bloquesDeEjemplo = FormArray([
         parteDeCuadricula: false,
       ),
       [
-        OpcionDeRespuesta(id: 1, preguntaId: 1, texto: "res1", criticidad: 1),
-        OpcionDeRespuesta(id: 2, preguntaId: 1, texto: "res2", criticidad: 2),
+        OpcionDeRespuesta(id: 1, pregunta: 1, texto: "res1", criticidad: 1),
+        OpcionDeRespuesta(id: 2, pregunta: 1, texto: "res2", criticidad: 2),
       ],
     ),
     RespuestaConOpcionesDeRespuesta(
@@ -42,7 +42,7 @@ final bloquesDeEjemplo = FormArray([
         reparado: false,
       ).toCompanion(true),
       [
-        OpcionDeRespuesta(id: 2, preguntaId: 1, texto: "res2", criticidad: 2),
+        OpcionDeRespuesta(id: 2, pregunta: 1, texto: "res2", criticidad: 2),
       ],
     ),
   ),

@@ -119,10 +119,10 @@ class Database extends _$Database {
   }
 
   Future<Inspeccion> crearInspeccion(
-      int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
+      int cuestionarioId, int activo, EstadoDeInspeccion estado) async {
     if (activo == null) throw Exception("activo nulo");
     final ins = InspeccionesCompanion.insert(
-      id: Value(generarId(activo)),
+      id: Value(generarId(activo.toString())),
       cuestionarioId: cuestionarioId,
       estado: estado,
       identificadorActivo: activo,
@@ -133,8 +133,8 @@ class Database extends _$Database {
   }
 
   Future guardarInspeccion(List<RespuestaConOpcionesDeRespuesta> respuestasForm,
-      int cuestionarioId, String activo, EstadoDeInspeccion estado) async {
-    Inspeccion ins = await llenadoDao.getInspeccion(activo, cuestionarioId);
+      int cuestionarioId, int activo, EstadoDeInspeccion estado) async {
+    Inspeccion ins = await llenadoDao.getInspeccion(activo.toString(), cuestionarioId);
     ins ??= await crearInspeccion(cuestionarioId, activo, estado);
 
     for (final rf in respuestasForm) {
@@ -182,13 +182,13 @@ class Database extends _$Database {
         }
 
         await (delete(respuestasXOpcionesDeRespuesta)
-              ..where((rxor) => rxor.respuestaId.equals(res)))
+              ..where((rxor) => rxor.respuesta_id.equals(res)))
             .go();
         await Future.forEach<OpcionDeRespuesta>(
             e.opcionesDeRespuesta.where((e) => e != null), (opres) async {
           await into(respuestasXOpcionesDeRespuesta).insert(
               RespuestasXOpcionesDeRespuestaCompanion.insert(
-                  respuestaId: res, opcionDeRespuestaId: opres.id));
+                  respuesta_id: res, preguntaRespuesta_id: opres.id));
         });
       });
     });

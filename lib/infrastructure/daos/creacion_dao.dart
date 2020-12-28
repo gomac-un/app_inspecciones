@@ -53,7 +53,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     if (sistema == null) return Future.value([]);
 
     final query = select(subSistemas)
-      ..where((u) => u.sistemaId.equals(sistema.id));
+      ..where((u) => u.sistema.equals(sistema.id));
 
     return query.get();
   }
@@ -62,7 +62,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
       String tipoDeInspeccion, List<String> modelos) {
     final query = select(cuestionarioDeModelos).join([
       innerJoin(cuestionarios,
-          cuestionarios.id.equalsExp(cuestionarioDeModelos.cuestionarioId))
+          cuestionarios.id.equalsExp(cuestionarioDeModelos.cuestionario_id))
     ])
       ..where(cuestionarios.tipoDeInspeccion.equals(tipoDeInspeccion) &
           cuestionarioDeModelos.modelo.isIn(modelos));
@@ -88,9 +88,9 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                     modelo: modelo,
                     periodicidad:
                         (form["periodicidad"].value as double).round(),
-                    contratistaId:
+                    contratista_id:
                         (form["contratista"].value as Contratista).id,
-                    cuestionarioId: cid))
+                    cuestionario_id: cid))
                 .toList()); //TODO: distintas periodicidades y contratistas por cuestionarioDeModelo
       });
       //procesamiento de cada bloque ya sea titulo, pregunta o cuadricula
@@ -100,7 +100,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
         final i = entry.key as int;
         final control = entry.value;
         final bid = await into(bloques)
-            .insert(BloquesCompanion.insert(cuestionarioId: cid, nOrden: i));
+            .insert(BloquesCompanion.insert(cuestionario_id: cid, nOrden: i));
 
         //TODO: guardar inserts de cada tipo en listas para luego insertarlos en batch
         //TODO: usar los metodos toDataClass de los formGroups para obtener los datos de cada bloque
@@ -145,7 +145,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               opcionesDeRespuesta,
               (control.value["respuestas"] as List<Map>)
                   .map((e) => OpcionesDeRespuestaCompanion.insert(
-                        preguntaId: Value(pid),
+                        pregunta: Value(pid),
                         texto: e["texto"] as String,
                         criticidad: e["criticidad"].round() as int,
                       ))
