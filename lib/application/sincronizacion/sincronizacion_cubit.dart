@@ -19,6 +19,7 @@ part 'sincronizacion_cubit.freezed.dart';
 
 @injectable
 class SincronizacionCubit extends Cubit<SincronizacionState> {
+  //TODO: arreglar esto para que al darle por segunda vez al boton descargar, vuelva a hacerlo
   static const nombreArchivo = 'server.json';
   static const nombrePuerto = 'downloader_send_port';
   final _port = ReceivePort();

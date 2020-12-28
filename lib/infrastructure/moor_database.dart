@@ -94,20 +94,90 @@ class Database extends _$Database {
     //await batch(initialize(this));
   }
 
+  Future<Map<String, dynamic>> getCuestionarioCompleto(
+      Cuestionario cuestionario) async {
+    final modelosCuest = await (select(cuestionarioDeModelos)
+          ..where((cm) => cm.cuestionarioId.equals(cuestionario.id)))
+        .get();
+
+    // Este es un ejemplo de consultas complejas si el agrupador de collections
+    // puede ser mas lenta porque se multiplica la cantidad de consultas
+    // pero es mas limpia y entendible y consume un poco menos de memoria
+    //Tradeof de ineficiencia vs entendibilidad
+    final bloquesCuest = await (select(bloques)
+          ..where((b) => b.cuestionarioId.equals(cuestionario.id)))
+        .get();
+
+    final bloquesExtJson = await Future.wait(bloquesCuest.map((b) async {
+      //a cada bloque buscarle los titulos, las cuadriculas y las preguntas, TERRIBLE
+      final tituloBloque = await (select(titulos)
+            ..where((t) => t.bloqueId.equals(b.id)))
+          .getSingle();
+      //el titulo está listo
+      final cuadriculaBloque = await (select(cuadriculasDePreguntas)
+            ..where((c) => c.bloqueId.equals(b.id)))
+          .getSingle();
+
+      List<OpcionDeRespuesta> opcionesDeLaCuadricula;
+
+      final preguntasBloque = await (select(preguntas)
+            ..where((p) => p.bloqueId.equals(b.id)))
+          .get();
+
+      //extender las cuadriculas y las preguntas con sus respectivas opciones
+      if (cuadriculaBloque != null) {
+        opcionesDeLaCuadricula = await (select(opcionesDeRespuesta)
+              ..where((op) => op.cuadriculaId.equals(cuadriculaBloque.id)))
+            .get();
+      }
+
+      final preguntasConOpciones =
+          await Future.wait(preguntasBloque?.map((p) async {
+        final opcionesDeLaPregunta = await (select(opcionesDeRespuesta)
+              ..where((op) => op.preguntaId.equals(p.id)))
+            .get();
+        final preguntaJson = p.toJson(serializer: const CustomSerializer());
+        preguntaJson["opciones_de_respuesta"] =
+            opcionesDeLaPregunta.map((op) => op.toJson()).toList();
+        return preguntaJson;
+      }));
+
+      final bloqueJson = b.toJson(serializer: const CustomSerializer());
+      bloqueJson['titulo'] =
+          tituloBloque?.toJson(serializer: const CustomSerializer());
+      final cuadriculaJson =
+          cuadriculaBloque?.toJson(serializer: const CustomSerializer());
+      if (cuadriculaJson != null) {
+        cuadriculaJson['opciones_de_respuesta'] =
+            opcionesDeLaCuadricula?.map((op) => op.toJson())?.toList();
+      }
+
+      bloqueJson['cuadricula'] = cuadriculaJson;
+      bloqueJson['preguntas'] = preguntasConOpciones;
+      return bloqueJson;
+    }));
+    final cuestionarioJson = cuestionario.toJson();
+    cuestionarioJson['modelos'] =
+        modelosCuest.map((cm) => cm.toJson()).toList();
+    cuestionarioJson['bloques'] = bloquesExtJson;
+    return cuestionarioJson;
+  }
+
+  Future marcarCuestionarioSubido(Cuestionario cuestionario) =>
+      (update(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
+          .write(const CuestionariosCompanion(esLocal: Value(false)));
+
   Future<Map<String, dynamic>> getInspeccionConRespuestas(
-      int inspeccionId) async {
+      Inspeccion inspeccion) async {
     //get inspeccion
-    final queryIns = select(inspecciones)
-      ..where((i) => i.id.equals(inspeccionId));
-    final ins = await queryIns.getSingle();
-    final jsonIns = ins.toJson(serializer: const CustomSerializer());
+    final jsonIns = inspeccion.toJson(serializer: const CustomSerializer());
 
     //get respuestas
     final queryRes = select(respuestas).join([
       leftOuterJoin(respuestasXOpcionesDeRespuesta,
           respuestasXOpcionesDeRespuesta.respuestaId.equalsExp(respuestas.id)),
     ])
-      ..where(respuestas.inspeccionId.equals(inspeccionId));
+      ..where(respuestas.inspeccionId.equals(inspeccion.id));
 
     final res = await queryRes
         .map((row) => RespuestaconOpcionDeRespuestaId(row.readTable(respuestas),
@@ -165,17 +235,25 @@ class Database extends _$Database {
         .toList();
 
     final titulosParseados = (json["Titulo"] as List)
-        .map((e) => Titulo.fromJson(e as Map<String, dynamic>))
+        .map((e) => Titulo.fromJson(
+              e as Map<String, dynamic>,
+              serializer: const CustomSerializer(),
+            ))
         .toList();
 
-    final cuadriculasDePreguntasParseados = (json["CuadriculaDePreguntas"]
-            as List)
-        .map((e) => CuadriculaDePreguntas.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final cuadriculasDePreguntasParseados =
+        (json["CuadriculaDePreguntas"] as List)
+            .map((e) => CuadriculaDePreguntas.fromJson(
+                  e as Map<String, dynamic>,
+                  serializer: const CustomSerializer(),
+                ))
+            .toList();
 
     final preguntasParseados = (json["Pregunta"] as List)
-        .map((e) => Pregunta.fromJson(e as Map<String, dynamic>,
-            serializer: const CustomSerializer()))
+        .map((e) => Pregunta.fromJson(
+              e as Map<String, dynamic>,
+              serializer: const CustomSerializer(),
+            ))
         .toList();
 
     final opcionesDeRespuestaParseados = (json["OpcionDeRespuesta"] as List)
@@ -202,7 +280,11 @@ class Database extends _$Database {
         b.insertAll(contratistas, contratistasParseados);
         b.insertAll(sistemas, sistemasParseados);
         b.insertAll(subSistemas, subSistemasParseados);
-        b.insertAll(cuestionarios, cuestionariosParseados);
+        b.insertAll(
+            cuestionarios,
+            cuestionariosParseados
+                .map((c) => c.copyWith(esLocal: false))
+                .toList());
         b.insertAll(cuestionarioDeModelos, cuestionariosDeModelosParseados);
         b.insertAll(bloques, bloquesParseados);
         b.insertAll(titulos, titulosParseados);

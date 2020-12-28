@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'mvvc/creacion_form_page.dart';
 import 'mvvc/llenado_form_page.dart';
 import 'presentation/pages/borradores_screen.dart';
+import 'presentation/pages/cuestionarios_screen.dart';
 import 'presentation/pages/login_screen.dart';
 import 'presentation/pages/sincronizacion_screen.dart';
 import 'presentation/pages/splash_screen.dart';
@@ -23,6 +24,7 @@ class Routes {
   static const String creacionFormPage = '/creacion-form-page';
   static const String llenadoFormPage = '/llenado-form-page';
   static const String sincronizacionPage = '/sincronizacion-page';
+  static const String cuestionariosPage = '/cuestionarios-page';
   static const all = <String>{
     splashPage,
     loginScreen,
@@ -30,6 +32,7 @@ class Routes {
     creacionFormPage,
     llenadoFormPage,
     sincronizacionPage,
+    cuestionariosPage,
   };
 }
 
@@ -43,6 +46,7 @@ class AutoRouter extends RouterBase {
     RouteDef(Routes.creacionFormPage, page: CreacionFormPage),
     RouteDef(Routes.llenadoFormPage, page: LlenadoFormPage),
     RouteDef(Routes.sincronizacionPage, page: SincronizacionPage),
+    RouteDef(Routes.cuestionariosPage, page: CuestionariosPage),
   ];
   @override
   Map<Type, AutoRouteFactory> get pagesMap => _pagesMap;
@@ -90,6 +94,12 @@ class AutoRouter extends RouterBase {
         settings: data,
       );
     },
+    CuestionariosPage: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => CuestionariosPage(),
+        settings: data,
+      );
+    },
   };
 }
 
@@ -120,6 +130,9 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
 
   Future<dynamic> pushSincronizacionPage() =>
       push<dynamic>(Routes.sincronizacionPage);
+
+  Future<dynamic> pushCuestionariosPage() =>
+      push<dynamic>(Routes.cuestionariosPage);
 }
 
 /// ************************************************************************

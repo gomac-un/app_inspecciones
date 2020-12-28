@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:inspecciones/router.gr.dart';
 
 class UserDrawer extends StatelessWidget {
+  //TODO: si se genera este mismo drawer en varias paginas se puede crear un stack indeseado, una solucion seria que la instancia del drawer fuera unica en toda la app
   @override
   Widget build(BuildContext context) {
     final authBloc = Provider.of<AuthBloc>(context);
@@ -62,31 +63,38 @@ class UserDrawer extends StatelessWidget {
               ),
               const SizedBox(height: 5.0),
               ListTile(
-                title: const Text('Ver base de Datos',
-                    style: TextStyle(color: Colors.black, fontSize: 15)),
+                selectedTileColor: Theme.of(context).accentColor,
+                title: const Text(
+                    'Lista de cuestionarios', //TODO: mostrar el numero de  inspecciones creadas pendientes por subir
+                    style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
                 leading: const Icon(
-                  Icons.view_array,
-                  color: Colors.black,
+                  Icons.list_alt,
+                  color: Colors.black, /* color: Colors.white, */
                 ),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => MoorDbViewer(
-                        getIt<Database>(),
-                      ),
-                    ),
-                  );
-                },
+                onTap: () => ExtendedNavigator.of(context)
+                    .replace(Routes.cuestionariosPage),
+              ),
+              const SizedBox(height: 5.0),
+              ListTile(
+                selectedTileColor: Theme.of(context).accentColor,
+                title: const Text(
+                    'Lista de borradores', //TODO: mostrar el numero de  inspecciones creadas pendientes por subir
+                    style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
+                leading: const Icon(
+                  Icons.list,
+                  color: Colors.black, /* color: Colors.white, */
+                ),
+                onTap: () => ExtendedNavigator.of(context)
+                    .replace(Routes.borradoresPage),
               ),
               const SizedBox(height: 5.0),
               ListTile(
                 title: const Text(
-                  'Reiniciar base de datos',
+                  'Limpiar base de datos',
                   style: TextStyle(/* color: Colors.white, */ fontSize: 15),
                 ),
                 leading: const Icon(
-                  Icons.replay_outlined,
+                  Icons.clear,
                   color: Colors.black,
                 ),
                 onTap: () => getIt<Database>().dbdePrueba(),
@@ -104,7 +112,28 @@ class UserDrawer extends StatelessWidget {
                   ExtendedNavigator.of(context).pop();
                 },
               ),
-              const SizedBox(height: 200.0),
+              const SizedBox(height: 5.0),
+              ListTile(
+                title: const Text('Ver base de Datos',
+                    style: TextStyle(color: Colors.black, fontSize: 15)),
+                leading: const Icon(
+                  Icons.view_array,
+                  color: Colors.black,
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => MoorDbViewer(
+                        getIt<Database>(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(
+                  height:
+                      50.0), //TODO: hacer que el boton de logout flote abajo en lugar de establecer esta distancia quemada
               Padding(
                 padding: const EdgeInsets.only(left: 160.0),
                 child: ListTile(

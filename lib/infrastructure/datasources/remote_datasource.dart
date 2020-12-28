@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -66,13 +67,13 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
         )
         .timeout(_timeLimit);
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body) as Map<String, dynamic>;
     } else if (response.statusCode == 400) {
-      throw CredencialesException(
-          jsonDecode(response.body) as Map<String, dynamic>);
+      throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
+      log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
   }

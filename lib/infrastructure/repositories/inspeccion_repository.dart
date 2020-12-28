@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
@@ -16,38 +17,49 @@ class InspeccionRepository {
 
   InspeccionRepository(this._api, this._db, @factoryParam this._token);
 
-  Future<Either<ApiFailure, Unit>> subirInspeccion(int inspeccionId) async {
+  Future<Either<ApiFailure, Unit>> subirInspeccion(
+      Inspeccion inspeccion) async {
     //TODO: subir las fotos
-    final ins = await _db.getInspeccionConRespuestas(inspeccionId);
+    final ins = await _db.getInspeccionConRespuestas(inspeccion);
     try {
       /*final res = await _api.putRecurso('/inspecciones/${ins['id']}/', ins,
           token: _token);*/
-      print(ins);
-      final res = await _api.postRecurso('/inspecciones/', ins, token: _token);
+      log(jsonEncode(ins));
+      await _api.postRecurso('/inspecciones/', ins, token: _token);
       return right(unit);
     } on TimeoutException {
       return const Left(ApiFailure.noHayConexionAlServidor());
     } on CredencialesException catch (e) {
-      print(e.respuesta);
       return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
     } on ServerException catch (e) {
-      print(e.respuesta);
       return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
     }
   }
 
-  /*
-
-  Future<void> saveLocalUser({@required Usuario user}) async {
-    // write token with the user to the local database
-    await localPreferences.saveUser(user);
+  Future<Either<ApiFailure, Unit>> subirCuestionarios() async {
+    //consultar cuestionarios pendientes
+    final cuestionariosPendientes = [];
+    //subir cada uno, o todos a la vez para mas eficiencia
   }
 
-  Future<void> deleteLocalUser() async {
-    await localPreferences.deleteUser();
+  Future<Either<ApiFailure, Unit>> subirCuestionario(
+      Cuestionario cuestionario) async {
+    //TODO: subir las fotos
+    final ins = await _db.getCuestionarioCompleto(cuestionario);
+    log(jsonEncode(ins));
+    try {
+      /*final res = await _api.putRecurso('/inspecciones/${ins['id']}/', ins,
+          token: _token);*/
+      log(jsonEncode(ins));
+      await _api.postRecurso('/cuestionarios-completos/', ins, token: _token);
+      await _db.marcarCuestionarioSubido(cuestionario);
+      return right(unit);
+    } on TimeoutException {
+      return const Left(ApiFailure.noHayConexionAlServidor());
+    } on CredencialesException catch (e) {
+      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    } on ServerException catch (e) {
+      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    }
   }
-
-  Option<Usuario> getLocalUser() => optionOf(localPreferences.getUser());
-
-  Future<bool> _hayInternet() async => DataConnectionChecker().hasConnection;*/
 }

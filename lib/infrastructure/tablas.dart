@@ -230,6 +230,8 @@ class Respuestas extends Table {
   IntColumn get preguntaId => integer()
       .customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
 
+  //TODO: verificar que el par inpeccionId-preguntaId sea unico
+
   //List<OpcionDeRespuesta>
 }
 

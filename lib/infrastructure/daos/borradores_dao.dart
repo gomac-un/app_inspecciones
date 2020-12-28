@@ -45,4 +45,12 @@ class BorradoresDao extends DatabaseAccessor<Database>
           ..where((ins) => ins.id.equals(borrador.inspeccion.id)))
         .go();
   }
+
+  Stream<List<Cuestionario>> getCuestionarios() =>
+      select(cuestionarios).watch();
+
+  Future eliminarCuestionario(Cuestionario cuestionario) async {
+    await (delete(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
+        .go();
+  }
 }

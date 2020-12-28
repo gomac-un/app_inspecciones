@@ -3,10 +3,8 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
-import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/repositories/inspeccion_repository.dart';
 import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/presentation/pages/generar_pdf.dart';
 import 'package:inspecciones/presentation/pages/inicio_inspeccion_form_widget.dart';
 import 'package:inspecciones/presentation/widgets/drawer.dart';
 import 'package:inspecciones/router.gr.dart';
@@ -37,17 +35,10 @@ class BorradoresPage extends StatelessWidget {
           actions: [
             IconButton(
               onPressed: () {
-                //TODO: implementar la subida de inspecciones al server
+                //TODO: implementar la subida de todas las inspecciones pendientes
                 throw Exception();
               },
               icon: const Icon(Icons.upload_file),
-              tooltip: "Subir inspecciones",
-            ),
-            IconButton(
-              onPressed: () {
-                generarPDF();
-              },
-              icon: const Icon(Icons.ac_unit),
               tooltip: "Subir inspecciones",
             ),
           ],
@@ -99,7 +90,7 @@ class BorradoresPage extends StatelessWidget {
                       onPressed: () async {
                         final res = await RepositoryProvider.of<
                                 InspeccionRepository>(context)
-                            .subirInspeccion(borrador.inspeccion.id)
+                            .subirInspeccion(borrador.inspeccion)
                             .then((res) => res.fold(
                                 (fail) => fail.when(
                                     noHayConexionAlServidor: () =>

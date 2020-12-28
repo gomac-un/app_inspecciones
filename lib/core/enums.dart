@@ -11,5 +11,5 @@ enum TipoDePregunta {
 enum EstadoDeInspeccion {
   borrador,
   reparacion,
-  enviada,
+  finalizada,
 }
