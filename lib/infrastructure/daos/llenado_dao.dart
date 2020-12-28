@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:intl/intl.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
@@ -33,7 +34,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   /// Trae una lista con todos los cuestionarios disponibles para un activo,
   /// incluyendo los cuestionarios que son asignados a todos los activos
   Future<List<Cuestionario>> cuestionariosParaActivo(int activo) async {
-    if (activo == null) return null;
+    if (activo == null) return [];
     /*
     final query = select(activos).join([
       innerJoin(cuestionarioDeModelos,
@@ -55,7 +56,9 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       WHERE activos.id = $activo
       UNION
       SELECT cuestionarios.* FROM cuestionarios
-      INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.modelo = 'todos'
+      INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.cuestionario_id = cuestionarios.id
+      WHERE cuestionario_de_modelos.modelo = 'todos' AND 
+        EXISTS (SELECT * FROM activos WHERE activos.id = $activo)
       ;''',
     ).map((row) => Cuestionario.fromData(row.data, db)).get();
   }
@@ -254,7 +257,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
       }
       await (update(inspecciones)..where((i) => i.id.equals(ins.id))).write(
-        estado == EstadoDeInspeccion.enviada
+        estado == EstadoDeInspeccion.finalizada
             ? InspeccionesCompanion(
                 momentoEnvio: Value(DateTime.now()),
                 estado: Value(estado),
@@ -267,20 +270,18 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       await Future.forEach<RespuestaConOpcionesDeRespuesta>(respuestasForm,
           (e) async {
         //Mover las fotos a una carpeta unica para cada inspeccion
-        final appDir = await getApplicationDocumentsDirectory();
+
         final idform =
             respuestasForm.first.respuesta.inspeccionId.value.toString();
-        final fotosBaseProc = await Future.wait(db.organizarFotos(
+        final fotosBaseProc = await FotosManager.organizarFotos(
             e.respuesta.fotosBase.value,
-            appDir.path,
-            "fotosInspecciones",
-            idform));
-        final fotosRepProc = await Future.wait(db.organizarFotos(
-            e.respuesta.fotosBase.value,
-            appDir.path,
-            "fotosInspecciones",
-            idform));
-        e.respuesta.copyWith(
+            tipoDocumento: "inspecciones",
+            idDocumento: idform);
+        final fotosRepProc = await FotosManager.organizarFotos(
+            e.respuesta.fotosReparacion.value,
+            tipoDocumento: "inspecciones",
+            idDocumento: idform);
+        e.respuesta = e.respuesta.copyWith(
           fotosBase: Value(fotosBaseProc.toImmutableList()),
           fotosReparacion: Value(fotosRepProc.toImmutableList()),
         );

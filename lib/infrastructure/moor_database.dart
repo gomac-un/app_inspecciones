@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
@@ -136,7 +136,11 @@ class Database extends _$Database {
         final opcionesDeLaPregunta = await (select(opcionesDeRespuesta)
               ..where((op) => op.preguntaId.equals(p.id)))
             .get();
-        final preguntaJson = p.toJson(serializer: const CustomSerializer());
+        //enviar solo el basename al server
+        final pregunta =
+            p.copyWith(fotosGuia: p.fotosGuia.map((f) => path.basename(f)));
+        final preguntaJson =
+            pregunta.toJson(serializer: const CustomSerializer());
         preguntaJson["opciones_de_respuesta"] =
             opcionesDeLaPregunta.map((op) => op.toJson()).toList();
         return preguntaJson;
@@ -186,9 +190,18 @@ class Database extends _$Database {
 
     final resAgrupadas = groupBy<RespuestaconOpcionDeRespuestaId, Respuesta>(
         res, (e) => e.respuesta).entries.map((entry) {
-      final respuesta = entry.key.toJson(serializer: const CustomSerializer());
-      respuesta['respuestas'] =
+      //solo enviar el filename al server
+      final respuesta = entry.key.copyWith(
+          fotosBase: entry.key.fotosBase.map((s) => path.basename(s)),
+          fotosReparacion:
+              entry.key.fotosReparacion.map((s) => path.basename(s)));
+
+      final respuestaJson =
+          respuesta.toJson(serializer: const CustomSerializer());
+
+      respuestaJson['respuestas'] =
           entry.value.map((e) => e.opcionDeRespuestaId).toList();
+
       return respuesta;
     }).toList();
 
@@ -309,27 +322,6 @@ class Database extends _$Database {
     return query.getSingle();
   }
 
-  Iterable<Future<String>> organizarFotos(
-      KtList<String> fotos,
-      String appDir,
-      String subDir, //fotosInspecciones
-      String idform) {
-    return fotos.iter.toList().map((pathFoto) async {
-      final dir = path.join(appDir, subDir, idform);
-      if (path.isWithin(dir, pathFoto)) {
-        // la imagen ya esta en la carpeta de datos
-        return pathFoto;
-      } else {
-        //mover la foto a la carpeta de datos
-        final fileName = path.basename(pathFoto);
-        final newPath = path.join(dir, fileName);
-        await File(newPath).create(recursive: true);
-        final savedImage = await File(pathFoto).copy(newPath);
-        return savedImage.path;
-      }
-    });
-  }
-
   Future<Cuestionario> getCuestionario(Inspeccion inspeccion) {
     final query = select(cuestionarios)
       ..where((c) => c.id.equals(inspeccion.cuestionarioId));
@@ -357,15 +349,12 @@ class CustomSerializer extends ValueSerializer {
   static const estadoDeInspeccionConverter =
       EnumIndexConverter<EstadoDeInspeccion>(EstadoDeInspeccion.values);
 
-  //static const Type ktstring = KtList<String>;
-
   @override
   T fromJson<T>(dynamic json) {
     if (json == null) {
       return null;
     }
 
-    // nuevo
     /*if (T == KtList) {
       return (json as List<String>).toImmutableList() as T;
     }*/

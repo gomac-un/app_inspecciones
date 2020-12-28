@@ -5,8 +5,10 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
+import 'package:kt_dart/kt.dart';
 
 abstract class InspeccionesRemoteDataSource {
   Future<Map<String, dynamic>> getRecurso(String recursoEndpoint,
@@ -17,6 +19,8 @@ abstract class InspeccionesRemoteDataSource {
   Future<Map<String, dynamic>> putRecurso(
       String recursoEndpoint, Map<String, dynamic> data,
       {@required String token});
+  Future subirFotos(
+      Iterable<File> fotos, String iddocumento, String tipodocumento);
 }
 
 @LazySingleton(as: InspeccionesRemoteDataSource)
@@ -103,6 +107,33 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
       //TODO: mirar los tipos de errores que pueden venir de la api
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
+  }
+
+  @override
+  Future subirFotos(
+      Iterable<File> fotos, String idDocumento, String tipoDocumento) async {
+    const uriRecurso = '/subir-fotos/';
+    final uri = Uri.parse(_server + _apiBase + uriRecurso);
+    final request = http.MultipartRequest("POST", uri);
+
+    request.fields['iddocumento'] = idDocumento;
+    request.fields['tipodocumento'] = tipoDocumento;
+
+    for (final file in fotos) {
+      final fileName = path.basename(file.path);
+      //final fileName = file.path.split("/").last;
+      //final stream = http.ByteStream(file.openRead());
+
+      final length = await file.length();
+
+      final multipartFileSign = http.MultipartFile(
+          'fotos', file.openRead(), length,
+          filename: fileName);
+
+      request.files.add(multipartFileSign);
+    }
+    request.send();
+    //<input type="file" id="files" name="file_fields" multiple>
   }
 
 /*

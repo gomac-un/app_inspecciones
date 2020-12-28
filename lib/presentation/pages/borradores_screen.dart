@@ -3,7 +3,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
-import 'package:inspecciones/infrastructure/repositories/inspeccion_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/pages/inicio_inspeccion_form_widget.dart';
 import 'package:inspecciones/presentation/widgets/drawer.dart';
@@ -13,115 +13,123 @@ import 'package:provider/provider.dart';
 import '../../infrastructure/moor_database.dart';
 
 //TODO: creacion de inpecciones con excel
-class BorradoresPage extends StatelessWidget {
-  final Database _db = getIt<Database>();
-  /*final InspeccionRepository _inspeccionRepository =
-      getIt<InspeccionRepository>(param1: 'abc');*/
+class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
+  @override
+  Widget wrappedRoute(BuildContext context) {
+    final authBloc = Provider.of<AuthBloc>(context);
+    return MultiProvider(
+      providers: [
+        RepositoryProvider(
+            create: (ctx) => getIt<InspeccionesRepository>(
+                param1: authBloc.state.maybeWhen(
+                    authenticated: (u) => u.token,
+                    orElse: () => throw Exception(
+                        "Error inesperado: usuario no encontrado")))),
+        RepositoryProvider(create: (_) => getIt<Database>()),
+        StreamProvider(
+            create: (_) => getIt<Database>().borradoresDao.borradores()),
+      ],
+      child: this,
+    );
+  }
 
-  BorradoresPage();
+  const BorradoresPage();
 
   @override
   Widget build(BuildContext context) {
-    final authBloc = Provider.of<AuthBloc>(context);
-    return RepositoryProvider(
-      create: (ctx) => getIt<InspeccionRepository>(
-          param1: authBloc.state.maybeWhen(
-              authenticated: (u) => u.token,
-              orElse: () =>
-                  throw Exception("Error inesperado: usuario no encontrado"))),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Borradores'),
-          actions: [
-            IconButton(
-              onPressed: () {
-                //TODO: implementar la subida de todas las inspecciones pendientes
-                throw Exception();
-              },
-              icon: const Icon(Icons.upload_file),
-              tooltip: "Subir inspecciones",
-            ),
-          ],
-        ),
-        drawer: UserDrawer(),
-        body: StreamBuilder<List<Borrador>>(
-          stream: _db.borradoresDao.borradores(),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              //throw snapshot.error;
-              return Text("error: ${snapshot.error}");
-            }
-            if (!snapshot.hasData) {
-              return const Align(
-                child: CircularProgressIndicator(),
-              );
-            }
-            final borradores = snapshot.data;
-
-            if (borradores.isEmpty) {
-              return Center(
-                  child: Text(
-                "No tiene borradores sin terminar",
-                style: Theme.of(context).textTheme.headline5,
-              ));
-            }
-
-            return ListView.separated(
-              separatorBuilder: (BuildContext context, int index) =>
-                  const Divider(),
-              itemCount: borradores.length,
-              itemBuilder: (context, index) {
-                final borrador = borradores[index];
-                final f = borrador.inspeccion.momentoBorradorGuardado;
-                final fechaBorrador = f == null
-                    ? ''
-                    : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute} \n";
-                return ListTile(
-                  tileColor: Theme.of(context).cardColor,
-                  title:
-                      Text("${borrador.activo.id} - ${borrador.activo.modelo}"),
-                  subtitle: Text(
-                      "Tipo de inspeccion: ${borrador.cuestionario.tipoDeInspeccion} \n" +
-                          "$fechaBorrador Estado: " +
-                          EnumToString.convertToString(
-                              borrador.inspeccion.estado)),
-                  leading: IconButton(
-                      icon: const Icon(Icons.cloud_upload),
-                      onPressed: () async {
-                        final res = await RepositoryProvider.of<
-                                InspeccionRepository>(context)
-                            .subirInspeccion(borrador.inspeccion)
-                            .then((res) => res.fold(
-                                (fail) => fail.when(
-                                    noHayConexionAlServidor: () =>
-                                        "no hay conexion al servidor",
-                                    noHayInternet: () => "no hay internet",
-                                    serverError: (msg) =>
-                                        "error inesperado: $msg"),
-                                (u) => "exito"));
-                        print(res);
-                        Scaffold.of(context).showSnackBar(SnackBar(
-                          content: Text(res),
-                        ));
-                      }),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () => eliminarBorrador(borrador, context),
-                  ),
-                  onTap: () => ExtendedNavigator.of(context).push(
-                    Routes.llenadoFormPage,
-                    arguments: LlenadoFormPageArguments(
-                      activo: borrador.activo.id,
-                      cuestionarioId: borrador.inspeccion.cuestionarioId,
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-        floatingActionButton: const FloatingActionButtonInicioInspeccion(),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Borradores'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              //TODO: implementar la subida de todas las inspecciones pendientes
+              throw Exception();
+            },
+            icon: const Icon(Icons.upload_file),
+            tooltip: "Subir inspecciones",
+          ),
+        ],
       ),
+      drawer: UserDrawer(),
+      body: Consumer<List<Borrador>>(
+        // Toco usar un proviedr porque estaba creando el stream en cada rebuild
+        //stream: Provider.of<Stream<List<Borrador>>>(context),
+        builder: (context, borradores, child) {
+          /*
+          if (snapshot.hasError) {
+            //throw snapshot.error;
+            return Text("error: ${snapshot.error}");
+          }*/
+          if (borradores == null) {
+            return const Align(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (borradores.isEmpty) {
+            return Center(
+                child: Text(
+              "No tiene borradores sin terminar",
+              style: Theme.of(context).textTheme.headline5,
+            ));
+          }
+
+          return ListView.separated(
+            separatorBuilder: (BuildContext context, int index) =>
+                const Divider(),
+            itemCount: borradores.length,
+            itemBuilder: (context, index) {
+              final borrador = borradores[index];
+              final f = borrador.inspeccion.momentoBorradorGuardado;
+              final fechaBorrador = f == null
+                  ? ''
+                  : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute} \n";
+              return ListTile(
+                tileColor: Theme.of(context).cardColor,
+                title:
+                    Text("${borrador.activo.id} - ${borrador.activo.modelo}"),
+                subtitle: Text(
+                    "Tipo de inspeccion: ${borrador.cuestionario.tipoDeInspeccion} \n" +
+                        "$fechaBorrador Estado: " +
+                        EnumToString.convertToString(
+                            borrador.inspeccion.estado)),
+                leading: IconButton(
+                    icon: const Icon(Icons.cloud_upload),
+                    onPressed: () async {
+                      final res = await RepositoryProvider.of<
+                              InspeccionesRepository>(context)
+                          .subirInspeccion(borrador.inspeccion)
+                          .then((res) => res.fold(
+                              (fail) => fail.when(
+                                  noHayConexionAlServidor: () =>
+                                      "no hay conexion al servidor",
+                                  noHayInternet: () => "no hay internet",
+                                  serverError: (msg) =>
+                                      "error inesperado: $msg"),
+                              (u) => "exito"));
+                      print(res);
+                      Scaffold.of(context).showSnackBar(SnackBar(
+                        content: Text(res),
+                      ));
+                    }),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => eliminarBorrador(borrador, context),
+                ),
+                onTap: () => ExtendedNavigator.of(context).push(
+                  Routes.llenadoFormPage,
+                  arguments: LlenadoFormPageArguments(
+                    activo: borrador.activo.id,
+                    cuestionarioId: borrador.inspeccion.cuestionarioId,
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: const FloatingActionButtonInicioInspeccion(),
     );
   }
 
@@ -134,7 +142,9 @@ class BorradoresPage extends StatelessWidget {
     final Widget continueButton = FlatButton(
       onPressed: () async {
         Navigator.of(context).pop();
-        await _db.borradoresDao.eliminarBorrador(borrador);
+        await RepositoryProvider.of<Database>(context)
+            .borradoresDao
+            .eliminarBorrador(borrador);
         Scaffold.of(context).showSnackBar(const SnackBar(
           content: Text("Borrador eliminado"),
           duration: Duration(seconds: 3),

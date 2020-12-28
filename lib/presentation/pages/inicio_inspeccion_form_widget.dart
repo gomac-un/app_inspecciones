@@ -21,9 +21,14 @@ class InicioInspeccionForm extends StatelessWidget {
             return fb.group({
               'activo': fb.control<String>('', [Validators.required])
                 ..valueChanges.listen((activo) async {
+                  final activoParsed = int.parse(activo, onError: (_) => null);
+                  if (activoParsed == null) {
+                    tiposDeInspeccion.value = [];
+                    return;
+                  }
                   final res = await getIt<Database>()
                       .llenadoDao
-                      .cuestionariosParaActivo(int.parse(activo));
+                      .cuestionariosParaActivo(activoParsed);
                   tiposDeInspeccion.value = res;
 
                   tipoInspeccionCtrl.value = res.isNotEmpty ? res.first : null;

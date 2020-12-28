@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
@@ -112,17 +113,13 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
           ));
         }
         if (control is CreadorPreguntaFormGroup) {
-          final appDir = await getApplicationDocumentsDirectory();
           //Mover las fotos a una carpeta unica para cada cuestionario
-          final fotosGuiaProcesadas = await Future.wait(
-            db.organizarFotos(
-              (control.value["fotosGuia"] as List<File>)
-                  .map((e) => e.path)
-                  .toImmutableList(),
-              appDir.path,
-              "fotosCuestionarios",
-              cid.toString(),
-            ),
+          final fotosGuiaProcesadas = await FotosManager.organizarFotos(
+            (control.value["fotosGuia"] as List<File>)
+                .map((e) => e.path)
+                .toImmutableList(),
+            tipoDocumento: "cuestionarios",
+            idDocumento: cid.toString(),
           );
 
           final pid = await into(preguntas).insert(

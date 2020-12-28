@@ -65,7 +65,7 @@ class AutoRouter extends RouterBase {
     },
     BorradoresPage: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => BorradoresPage(),
+        builder: (context) => BorradoresPage().wrappedRoute(context),
         settings: data,
       );
     },
@@ -96,7 +96,7 @@ class AutoRouter extends RouterBase {
     },
     CuestionariosPage: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => CuestionariosPage(),
+        builder: (context) => CuestionariosPage().wrappedRoute(context),
         settings: data,
       );
     },
