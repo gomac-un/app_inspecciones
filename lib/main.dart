@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/auth_listener_widget.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'injection.dart';
 
 Future main() async {
+  
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
+  await getIt<Database>().dbdePrueba();
   final navigatorKey = GlobalKey<NavigatorState>();
   runApp(
     MaterialApp(
@@ -18,7 +21,7 @@ Future main() async {
         navigatorKey: navigatorKey,
         router: AutoRouter(),
         builder: (context, extendedNav) => GestureDetector(
-          onTap: () {
+          onTap: () async {
             // esto quita el foco (y esconde el teclado) al hacer tap
             // en cualquier lugar no-interactivo de la pantalla https://flutterigniter.com/dismiss-keyboard-form-lose-focus/
             final currentFocus = FocusScope.of(context);
@@ -31,7 +34,7 @@ Future main() async {
             data: customTheme, //TODO: seleccion de tema
             child: BlocProvider(
               create: (context) =>
-                  getIt<AuthBloc>()..add(const AuthEvent.startingApp()),
+              getIt<AuthBloc>()..add(const AuthEvent.startingApp()),
               child: AuthListener(
                 navigatorKey: navigatorKey,
                 child: extendedNav,

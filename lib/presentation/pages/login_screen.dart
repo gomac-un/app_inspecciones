@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/application/auth/usuario.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/api_model.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import 'package:inspecciones/injection.dart';
@@ -71,7 +72,6 @@ class LoginControl extends FormGroup {
 
   Future submit(BuildContext context) async {
     final authBloc = Provider.of<AuthBloc>(context, listen: false);
-
     final login = UserLogin(
       username: value['usuario'] as String,
       password: value['password'] as String,

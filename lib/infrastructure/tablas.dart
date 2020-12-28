@@ -3,10 +3,10 @@ part of 'moor_database.dart';
 class Activos extends Table {
   TextColumn get modelo => text()();
 
-  TextColumn get identificador => text()();
+  IntColumn get id => integer()();
 
   @override
-  Set<Column> get primaryKey => {identificador};
+  Set<Column> get primaryKey => {id};
 }
 
 class Contratistas extends Table {
@@ -26,7 +26,7 @@ class Sistemas extends Table {
 class SubSistemas extends Table {
   IntColumn get id => integer()();
   TextColumn get nombre => text()();
-  IntColumn get sistemaId =>
+  IntColumn get sistema =>
       integer().customConstraint('REFERENCES sistemas(id) ON DELETE CASCADE')();
   @override
   Set<Column> get primaryKey => {id};
@@ -40,10 +40,10 @@ class CuestionarioDeModelos extends Table {
 
   IntColumn get periodicidad => integer()();
 
-  IntColumn get cuestionarioId => integer()
+  IntColumn get cuestionario_id => integer()
       .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
-  IntColumn get contratistaId => integer()
+  IntColumn get contratista_id => integer()
       .customConstraint('REFERENCES contratistas(id) ON DELETE SET NULL')();
 }
 
@@ -59,7 +59,7 @@ class Cuestionarios extends Table {
 class Bloques extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  IntColumn get cuestionarioId => integer()
+  IntColumn get cuestionario_id => integer()
       .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
   IntColumn get nOrden => integer()();
@@ -151,7 +151,7 @@ class OpcionesDeRespuesta extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   //uno de estos 2 debe ser no nulo
-  IntColumn get preguntaId => integer().nullable()();
+  IntColumn get pregunta => integer().nullable()();
   //.customConstraint('REFERENCES preguntas(id)')();
 
   IntColumn get cuadriculaId => integer().nullable()();
@@ -172,7 +172,7 @@ class Inspecciones extends Table {
   IntColumn get cuestionarioId => integer()
       .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
-  TextColumn get identificadorActivo => text().customConstraint(
+  IntColumn get identificadorActivo => integer().customConstraint(
       'REFERENCES activos(identificador) ON DELETE CASCADE')();
 
   DateTimeColumn get momentoInicio => dateTime().nullable()();
@@ -217,10 +217,10 @@ class Respuestas extends Table {
 class RespuestasXOpcionesDeRespuesta extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  IntColumn get respuestaId => integer()
+  IntColumn get respuesta_id => integer()
       .customConstraint('REFERENCES respuestas(id) ON DELETE CASCADE')();
 
-  IntColumn get opcionDeRespuestaId => integer().customConstraint(
+  IntColumn get preguntaRespuesta_id => integer().customConstraint(
       'REFERENCES opciones_de_respuesta(id) ON DELETE CASCADE')();
 }
 
