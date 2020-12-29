@@ -36,10 +36,9 @@ class FotosManager {
   static Future<Iterable<File>> getFotosDeDocumento(
       {String idDocumento, String tipoDocumento}) async {
     final appDir = await getApplicationDocumentsDirectory();
-
-    return Directory(path.join(appDir.path, tipoDocumento, idDocumento))
-        .listSync()
-        .whereType<File>();
+    final docDir =
+        Directory(path.join(appDir.path, tipoDocumento, idDocumento));
+    return docDir.existsSync() ? docDir.listSync().whereType<File>() : [];
   }
 
   static String convertirAUbicacionAbsoluta(

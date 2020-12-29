@@ -27,8 +27,9 @@ abstract class InspeccionesRemoteDataSource {
 
 @LazySingleton(as: InspeccionesRemoteDataSource)
 class DjangoJsonAPI implements InspeccionesRemoteDataSource {
-  static const _server =
-      'https://inspeccion.herokuapp.com'; //TODO: opcion para modificar el servidor desde la app
+  static const _server = 'https://inspeccion.herokuapp.com';
+  //static const _server = 'http://10.0.2.2:8000';
+  //TODO: opcion para modificar el servidor desde la app
   static const _apiBase = '/inspecciones/api/v1';
   static const _timeLimit = Duration(seconds: 5); //TODO: ajustar el timelimit
 
@@ -134,7 +135,13 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
 
       request.files.add(multipartFileSign);
     }
-    request.send();
+    final res = await request.send();
+    final respStr = await res.stream.bytesToString();
+    log(respStr);
+    if (res.statusCode > 299) {
+      throw Exception("error del servidor");
+    }
+
     //<input type="file" id="files" name="file_fields" multiple>
   }
 
