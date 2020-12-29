@@ -217,6 +217,8 @@ class Respuestas extends Table {
 
   BoolColumn get reparado => boolean().withDefault(const Constant(false))();
 
+  RealColumn get valor => real().nullable()();
+
   TextColumn get observacionReparacion =>
       text().withDefault(const Constant(""))();
 

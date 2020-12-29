@@ -3028,6 +3028,7 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
   final KtList<String> fotosReparacion;
   final String observacion;
   final bool reparado;
+  final double valor;
   final String observacionReparacion;
   final DateTime momentoRespuesta;
   final int inspeccionId;
@@ -3038,6 +3039,7 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       @required this.fotosReparacion,
       @required this.observacion,
       @required this.reparado,
+      this.valor,
       @required this.observacionReparacion,
       this.momentoRespuesta,
       @required this.inspeccionId,
@@ -3048,6 +3050,7 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
     final intType = db.typeSystem.forDartType<int>();
     final stringType = db.typeSystem.forDartType<String>();
     final boolType = db.typeSystem.forDartType<bool>();
+    final doubleType = db.typeSystem.forDartType<double>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
     return Respuesta(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -3059,6 +3062,8 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
           .mapFromDatabaseResponse(data['${effectivePrefix}observacion']),
       reparado:
           boolType.mapFromDatabaseResponse(data['${effectivePrefix}reparado']),
+      valor:
+          doubleType.mapFromDatabaseResponse(data['${effectivePrefix}valor']),
       observacionReparacion: stringType.mapFromDatabaseResponse(
           data['${effectivePrefix}observacion_reparacion']),
       momentoRespuesta: dateTimeType
@@ -3090,6 +3095,9 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
     if (!nullToAbsent || reparado != null) {
       map['reparado'] = Variable<bool>(reparado);
     }
+    if (!nullToAbsent || valor != null) {
+      map['valor'] = Variable<double>(valor);
+    }
     if (!nullToAbsent || observacionReparacion != null) {
       map['observacion_reparacion'] = Variable<String>(observacionReparacion);
     }
@@ -3120,6 +3128,8 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       reparado: reparado == null && nullToAbsent
           ? const Value.absent()
           : Value(reparado),
+      valor:
+          valor == null && nullToAbsent ? const Value.absent() : Value(valor),
       observacionReparacion: observacionReparacion == null && nullToAbsent
           ? const Value.absent()
           : Value(observacionReparacion),
@@ -3145,6 +3155,7 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
           serializer.fromJson<KtList<String>>(json['fotosReparacion']),
       observacion: serializer.fromJson<String>(json['observacion']),
       reparado: serializer.fromJson<bool>(json['reparado']),
+      valor: serializer.fromJson<double>(json['valor']),
       observacionReparacion:
           serializer.fromJson<String>(json['observacionReparacion']),
       momentoRespuesta: serializer.fromJson<DateTime>(json['momentoRespuesta']),
@@ -3161,6 +3172,7 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       'fotosReparacion': serializer.toJson<KtList<String>>(fotosReparacion),
       'observacion': serializer.toJson<String>(observacion),
       'reparado': serializer.toJson<bool>(reparado),
+      'valor': serializer.toJson<double>(valor),
       'observacionReparacion': serializer.toJson<String>(observacionReparacion),
       'momentoRespuesta': serializer.toJson<DateTime>(momentoRespuesta),
       'inspeccion': serializer.toJson<int>(inspeccionId),
@@ -3174,6 +3186,7 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
           KtList<String> fotosReparacion,
           String observacion,
           bool reparado,
+          double valor,
           String observacionReparacion,
           DateTime momentoRespuesta,
           int inspeccionId,
@@ -3184,6 +3197,7 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
         fotosReparacion: fotosReparacion ?? this.fotosReparacion,
         observacion: observacion ?? this.observacion,
         reparado: reparado ?? this.reparado,
+        valor: valor ?? this.valor,
         observacionReparacion:
             observacionReparacion ?? this.observacionReparacion,
         momentoRespuesta: momentoRespuesta ?? this.momentoRespuesta,
@@ -3198,6 +3212,7 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
           ..write('fotosReparacion: $fotosReparacion, ')
           ..write('observacion: $observacion, ')
           ..write('reparado: $reparado, ')
+          ..write('valor: $valor, ')
           ..write('observacionReparacion: $observacionReparacion, ')
           ..write('momentoRespuesta: $momentoRespuesta, ')
           ..write('inspeccionId: $inspeccionId, ')
@@ -3218,11 +3233,13 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
                   $mrjc(
                       reparado.hashCode,
                       $mrjc(
-                          observacionReparacion.hashCode,
+                          valor.hashCode,
                           $mrjc(
-                              momentoRespuesta.hashCode,
-                              $mrjc(inspeccionId.hashCode,
-                                  preguntaId.hashCode)))))))));
+                              observacionReparacion.hashCode,
+                              $mrjc(
+                                  momentoRespuesta.hashCode,
+                                  $mrjc(inspeccionId.hashCode,
+                                      preguntaId.hashCode))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -3232,6 +3249,7 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
           other.fotosReparacion == this.fotosReparacion &&
           other.observacion == this.observacion &&
           other.reparado == this.reparado &&
+          other.valor == this.valor &&
           other.observacionReparacion == this.observacionReparacion &&
           other.momentoRespuesta == this.momentoRespuesta &&
           other.inspeccionId == this.inspeccionId &&
@@ -3244,6 +3262,7 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
   final Value<KtList<String>> fotosReparacion;
   final Value<String> observacion;
   final Value<bool> reparado;
+  final Value<double> valor;
   final Value<String> observacionReparacion;
   final Value<DateTime> momentoRespuesta;
   final Value<int> inspeccionId;
@@ -3254,6 +3273,7 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
     this.fotosReparacion = const Value.absent(),
     this.observacion = const Value.absent(),
     this.reparado = const Value.absent(),
+    this.valor = const Value.absent(),
     this.observacionReparacion = const Value.absent(),
     this.momentoRespuesta = const Value.absent(),
     this.inspeccionId = const Value.absent(),
@@ -3265,6 +3285,7 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
     this.fotosReparacion = const Value.absent(),
     this.observacion = const Value.absent(),
     this.reparado = const Value.absent(),
+    this.valor = const Value.absent(),
     this.observacionReparacion = const Value.absent(),
     this.momentoRespuesta = const Value.absent(),
     @required int inspeccionId,
@@ -3277,6 +3298,7 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
     Expression<String> fotosReparacion,
     Expression<String> observacion,
     Expression<bool> reparado,
+    Expression<double> valor,
     Expression<String> observacionReparacion,
     Expression<DateTime> momentoRespuesta,
     Expression<int> inspeccionId,
@@ -3288,6 +3310,7 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
       if (fotosReparacion != null) 'fotos_reparacion': fotosReparacion,
       if (observacion != null) 'observacion': observacion,
       if (reparado != null) 'reparado': reparado,
+      if (valor != null) 'valor': valor,
       if (observacionReparacion != null)
         'observacion_reparacion': observacionReparacion,
       if (momentoRespuesta != null) 'momento_respuesta': momentoRespuesta,
@@ -3302,6 +3325,7 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
       Value<KtList<String>> fotosReparacion,
       Value<String> observacion,
       Value<bool> reparado,
+      Value<double> valor,
       Value<String> observacionReparacion,
       Value<DateTime> momentoRespuesta,
       Value<int> inspeccionId,
@@ -3312,6 +3336,7 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
       fotosReparacion: fotosReparacion ?? this.fotosReparacion,
       observacion: observacion ?? this.observacion,
       reparado: reparado ?? this.reparado,
+      valor: valor ?? this.valor,
       observacionReparacion:
           observacionReparacion ?? this.observacionReparacion,
       momentoRespuesta: momentoRespuesta ?? this.momentoRespuesta,
@@ -3341,6 +3366,9 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
     if (reparado.present) {
       map['reparado'] = Variable<bool>(reparado.value);
     }
+    if (valor.present) {
+      map['valor'] = Variable<double>(valor.value);
+    }
     if (observacionReparacion.present) {
       map['observacion_reparacion'] =
           Variable<String>(observacionReparacion.value);
@@ -3365,6 +3393,7 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
           ..write('fotosReparacion: $fotosReparacion, ')
           ..write('observacion: $observacion, ')
           ..write('reparado: $reparado, ')
+          ..write('valor: $valor, ')
           ..write('observacionReparacion: $observacionReparacion, ')
           ..write('momentoRespuesta: $momentoRespuesta, ')
           ..write('inspeccionId: $inspeccionId, ')
@@ -3428,6 +3457,18 @@ class $RespuestasTable extends Respuestas
         defaultValue: const Constant(false));
   }
 
+  final VerificationMeta _valorMeta = const VerificationMeta('valor');
+  GeneratedRealColumn _valor;
+  @override
+  GeneratedRealColumn get valor => _valor ??= _constructValor();
+  GeneratedRealColumn _constructValor() {
+    return GeneratedRealColumn(
+      'valor',
+      $tableName,
+      true,
+    );
+  }
+
   final VerificationMeta _observacionReparacionMeta =
       const VerificationMeta('observacionReparacion');
   GeneratedTextColumn _observacionReparacion;
@@ -3480,6 +3521,7 @@ class $RespuestasTable extends Respuestas
         fotosReparacion,
         observacion,
         reparado,
+        valor,
         observacionReparacion,
         momentoRespuesta,
         inspeccionId,
@@ -3510,6 +3552,10 @@ class $RespuestasTable extends Respuestas
     if (data.containsKey('reparado')) {
       context.handle(_reparadoMeta,
           reparado.isAcceptableOrUnknown(data['reparado'], _reparadoMeta));
+    }
+    if (data.containsKey('valor')) {
+      context.handle(
+          _valorMeta, valor.isAcceptableOrUnknown(data['valor'], _valorMeta));
     }
     if (data.containsKey('observacion_reparacion')) {
       context.handle(

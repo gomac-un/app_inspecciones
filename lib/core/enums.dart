@@ -3,7 +3,7 @@ enum TipoDePregunta {
   multipleRespuesta,
   parteDeCuadriculaUnica,
   parteDeCuadriculaMultiple,
-  rangoNumerico,
+  numerica,
   binaria,
   fecha,
 }

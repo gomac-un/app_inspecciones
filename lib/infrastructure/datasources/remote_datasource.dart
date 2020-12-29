@@ -135,10 +135,11 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
 
       request.files.add(multipartFileSign);
     }
-    final res = await request.send();
-    final respStr = await res.stream.bytesToString();
-    log(respStr);
-    if (res.statusCode > 299) {
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    log(response.body);
+    if (response.statusCode > 299) {
       throw Exception("error del servidor");
     }
 

@@ -81,6 +81,8 @@ class Database extends _$Database {
     for (final table in allTables) {
       await m.deleteTable(table.actualTableName);
       await m.createTable(table);
+      await customStatement(
+          "insert into SQLITE_SEQUENCE (name,seq) values('${table.actualTableName}',${_appId}00000000000000);"); //1e14
     }
 
     await customStatement('PRAGMA foreign_keys = ON');
