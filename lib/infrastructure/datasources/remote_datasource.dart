@@ -38,7 +38,6 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   Future<Map<String, dynamic>> getRecurso(String recursoEndpoint,
       {@required String token}) async {
     final url = _server + _apiBase + recursoEndpoint;
-
     final http.Response response = await http.get(
       url,
       headers: {
