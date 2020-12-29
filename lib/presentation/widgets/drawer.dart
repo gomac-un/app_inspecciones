@@ -83,7 +83,7 @@ class UserDrawer extends StatelessWidget {
                       Icons.cleaning_services,
                       color: Colors.black,
                     ),
-                    onTap: () => getIt<Database>().dbdePrueba(),
+                    onTap: () => getIt<Database>().limpiezaBD(),
                   ),
                   ListTile(
                     selectedTileColor: Theme.of(context).accentColor,

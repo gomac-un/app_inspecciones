@@ -29,6 +29,7 @@ class UserRepository {
 
     try {
       token = await _getToken(userLogin);
+      await _getAppId(token);
     } on TimeoutException {
       return const Left(AuthFailure.noHayConexionAlServidor());
     } on CredencialesException {
@@ -63,6 +64,20 @@ class UserRepository {
   }
 
   Option<Usuario> getLocalUser() => optionOf(localPreferences.getUser());
+
+  Future _getAppId(String token) async {
+    if (localPreferences.getAppId() != null) {
+      return localPreferences.getAppId();
+    }
+    final res = await api.postRecurso(
+      '/registro-app/',
+      {},
+      token: token,
+    );
+    final appId = res['id'] as int;
+    localPreferences.saveAppId(appId);
+    return appId;
+  }
 
   Future<bool> _hayInternet() async => DataConnectionChecker().hasConnection;
 }

@@ -44,10 +44,8 @@ class InspeccionesRepository {
     }
   }
 
-  Future<Either<ApiFailure, Unit>> subirCuestionarios() async {
-    //consultar cuestionarios pendientes
-    final cuestionariosPendientes = [];
-    //subir cada uno, o todos a la vez para mas eficiencia
+  Future<Either<ApiFailure, Unit>> subirCuestionariosPendientes() async {
+    //TODO: subir cada uno, o todos a la vez para mas eficiencia
   }
 
   Future<Either<ApiFailure, Unit>> subirCuestionario(
@@ -76,5 +74,14 @@ class InspeccionesRepository {
     } on ServerException catch (e) {
       return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
     }
+  }
+
+  Future descargarCuestionarios(String savedir, String nombreJson) async {
+    _api.descargaFlutterDownloader('/server/', savedir, nombreJson);
+  }
+
+  Future descargarFotos(String savedir, String nombreZip) async {
+    _api.descargaFlutterDownloader(
+        '/media/fotos-app-inspecciones/cuestionarios.zip', savedir, nombreZip);
   }
 }

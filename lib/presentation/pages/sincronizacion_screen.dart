@@ -39,66 +39,27 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
           //TODO: diseñar una mejor interfaz de usuario
           //TODO: manejo de errores
           builder: (context, state) {
-            final listOfWidgets = <Widget>[];
-            ListTile ultimaActualizacionTile() => ListTile(
-                title: Text(state.ultimaActualizacion == null
-                    ? "No ha descargado ninguna inspección"
-                    : "Ultima actualización: ${state.ultimaActualizacion}"));
-
-            ListTile descargaTile() => ListTile(
-                  title: const Text("Descarga de la base de datos"),
+            if (!state.cargado) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return Column(
+              children: [
+                ListTile(
+                  title: const Text("Progreso de la descarga"),
                   subtitle: Column(
                     children: [
                       LinearProgressIndicator(
-                        value: state.task.progress / 100,
+                        value:
+                            state.task != null ? state.task.progress / 100 : 0,
                       ),
-                      Text(state.task.status.toText()),
+                      Text(state.task?.status?.toText() ?? ''),
                     ],
                   ),
-                );
-
-            ListTile instalandoTile() => const ListTile(
-                  title: Text("instalando"),
-                );
-
-            switch (state.status) {
-              case SincronizacionStatus.inicial:
-              case SincronizacionStatus.cargando:
-                return const Center(child: CircularProgressIndicator());
-
-              case SincronizacionStatus.cargado:
-                listOfWidgets.add(ultimaActualizacionTile());
-                break;
-
-              case SincronizacionStatus.descargandoServer:
-                listOfWidgets
-                    .addAll([ultimaActualizacionTile(), descargaTile()]);
-                break;
-
-              case SincronizacionStatus.instalandoDB:
-                listOfWidgets.addAll([
-                  ultimaActualizacionTile(),
-                  descargaTile(),
-                  instalandoTile()
-                ]);
-                break;
-              case SincronizacionStatus.exito:
-                listOfWidgets.addAll([
-                  ultimaActualizacionTile(),
-                  descargaTile(),
-                  instalandoTile(),
-                  ListTile(
-                    title: const Text('instalacion exitosa'),
-                    trailing: OutlineButton(
-                      onPressed: () => ExtendedNavigator.of(context).pop(),
-                      child: const Text('Salir'),
-                    ),
-                  ),
-                ]);
-                break;
-            }
-            return ListView(
-              children: listOfWidgets,
+                ),
+                Expanded(
+                  child: Text(state.info),
+                )
+              ],
             );
           },
         ));

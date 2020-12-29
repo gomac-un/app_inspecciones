@@ -18,7 +18,7 @@ class LlenadoFormViewModel {
       ValueNotifier(EstadoDeInspeccion.borrador);
 
   final int _activo;
-  final int _cuestionarioId;
+  final int cuestionarioId;
 
   final form = FormGroup({});
 
@@ -27,7 +27,7 @@ class LlenadoFormViewModel {
 
   //List bloquesMutables;
 
-  LlenadoFormViewModel(this._activo, this._cuestionarioId) {
+  LlenadoFormViewModel(this._activo, this.cuestionarioId) {
     /*form.addAll({
       'bloques': bloques,
     });*/
@@ -36,11 +36,11 @@ class LlenadoFormViewModel {
 
   Future cargarDatos() async {
     final inspeccion =
-        await _db.llenadoDao.getInspeccion(_activo, _cuestionarioId);
+        await _db.llenadoDao.getInspeccion(_activo, cuestionarioId);
     estado.value = inspeccion?.estado ?? EstadoDeInspeccion.borrador;
 
     final bloquesBD =
-        await _db.llenadoDao.cargarCuestionario(_cuestionarioId, _activo);
+        await _db.llenadoDao.cargarCuestionario(cuestionarioId, _activo);
 
     //ordenamiento y creacion de los controles dependiendo del tipo de elemento
     bloques = FormArray(
@@ -78,7 +78,7 @@ class LlenadoFormViewModel {
     }).toList();
 
     await _db.llenadoDao
-        .guardarInspeccion(respuestas, _cuestionarioId, _activo, estado);
+        .guardarInspeccion(respuestas, cuestionarioId, _activo, estado);
   }
 
   void finalizar() {

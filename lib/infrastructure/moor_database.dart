@@ -5,6 +5,7 @@ import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
+import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:json_annotation/json_annotation.dart' show JsonSerializable;
 import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
@@ -39,9 +40,10 @@ part 'tablas_unidas.dart';
   daos: [LlenadoDao, CreacionDao, BorradoresDao],
 )
 class Database extends _$Database {
+  final int _appId;
   // En el caso de que la db crezca mucho y las consultas empiecen a relentizar
   //la UI se debe considerar el uso de los isolates https://moor.simonbinder.eu/docs/advanced-features/isolates/
-  Database(QueryExecutor e) : super(e);
+  Database(QueryExecutor e, this._appId) : super(e);
 
   @override
   int get schemaVersion => 1;
@@ -51,6 +53,12 @@ class Database extends _$Database {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+        for (final table in allTables) {
+          // Inicializa todos los autoincrement con el prefijo del appId desde el digito 14
+          await customStatement(
+              "insert into SQLITE_SEQUENCE (name,seq) values('${table.actualTableName}',${_appId}00000000000000);"); //1e14
+
+        }
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
@@ -66,27 +74,13 @@ class Database extends _$Database {
     );
   }
 
-  //Llenado de bd con datos de prueba
-  Future dbdePrueba() async {
-    /*final dataDir = await paths.getApplicationDocumentsDirectory();
-    final dbFile = File(path.join(dataDir.path, 'db.sqlite'));
-    dbFile.deleteSync();*/
+  Future limpiezaBD() async {
     final m = createMigrator();
     await customStatement('PRAGMA foreign_keys = OFF');
 
     for (final table in allTables) {
       await m.deleteTable(table.actualTableName);
-
       await m.createTable(table);
-
-      /*await customStatement(
-          "UPDATE SQLITE_SEQUENCE SET SEQ=100000000000000 WHERE NAME='${table.actualTableName}';"); //1e14*/
-      //TODO: pedirle el deviceId al servidor para coordinar las BDs
-      const deviceId = 1;
-      // Inicializa todos los autoincrement con el prefijo del deviceid desde el digito 14
-      await customStatement(
-          "insert into SQLITE_SEQUENCE (name,seq) values('${table.actualTableName}',${deviceId}00000000000000);"); //1e14
-
     }
 
     await customStatement('PRAGMA foreign_keys = ON');
@@ -136,6 +130,7 @@ class Database extends _$Database {
         final opcionesDeLaPregunta = await (select(opcionesDeRespuesta)
               ..where((op) => op.preguntaId.equals(p.id)))
             .get();
+
         //enviar solo el basename al server
         final pregunta =
             p.copyWith(fotosGuia: p.fotosGuia.map((f) => path.basename(f)));
@@ -202,7 +197,7 @@ class Database extends _$Database {
       respuestaJson['respuestas'] =
           entry.value.map((e) => e.opcionDeRespuestaId).toList();
 
-      return respuesta;
+      return respuestaJson;
     }).toList();
 
     jsonIns['respuestas'] = resAgrupadas;
@@ -236,6 +231,7 @@ class Database extends _$Database {
 
     final cuestionariosParseados = (json["Cuestionario"] as List)
         .map((e) => Cuestionario.fromJson(e as Map<String, dynamic>))
+        .map((c) => c.copyWith(esLocal: false))
         .toList();
 
     final cuestionariosDeModelosParseados = (json["CuestionarioDeModelo"]
@@ -262,12 +258,21 @@ class Database extends _$Database {
                 ))
             .toList();
 
-    final preguntasParseados = (json["Pregunta"] as List)
-        .map((e) => Pregunta.fromJson(
-              e as Map<String, dynamic>,
-              serializer: const CustomSerializer(),
-            ))
-        .toList();
+    final preguntasParseados = (json["Pregunta"] as List).map((p) {
+      // se hace este proceso para agregarle el path completo a las fotos
+      final pregunta = Pregunta.fromJson(
+        p as Map<String, dynamic>,
+        serializer: const CustomSerializer(),
+      );
+      return pregunta.copyWith(
+          fotosGuia: pregunta.fotosGuia.map((e) =>
+              FotosManager.convertirAUbicacionAbsoluta(
+                  tipoDeDocumento: 'cuestionarios',
+                  idDocumento:
+                      ((p as Map<String, dynamic>)['cuestionario'] as int)
+                          .toString(),
+                  basename: e)));
+    }).toList();
 
     final opcionesDeRespuestaParseados = (json["OpcionDeRespuesta"] as List)
         .map((e) => OpcionDeRespuesta.fromJson(e as Map<String, dynamic>))
@@ -293,11 +298,7 @@ class Database extends _$Database {
         b.insertAll(contratistas, contratistasParseados);
         b.insertAll(sistemas, sistemasParseados);
         b.insertAll(subSistemas, subSistemasParseados);
-        b.insertAll(
-            cuestionarios,
-            cuestionariosParseados
-                .map((c) => c.copyWith(esLocal: false))
-                .toList());
+        b.insertAll(cuestionarios, cuestionariosParseados);
         b.insertAll(cuestionarioDeModelos, cuestionariosDeModelosParseados);
         b.insertAll(bloques, bloquesParseados);
         b.insertAll(titulos, titulosParseados);

@@ -165,14 +165,11 @@ class _$SincronizacionStateTearOff {
   const _$SincronizacionStateTearOff();
 
 // ignore: unused_element
-  _SincronizacionState call(
-      {SincronizacionStatus status = SincronizacionStatus.cargando,
-      DateTime ultimaActualizacion,
-      Task task}) {
+  _SincronizacionState call({bool cargado = false, Task task, String info}) {
     return _SincronizacionState(
-      status: status,
-      ultimaActualizacion: ultimaActualizacion,
+      cargado: cargado,
       task: task,
+      info: info,
     );
   }
 }
@@ -183,9 +180,9 @@ const $SincronizacionState = _$SincronizacionStateTearOff();
 
 /// @nodoc
 mixin _$SincronizacionState {
-  SincronizacionStatus get status;
-  DateTime get ultimaActualizacion;
+  bool get cargado;
   Task get task;
+  String get info;
 
   $SincronizacionStateCopyWith<SincronizacionState> get copyWith;
 }
@@ -195,8 +192,7 @@ abstract class $SincronizacionStateCopyWith<$Res> {
   factory $SincronizacionStateCopyWith(
           SincronizacionState value, $Res Function(SincronizacionState) then) =
       _$SincronizacionStateCopyWithImpl<$Res>;
-  $Res call(
-      {SincronizacionStatus status, DateTime ultimaActualizacion, Task task});
+  $Res call({bool cargado, Task task, String info});
 
   $TaskCopyWith<$Res> get task;
 }
@@ -212,17 +208,14 @@ class _$SincronizacionStateCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object status = freezed,
-    Object ultimaActualizacion = freezed,
+    Object cargado = freezed,
     Object task = freezed,
+    Object info = freezed,
   }) {
     return _then(_value.copyWith(
-      status:
-          status == freezed ? _value.status : status as SincronizacionStatus,
-      ultimaActualizacion: ultimaActualizacion == freezed
-          ? _value.ultimaActualizacion
-          : ultimaActualizacion as DateTime,
+      cargado: cargado == freezed ? _value.cargado : cargado as bool,
       task: task == freezed ? _value.task : task as Task,
+      info: info == freezed ? _value.info : info as String,
     ));
   }
 
@@ -244,8 +237,7 @@ abstract class _$SincronizacionStateCopyWith<$Res>
           $Res Function(_SincronizacionState) then) =
       __$SincronizacionStateCopyWithImpl<$Res>;
   @override
-  $Res call(
-      {SincronizacionStatus status, DateTime ultimaActualizacion, Task task});
+  $Res call({bool cargado, Task task, String info});
 
   @override
   $TaskCopyWith<$Res> get task;
@@ -264,17 +256,14 @@ class __$SincronizacionStateCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object status = freezed,
-    Object ultimaActualizacion = freezed,
+    Object cargado = freezed,
     Object task = freezed,
+    Object info = freezed,
   }) {
     return _then(_SincronizacionState(
-      status:
-          status == freezed ? _value.status : status as SincronizacionStatus,
-      ultimaActualizacion: ultimaActualizacion == freezed
-          ? _value.ultimaActualizacion
-          : ultimaActualizacion as DateTime,
+      cargado: cargado == freezed ? _value.cargado : cargado as bool,
       task: task == freezed ? _value.task : task as Task,
+      info: info == freezed ? _value.info : info as String,
     ));
   }
 }
@@ -283,23 +272,20 @@ class __$SincronizacionStateCopyWithImpl<$Res>
 class _$_SincronizacionState
     with DiagnosticableTreeMixin
     implements _SincronizacionState {
-  _$_SincronizacionState(
-      {this.status = SincronizacionStatus.cargando,
-      this.ultimaActualizacion,
-      this.task})
-      : assert(status != null);
+  _$_SincronizacionState({this.cargado = false, this.task, this.info})
+      : assert(cargado != null);
 
-  @JsonKey(defaultValue: SincronizacionStatus.cargando)
+  @JsonKey(defaultValue: false)
   @override
-  final SincronizacionStatus status;
-  @override
-  final DateTime ultimaActualizacion;
+  final bool cargado;
   @override
   final Task task;
+  @override
+  final String info;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'SincronizacionState(status: $status, ultimaActualizacion: $ultimaActualizacion, task: $task)';
+    return 'SincronizacionState(cargado: $cargado, task: $task, info: $info)';
   }
 
   @override
@@ -307,30 +293,30 @@ class _$_SincronizacionState
     super.debugFillProperties(properties);
     properties
       ..add(DiagnosticsProperty('type', 'SincronizacionState'))
-      ..add(DiagnosticsProperty('status', status))
-      ..add(DiagnosticsProperty('ultimaActualizacion', ultimaActualizacion))
-      ..add(DiagnosticsProperty('task', task));
+      ..add(DiagnosticsProperty('cargado', cargado))
+      ..add(DiagnosticsProperty('task', task))
+      ..add(DiagnosticsProperty('info', info));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other is _SincronizacionState &&
-            (identical(other.status, status) ||
-                const DeepCollectionEquality().equals(other.status, status)) &&
-            (identical(other.ultimaActualizacion, ultimaActualizacion) ||
+            (identical(other.cargado, cargado) ||
                 const DeepCollectionEquality()
-                    .equals(other.ultimaActualizacion, ultimaActualizacion)) &&
+                    .equals(other.cargado, cargado)) &&
             (identical(other.task, task) ||
-                const DeepCollectionEquality().equals(other.task, task)));
+                const DeepCollectionEquality().equals(other.task, task)) &&
+            (identical(other.info, info) ||
+                const DeepCollectionEquality().equals(other.info, info)));
   }
 
   @override
   int get hashCode =>
       runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(status) ^
-      const DeepCollectionEquality().hash(ultimaActualizacion) ^
-      const DeepCollectionEquality().hash(task);
+      const DeepCollectionEquality().hash(cargado) ^
+      const DeepCollectionEquality().hash(task) ^
+      const DeepCollectionEquality().hash(info);
 
   @override
   _$SincronizacionStateCopyWith<_SincronizacionState> get copyWith =>
@@ -339,17 +325,15 @@ class _$_SincronizacionState
 }
 
 abstract class _SincronizacionState implements SincronizacionState {
-  factory _SincronizacionState(
-      {SincronizacionStatus status,
-      DateTime ultimaActualizacion,
-      Task task}) = _$_SincronizacionState;
+  factory _SincronizacionState({bool cargado, Task task, String info}) =
+      _$_SincronizacionState;
 
   @override
-  SincronizacionStatus get status;
-  @override
-  DateTime get ultimaActualizacion;
+  bool get cargado;
   @override
   Task get task;
+  @override
+  String get info;
   @override
   _$SincronizacionStateCopyWith<_SincronizacionState> get copyWith;
 }

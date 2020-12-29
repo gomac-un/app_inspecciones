@@ -30,6 +30,7 @@ dependencies:
   data_connection_checker: ^0.3.4
   dropdown_search: ^0.4.8
   enum_to_string: ^1.0.14
+  flutter_archive: ^2.0.1
   flutter_bloc: ^6.1.1
   flutter_downloader: ^1.5.2
   freezed_annotation: ^0.12.0

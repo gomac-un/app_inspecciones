@@ -4,11 +4,11 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
-import 'package:kt_dart/kt.dart';
 
 abstract class InspeccionesRemoteDataSource {
   Future<Map<String, dynamic>> getRecurso(String recursoEndpoint,
@@ -21,6 +21,8 @@ abstract class InspeccionesRemoteDataSource {
       {@required String token});
   Future subirFotos(
       Iterable<File> fotos, String iddocumento, String tipodocumento);
+  void descargaFlutterDownloader(
+      String recurso, String savedir, String filename);
 }
 
 @LazySingleton(as: InspeccionesRemoteDataSource)
@@ -136,82 +138,13 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     //<input type="file" id="files" name="file_fields" multiple>
   }
 
-/*
   @override
-  Future<String> getToken(UserLogin userLogin) async {
-    const _tokenURL = _server + _apiBase + _tokenEndpoint;
-    final http.Response response = await http
-        .post(
-          _tokenURL,
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(userLogin.toJson()),
-        )
-        .timeout(const Duration(seconds: 5));
-
-    if (response.statusCode == 200) {
-      return (json.decode(response.body) as Map<String, dynamic>)['token']
-          as String;
-    } else {
-      //TODO: mirar los tipos de errores que pueden venir de la api
-      throw ServerException(response.body);
-    }
+  void descargaFlutterDownloader(
+      String recurso, String savedir, String filename) {
+    FlutterDownloader.enqueue(
+        url: _server + _apiBase + recurso,
+        savedDir: savedir,
+        fileName: filename,
+        showNotification: false);
   }
-
-  @override
-  Future<List<Sistema>> getSistemas(Usuario usuario) async {
-    usuario = Usuario(token: "sutoken");
-    const _sistemaURL = _server + _apiBase + _sistema;
-    final response = await http.get(
-      _sistemaURL,
-      // Send authorization headers to the backend.
-      headers: {HttpHeaders.authorizationHeader: "Token ${usuario.token}"},
-    );
-
-    if (response.statusCode == 200) {
-      final values = json.decode(response.body) as List<Map<String, dynamic>>;
-
-      final listaSistema = values
-          .where((e) => e != null)
-          .map((e) => Sistema.fromJson(e))
-          .toList();
-
-      return listaSistema;
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }
-  }
-
-  Future subirInspeccion(Inspeccion inspeccion) async {
-    const endpointSubirInspeccion = '/inspecciones/';
-    const url = _server + _apiBase + endpointSubirInspeccion;
-
-    final respuestas =
-        await _db.llenadoDao.getRespuestasDeInspeccion(inspeccion);
-    final body = {'inspeccion': inspeccion, 'respuestas': respuestas};
-
-    final response = await http.put(
-      '$url${inspeccion.id}',
-      body: json.encode(body),
-      // Send authorization headers to the backend.
-      //headers: {HttpHeaders.authorizationHeader: "Token ${usuario.token}"},
-    );
-    print(json.decode(response.body));
-/*
-    if (response.statusCode == 200) {
-      final values = json.decode(response.body) as List<Map<String, dynamic>>;
-
-      final listaSistema = values
-          .where((e) => e != null)
-          .map((e) => Sistema.fromJson(e))
-          .toList();
-
-      return listaSistema;
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }*/
-  }
-*/
-
 }

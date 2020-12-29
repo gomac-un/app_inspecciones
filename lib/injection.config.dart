@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'application/auth/auth_bloc.dart';
 import 'infrastructure/moor_database.dart';
+import 'infrastructure/fotos_manager.dart';
 import 'infrastructure/datasources/local_preferences_datasource.dart';
 import 'infrastructure/datasources/remote_datasource.dart';
 import 'infrastructure/repositories/inspecciones_repository.dart';
@@ -34,12 +35,15 @@ Future<GetIt> $initGetIt(
   final gh = GetItHelper(get, environment, environmentFilter);
   final thirdPartyInjections = _$ThirdPartyInjections();
   final registerModule = _$RegisterModule();
+  final directorioDeDatosInjection = _$DirectorioDeDatosInjection();
   final sharedPreferencesInjectableModule =
       _$SharedPreferencesInjectableModule();
   gh.factory<Client>(() => thirdPartyInjections.client);
   gh.factory<DataConnectionChecker>(
       () => thirdPartyInjections.dataConnectionChecker);
   gh.lazySingleton<Database>(() => registerModule.constructDb());
+  final directorioDeDatos = await directorioDeDatosInjection.dirDatos;
+  gh.factory<DirectorioDeDatos>(() => directorioDeDatos);
   gh.lazySingleton<InspeccionesRemoteDataSource>(() => DjangoJsonAPI());
   gh.factoryParam<InspeccionesRepository, String, dynamic>(
       (_token, _) => InspeccionesRepository(
@@ -53,8 +57,11 @@ Future<GetIt> $initGetIt(
   gh.factory<SharedPreferences>(() => sharedPreferences);
   gh.lazySingleton<ILocalPreferencesDataSource>(
       () => SharedPreferencesDataSource(get<SharedPreferences>()));
-  gh.factory<SincronizacionCubit>(() =>
-      SincronizacionCubit(get<Database>(), get<ILocalPreferencesDataSource>()));
+  gh.factory<SincronizacionCubit>(() => SincronizacionCubit(
+        get<Database>(),
+        get<InspeccionesRepository>(),
+        get<ILocalPreferencesDataSource>(),
+      ));
   gh.factory<UserRepository>(() => UserRepository(
       get<InspeccionesRemoteDataSource>(), get<ILocalPreferencesDataSource>()));
   gh.factory<AuthBloc>(() => AuthBloc(userRepository: get<UserRepository>()));
@@ -66,6 +73,8 @@ Future<GetIt> $initGetIt(
 class _$ThirdPartyInjections extends ThirdPartyInjections {}
 
 class _$RegisterModule extends RegisterModule {}
+
+class _$DirectorioDeDatosInjection extends DirectorioDeDatosInjection {}
 
 class _$SharedPreferencesInjectableModule
     extends SharedPreferencesInjectableModule {}

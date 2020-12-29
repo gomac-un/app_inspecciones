@@ -11,12 +11,15 @@ abstract class ILocalPreferencesDataSource {
   Usuario getUser();
   Future<bool> saveUltimaActualizacion();
   DateTime getUltimaActualizacion();
+  Future<bool> saveAppId(int appId);
+  int getAppId();
 }
 
 @LazySingleton(as: ILocalPreferencesDataSource)
 class SharedPreferencesDataSource implements ILocalPreferencesDataSource {
   //TODO: mirar si los datasource realmente deberian retornar datos crudos https://bloclibrary.dev/#/architecture
   static const userKey = 'user';
+  static const appIdKey = 'appId';
   static const ultimaActualizacionKey = 'ultimaActualizacion';
   //TODO: si hay que guardar mas preferencias considerar guardarlas todas en un solo json
   final SharedPreferences preferences;
@@ -49,4 +52,11 @@ class SharedPreferencesDataSource implements ILocalPreferencesDataSource {
     return DateFormat("yyyy-MM-dd hh:mm:ss")
         .parse(preferences.getString(ultimaActualizacionKey));
   }
+
+  @override
+  Future<bool> saveAppId(int appId) async =>
+      preferences.setInt(appIdKey, appId);
+
+  @override
+  int getAppId() => preferences.getInt(appIdKey);
 }

@@ -3,7 +3,6 @@ import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:intl/intl.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
@@ -155,10 +154,10 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     //si la inspeccion es nueva entonces no existe una respuesta y se envia nulo
     //para que el control cree una por defecto
     if (res.isEmpty) return RespuestaConOpcionesDeRespuesta(null, null);
-
+    final respuesta = res.first[0] as Respuesta;
     return RespuestaConOpcionesDeRespuesta(
-        (res.first[0] as Respuesta)
-            .toCompanion(true), //TODO: si se necesita companion?
+        respuesta.toCompanion(true) //TODO: si se necesita companion?
+        ,
         res.map((item) => item[1] as OpcionDeRespuesta).toList());
   }
 

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:injectable/injectable.dart';
+import 'package:inspecciones/injection.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -39,4 +41,24 @@ class FotosManager {
         .listSync()
         .whereType<File>();
   }
+
+  static String convertirAUbicacionAbsoluta(
+      {String tipoDeDocumento, String idDocumento, String basename}) {
+    return path.join(getIt<DirectorioDeDatos>().path, tipoDeDocumento,
+        idDocumento, basename);
+  }
+}
+
+class DirectorioDeDatos {
+  final Directory dir;
+  String get path => dir.path;
+  DirectorioDeDatos(this.dir);
+}
+
+//TODO: usar esta injeccion en todos los lugares de la app para obtener el getApplicationDocumentsDirectory de manera sincrona
+@module
+abstract class DirectorioDeDatosInjection {
+  @preResolve
+  Future<DirectorioDeDatos> get dirDatos async =>
+      DirectorioDeDatos(await getApplicationDocumentsDirectory());
 }

@@ -6,11 +6,13 @@ import 'dart:ui';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_archive/flutter_archive.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -19,21 +21,27 @@ part 'sincronizacion_cubit.freezed.dart';
 
 @injectable
 class SincronizacionCubit extends Cubit<SincronizacionState> {
-  //TODO: arreglar esto para que al darle por segunda vez al boton descargar, vuelva a hacerlo
-  static const nombreArchivo = 'server.json';
+  static const nombreJson = 'server.json';
+  static const nombreZip = 'cuestionarios.zip';
   static const nombrePuerto = 'downloader_send_port';
   final _port = ReceivePort();
+  Stream<dynamic> _portStream;
   final debug = true;
   final Database _db;
   final ILocalPreferencesDataSource _localPreferences;
+  final InspeccionesRepository _inspeccionesRepository;
 
-  SincronizacionCubit(this._db, this._localPreferences)
-      : super(SincronizacionState());
+  SincronizacionCubit(
+      this._db, this._inspeccionesRepository, this._localPreferences)
+      : super(SincronizacionState()) {
+    _portStream = _port.asBroadcastStream();
+  }
+
   Future cargarUltimaActualizacion() async {
     final ultimaAct = _localPreferences.getUltimaActualizacion();
     emit(state.copyWith(
-      status: SincronizacionStatus.cargado,
-      ultimaActualizacion: ultimaAct,
+      cargado: true,
+      info: 'Ultima sincronización: $ultimaAct',
     ));
   }
 
@@ -49,30 +57,27 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
 
     FlutterDownloader.registerCallback(downloadCallback);
 
-    final dir = await _localPath;
-    //TODO: url y credenciales dinamicas
-    FlutterDownloader.enqueue(
-        url: "http://10.0.2.2:8000/inspecciones/api/v1/server/",
-        savedDir: dir,
-        fileName: nombreArchivo,
-        showNotification: false);
-    // Escucha de las actualizaciones que ofrece el downloader
-    await for (final dynamic data in _port) {
-      if (debug) {
-        print('UI Isolate Callback: $data');
-      }
-      final task = data as Task;
+    emit(state.copyWith(info: '${state.info}\nDescargando cuestionarios'));
 
-      emit(state.copyWith(
-          status: SincronizacionStatus.descargandoServer, task: task));
+    final dir = await _localPath;
+    await _inspeccionesRepository.descargarCuestionarios(dir, nombreJson);
+
+    // Escucha de las actualizaciones que ofrece el downloader
+    StreamSubscription<dynamic> streamSubs1;
+    streamSubs1 = _portStream.listen((data) {
+      final task = data as Task;
+      emit(state.copyWith(task: task));
+      /*
       if ([
         DownloadTaskStatus.undefined,
         DownloadTaskStatus.enqueued,
         DownloadTaskStatus.running,
-      ].contains(task.status)) {}
+      ].contains(task.status)) {}*/
 
       if (DownloadTaskStatus.complete == task.status) {
+        emit(state.copyWith(info: '${state.info}\nDescarga exitosa'));
         instalarBD();
+        streamSubs1.cancel();
       }
 
       if ([
@@ -80,25 +85,72 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
         DownloadTaskStatus.canceled,
         DownloadTaskStatus.paused,
       ].contains(task.status)) {
-        throw Exception("error de descarga");
+        emit(state.copyWith(info: '${state.info}\nError de descarga'));
       }
-    }
+    });
   }
 
   Future instalarBD() async {
-    emit(state.copyWith(status: SincronizacionStatus.instalandoDB));
+    emit(state.copyWith(info: '${state.info}\nInstalando base de datos'));
     final dir = await _localPath;
-    final archivoDescargado = File(path.join(dir, nombreArchivo));
+    final archivoDescargado = File(path.join(dir, nombreJson));
     final jsonString = await archivoDescargado.readAsString();
     //parsear el json en un isolate para no volver la UI lenta
     // https://flutter.dev/docs/cookbook/networking/background-parsing
     final parsed =
         await compute(jsonDecode, jsonString) as Map<String, dynamic>;
 
-    print("parsed json");
+    emit(state.copyWith(info: '${state.info}\nParsed Json'));
+
     await _db.instalarBD(parsed);
-    await _localPreferences.saveUltimaActualizacion();
-    emit(state.copyWith(status: SincronizacionStatus.exito));
+
+    emit(state.copyWith(info: '${state.info}\nInstalacion exitosa'));
+    descargarFotos();
+  }
+
+  Future descargarFotos() async {
+    _bindBackgroundIsolate();
+
+    FlutterDownloader.registerCallback(downloadCallback);
+
+    emit(state.copyWith(info: '${state.info}\nDescargando fotos'));
+    final dir = await _localPath;
+    await _inspeccionesRepository.descargarFotos(dir, nombreZip);
+    // Escucha de las actualizaciones que ofrece el downloader
+    StreamSubscription<dynamic> streamSubs2;
+    streamSubs2 = _portStream.listen((data) {
+      final task = data as Task;
+      emit(state.copyWith(task: task));
+
+      if (DownloadTaskStatus.complete == task.status) {
+        emit(state.copyWith(info: '${state.info}\nDescarga exitosa'));
+        descomprimirZip();
+        streamSubs2.cancel();
+      }
+
+      if ([
+        DownloadTaskStatus.failed,
+        DownloadTaskStatus.canceled,
+        DownloadTaskStatus.paused,
+      ].contains(task.status)) {
+        emit(state.copyWith(
+            info: '${state.info}\nError de descarga de las fotos'));
+      }
+    });
+  }
+
+  Future descomprimirZip() async {
+    final dir = await _localPath;
+    final zipFile = File(path.join(dir, nombreZip));
+    final destinationDir = Directory(path.join(dir, 'cuestionarios'));
+    try {
+      await ZipFile.extractToDirectory(
+          zipFile: zipFile, destinationDir: destinationDir);
+      emit(state.copyWith(info: '${state.info}\nFotos descomprimidas'));
+      emit(state.copyWith(info: '${state.info}\nSincronización finalizada'));
+    } catch (e) {
+      emit(state.copyWith(info: '${state.info}\nError: $e'));
+    }
   }
 
   void _bindBackgroundIsolate() {
@@ -117,9 +169,6 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
 
   static void downloadCallback(
       String id, DownloadTaskStatus status, int progress) {
-    print(
-        'Background Isolate Callback: task ($id) is in status ($status) and process ($progress)');
-
     final SendPort send = IsolateNameServer.lookupPortByName(nombrePuerto);
     send.send(Task(id: id, status: status, progress: progress));
   }
