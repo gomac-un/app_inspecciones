@@ -34,6 +34,8 @@ class UserRepository {
       return const Left(AuthFailure.noHayConexionAlServidor());
     } on CredencialesException {
       return const Left(AuthFailure.usuarioOPasswordInvalidos());
+    } catch (e) {
+      return const Left(AuthFailure.serverError());
     }
 
     final user = Usuario(
