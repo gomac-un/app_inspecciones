@@ -28,7 +28,7 @@ abstract class InspeccionesRemoteDataSource {
 @LazySingleton(as: InspeccionesRemoteDataSource)
 class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   static const _server =
-      'http://10.0.2.2:8000'; //TODO: opcion para modificar el servidor desde la app
+      'https://inspeccion.herokuapp.com'; //TODO: opcion para modificar el servidor desde la app
   static const _apiBase = '/inspecciones/api/v1';
   static const _timeLimit = Duration(seconds: 5); //TODO: ajustar el timelimit
 
@@ -38,6 +38,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   Future<Map<String, dynamic>> getRecurso(String recursoEndpoint,
       {@required String token}) async {
     final url = _server + _apiBase + recursoEndpoint;
+
     final http.Response response = await http.get(
       url,
       headers: {
