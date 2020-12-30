@@ -41,6 +41,8 @@ class InspeccionesRepository {
       return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
     } on ServerException catch (e) {
       return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    } catch (e) {
+      return Left(ApiFailure.serverError(e.toString()));
     }
   }
 

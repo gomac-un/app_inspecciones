@@ -36,6 +36,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
 
   @override
   Widget build(BuildContext context) {
+    final db = RepositoryProvider.of<Database>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Borradores'),
@@ -105,15 +106,17 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                       final res = await RepositoryProvider.of<
                               InspeccionesRepository>(context)
                           .subirInspeccion(borrador.inspeccion)
-                          .then((res) => res.fold(
-                              (fail) => fail.when(
-                                  noHayConexionAlServidor: () =>
-                                      "no hay conexion al servidor",
-                                  noHayInternet: () => "no hay internet",
-                                  serverError: (msg) =>
-                                      "error inesperado: $msg"),
-                              (u) => "exito"));
-                      print(res);
+                          .then((res) =>
+                              res.fold(
+                                  (fail) => fail.when(
+                                      noHayConexionAlServidor: () =>
+                                          "no hay conexion al servidor",
+                                      noHayInternet: () => "no hay internet",
+                                      serverError: (msg) =>
+                                          "error inesperado: $msg"), (u) {
+                                db.borradoresDao.eliminarBorrador(borrador);
+                                return "exito";
+                              }));
                       Scaffold.of(context).showSnackBar(SnackBar(
                         content: Text(res),
                       ));
