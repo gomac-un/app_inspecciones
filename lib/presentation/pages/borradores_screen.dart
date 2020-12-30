@@ -48,6 +48,12 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
             icon: const Icon(Icons.upload_file),
             tooltip: "Subir inspecciones",
           ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.asset(
+              "assets/images/logo-gomac.png",
+            ),
+          ),
         ],
       ),
       drawer: UserDrawer(),

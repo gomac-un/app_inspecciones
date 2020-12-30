@@ -29,6 +29,9 @@ class LoginScreen extends StatelessWidget implements AutoRouteWrapper {
           child: PreguntaCard(
             child: Column(
               children: [
+                Image.asset(
+                  "assets/images/logo-gomac-texto.png",
+                ),
                 ReactiveTextField(
                   formControlName: 'usuario',
                   decoration: const InputDecoration(
