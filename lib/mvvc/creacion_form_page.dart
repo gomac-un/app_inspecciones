@@ -190,10 +190,38 @@ class BotonFinalizar extends StatelessWidget {
                   }
                 : () async {
                     LoadingDialog.show(context);
-                    await (form as CreacionFormViewModel).enviar();
-                    LoadingDialog.hide(context);
-                    ExtendedNavigator.of(context)
-                        .pop("Cuestionario creado exitosamente");
+                    //TODO: hacer un manejo de errores decente
+                    try {
+                      await (form as CreacionFormViewModel).enviar();
+                      ExtendedNavigator.of(context)
+                          .pop("Cuestionario creado exitosamente");
+                      LoadingDialog.hide(context);
+                    } catch (e, stackTrace) {
+                      LoadingDialog.hide(context);
+
+                      String text;
+                      try {
+                        text = e.toString() +
+                            "\nstacktrace:\n" +
+                            e.stackTrace.toString();
+                      } catch (e) {
+                        text = e.toString() +
+                            "\nstacktrace:\n" +
+                            stackTrace.toString();
+                      }
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                            title: const Text("Error: "),
+                            content: Scrollbar(
+                              child: SingleChildScrollView(
+                                  child: Text(
+                                text,
+                                style: const TextStyle(fontSize: 7),
+                              )),
+                            )),
+                      );
+                    }
                   },
           ),
         ],
