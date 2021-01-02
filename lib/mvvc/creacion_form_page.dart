@@ -17,8 +17,8 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
 
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
-        create: (ctx) => CreacionFormViewModel()..cargarDatos(),
-        dispose: (context, CreacionFormViewModel value) => value.dispose(),
+        create: (_) => CreacionFormViewModel()..cargarDatos(),
+        dispose: (_, CreacionFormViewModel value) => value.dispose(),
         child: this,
       );
 
@@ -111,6 +111,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                       FocusScope.of(context)
                           .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
                     },
+                    isExpanded: true,
                   );
                 },
               ),

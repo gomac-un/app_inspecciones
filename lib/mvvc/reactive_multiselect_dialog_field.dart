@@ -27,32 +27,28 @@ class ReactiveMultiSelectDialogField<V> extends ReactiveFormField<List<V>> {
                     HitTestBehavior.translucent, //TODO hacer funcionar el onTap
                 onTap: onTap,
                 child: InputDecorator(
-                  decoration:
-                      effectiveDecoration.copyWith(errorText: field.errorText),
-                  child: MultiSelectDialogField<V>(
-                    buttonText: buttonText,
-                    items: items,
-                    initialValue: field.value as List<V>,
-                    listType: MultiSelectListType.CHIP,
-                    onConfirm: (values) {
-                      field.didChange(values);
-                    },
-                    chipDisplay: MultiSelectChipDisplay<V>(
+                    decoration: effectiveDecoration.copyWith(
+                        errorText: field.errorText),
+                    child: MultiSelectDialogField<V>(
+                      buttonText: buttonText,
                       items: items,
-                      //TODO: https://github.com/joanpablo/reactive_forms/issues/64
-                      // por ahora solo hay ediciones de una via
-                      /*onTap: (dynamic value) {
-                        
-                        return field.didChange(
-                          // The rebuild does not reflect this new value 😢
-                          (field.value as List<V>)
+                      initialValue: field.value as List<V>,
+                      listType: MultiSelectListType.CHIP,
+                      onConfirm: (values) {
+                        field.didChange(values);
+                      },
+                      chipDisplay: MultiSelectChipDisplay<V>(
+                        items: items,
+                        onTap: (dynamic value) {
+                          final newlist = (field.value as List<V>)
                               .where((e) => e != value)
-                              .toList(),
-                        );
-                      },*/
+                              .toList();
+                          field.didChange(newlist);
+                          return newlist;
+                        },
+                      ),
+                    ) //..state?.didChange(field.value as List<V>),
                     ),
-                  ),
-                ),
               );
             });
 
