@@ -1,11 +1,11 @@
 import 'dart:io';
 
+import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:moor/moor.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 part 'creacion_dao.g.dart';
@@ -53,7 +53,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     if (sistema == null) return Future.value([]);
 
     final query = select(subSistemas)
-      ..where((u) => u.sistema.equals(sistema.id));
+      ..where((u) => u.sistemaId.equals(sistema.id));
 
     return query.get();
   }
@@ -62,7 +62,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
       String tipoDeInspeccion, List<String> modelos) {
     final query = select(cuestionarioDeModelos).join([
       innerJoin(cuestionarios,
-          cuestionarios.id.equalsExp(cuestionarioDeModelos.cuestionario_id))
+          cuestionarios.id.equalsExp(cuestionarioDeModelos.cuestionarioId))
     ])
       ..where(cuestionarios.tipoDeInspeccion.equals(tipoDeInspeccion) &
           cuestionarioDeModelos.modelo.isIn(modelos));
@@ -88,9 +88,9 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                     modelo: modelo,
                     periodicidad:
                         (form["periodicidad"].value as double).round(),
-                    contratista_id:
-                        (form["contratista"].value as Contratista).id,
-                    cuestionario_id: cid))
+                    contratistaId:
+                        Value((form["contratista"].value as Contratista).id),
+                    cuestionarioId: cid))
                 .toList()); //TODO: distintas periodicidades y contratistas por cuestionarioDeModelo
       });
       //procesamiento de cada bloque ya sea titulo, pregunta o cuadricula
@@ -100,7 +100,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
         final i = entry.key as int;
         final control = entry.value;
         final bid = await into(bloques)
-            .insert(BloquesCompanion.insert(cuestionario_id: cid, nOrden: i));
+            .insert(BloquesCompanion.insert(cuestionarioId: cid, nOrden: i));
 
         //TODO: guardar inserts de cada tipo en listas para luego insertarlos en batch
         //TODO: usar los metodos toDataClass de los formGroups para obtener los datos de cada bloque
@@ -112,17 +112,13 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
           ));
         }
         if (control is CreadorPreguntaFormGroup) {
-          final appDir = await getApplicationDocumentsDirectory();
           //Mover las fotos a una carpeta unica para cada cuestionario
-          final fotosGuiaProcesadas = await Future.wait(
-            db.organizarFotos(
-              (control.value["fotosGuia"] as List<File>)
-                  .map((e) => e.path)
-                  .toImmutableList(),
-              appDir.path,
-              "fotosCuestionarios",
-              cid.toString(),
-            ),
+          final fotosGuiaProcesadas = await FotosManager.organizarFotos(
+            (control.value["fotosGuia"] as List<File>)
+                .map((e) => e.path)
+                .toImmutableList(),
+            tipoDocumento: "cuestionarios",
+            idDocumento: cid.toString(),
           );
 
           final pid = await into(preguntas).insert(
@@ -130,13 +126,12 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               bloqueId: bid,
               titulo: control.value["titulo"] as String,
               descripcion: control.value["descripcion"] as String,
-              sistemaId: control.value["sistema"].id as int,
-              subSistemaId: control.value["subSistema"].id as int,
-              posicion: control.value["posicion"] as String,
+              sistemaId: Value(control.value["sistema"].id as int),
+              subSistemaId: Value(control.value["subSistema"].id as int),
+              posicion: Value(control.value["posicion"] as String),
               tipo: control.value["tipoDePregunta"] as TipoDePregunta,
               criticidad: control.value["criticidad"].round() as int,
               fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
-              parteDeCuadricula: false,
             ),
           );
           // Asociacion de las opciones de respuesta con esta pregunta
@@ -145,13 +140,38 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               opcionesDeRespuesta,
               (control.value["respuestas"] as List<Map>)
                   .map((e) => OpcionesDeRespuestaCompanion.insert(
-                        pregunta: Value(pid),
+                        preguntaId: Value(pid),
                         texto: e["texto"] as String,
                         criticidad: e["criticidad"].round() as int,
                       ))
                   .toList(),
             );
           });
+        }
+        if (control is CreadorPreguntaNumericaFormGroup) {
+          //Mover las fotos a una carpeta unica para cada cuestionario
+          final fotosGuiaProcesadas = await FotosManager.organizarFotos(
+            (control.value["fotosGuia"] as List<File>)
+                .map((e) => e.path)
+                .toImmutableList(),
+            tipoDocumento: "cuestionarios",
+            idDocumento: cid.toString(),
+          );
+
+          final pid = await into(preguntas).insert(
+            PreguntasCompanion.insert(
+              bloqueId: bid,
+              titulo: control.value["titulo"] as String,
+              descripcion: control.value["descripcion"] as String,
+              sistemaId: Value(control.value["sistema"].id as int),
+              subSistemaId: Value(control.value["subSistema"].id as int),
+              posicion: Value(control.value["posicion"] as String),
+              tipo:  TipoDePregunta.numerica,
+              criticidad: control.value["criticidad"].round() as int,
+              fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
+            ),
+          );
+          // Asociacion de las opciones de respuesta con esta pregunta
         }
         if (control is CreadorPreguntaCuadriculaFormGroup) {
           final cuadrId = await into(cuadriculasDePreguntas).insert(
@@ -169,14 +189,13 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                         bloqueId: bid,
                         titulo: e["titulo"] as String,
                         descripcion: e["descripcion"] as String,
-                        sistemaId: e["sistema"].id as int,
-                        subSistemaId: e["subSistema"].id as int,
-                        posicion: e["posicion"] as String,
+                        sistemaId: Value(e["sistema"].id as int),
+                        subSistemaId: Value(e["subSistema"].id as int),
+                        posicion: Value(e["posicion"] as String),
                         tipo: TipoDePregunta
-                            .unicaRespuesta, //TODO: multiple respuesta para cuadriculas
+                            .parteDeCuadriculaUnica, //TODO: multiple respuesta para cuadriculas
                         criticidad: e["criticidad"].round() as int,
-                        parteDeCuadricula:
-                            true, //TODO: fotos para cada pregunta
+                        //TODO: fotos para cada pregunta
                       ))
                   .toList(),
             );

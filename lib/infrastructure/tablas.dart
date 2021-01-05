@@ -1,9 +1,9 @@
 part of 'moor_database.dart';
 
 class Activos extends Table {
-  TextColumn get modelo => text()();
-
   IntColumn get id => integer()();
+
+  TextColumn get modelo => text()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -25,11 +25,27 @@ class Sistemas extends Table {
 
 class SubSistemas extends Table {
   IntColumn get id => integer()();
+
   TextColumn get nombre => text()();
-  IntColumn get sistema =>
+
+  @JsonKey('sistema')
+  IntColumn get sistemaId =>
       integer().customConstraint('REFERENCES sistemas(id) ON DELETE CASCADE')();
+
   @override
   Set<Column> get primaryKey => {id};
+}
+
+class Cuestionarios extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  TextColumn get tipoDeInspeccion => text()();
+
+  // campo usado solo en la app para identificar los cuestionarios nuevos que deben ser enviados al server
+  BoolColumn get esLocal => boolean().withDefault(const Constant(true))();
+  // List<Inspecciones>
+  // List<Bloques>
+  //List<CuestionariosDeModelos>
 }
 
 //Tabla para asignar cuestionarios a modelos y a contratistas
@@ -40,29 +56,24 @@ class CuestionarioDeModelos extends Table {
 
   IntColumn get periodicidad => integer()();
 
-  IntColumn get cuestionario_id => integer()
+  @JsonKey('cuestionario')
+  IntColumn get cuestionarioId => integer()
       .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
-  IntColumn get contratista_id => integer()
+  @JsonKey('contratista')
+  IntColumn get contratistaId => integer()
+      .nullable()
       .customConstraint('REFERENCES contratistas(id) ON DELETE SET NULL')();
-}
-
-class Cuestionarios extends Table {
-  IntColumn get id => integer().autoIncrement()();
-
-  TextColumn get tipoDeInspeccion => text()();
-  // List<Inspecciones>
-  // List<Bloques>
-  //List<CuestionariosDeModelos>
 }
 
 class Bloques extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  IntColumn get cuestionario_id => integer()
-      .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
-
   IntColumn get nOrden => integer()();
+
+  @JsonKey('cuestionario')
+  IntColumn get cuestionarioId => integer()
+      .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
 
   //List<Preguntas>
   //List<Titulos>
@@ -71,17 +82,13 @@ class Bloques extends Table {
 
 }
 
-//TODO: refactorizar ya que se sacó el titulo/descripcion del bloque y se puso
-//en las tablas titulo y pregunta.
-//Las consultas ya deben involucrar de manera independiente
+//Las consultas deben involucrar de manera independiente
 //tablas de titulos y preguntas de tipo simple y de tipo cuadricula.
 //los formularios deben tratar cada uno de estos casos y ordenarlos
 //con el nOrden que tienen los bloques correspondientes.
+
 class Titulos extends Table {
   IntColumn get id => integer().autoIncrement()();
-
-  IntColumn get bloqueId =>
-      integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();
 
   TextColumn get titulo => text().withLength(min: 1, max: 100)();
 
@@ -90,6 +97,10 @@ class Titulos extends Table {
   TextColumn get fotos => text()
       .map(const ListInColumnConverter())
       .withDefault(const Constant("[]"))();
+
+  @JsonKey('bloque')
+  IntColumn get bloqueId =>
+      integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();
 }
 
 //Tabla para agrupar las preguntas de tipo cuadricula
@@ -98,12 +109,14 @@ class Titulos extends Table {
 class CuadriculasDePreguntas extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  IntColumn get bloqueId => integer().customConstraint(
-      'REFERENCES bloques(id) ON DELETE CASCADE')(); //debe ser unico por ser uno a uno, sera que es pk?
-
   TextColumn get titulo => text().withLength(min: 0, max: 100)();
 
   TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
+
+  @JsonKey('bloque')
+  IntColumn get bloqueId => integer().customConstraint(
+      'UNIQUE REFERENCES bloques(id) ON DELETE CASCADE')(); //debe ser unico por ser uno a uno, sera que es pk?
+
   //List<OpcionesDeRespuesta>
 
 }
@@ -118,30 +131,31 @@ class CuadriculasDePreguntas extends Table {
 class Preguntas extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  IntColumn get bloqueId =>
-      integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();
-
   TextColumn get titulo => text().withLength(min: 1, max: 100)();
 
   TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
 
-  IntColumn get sistemaId =>
-      integer().customConstraint('REFERENCES sistemas(id)')();
+  IntColumn get criticidad => integer()();
 
-  IntColumn get subSistemaId =>
-      integer().customConstraint('REFERENCES sub_sistemas(id)')();
-
-  TextColumn get posicion => text().withLength(min: 0, max: 50)();
+  TextColumn get posicion => text().nullable().withLength(min: 0, max: 50)();
 
   TextColumn get fotosGuia => text()
       .map(const ListInColumnConverter())
       .withDefault(const Constant("[]"))();
 
+  @JsonKey('bloque')
+  IntColumn get bloqueId =>
+      integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();
+
+  @JsonKey('sistema')
+  IntColumn get sistemaId =>
+      integer().nullable().customConstraint('REFERENCES sistemas(id)')();
+
+  @JsonKey('subSistema')
+  IntColumn get subSistemaId =>
+      integer().nullable().customConstraint('REFERENCES sub_sistemas(id)')();
+
   IntColumn get tipo => intEnum<TipoDePregunta>()();
-
-  BoolColumn get parteDeCuadricula => boolean()();
-
-  IntColumn get criticidad => integer()();
 
   //List<OpcionesDeRespuesta>
 }
@@ -151,9 +165,10 @@ class OpcionesDeRespuesta extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   //uno de estos 2 debe ser no nulo
-  IntColumn get pregunta => integer().nullable()();
+  @JsonKey('pregunta')
+  IntColumn get preguntaId => integer().nullable()();
   //.customConstraint('REFERENCES preguntas(id)')();
-
+  @JsonKey('cuadricula')
   IntColumn get cuadriculaId => integer().nullable()();
   //.customConstraint('REFERENCES cuadriculas_de_preguntas(id) ')();
 
@@ -169,17 +184,19 @@ class Inspecciones extends Table {
 
   IntColumn get estado => intEnum<EstadoDeInspeccion>()();
 
-  IntColumn get cuestionarioId => integer()
-      .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
-
-  IntColumn get identificadorActivo => integer().customConstraint(
-      'REFERENCES activos(identificador) ON DELETE CASCADE')();
-
   DateTimeColumn get momentoInicio => dateTime().nullable()();
 
   DateTimeColumn get momentoBorradorGuardado => dateTime().nullable()();
 
   DateTimeColumn get momentoEnvio => dateTime().nullable()();
+
+  @JsonKey('cuestionario')
+  IntColumn get cuestionarioId => integer()
+      .customConstraint('REFERENCES cuestionarios(id) ON DELETE CASCADE')();
+
+  @JsonKey('activo')
+  IntColumn get activoId => integer()
+      .customConstraint('REFERENCES activos(id) ON DELETE NO ACTION')();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -187,14 +204,6 @@ class Inspecciones extends Table {
 
 class Respuestas extends Table {
   IntColumn get id => integer().autoIncrement()();
-
-  IntColumn get inspeccionId => integer()
-      .customConstraint('REFERENCES inspecciones(id) ON DELETE CASCADE')();
-
-  IntColumn get preguntaId => integer()
-      .customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
-
-  //List<OpcionDeRespuesta>
 
   TextColumn get fotosBase => text()
       .map(const ListInColumnConverter())
@@ -208,19 +217,35 @@ class Respuestas extends Table {
 
   BoolColumn get reparado => boolean().withDefault(const Constant(false))();
 
+  RealColumn get valor => real().nullable()();
+
   TextColumn get observacionReparacion =>
       text().withDefault(const Constant(""))();
 
   DateTimeColumn get momentoRespuesta => dateTime().nullable()();
+
+  @JsonKey('inspeccion')
+  IntColumn get inspeccionId => integer()
+      .customConstraint('REFERENCES inspecciones(id) ON DELETE CASCADE')();
+
+  @JsonKey('pregunta')
+  IntColumn get preguntaId => integer()
+      .customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
+
+  //TODO: verificar que el par inpeccionId-preguntaId sea unico
+
+  //List<OpcionDeRespuesta>
 }
 
 class RespuestasXOpcionesDeRespuesta extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  IntColumn get respuesta_id => integer()
+  @JsonKey('respuesta')
+  IntColumn get respuestaId => integer()
       .customConstraint('REFERENCES respuestas(id) ON DELETE CASCADE')();
 
-  IntColumn get preguntaRespuesta_id => integer().customConstraint(
+  @JsonKey('opcionDeRespuesta')
+  IntColumn get opcionDeRespuestaId => integer().customConstraint(
       'REFERENCES opciones_de_respuesta(id) ON DELETE CASCADE')();
 }
 
@@ -242,6 +267,7 @@ class ListInColumnConverter extends TypeConverter<KtList<String>, String> {
       return null;
     }
     if (value.size == 0) return "[]";
+
     final str = value.fold<String>("[", (acc, val) => '$acc"$val",');
     return str.replaceRange(str.length - 1, str.length, ']');
   }

@@ -26,8 +26,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
 
   Stream<List<Borrador>> borradores() {
     final query = select(inspecciones).join([
-      innerJoin(activos,
-          activos.id.equalsExp(inspecciones.identificadorActivo)),
+      innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
     ]);
 
     return query
@@ -35,8 +34,8 @@ class BorradoresDao extends DatabaseAccessor<Database>
             Borrador(row.readTable(activos), row.readTable(inspecciones), null))
         .watch()
         .asyncMap<List<Borrador>>((l) async => Future.wait<Borrador>(l.map(
-              (e) async => e.copyWith(
-                cuestionario: await db.getCuestionario(e.inspeccion),
+              (b) async => b.copyWith(
+                cuestionario: await db.getCuestionario(b.inspeccion),
               ),
             )));
   }
@@ -44,6 +43,14 @@ class BorradoresDao extends DatabaseAccessor<Database>
   Future eliminarBorrador(Borrador borrador) async {
     await (delete(inspecciones)
           ..where((ins) => ins.id.equals(borrador.inspeccion.id)))
+        .go();
+  }
+
+  Stream<List<Cuestionario>> getCuestionarios() =>
+      select(cuestionarios).watch();
+
+  Future eliminarCuestionario(Cuestionario cuestionario) async {
+    await (delete(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
         .go();
   }
 }

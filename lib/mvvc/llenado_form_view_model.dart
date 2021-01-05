@@ -17,8 +17,8 @@ class LlenadoFormViewModel {
   final ValueNotifier<EstadoDeInspeccion> estado =
       ValueNotifier(EstadoDeInspeccion.borrador);
 
-  final String _vehiculo;
-  final int _cuestionarioId;
+  final int _activo;
+  final int cuestionarioId;
 
   final form = FormGroup({});
 
@@ -27,7 +27,7 @@ class LlenadoFormViewModel {
 
   //List bloquesMutables;
 
-  LlenadoFormViewModel(this._vehiculo, this._cuestionarioId) {
+  LlenadoFormViewModel(this._activo, this.cuestionarioId) {
     /*form.addAll({
       'bloques': bloques,
     });*/
@@ -36,11 +36,11 @@ class LlenadoFormViewModel {
 
   Future cargarDatos() async {
     final inspeccion =
-        await _db.llenadoDao.getInspeccion(_vehiculo, _cuestionarioId);
+        await _db.llenadoDao.getInspeccion(_activo, cuestionarioId);
     estado.value = inspeccion?.estado ?? EstadoDeInspeccion.borrador;
 
     final bloquesBD =
-        await _db.llenadoDao.cargarCuestionario(_cuestionarioId, _vehiculo);
+        await _db.llenadoDao.cargarCuestionario(cuestionarioId, _activo);
 
     //ordenamiento y creacion de los controles dependiendo del tipo de elemento
     bloques = FormArray(
@@ -57,6 +57,9 @@ class LlenadoFormViewModel {
           return RespuestaCuadriculaFormArray(
               e.cuadricula, e.preguntasRespondidas);
         }
+        if( e is BloqueConPreguntaNumerica) {
+          return RespuestaNumericaFormGroup(e.pregunta, e.respuesta);
+        }
         throw Exception("Tipo de bloque no reconocido");
       }).toList(),
     );
@@ -69,15 +72,20 @@ class LlenadoFormViewModel {
 
   Future guardarInspeccionEnLocal({@required EstadoDeInspeccion estado}) async {
     form.markAllAsTouched();
+
+    
+    
     final respuestas =
         bloques.controls.expand<RespuestaConOpcionesDeRespuesta>((e) {
       if (e is TituloFormGroup) return [];
       if (e is RespuestaSeleccionSimpleFormGroup) return [e.toDB()];
       if (e is RespuestaCuadriculaFormArray) return e.toDB();
+      if (e is RespuestaNumericaFormGroup) return [e.toDB()];
       throw Exception("Tipo de control no reconocido");
     }).toList();
 
-    await _db.guardarInspeccion(respuestas, _cuestionarioId, int.parse(_vehiculo), estado);
+    await _db.llenadoDao
+        .guardarInspeccion(respuestas, cuestionarioId, _activo, estado);
   }
 
   void finalizar() {

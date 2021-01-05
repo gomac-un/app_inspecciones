@@ -37,6 +37,7 @@ class CreadorPreguntaFormGroup extends FormGroup
   factory CreadorPreguntaFormGroup({
     PreguntaConOpcionesDeRespuesta defaultValue,
     bool parteDeCuadricula = false,
+    bool esNumerica = false,
   }) {
     final d = defaultValue;
     final sistema = fb.control<Sistema>(null, [Validators.required]);
@@ -58,14 +59,15 @@ class CreadorPreguntaFormGroup extends FormGroup
           fb.control<double>(d?.pregunta?.criticidad?.toDouble() ?? 0),
       'fotosGuia': fb.array<File>(
           d?.pregunta?.fotosGuia?.iter?.map((e) => File(e))?.toList() ?? []),
-      'tipoDePregunta': fb.control<TipoDePregunta>(
-          d?.pregunta?.tipo, [if (!parteDeCuadricula) Validators.required]),
+      'tipoDePregunta': fb.control<TipoDePregunta>(d?.pregunta?.tipo, [
+        if (!parteDeCuadricula) Validators.required
+      ]), //em realidad para las cuadriculas de debe manejar distinto pero se reescribira mas adelante
       'respuestas': fb.array<Map<String, dynamic>>(
         d?.opcionesDeRespuesta
                 ?.map((e) => CreadorRespuestaFormGroup(e))
                 ?.toList() ??
             [],
-        [if (!parteDeCuadricula) Validators.minLength(1)],
+        [if (!parteDeCuadricula || esNumerica == false) Validators.minLength(1)],
       ),
     };
 
@@ -121,7 +123,6 @@ class CreadorPreguntaFormGroup extends FormGroup
               .controls
               .map((e) => e.value.path)
               .toImmutableList(),
-          parteDeCuadricula: null,
           tipo: value['tipoDePregunta'] as TipoDePregunta,
         ),
         (control('respuestas') as FormArray).controls.map((e) {
@@ -163,6 +164,7 @@ class CreadorRespuestaFormGroup extends FormGroup {
         criticidad: (value['criticidad'] as double).round(),
       );
 }
+
 
 class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     implements ConRespuestas, Copiable {
@@ -275,6 +277,79 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
       );
 }
 
+class CreadorPreguntaNumericaFormGroup extends FormGroup implements Copiable {
+  
+final ValueNotifier<List<SubSistema>> subSistemas;
+  factory CreadorPreguntaNumericaFormGroup({
+    Pregunta defaultValue,
+  }) {
+    final d = defaultValue;
+    final sistema = fb.control<Sistema>(null, [Validators.required]);
+    final subSistemas = ValueNotifier<List<SubSistema>>([]);
+
+    sistema.valueChanges.asBroadcastStream().listen((sistema) async {
+      subSistemas.value =
+          await getIt<Database>().creacionDao.getSubSistemas(sistema);
+    });
+
+    final Map<String, AbstractControl<dynamic>> controles = {
+      'titulo':
+          fb.control<String>(d?.titulo ?? "", [Validators.required]),
+      'descripcion': fb.control<String>(d?.descripcion ?? ""),
+      'sistema': sistema,
+      'subSistema': fb.control<SubSistema>(null, [Validators.required]),
+      'posicion': fb.control<String>(d?.posicion ?? "no aplica"),
+      'criticidad':
+          fb.control<double>(d?.criticidad?.toDouble() ?? 0),
+      'fotosGuia': fb.array<File>(
+          d?.fotosGuia?.iter?.map((e) => File(e))?.toList() ?? []),
+    
+      //em realidad para las cuadriculas de debe manejar distinto pero se reescribira mas adelante
+    };
+
+    return CreadorPreguntaNumericaFormGroup._(controles, subSistemas, d: d);
+
+  }
+  CreadorPreguntaNumericaFormGroup._(
+      Map<String, AbstractControl<dynamic>> controles, this.subSistemas,
+      {Pregunta d})
+      : super(controles) {
+    instanciarControls(d);
+    // Machetazo que puede dar resultados inesperados si se utiliza el
+    // constructor en codigo sincrono ya que no se está esperando a que termine esta funcion asincrona
+  }
+
+
+  Future<void> instanciarControls(Pregunta d) async {
+    controls['sistema'].value =
+        await getIt<Database>().getSistemaPorId(d?.sistemaId);
+    controls['subSistema'].value =
+        await getIt<Database>().getSubSistemaPorId(d?.subSistemaId);
+  }
+
+  @override
+  Future<CreadorPreguntaNumericaFormGroup> copiar() async {
+    return CreadorPreguntaNumericaFormGroup(defaultValue: toDataclass());
+
+  }
+  Pregunta toDataclass() =>
+        Pregunta(
+          id: null,
+          bloqueId: null,
+          titulo: value['titulo'] as String,
+          descripcion: value['descripcion'] as String,
+          sistemaId: (value['sistema'] as Sistema)?.id,
+          subSistemaId: (value['subSistema'] as SubSistema)?.id,
+          posicion: value['posicion'] as String,
+          criticidad: (value['criticidad'] as double).round(),
+          fotosGuia: (control('fotosGuia') as FormArray<File>)
+              .controls
+              .map((e) => e.value.path)
+              .toImmutableList(),
+          tipo: TipoDePregunta.numerica,
+        );
+    
+}
 /*
 class CreadorSubPreguntaCuadriculaFormGroup extends FormGroup {
   CreadorSubPreguntaCuadriculaFormGroup()
@@ -294,22 +369,3 @@ abstract class ConRespuestas {
 abstract class Copiable {
   Future<AbstractControl> copiar();
 }
-/*
-extension XAbstractControl on AbstractControl {
-  AbstractControl copy() {
-    if (this is FormControl) return fb.control(value, validators);
-    if (this is FormArray) {
-      final thisarr = this as FormArray;
-      final copiedControls = thisarr.controls.map((e) => e.copy()).toList();
-      return FormArray(copiedControls, validators: validators);
-    }
-    if (this is FormGroup) {
-      final thisgroup = this as FormGroup;
-      final copiedControls =
-          thisgroup.controls.map((key, value) => MapEntry(key, value.copy()));
-      return FormGroup(copiedControls, validators: validators);
-    }
-    throw Exception();
-  }
-}
-*/

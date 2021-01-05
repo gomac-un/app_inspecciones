@@ -57,6 +57,26 @@ class CreadorTituloCard extends StatelessWidget {
   }
 }
 
+class CreadorNumericaCard extends StatelessWidget {
+  final CreadorPreguntaNumericaFormGroup formGroup;
+
+  const CreadorNumericaCard({Key key, this.formGroup}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return PreguntaCard(
+        titulo: 'Pregunta numérica',
+        child: Column(
+          children: [
+            TipoPreguntaCard(
+              formGroup: formGroup,
+            ),
+            BotonesDeBloque(formGroup: formGroup),
+          ],
+        ));
+  }
+} 
+
 class CreadorSeleccionSimpleCard extends StatelessWidget {
   final CreadorPreguntaFormGroup formGroup;
 
@@ -120,14 +140,13 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
                   ),
                 );
               }),
-
           const SizedBox(height: 10),
           ReactiveDropdownField<String>(
             formControl: formGroup.control('posicion') as FormControl,
             items: [
-              "no aplica",
-              "adelante",
-              "atras"
+              "No aplica",
+              "Adelante",
+              "Atras"
             ] //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
@@ -162,7 +181,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             formControl: formGroup.control('tipoDePregunta') as FormControl,
             items: [
               TipoDePregunta.unicaRespuesta,
-              TipoDePregunta.multipleRespuesta
+              TipoDePregunta.multipleRespuesta,
             ]
                 .map((e) => DropdownMenuItem<TipoDePregunta>(
                       value: e,
@@ -279,15 +298,21 @@ class BotonesDeBloque extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ButtonBar(
+    return Row(
       //TODO: estilizar mejor estos iconos
-      alignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           icon: const Icon(Icons.add_circle_outline),
           tooltip: 'agregar pregunta',
           onPressed: () => agregarBloque(context, CreadorPreguntaFormGroup()),
         ),
+       IconButton(
+          icon: const Icon(Icons.calculate),
+          tooltip: 'Pregunta Númerica',
+          onPressed: () =>
+              agregarBloque(context, CreadorPreguntaNumericaFormGroup()),
+        ), 
         IconButton(
           icon: const Icon(Icons.format_size),
           tooltip: 'agregar titulo',
@@ -381,6 +406,11 @@ class ControlWidget extends StatelessWidget {
           key: ValueKey(element),
           formGroup: element as CreadorPreguntaCuadriculaFormGroup);
     }
+     if (element is CreadorPreguntaNumericaFormGroup) {
+      return CreadorNumericaCard(
+        formGroup: element as CreadorPreguntaNumericaFormGroup,
+      );
+    } 
     return Text("error: el bloque $index no tiene una card que lo renderice");
   }
 }

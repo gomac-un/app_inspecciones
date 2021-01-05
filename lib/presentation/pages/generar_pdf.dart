@@ -2,13 +2,7 @@ import 'dart:io';
 
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
-
-import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/injection.dart';
 import 'package:pdf/widgets.dart';
-import 'package:reactive_forms/reactive_forms.dart';
-import 'package:share/share.dart';
 
 //! No importar nada de flutter aca, solo de package:pdf
 /* TODO: resumen al final de la inspeccion
@@ -185,10 +179,10 @@ generarPDF(/*Inspeccion ins*/) async {
                 children: <Widget>[
                   Header(
                       text: "Issue n°${issue.id}",
-                      textStyle: TextStyle(fontSize: 20)),
+                      textStyle: const TextStyle(fontSize: 20)),
                   Text("Description :",
                       textAlign: TextAlign.left,
-                      style: TextStyle(fontSize: 15)),
+                      style: const TextStyle(fontSize: 15)),
                 ],
               ),
             );

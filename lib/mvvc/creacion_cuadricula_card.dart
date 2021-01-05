@@ -72,7 +72,7 @@ class CreadorCuadriculaCard extends StatelessWidget {
           const SizedBox(height: 10),
           ReactiveDropdownField<String>(
             formControl: formGroup.control('posicion') as FormControl,
-            items: ["no aplica", "adelante", "atras"]
+            items: ["No aplica", "Adelante", "Atras"]
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),
@@ -162,7 +162,7 @@ class WidgetPreguntas extends StatelessWidget {
                                           OutlineButton(
                                             onPressed: () =>
                                                 Navigator.of(context).pop(),
-                                            child: const Text("ok"),
+                                            child: const Text("Ok"),
                                           )
                                         ],
                                       ),

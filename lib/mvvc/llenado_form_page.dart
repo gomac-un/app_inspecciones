@@ -8,22 +8,23 @@ import 'package:inspecciones/mvvc/llenado_controls.dart';
 import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
 import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
+import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
-  final String vehiculo;
+  final int activo;
   final int cuestionarioId;
 
   const LlenadoFormPage({
     Key key,
-    this.vehiculo,
+    this.activo,
     this.cuestionarioId,
   }) : super(key: key);
 
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
-        create: (ctx) => LlenadoFormViewModel(vehiculo, cuestionarioId),
+        create: (ctx) => LlenadoFormViewModel(activo, cuestionarioId),
         dispose: (context, LlenadoFormViewModel value) => value.dispose(),
         child: this,
       );
@@ -59,6 +60,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                             itemBuilder: (context, i) {
                               final element = viewModel.bloques.controls[i]
                                   as BloqueDeFormulario;
+
                               if (estado == EstadoDeInspeccion.reparacion &&
                                   element.criticidad == 0) {
                                 return const SizedBox
@@ -74,6 +76,9 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                               if (element is RespuestaCuadriculaFormArray) {
                                 return CuadriculaCard(formArray: element);
                               }
+                               if(element is RespuestaNumericaFormGroup) {
+                                return NumericaCard(formGroup: element,);
+                              }  
                               return Text(
                                   "error: el bloque $i no tiene una card que lo renderice");
                             });
@@ -83,6 +88,8 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
               ),
               floatingActionButton: BotonesGuardado(
                 estado: estado,
+                activo: activo,
+                cuestionarioId: cuestionarioId,
               ),
             );
           }),
@@ -116,9 +123,13 @@ class BotonGuardarBorrador extends StatelessWidget {
 }
 
 class BotonesGuardado extends StatelessWidget {
+  final int activo;
+  final int cuestionarioId;
   const BotonesGuardado({
     Key key,
     @required this.estado,
+    this.activo,
+    this.cuestionarioId,
   }) : super(key: key);
 
   final EstadoDeInspeccion estado;
@@ -166,10 +177,16 @@ class BotonesGuardado extends StatelessWidget {
                           await viewModel.guardarInspeccionEnLocal(
                               estado: EstadoDeInspeccion.reparacion);
                           LoadingDialog.hide(context);
-                          showDialog(
+                          await showDialog(
                             context: context,
                             builder: (context) => AlertReparacion(),
                           );
+                          //machetazo para recargar el formulario con los datos insertados en la DB
+                          ExtendedNavigator.of(context).popAndPush(
+                              Routes.llenadoFormPage,
+                              arguments: LlenadoFormPageArguments(
+                                  activo: activo,
+                                  cuestionarioId: cuestionarioId));
                         } else {
                           await guardarYSalir(context);
                         }
@@ -188,10 +205,10 @@ class BotonesGuardado extends StatelessWidget {
 
   Future guardarYSalir(BuildContext context) async {
     final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
-    viewModel.estado.value = EstadoDeInspeccion.enviada;
+    viewModel.estado.value = EstadoDeInspeccion.finalizada;
     LoadingDialog.show(context);
     await viewModel.guardarInspeccionEnLocal(
-      estado: EstadoDeInspeccion.enviada,
+      estado: EstadoDeInspeccion.finalizada,
     );
     LoadingDialog.hide(context);
     ExtendedNavigator.of(context).pop("Inspeccion finalizada");

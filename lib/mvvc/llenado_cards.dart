@@ -44,6 +44,95 @@ class TituloCard extends StatelessWidget {
   }
 }
 
+class NumericaCard extends StatelessWidget {
+  final RespuestaNumericaFormGroup formGroup;
+  const NumericaCard({Key key, this.formGroup}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = Provider.of<LlenadoFormViewModel>(context);
+    return PreguntaCard(
+      titulo: formGroup.pregunta.titulo,
+      descripcion: formGroup.pregunta.descripcion,
+      child: Column(
+        children: [
+          if (formGroup.pregunta.fotosGuia.size > 0)
+            ImageShower(
+              imagenes: formGroup.pregunta.fotosGuia
+                  .map((e) => File(e))
+                  .iter
+                  .toList(),
+            ),
+           
+          ReactiveTextField(
+            formControl: formGroup.control('valor') as FormControl,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: "Escriba la respuesta",
+            ),
+          ),
+          const SizedBox(height: 10),
+          ReactiveTextField(
+            formControl: formGroup.control('observacion') as FormControl,
+            decoration: const InputDecoration(
+              labelText: 'Observaciones',
+              prefixIcon: Icon(Icons.remove_red_eye),
+            ),
+            keyboardType: TextInputType.multiline,
+            maxLines: null,
+            textInputAction: TextInputAction.next,
+          ),
+          //TODO: mostrar los botones de agregar imagenes y el checkbox de
+          //reparación de una manera mas optima, no uno en cada fila
+          FormBuilderImagePicker(
+            formArray: formGroup.control('fotosBase') as FormArray<File>,
+            decoration: const InputDecoration(
+              labelText: 'Fotos base',
+            ),
+          ), 
+          if (viewModel.estado.value == EstadoDeInspeccion.reparacion)
+            ReactiveCheckboxListTile(
+              formControl: formGroup.control('reparado') as FormControl,
+              title: const Text('Reparado'),
+              controlAffinity: ListTileControlAffinity.leading,
+            ),
+          // Muestra las observaciones de la reparacion solo si reparado es true
+          if (viewModel.estado.value == EstadoDeInspeccion.reparacion)
+            ReactiveValueListenableBuilder(
+              formControl: formGroup.control('reparado') as FormControl<bool>,
+              builder: (context, AbstractControl<bool> control, child) {
+                if (control.value) {
+                  return Column(
+                    children: [
+                      ReactiveTextField(
+                        formControl: formGroup.control('observacionReparacion')
+                            as FormControl,
+                        decoration: const InputDecoration(
+                          labelText: 'Observaciones de la reparación',
+                          prefixIcon: Icon(Icons.remove_red_eye),
+                        ),
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
+                        textInputAction: TextInputAction.next,
+                      ),
+                     /*  FormBuilderImagePicker(
+                        formArray: formGroup.control('fotosReparacion')
+                            as FormArray<File>,
+                        decoration: const InputDecoration(
+                          labelText: 'Fotos de la reparación',
+                        ),
+                      ), */
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class SeleccionSimpleCard extends StatelessWidget {
   final RespuestaSeleccionSimpleFormGroup formGroup;
 

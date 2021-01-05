@@ -1,17 +1,15 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:inspecciones/application/auth/usuario.dart';
-import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart'
-    as ap;
+
+import 'package:collection/collection.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
-import 'package:intl/intl.dart';
+import 'package:inspecciones/infrastructure/fotos_manager.dart';
+import 'package:json_annotation/json_annotation.dart' show JsonSerializable;
 import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 
 export 'package:moor_flutter/moor_flutter.dart' show Value;
 
@@ -42,7 +40,10 @@ part 'tablas_unidas.dart';
   daos: [LlenadoDao, CreacionDao, BorradoresDao],
 )
 class Database extends _$Database {
-  Database(QueryExecutor e) : super(e);
+  final int _appId;
+  // En el caso de que la db crezca mucho y las consultas empiecen a relentizar
+  //la UI se debe considerar el uso de los isolates https://moor.simonbinder.eu/docs/advanced-features/isolates/
+  Database(QueryExecutor e, this._appId) : super(e);
 
   @override
   int get schemaVersion => 1;
@@ -52,6 +53,12 @@ class Database extends _$Database {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+        for (final table in allTables) {
+          // Inicializa todos los autoincrement con el prefijo del appId desde el digito 14
+          await customStatement(
+              "insert into SQLITE_SEQUENCE (name,seq) values('${table.actualTableName}',${_appId}00000000000000);"); //1e14
+
+        }
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
@@ -61,41 +68,248 @@ class Database extends _$Database {
       beforeOpen: (details) async {
         if (details.wasCreated) {
           // create default data
-
-          /*await into(inspecciones).insert(InspeccionesCompanion(
-            fechaDeInicio: Value(DateTime.now()),
-          ));*/
         }
         await customStatement('PRAGMA foreign_keys = ON');
       },
     );
   }
 
-  //Llenado de bd con datos de prueba
-  Future dbdePrueba() async {
-    /*final dataDir = await paths.getApplicationDocumentsDirectory();
-    final dbFile = File(path.join(dataDir.path, 'db.sqlite'));
-    dbFile.deleteSync();*/
+  Future limpiezaBD() async {
     final m = createMigrator();
     await customStatement('PRAGMA foreign_keys = OFF');
 
     for (final table in allTables) {
       await m.deleteTable(table.actualTableName);
-
       await m.createTable(table);
-
-      /*await customStatement(
-          "UPDATE SQLITE_SEQUENCE SET SEQ=100000000000000 WHERE NAME='${table.actualTableName}';"); //1e14*/
-      //TODO: pedirle el deviceId al servidor para coordinar las BDs
-      const deviceId = 1;
       await customStatement(
-          "insert into SQLITE_SEQUENCE (name,seq) values('${table.actualTableName}',${deviceId}00000000000000);"); //1e14
-
+          "insert into SQLITE_SEQUENCE (name,seq) values('${table.actualTableName}',${_appId}00000000000000);"); //1e14
     }
 
     await customStatement('PRAGMA foreign_keys = ON');
 
-    await batch(initialize(this));
+    //await batch(initialize(this));
+  }
+
+  Future<Map<String, dynamic>> getCuestionarioCompleto(
+      Cuestionario cuestionario) async {
+    final modelosCuest = await (select(cuestionarioDeModelos)
+          ..where((cm) => cm.cuestionarioId.equals(cuestionario.id)))
+        .get();
+
+    // Este es un ejemplo de consultas complejas si el agrupador de collections
+    // puede ser mas lenta porque se multiplica la cantidad de consultas
+    // pero es mas limpia y entendible y consume un poco menos de memoria
+    //Tradeof de ineficiencia vs entendibilidad
+    final bloquesCuest = await (select(bloques)
+          ..where((b) => b.cuestionarioId.equals(cuestionario.id)))
+        .get();
+
+    final bloquesExtJson = await Future.wait(bloquesCuest.map((b) async {
+      //a cada bloque buscarle los titulos, las cuadriculas y las preguntas, TERRIBLE
+      final tituloBloque = await (select(titulos)
+            ..where((t) => t.bloqueId.equals(b.id)))
+          .getSingle();
+      //el titulo está listo
+      final cuadriculaBloque = await (select(cuadriculasDePreguntas)
+            ..where((c) => c.bloqueId.equals(b.id)))
+          .getSingle();
+
+      List<OpcionDeRespuesta> opcionesDeLaCuadricula;
+
+      final preguntasBloque = await (select(preguntas)
+            ..where((p) => p.bloqueId.equals(b.id)))
+          .get();
+
+      //extender las cuadriculas y las preguntas con sus respectivas opciones
+      if (cuadriculaBloque != null) {
+        opcionesDeLaCuadricula = await (select(opcionesDeRespuesta)
+              ..where((op) => op.cuadriculaId.equals(cuadriculaBloque.id)))
+            .get();
+      }
+
+      final preguntasConOpciones =
+          await Future.wait(preguntasBloque?.map((p) async {
+        final opcionesDeLaPregunta = await (select(opcionesDeRespuesta)
+              ..where((op) => op.preguntaId.equals(p.id)))
+            .get();
+
+        //enviar solo el basename al server
+        final pregunta =
+            p.copyWith(fotosGuia: p.fotosGuia.map((f) => path.basename(f)));
+        final preguntaJson =
+            pregunta.toJson(serializer: const CustomSerializer());
+        preguntaJson["opciones_de_respuesta"] =
+            opcionesDeLaPregunta.map((op) => op.toJson()).toList();
+        return preguntaJson;
+      }));
+
+      final bloqueJson = b.toJson(serializer: const CustomSerializer());
+      bloqueJson['titulo'] =
+          tituloBloque?.toJson(serializer: const CustomSerializer());
+      final cuadriculaJson =
+          cuadriculaBloque?.toJson(serializer: const CustomSerializer());
+      if (cuadriculaJson != null) {
+        cuadriculaJson['opciones_de_respuesta'] =
+            opcionesDeLaCuadricula?.map((op) => op.toJson())?.toList();
+      }
+
+      bloqueJson['cuadricula'] = cuadriculaJson;
+      bloqueJson['preguntas'] = preguntasConOpciones;
+      return bloqueJson;
+    }));
+    final cuestionarioJson = cuestionario.toJson();
+    cuestionarioJson['modelos'] =
+        modelosCuest.map((cm) => cm.toJson()).toList();
+    cuestionarioJson['bloques'] = bloquesExtJson;
+    return cuestionarioJson;
+  }
+
+  Future marcarCuestionarioSubido(Cuestionario cuestionario) =>
+      (update(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
+          .write(const CuestionariosCompanion(esLocal: Value(false)));
+
+  Future<Map<String, dynamic>> getInspeccionConRespuestas(
+      Inspeccion inspeccion) async {
+    //get inspeccion
+    final jsonIns = inspeccion.toJson(serializer: const CustomSerializer());
+
+    //get respuestas
+    final queryRes = select(respuestas).join([
+      leftOuterJoin(respuestasXOpcionesDeRespuesta,
+          respuestasXOpcionesDeRespuesta.respuestaId.equalsExp(respuestas.id)),
+    ])
+      ..where(respuestas.inspeccionId.equals(inspeccion.id));
+
+    final res = await queryRes
+        .map((row) => RespuestaconOpcionDeRespuestaId(row.readTable(respuestas),
+            row.readTable(respuestasXOpcionesDeRespuesta).opcionDeRespuestaId))
+        .get();
+
+    final resAgrupadas = groupBy<RespuestaconOpcionDeRespuestaId, Respuesta>(
+        res, (e) => e.respuesta).entries.map((entry) {
+      //solo enviar el filename al server
+      final respuesta = entry.key.copyWith(
+          fotosBase: entry.key.fotosBase.map((s) => path.basename(s)),
+          fotosReparacion:
+              entry.key.fotosReparacion.map((s) => path.basename(s)));
+
+      final respuestaJson =
+          respuesta.toJson(serializer: const CustomSerializer());
+
+      respuestaJson['respuestas'] =
+          entry.value.map((e) => e.opcionDeRespuestaId).toList();
+
+      return respuestaJson;
+    }).toList();
+
+    jsonIns['respuestas'] = resAgrupadas;
+
+    return jsonIns;
+  }
+
+  Future instalarBD(Map<String, dynamic> json) async {
+    /*TODO: hacer este proceso sin repetir tanto codigo, por ejemplo usando una estructura asi:
+    final tablasPorActualizar = [
+      InstaladorHelper("Activo", Activo, activos),
+    ];
+    pero no se puede hasta que se implemente esto https://github.com/dart-lang/language/issues/216
+    */
+
+    final activosParseados = (json["Activo"] as List)
+        .map((e) => Activo.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final contratistasParseados = (json["Contratista"] as List)
+        .map((e) => Contratista.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final sistemasParseados = (json["Sistema"] as List)
+        .map((e) => Sistema.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final subSistemasParseados = (json["Subsistema"] as List)
+        .map((e) => SubSistema.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final cuestionariosParseados = (json["Cuestionario"] as List)
+        .map((e) => Cuestionario.fromJson(e as Map<String, dynamic>))
+        .map((c) => c.copyWith(esLocal: false))
+        .toList();
+
+    final cuestionariosDeModelosParseados = (json["CuestionarioDeModelo"]
+            as List)
+        .map((e) => CuestionarioDeModelo.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final bloquesParseados = (json["Bloque"] as List)
+        .map((e) => Bloque.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final titulosParseados = (json["Titulo"] as List)
+        .map((e) => Titulo.fromJson(
+              e as Map<String, dynamic>,
+              serializer: const CustomSerializer(),
+            ))
+        .toList();
+
+    final cuadriculasDePreguntasParseados =
+        (json["CuadriculaDePreguntas"] as List)
+            .map((e) => CuadriculaDePreguntas.fromJson(
+                  e as Map<String, dynamic>,
+                  serializer: const CustomSerializer(),
+                ))
+            .toList();
+
+    final preguntasParseados = (json["Pregunta"] as List).map((p) {
+      // se hace este proceso para agregarle el path completo a las fotos
+      final pregunta = Pregunta.fromJson(
+        p as Map<String, dynamic>,
+        serializer: const CustomSerializer(),
+      );
+      return pregunta.copyWith(
+          fotosGuia: pregunta.fotosGuia.map((e) =>
+              FotosManager.convertirAUbicacionAbsoluta(
+                  tipoDeDocumento: 'cuestionarios',
+                  idDocumento:
+                      ((p as Map<String, dynamic>)['cuestionario'] as int)
+                          .toString(),
+                  basename: e)));
+    }).toList();
+
+    final opcionesDeRespuestaParseados = (json["OpcionDeRespuesta"] as List)
+        .map((e) => OpcionDeRespuesta.fromJson(e as Map<String, dynamic>))
+        .toList();
+    await customStatement('PRAGMA foreign_keys = OFF');
+    await transaction(() async {
+      final deletes = [
+        delete(activos).go(),
+        delete(contratistas).go(),
+        delete(sistemas).go(),
+        delete(subSistemas).go(),
+        delete(cuestionarios).go(),
+        delete(cuestionarioDeModelos).go(),
+        delete(bloques).go(),
+        delete(titulos).go(),
+        delete(cuadriculasDePreguntas).go(),
+        delete(preguntas).go(),
+        delete(opcionesDeRespuesta).go(),
+      ];
+      await Future.wait(deletes);
+      await batch((b) {
+        b.insertAll(activos, activosParseados);
+        b.insertAll(contratistas, contratistasParseados);
+        b.insertAll(sistemas, sistemasParseados);
+        b.insertAll(subSistemas, subSistemasParseados);
+        b.insertAll(cuestionarios, cuestionariosParseados);
+        b.insertAll(cuestionarioDeModelos, cuestionariosDeModelosParseados);
+        b.insertAll(bloques, bloquesParseados);
+        b.insertAll(titulos, titulosParseados);
+        b.insertAll(cuadriculasDePreguntas, cuadriculasDePreguntasParseados);
+        b.insertAll(preguntas, preguntasParseados);
+        b.insertAll(opcionesDeRespuesta, opcionesDeRespuestaParseados);
+      });
+    });
+    await customStatement('PRAGMA foreign_keys = ON');
   }
 
   //datos para la creacion de cuestionarios
@@ -109,110 +323,6 @@ class Database extends _$Database {
     if (id == null) return null;
     final query = select(subSistemas)..where((s) => s.id.equals(id));
     return query.getSingle();
-  }
-
-  //datos para el llenado de inspecciones
-  int generarId(String activo) {
-    final fechaFormateada = DateFormat("yyMMddHm").format(DateTime.now());
-
-    return int.parse('$fechaFormateada$activo');
-  }
-
-  Future<Inspeccion> crearInspeccion(
-      int cuestionarioId, int activo, EstadoDeInspeccion estado) async {
-    if (activo == null) throw Exception("activo nulo");
-    final ins = InspeccionesCompanion.insert(
-      id: Value(generarId(activo.toString())),
-      cuestionarioId: cuestionarioId,
-      estado: estado,
-      identificadorActivo: activo,
-      momentoInicio: Value(DateTime.now()),
-    );
-    final id = await into(inspecciones).insert(ins);
-    return (select(inspecciones)..where((i) => i.id.equals(id))).getSingle();
-  }
-
-  Future guardarInspeccion(List<RespuestaConOpcionesDeRespuesta> respuestasForm,
-      int cuestionarioId, int activo, EstadoDeInspeccion estado) async {
-    Inspeccion ins = await llenadoDao.getInspeccion(activo.toString(), cuestionarioId);
-    ins ??= await crearInspeccion(cuestionarioId, activo, estado);
-
-    for (final rf in respuestasForm) {
-      rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
-    }
-    return transaction(() async {
-      await (update(inspecciones)..where((i) => i.id.equals(ins.id))).write(
-        estado == EstadoDeInspeccion.enviada
-            ? InspeccionesCompanion(
-                momentoEnvio: Value(DateTime.now()),
-                estado: Value(estado),
-              )
-            : InspeccionesCompanion(
-                momentoBorradorGuardado: Value(DateTime.now()),
-                estado: Value(estado),
-              ),
-      );
-      await Future.forEach<RespuestaConOpcionesDeRespuesta>(respuestasForm,
-          (e) async {
-        //Mover las fotos a una carpeta unica para cada inspeccion
-        final appDir = await getApplicationDocumentsDirectory();
-        final idform =
-            respuestasForm.first.respuesta.inspeccionId.value.toString();
-        final fotosBaseProc = await Future.wait(organizarFotos(
-            e.respuesta.fotosBase.value,
-            appDir.path,
-            "fotosInspecciones",
-            idform));
-        final fotosRepProc = await Future.wait(organizarFotos(
-            e.respuesta.fotosBase.value,
-            appDir.path,
-            "fotosInspecciones",
-            idform));
-        e.respuesta.copyWith(
-          fotosBase: Value(fotosBaseProc.toImmutableList()),
-          fotosReparacion: Value(fotosRepProc.toImmutableList()),
-        );
-
-        int res;
-        if (e.respuesta.id.present) {
-          await into(respuestas).insertOnConflictUpdate(e.respuesta);
-          res = e.respuesta.id.value;
-        } else {
-          res = await into(respuestas).insert(e.respuesta);
-        }
-
-        await (delete(respuestasXOpcionesDeRespuesta)
-              ..where((rxor) => rxor.respuesta_id.equals(res)))
-            .go();
-        await Future.forEach<OpcionDeRespuesta>(
-            e.opcionesDeRespuesta.where((e) => e != null), (opres) async {
-          await into(respuestasXOpcionesDeRespuesta).insert(
-              RespuestasXOpcionesDeRespuestaCompanion.insert(
-                  respuesta_id: res, preguntaRespuesta_id: opres.id));
-        });
-      });
-    });
-  }
-
-  Iterable<Future<String>> organizarFotos(
-      KtList<String> fotos,
-      String appDir,
-      String subDir, //fotosInspecciones
-      String idform) {
-    return fotos.iter.toList().map((pathFoto) async {
-      final dir = path.join(appDir, subDir, idform);
-      if (path.isWithin(dir, pathFoto)) {
-        // la imagen ya esta en la carpeta de datos
-        return pathFoto;
-      } else {
-        //mover la foto a la carpeta de datos
-        final fileName = path.basename(pathFoto);
-        final newPath = path.join(dir, fileName);
-        await File(newPath).create(recursive: true);
-        final savedImage = await File(pathFoto).copy(newPath);
-        return savedImage.path;
-      }
-    });
   }
 
   Future<Cuestionario> getCuestionario(Inspeccion inspeccion) {
@@ -232,5 +342,77 @@ class Database extends _$Database {
           ))
         .get();
     //print(ins.map((e) => e.toJson()).toList());
+  }
+}
+
+class CustomSerializer extends ValueSerializer {
+  const CustomSerializer();
+  static const tipoPreguntaConverter =
+      EnumIndexConverter<TipoDePregunta>(TipoDePregunta.values);
+  static const estadoDeInspeccionConverter =
+      EnumIndexConverter<EstadoDeInspeccion>(EstadoDeInspeccion.values);
+
+  @override
+  T fromJson<T>(dynamic json) {
+    if (json == null) {
+      return null;
+    }
+
+    /*if (T == KtList) {
+      return (json as List<String>).toImmutableList() as T;
+    }*/
+    if (json is List) {
+      // https://stackoverflow.com/questions/50188729/checking-what-type-is-passed-into-a-generic-method
+      // machetazo que convierte todas las listas a KtList<String> dado que no
+      // se puede preguntar por T == KtList<String>, puede que se pueda arreglar
+      // cuando los de dart implementen los alias de tipos https://github.com/dart-lang/language/issues/65
+      return json.cast<String>().toImmutableList() as T;
+    }
+
+    if (T == TipoDePregunta) {
+      return tipoPreguntaConverter.mapToDart(json as int) as T;
+    }
+
+    if (T == EstadoDeInspeccion) {
+      return estadoDeInspeccionConverter.mapToDart(json as int) as T;
+    }
+
+    if (T == DateTime) {
+      return DateTime.parse(json as String) as T;
+    }
+
+    if (T == double && json is int) {
+      return json.toDouble() as T;
+    }
+
+    // blobs are encoded as a regular json array, so we manually convert that to
+    // a Uint8List
+    if (T == Uint8List && json is! Uint8List) {
+      final asList = (json as List).cast<int>();
+      return Uint8List.fromList(asList) as T;
+    }
+
+    return json as T;
+  }
+
+  @override
+  dynamic toJson<T>(T value) {
+    if (value is DateTime) {
+      return value.toIso8601String();
+    }
+
+    if (value is TipoDePregunta) {
+      return tipoPreguntaConverter.mapToSql(value);
+    }
+
+    if (value is EstadoDeInspeccion) {
+      return estadoDeInspeccionConverter.mapToSql(value);
+    }
+
+    if (value is KtList) {
+      return value.iter.toList();
+    }
+
+    return value;
   }
 }

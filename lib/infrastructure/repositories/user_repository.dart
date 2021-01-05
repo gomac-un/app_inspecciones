@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/auth/usuario.dart';
+import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
@@ -27,9 +28,14 @@ class UserRepository {
     }
 
     try {
-      token = await api.getToken(userLogin);
+      token = await _getToken(userLogin);
+      await _getAppId(token);
     } on TimeoutException {
       return const Left(AuthFailure.noHayConexionAlServidor());
+    } on CredencialesException {
+      return const Left(AuthFailure.usuarioOPasswordInvalidos());
+    } catch (e) {
+      return const Left(AuthFailure.serverError());
     }
 
     final user = Usuario(
@@ -39,6 +45,15 @@ class UserRepository {
             false, //TODO: averiguar si es admin desde el server o desde la bd local
         token: token);
     return Right(user);
+  }
+
+  Future<String> _getToken(UserLogin userLogin) async {
+    final res = await api.postRecurso(
+      '/api-token-auth/',
+      userLogin.toJson(),
+      token: null,
+    );
+    return res['token'] as String;
   }
 
   Future<void> saveLocalUser({@required Usuario user}) async {
@@ -51,6 +66,20 @@ class UserRepository {
   }
 
   Option<Usuario> getLocalUser() => optionOf(localPreferences.getUser());
+
+  Future _getAppId(String token) async {
+    if (localPreferences.getAppId() != null) {
+      return localPreferences.getAppId();
+    }
+    final res = await api.postRecurso(
+      '/registro-app/',
+      {},
+      token: token,
+    );
+    final appId = res['id'] as int;
+    localPreferences.saveAppId(appId);
+    return appId;
+  }
 
   Future<bool> _hayInternet() async => DataConnectionChecker().hasConnection;
 }

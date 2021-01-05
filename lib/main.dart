@@ -2,8 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/auth_listener_widget.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'injection.dart';
@@ -12,8 +12,8 @@ Future main() async {
   
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
-  await getIt<Database>().dbdePrueba();
   final navigatorKey = GlobalKey<NavigatorState>();
+  await FlutterDownloader.initialize();
   runApp(
     MaterialApp(
       builder: ExtendedNavigator.builder(
@@ -44,9 +44,6 @@ Future main() async {
         ),
       ), //InspeccionScreen(),
     ),
-    /*MaterialApp(
-      home: Testing(),
-    ),*/
   );
 }
 
@@ -64,7 +61,6 @@ final customTheme = ThemeData(
     filled: true,
   ),
 );
-
 
 class ClearFocusOnPop extends NavigatorObserver {
   @override

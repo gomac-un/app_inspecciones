@@ -1,38 +1,89 @@
-/*import 'package:injectable/injectable.dart';
-import 'package:meta/meta.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:developer';
 
+import 'package:dartz/dartz.dart';
+import 'package:injectable/injectable.dart';
+import 'package:inspecciones/core/error/exceptions.dart';
+import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
+import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/core/network_info.dart';
 
-@LazySingleton() //@LazySingleton(as: IInspeccionesRepository)
+@injectable
 class InspeccionesRepository {
-  //implements IInspeccionesRepository {
-  //final InspeccionesRemoteDataSource remoteDataSource;
-  final Database localDataBase;
-  final NetworkInfo networkInfo;
+  final InspeccionesRemoteDataSource _api;
+  final Database _db;
+  final String _token;
 
-  InspeccionesRepository(
-      {/*@required this.remoteDataSource,*/
-      @required this.localDataBase,
-      @required this.networkInfo});
+  InspeccionesRepository(this._api, this._db, @factoryParam this._token);
 
-  //llenado de inspecciones
-  //TODO
-  Future downloadOfflineData() async {
-    if (await networkInfo.isConnected) {
-      //var data = await remoteDataSource.getOfflineData();
-      /* 
-      traer
-      activos
-      Contratistas
-      Sistemas
-      SubSistemas
+  Future<Either<ApiFailure, Unit>> subirInspeccion(
+      Inspeccion inspeccion) async {
+    //TODO: mostrar el progreso en la ui
+    final ins = await _db.getInspeccionConRespuestas(inspeccion);
+    try {
+      /*final res = await _api.putRecurso('/inspecciones/${ins['id']}/', ins,
+          token: _token);*/
+      log(jsonEncode(ins));
+      await _api.postRecurso('/inspecciones/', ins, token: _token);
 
-      Cuestionarios
-      CuestionarioDeModelos
-      Bloques
-      Preguntas
-      */
+      final idDocumento = ins['id'].toString();
+      const tipoDocumento = 'inspecciones';
+      final fotos = await FotosManager.getFotosDeDocumento(
+          idDocumento: idDocumento, tipoDocumento: tipoDocumento);
+      await _api.subirFotos(fotos, idDocumento, tipoDocumento);
+
+      return right(unit);
+    } on TimeoutException {
+      return const Left(ApiFailure.noHayConexionAlServidor());
+    } on CredencialesException catch (e) {
+      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    } on ServerException catch (e) {
+      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    } catch (e) {
+      return Left(ApiFailure.serverError(e.toString()));
     }
   }
-}*/
+
+  Future<Either<ApiFailure, Unit>> subirCuestionariosPendientes() async {
+    //TODO: subir cada uno, o todos a la vez para mas eficiencia
+  }
+
+  Future<Either<ApiFailure, Unit>> subirCuestionario(
+      Cuestionario cuestionario) async {
+    //TODO: subir las fotos
+    final ins = await _db.getCuestionarioCompleto(cuestionario);
+    log(jsonEncode(ins));
+    try {
+      /*final res = await _api.putRecurso('/inspecciones/${ins['id']}/', ins,
+          token: _token);*/
+      log(jsonEncode(ins));
+      await _api.postRecurso('/cuestionarios-completos/', ins, token: _token);
+      await _db.marcarCuestionarioSubido(cuestionario);
+
+      final idDocumento = ins['id'].toString();
+      const tipoDocumento = 'cuestionarios';
+      final fotos = await FotosManager.getFotosDeDocumento(
+          idDocumento: idDocumento, tipoDocumento: tipoDocumento);
+      await _api.subirFotos(fotos, idDocumento, tipoDocumento);
+
+      return right(unit);
+    } on TimeoutException {
+      return const Left(ApiFailure.noHayConexionAlServidor());
+    } on CredencialesException catch (e) {
+      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    } on ServerException catch (e) {
+      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    }
+  }
+
+  Future descargarCuestionarios(String savedir, String nombreJson) async {
+    _api.descargaFlutterDownloader('/server/', savedir, nombreJson);
+  }
+
+  Future descargarFotos(String savedir, String nombreZip) async {
+    _api.descargaFlutterDownloader(
+        '/media/fotos-app-inspecciones/cuestionarios.zip', savedir, nombreZip);
+  }
+}

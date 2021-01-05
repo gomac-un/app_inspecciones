@@ -10,30 +10,27 @@ dynamic Function(Batch) initialize(Database db) {
 }
 
 Future<void> _initialize(Batch batch, Database db) async {
+  batch.insertAll(db.activos, [
+    ActivosCompanion.insert(modelo: 'DT-Kenworth', id: const Value(1)),
+    ActivosCompanion.insert(modelo: 'sencillo-Kenworth', id: const Value(2)),
+  ]);
+
+  
+
+  batch.insertAll(db.sistemas, [
+    SistemasCompanion.insert(id: const Value(1), nombre: "Estructura"),
+    SistemasCompanion.insert(id: const Value(2), nombre: "Transmisión"),
+    SistemasCompanion.insert(id: const Value(3), nombre: "Eléctrico"),
+    SistemasCompanion.insert(id: const Value(4), nombre: "Frenos"),
+    SistemasCompanion.insert(id: const Value(5), nombre: "Hidráulico"),
+    SistemasCompanion.insert(id: const Value(6), nombre: "Motor"),
+    SistemasCompanion.insert(id: const Value(7), nombre: "No aplica"),
+  ]);
+
+  //TODO: mover esto a una clase encargada de sincronizar con la api
+/*
   final ap.DjangoAPI tabla = ap.DjangoAPI();
-  final activos = await tabla.getActivos();
-  final contratistas = await tabla.getContratistas(); //TODO: conseguir usuario
-  final sistemas = await tabla.getSistemas(); //TODO: conseguir usuario
-  final subSistemas = await tabla.getSubSistemas();
-  final cuestionarioDeModelo = await tabla.getCuestionarioDeModelo();
-  final cuestionario = await tabla.getCuestionarios();
-  final bloque = await tabla.getBloques();
-  final preguntas = await tabla.getPreguntas();
-  final opcionesDeRespuesta = await tabla.getOpcionesDeRespuesta();
-
-  // Inserción datos tabla activos
-  final List<Insertable<Activo>> listaActivos = activos
-      .map((item) =>
-          ActivosCompanion.insert(modelo: item.modelo, id: Value(item.id)))
-      .toList();
-
-  batch.insertAll(db.activos, listaActivos);
-
-// Inserción datos tabla contratista
-  final List<Insertable<Contratista>> listaContratistas = contratistas
-      .map((item) =>
-          ContratistasCompanion.insert(id: Value(item.id), nombre: item.nombre))
-      .toList();
+  //final List<Insertable<Sistema>> listaSistemas = [];
 
   batch.insertAll(db.contratistas, listaContratistas);
 
@@ -45,47 +42,44 @@ Future<void> _initialize(Batch batch, Database db) async {
       .toList();
 
   batch.insertAll(db.sistemas, listaSistemas);
-
-  final List<Insertable<SubSistema>> listaSubSistemas = subSistemas
-      .map(
-        (item) => SubSistemasCompanion.insert(
-            id: Value(item.id), nombre: item.nombre, sistema: item.sistema),
-      )
-      .toList();
-  batch.insertAll(db.subSistemas, listaSubSistemas);
-
-//Inicio de una inspeccion de prueba
+*/
+  batch.insertAll(db.subSistemas, [
+    SubSistemasCompanion.insert(
+        id: const Value(1), nombre: "n/s", sistemaId: 1),
+    SubSistemasCompanion.insert(
+        id: const Value(2), nombre: "n/s", sistemaId: 2),
+    SubSistemasCompanion.insert(
+        id: const Value(3), nombre: "n/s", sistemaId: 3),
+    SubSistemasCompanion.insert(
+        id: const Value(4), nombre: "n/s", sistemaId: 4),
+    SubSistemasCompanion.insert(
+        id: const Value(5), nombre: "n/s", sistemaId: 5),
+    SubSistemasCompanion.insert(
+        id: const Value(6), nombre: "n/s", sistemaId: 6),
+    SubSistemasCompanion.insert(
+        id: const Value(7), nombre: "n/s", sistemaId: 7),
+  ]);
+  //Inicio de una inspeccion de prueba
   //Datos de la inspeccion
-
-  final List<Insertable<Cuestionario>> listaCuestionario = cuestionario
-      .map(
-        (item) => CuestionariosCompanion.insert(
-            tipoDeInspeccion: item.tipoDeInspeccion),
-      )
-      .toList();
-  batch.insertAll(db.cuestionarios, listaCuestionario);
-
-  final List<Insertable<CuestionarioDeModelo>> listaCuestionarioDeModelo =
-      cuestionarioDeModelo
-          .map(
-            (item) => CuestionarioDeModelosCompanion.insert(
-                cuestionario_id: item.cuestionario_id,
-                periodicidad: item.periodicidad,
-                contratista_id: item.contratista_id,
-                modelo: item.modelo),
-          )
-          .toList();
-  batch.insertAll(db.cuestionarioDeModelos, listaCuestionarioDeModelo);
-
-  final List<Insertable<Bloque>> listaBloques = bloque
-      .map((item) => BloquesCompanion.insert(
-          id: Value(item.id),
-          nOrden: item.nOrden,
-          cuestionario_id: item.cuestionario_id))
-      .toList();
-
-  batch.insertAll(db.bloques, listaBloques);
-
+  batch.insertAll(db.cuestionarios, [
+    CuestionariosCompanion.insert(
+      id: const Value(1),
+      tipoDeInspeccion: "preoperacional",
+    ),
+  ]);
+  batch.insertAll(db.cuestionarioDeModelos, [
+    CuestionarioDeModelosCompanion.insert(
+        modelo: 'DT-Kenworth',
+        periodicidad: 100,
+        cuestionarioId: 1,
+        contratistaId: const Value(1))
+  ]);
+  batch.insertAll(db.bloques, [
+    BloquesCompanion.insert(id: const Value(1), cuestionarioId: 1, nOrden: 0),
+    BloquesCompanion.insert(id: const Value(2), cuestionarioId: 1, nOrden: 1),
+    BloquesCompanion.insert(id: const Value(3), cuestionarioId: 1, nOrden: 2),
+    BloquesCompanion.insert(id: const Value(4), cuestionarioId: 1, nOrden: 3),
+  ]);
   //Un bloque de cada tipo
   //Un titulo
   batch.insertAll(db.titulos, [
@@ -97,35 +91,122 @@ Future<void> _initialize(Batch batch, Database db) async {
             "Inspeccionar el estado de cada parte en mención y evaluar su funcionamiento."),
   ]);
   //Una pregunta de seleccion unica
-
-  final List<Insertable<Pregunta>> listaPreguntas = preguntas
-      .map((item) => PreguntasCompanion.insert(
-          id: Value(item.id),
-          posicion: item.posicion,
-          criticidad: item.criticidad,
-          titulo: item.titulo,
-          tipo: item.tipo,
-          parteDeCuadricula: item.parteDeCuadricula,
-          descripcion: item.descripcion,
-          sistemaId: item.sistemaId,
-          bloqueId:  item.bloqueId,
-          subSistemaId: item.subSistemaId,
-          ),
-        )
-      .toList();
-
-  batch.insertAll(db.preguntas, listaPreguntas);
-
-  final List<Insertable<OpcionDeRespuesta>>  listaOpcionesDeRespuesta = opcionesDeRespuesta
-      .map((item) => OpcionesDeRespuestaCompanion.insert(
-          id: Value(item.id),
-          criticidad: item.criticidad,
-          texto: item.texto
-          ),
-        )
-      .toList();
-
-  batch.insertAll(db.opcionesDeRespuesta, listaOpcionesDeRespuesta);
-  
-
+  batch.insert(
+      db.preguntas,
+      PreguntasCompanion.insert(
+        id: const Value(1),
+        bloqueId: 2,
+        titulo: "Estado del restrictor del aire",
+        descripcion: "",
+        sistemaId: const Value(6),
+        subSistemaId: const Value(6),
+        posicion: const Value("no aplica"),
+        tipo: TipoDePregunta.unicaRespuesta,
+        criticidad: 3,
+      ));
+  batch.insertAll(db.opcionesDeRespuesta, [
+    OpcionesDeRespuestaCompanion.insert(
+        id: const Value(1),
+        preguntaId: const Value(1),
+        texto: "Indica cambio de filtro",
+        criticidad: 2),
+    OpcionesDeRespuestaCompanion.insert(
+        id: const Value(2),
+        preguntaId: const Value(1),
+        texto: "No lo posee",
+        criticidad: 0),
+    OpcionesDeRespuestaCompanion.insert(
+        id: const Value(3),
+        preguntaId: const Value(1),
+        texto: "Mal estado",
+        criticidad: 4),
+    OpcionesDeRespuestaCompanion.insert(
+        id: const Value(4),
+        preguntaId: const Value(1),
+        texto: "Sin novedad",
+        criticidad: 0),
+  ]);
+  //Una pregunta de seleccion multiple
+  batch.insert(
+      db.preguntas,
+      PreguntasCompanion.insert(
+        id: const Value(2),
+        bloqueId: 3,
+        titulo: "Estado aceite lubricante",
+        descripcion: "",
+        sistemaId: const Value(6),
+        subSistemaId: const Value(6),
+        posicion: const Value("no aplica"),
+        tipo: TipoDePregunta.multipleRespuesta,
+        criticidad: 3,
+      ));
+  batch.insertAll(db.opcionesDeRespuesta, [
+    OpcionesDeRespuestaCompanion.insert(
+        id: const Value(5),
+        preguntaId: const Value(2),
+        texto: "Condicion normal",
+        criticidad: 0),
+    OpcionesDeRespuestaCompanion.insert(
+        id: const Value(6),
+        preguntaId: const Value(2),
+        texto: "Posible dilucion por combustible",
+        criticidad: 3),
+    OpcionesDeRespuestaCompanion.insert(
+        id: const Value(7),
+        preguntaId: const Value(2),
+        texto: "Color lechoso",
+        criticidad: 3),
+    OpcionesDeRespuestaCompanion.insert(
+        id: const Value(8),
+        preguntaId: const Value(2),
+        texto: "Presencia de particulas extrañas",
+        criticidad: 3),
+  ]);
+  //Una cuadricula de preguntas
+  batch.insert(
+      db.cuadriculasDePreguntas,
+      CuadriculasDePreguntasCompanion.insert(
+        id: const Value(1),
+        bloqueId: 4,
+        titulo: "Fugas en el motor",
+        descripcion: "",
+      ));
+  //Las preguntas de la cuadricula
+  batch.insertAll(db.preguntas, [
+    PreguntasCompanion.insert(
+      id: const Value(3),
+      bloqueId: 4,
+      titulo: "Fugas/estado en mangueras",
+      descripcion: "",
+      sistemaId: const Value(6),
+      subSistemaId: const Value(6),
+      posicion: const Value("n/a"),
+      tipo: TipoDePregunta.parteDeCuadriculaUnica,
+      criticidad: 3,
+    ),
+    PreguntasCompanion.insert(
+      id: const Value(4),
+      bloqueId: 4,
+      titulo: "Fugas en base del filtro de aceite",
+      descripcion: "",
+      sistemaId: const Value(6),
+      subSistemaId: const Value(6),
+      posicion: const Value("n/a"),
+      tipo: TipoDePregunta.parteDeCuadriculaUnica,
+      criticidad: 3,
+    ),
+  ]);
+  //Las respuestas de la cuadricula
+  batch.insertAll(db.opcionesDeRespuesta, [
+    OpcionesDeRespuestaCompanion.insert(
+        id: const Value(9),
+        texto: "requiere intervencion",
+        criticidad: 4,
+        cuadriculaId: const Value(1)),
+    OpcionesDeRespuestaCompanion.insert(
+        id: const Value(10),
+        texto: "sin novedad",
+        criticidad: 0,
+        cuadriculaId: const Value(1)),
+  ]);
 }

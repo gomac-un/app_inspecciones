@@ -1,357 +1,149 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 import 'package:injectable/injectable.dart';
-import 'package:inspecciones/application/auth/usuario.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/repositories/api_model.dart';
 
 abstract class InspeccionesRemoteDataSource {
-  Future<String> getToken(UserLogin userLogin);
-  Future<List<Sistema>> getSistemas(/* Usuario usuario */);
-  Future<List<Contratista>> getContratistas();
-  Future<List<Activo>> getActivos();
-  Future<List<SubSistema>> getSubSistemas();
-  Future<List<CuestionarioDeModelo>> getCuestionarioDeModelo();
-  Future<List<Cuestionario>> getCuestionarios();
-  Future<List<Inspeccion>> getInspecciones();
-  Future<List<Bloque>> getBloques();
-  Future<List<Pregunta>> getPreguntas();
-  Future<List<OpcionDeRespuesta>> getOpcionesDeRespuesta();
-  Future<List<Respuesta>> getRespuestas();
-  Future<List<RespuestasXOpcionesDeRespuestaData>> getRespuestaXOpcionesDeRespuesta();
-  //syncDatabase
+  Future<Map<String, dynamic>> getRecurso(String recursoEndpoint,
+      {@required String token});
+  Future<Map<String, dynamic>> postRecurso(
+      String recursoEndpoint, Map<String, dynamic> data,
+      {@required String token});
+  Future<Map<String, dynamic>> putRecurso(
+      String recursoEndpoint, Map<String, dynamic> data,
+      {@required String token});
+  Future subirFotos(
+      Iterable<File> fotos, String iddocumento, String tipodocumento);
+  void descargaFlutterDownloader(
+      String recurso, String savedir, String filename);
 }
 
 @LazySingleton(as: InspeccionesRemoteDataSource)
-class DjangoAPI implements InspeccionesRemoteDataSource {
-  static const _server =
-      'http://10.0.2.2:8000'; //TODO: opcion para modificar el servidor desde la app
+class DjangoJsonAPI implements InspeccionesRemoteDataSource {
+  static const _server = 'https://inspeccion.herokuapp.com';
+  //static const _server = 'http://10.0.2.2:8000';
+  //TODO: opcion para modificar el servidor desde la app
   static const _apiBase = '/inspecciones/api/v1';
-  static const _tokenEndpoint = "/api-token-auth/";
-  static const _sistema = '/sistemas/';
-  static const _contratista = '/contratistas/';
-  static const _activo = '/activos/';
-  static const _subSistema = '/subsistemas/';
-  static const _cuestionariodeModelo = '/cuestionariodemodelo/';
-  static const _cuestionario = '/cuestionarios/';
+  static const _timeLimit = Duration(seconds: 5); //TODO: ajustar el timelimit
 
-  // TODO implementar esto en datos de prueba
-  static const _bloque = '/bloques/';
-  static const _titulo = '/titulos/';
-  static const _pregunta = '/preguntas/';
-  static const _cuadriculaDePregunta = '/cuadriculadepreguntas/';
-  static const _opcionesDeRespuesta = '/opcionesderespuesta/';
-  static const _inspeccion = '/inspecciones/';
-  static const _respuesta = '/respuestas/';
-  static const _respuestaPorOpcionesDeRespuesta = '/respuestaporopciones/';
-
-  DjangoAPI();
+  DjangoJsonAPI();
 
   @override
-  Future<String> getToken(UserLogin userLogin) async {
-    const _tokenURL = _server + _apiBase + _tokenEndpoint;
-    final http.Response response = await http
-        .post(
-          _tokenURL,
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(userLogin.toJson()),
-        )
-        .timeout(const Duration(seconds: 5));
+  Future<Map<String, dynamic>> getRecurso(String recursoEndpoint,
+      {@required String token}) async {
+    final url = _server + _apiBase + recursoEndpoint;
+    final http.Response response = await http.get(
+      url,
+      headers: {
+        if (token != null) HttpHeaders.authorizationHeader: "Token $token"
+      },
+    ).timeout(_timeLimit);
 
     if (response.statusCode == 200) {
-      return (json.decode(response.body) as Map<String, dynamic>)['token']
-          as String;
+      return json.decode(response.body) as Map<String, dynamic>;
+    } else if (response.statusCode == 400) {
+      //TODO: verificar que el 400 pasa sii las credenciales estan mal
+      throw CredencialesException(
+          jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
-      throw ServerException(response.body);
+      throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
   }
 
   @override
-  Future<List<Sistema>> getSistemas(/* Usuario usuario */) async {
-    /* usuario = Usuario(token: "sutoken"); */
-    const _sistemaURL = _server + _apiBase + _sistema;
-    final response = await http.get(
-      _sistemaURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
+  Future<Map<String, dynamic>> postRecurso(
+      String recursoEndpoint, Map<String, dynamic> data,
+      {String token}) async {
+    final url = _server + _apiBase + recursoEndpoint;
+    final http.Response response = await http
+        .post(
+          url,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            if (token != null) HttpHeaders.authorizationHeader: "Token $token"
+          },
+          body: jsonEncode(data),
+        )
+        .timeout(_timeLimit);
 
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) => Sistema.fromJson(job as Map<String, dynamic>))
-          .toList();
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    } else if (response.statusCode == 400) {
+      throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
-      throw ServerException(json.decode(response.body).toString());
+      //TODO: mirar los tipos de errores que pueden venir de la api
+      log(response.body);
+      throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
   }
 
   @override
-  Future<List<Contratista>> getContratistas() async {
-    const _contratistaURL = _server + _apiBase + _contratista;
-    final response = await http.get(
-      _contratistaURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) => Contratista.fromJson(job as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }
+  // ignore: missing_return
+  Future<Map<String, dynamic>> putRecurso(
+      String recursoEndpoint, Map<String, dynamic> data,
+      {@required String token}) async {
+    final url = _server + _apiBase + recursoEndpoint;
+    final http.Response response = await http
+        .put(
+          url,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            if (token != null) HttpHeaders.authorizationHeader: "Token $token"
+          },
+          body: jsonEncode(data),
+        )
+        .timeout(_timeLimit);
   }
 
   @override
-  Future<List<Activo>> getActivos() async {
-    const _activoURL = _server + _apiBase + _activo;
-    final response = await http.get(
-      _activoURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
+  Future subirFotos(
+      Iterable<File> fotos, String idDocumento, String tipoDocumento) async {
+    const uriRecurso = '/subir-fotos/';
+    final uri = Uri.parse(_server + _apiBase + uriRecurso);
+    final request = http.MultipartRequest("POST", uri);
 
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) => Activo.fromJson(job as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw ServerException(json.decode(response.body).toString());
+    request.fields['iddocumento'] = idDocumento;
+    request.fields['tipodocumento'] = tipoDocumento;
+
+    for (final file in fotos) {
+      final fileName = path.basename(file.path);
+      //final fileName = file.path.split("/").last;
+      //final stream = http.ByteStream(file.openRead());
+
+      final length = await file.length();
+
+      final multipartFileSign = http.MultipartFile(
+          'fotos', file.openRead(), length,
+          filename: fileName);
+
+      request.files.add(multipartFileSign);
     }
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    log(response.body);
+    if (response.statusCode > 299) {
+      throw Exception("error del servidor");
+    }
+
+    //<input type="file" id="files" name="file_fields" multiple>
   }
 
   @override
-  Future<List<SubSistema>> getSubSistemas() async {
-    const _subSistemaURL = _server + _apiBase + _subSistema;
-    final response = await http.get(
-      _subSistemaURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) => SubSistema.fromJson(job as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }
-  }
-
-  @override
-  Future<List<CuestionarioDeModelo>> getCuestionarioDeModelo() async {
-    const _cuestionariodeModeloURL = _server + _apiBase + _cuestionariodeModelo;
-    final response = await http.get(
-      _cuestionariodeModeloURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) =>
-              CuestionarioDeModelo.fromJson(job as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }
-  }
-
-  @override
-  Future<List<Cuestionario>> getCuestionarios() async {
-    const _cuestionarioURL = _server + _apiBase + _cuestionario;
-    final response = await http.get(
-      _cuestionarioURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) => Cuestionario.fromJson(job as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }
-  }
-
-  @override
-  Future<List<Inspeccion>> getInspecciones() async {
-    const _inspeccionURL = _server + _apiBase + _inspeccion;
-    final response = await http.get(
-      _inspeccionURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) => Inspeccion.fromJson(job as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }
-  }
-
-  @override
-  Future<List<Bloque>> getBloques() async {
-    const _bloqueURL = _server + _apiBase + _bloque;
-    final response = await http.get(
-      _bloqueURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) => Bloque.fromJson(job as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }
-  }
-
-  @override
-  Future<List<Pregunta>> getPreguntas() async {
-    const _preguntaURL = _server + _apiBase + _pregunta;
-    final response = await http.get(
-      _preguntaURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) => Pregunta.fromJson(job as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }
-  }
-
-  @override
-  Future<List<OpcionDeRespuesta>> getOpcionesDeRespuesta() async {
-    const _opcionesURL = _server + _apiBase + _opcionesDeRespuesta;
-    final response = await http.get(
-      _opcionesURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) => OpcionDeRespuesta.fromJson(job as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }
-  }
-
-  @override
-  Future<List<Respuesta>> getRespuestas() async {
-    const _respuestasURL = _server + _apiBase + _respuesta;
-    final response = await http.get(
-      _respuestasURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) => Respuesta.fromJson(job as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }
-  }
-
-  @override
-  Future<List<RespuestasXOpcionesDeRespuestaData>> getRespuestaXOpcionesDeRespuesta() async {
-    const _respuestasXOpcionesDeRespuestaURL = _server + _apiBase + _respuestaPorOpcionesDeRespuesta;
-    final response = await http.get(
-      _respuestasXOpcionesDeRespuestaURL,
-      // Send authorization headers to the backend.
-      headers: {
-        HttpHeaders.authorizationHeader:
-            'Token 03adf27071d9d48804879e414fe1d5caf6dcbf2b' /* "Token ${usuario.token}" */
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse =
-          json.decode(response.body) as List<dynamic>;
-      return jsonResponse
-          .where((e) => e != null)
-          .map((job) => RespuestasXOpcionesDeRespuestaData.fromJson(job as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw ServerException(json.decode(response.body).toString());
-    }
+  void descargaFlutterDownloader(
+      String recurso, String savedir, String filename) {
+    FlutterDownloader.enqueue(
+        url: _server + _apiBase + recurso,
+        savedDir: savedir,
+        fileName: filename,
+        showNotification: false);
   }
 }

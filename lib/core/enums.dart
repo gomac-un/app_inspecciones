@@ -1,17 +1,15 @@
 enum TipoDePregunta {
   unicaRespuesta,
-
   multipleRespuesta,
-
+  parteDeCuadriculaUnica,
+  parteDeCuadriculaMultiple,
+  numerica,
   binaria,
-
   fecha,
-
-  rangoNumerico,
 }
 
 enum EstadoDeInspeccion {
   borrador,
   reparacion,
-  enviada,
+  finalizada,
 }
