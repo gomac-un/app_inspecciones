@@ -36,6 +36,7 @@ part 'tablas_unidas.dart';
     Contratistas,
     Sistemas,
     SubSistemas,
+    CriticidadesNumericas,
   ],
   daos: [LlenadoDao, CreacionDao, BorradoresDao],
 )

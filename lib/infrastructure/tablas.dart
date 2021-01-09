@@ -202,6 +202,21 @@ class Inspecciones extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+class CriticidadesNumericas extends Table{
+  IntColumn get id => integer().autoIncrement()();
+  RealColumn get valorMinimo => real()();
+  RealColumn get valorEsperado => real()();
+  RealColumn get  valorMaximo => real()();
+  IntColumn get criticMenosMinimo => integer()();
+  IntColumn get criticMin_Esp => integer()();
+  IntColumn get criticEsp_Max => integer()();
+  IntColumn get criticMax => integer()();
+
+  @JsonKey('pregunta')
+  IntColumn get preguntaId => integer()
+      .customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
+}
+
 class Respuestas extends Table {
   IntColumn get id => integer().autoIncrement()();
 

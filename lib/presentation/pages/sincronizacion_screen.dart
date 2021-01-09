@@ -22,7 +22,7 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
     final bloc = BlocProvider.of<SincronizacionCubit>(context);
     return Scaffold(
         appBar: AppBar(
-          title: const Text('sincronizacion'),
+          title: const Text('Sincronizacion'),
           actions: [
             OutlineButton.icon(
               /*color: Theme.of(context).brightness == Brightness.light
@@ -56,6 +56,7 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
                     ],
                   ),
                 ),
+              
                 Expanded(
                   child: Text(state.info),
                 )

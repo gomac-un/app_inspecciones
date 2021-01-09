@@ -4479,6 +4479,578 @@ class $SubSistemasTable extends SubSistemas
   }
 }
 
+class CriticidadesNumerica extends DataClass
+    implements Insertable<CriticidadesNumerica> {
+  final int id;
+  final double valorMinimo;
+  final double valorEsperado;
+  final double valorMaximo;
+  final int criticMenosMinimo;
+  final int criticMin_Esp;
+  final int criticEsp_Max;
+  final int criticMax;
+  final int preguntaId;
+  CriticidadesNumerica(
+      {@required this.id,
+      @required this.valorMinimo,
+      @required this.valorEsperado,
+      @required this.valorMaximo,
+      @required this.criticMenosMinimo,
+      @required this.criticMin_Esp,
+      @required this.criticEsp_Max,
+      @required this.criticMax,
+      @required this.preguntaId});
+  factory CriticidadesNumerica.fromData(
+      Map<String, dynamic> data, GeneratedDatabase db,
+      {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    final intType = db.typeSystem.forDartType<int>();
+    final doubleType = db.typeSystem.forDartType<double>();
+    return CriticidadesNumerica(
+      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      valorMinimo: doubleType
+          .mapFromDatabaseResponse(data['${effectivePrefix}valor_minimo']),
+      valorEsperado: doubleType
+          .mapFromDatabaseResponse(data['${effectivePrefix}valor_esperado']),
+      valorMaximo: doubleType
+          .mapFromDatabaseResponse(data['${effectivePrefix}valor_maximo']),
+      criticMenosMinimo: intType.mapFromDatabaseResponse(
+          data['${effectivePrefix}critic_menos_minimo']),
+      criticMin_Esp: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}critic_min_esp']),
+      criticEsp_Max: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}critic_esp_max']),
+      criticMax:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}critic_max']),
+      preguntaId: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}pregunta_id']),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || valorMinimo != null) {
+      map['valor_minimo'] = Variable<double>(valorMinimo);
+    }
+    if (!nullToAbsent || valorEsperado != null) {
+      map['valor_esperado'] = Variable<double>(valorEsperado);
+    }
+    if (!nullToAbsent || valorMaximo != null) {
+      map['valor_maximo'] = Variable<double>(valorMaximo);
+    }
+    if (!nullToAbsent || criticMenosMinimo != null) {
+      map['critic_menos_minimo'] = Variable<int>(criticMenosMinimo);
+    }
+    if (!nullToAbsent || criticMin_Esp != null) {
+      map['critic_min_esp'] = Variable<int>(criticMin_Esp);
+    }
+    if (!nullToAbsent || criticEsp_Max != null) {
+      map['critic_esp_max'] = Variable<int>(criticEsp_Max);
+    }
+    if (!nullToAbsent || criticMax != null) {
+      map['critic_max'] = Variable<int>(criticMax);
+    }
+    if (!nullToAbsent || preguntaId != null) {
+      map['pregunta_id'] = Variable<int>(preguntaId);
+    }
+    return map;
+  }
+
+  CriticidadesNumericasCompanion toCompanion(bool nullToAbsent) {
+    return CriticidadesNumericasCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      valorMinimo: valorMinimo == null && nullToAbsent
+          ? const Value.absent()
+          : Value(valorMinimo),
+      valorEsperado: valorEsperado == null && nullToAbsent
+          ? const Value.absent()
+          : Value(valorEsperado),
+      valorMaximo: valorMaximo == null && nullToAbsent
+          ? const Value.absent()
+          : Value(valorMaximo),
+      criticMenosMinimo: criticMenosMinimo == null && nullToAbsent
+          ? const Value.absent()
+          : Value(criticMenosMinimo),
+      criticMin_Esp: criticMin_Esp == null && nullToAbsent
+          ? const Value.absent()
+          : Value(criticMin_Esp),
+      criticEsp_Max: criticEsp_Max == null && nullToAbsent
+          ? const Value.absent()
+          : Value(criticEsp_Max),
+      criticMax: criticMax == null && nullToAbsent
+          ? const Value.absent()
+          : Value(criticMax),
+      preguntaId: preguntaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(preguntaId),
+    );
+  }
+
+  factory CriticidadesNumerica.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return CriticidadesNumerica(
+      id: serializer.fromJson<int>(json['id']),
+      valorMinimo: serializer.fromJson<double>(json['valorMinimo']),
+      valorEsperado: serializer.fromJson<double>(json['valorEsperado']),
+      valorMaximo: serializer.fromJson<double>(json['valorMaximo']),
+      criticMenosMinimo: serializer.fromJson<int>(json['criticMenosMinimo']),
+      criticMin_Esp: serializer.fromJson<int>(json['criticMin_Esp']),
+      criticEsp_Max: serializer.fromJson<int>(json['criticEsp_Max']),
+      criticMax: serializer.fromJson<int>(json['criticMax']),
+      preguntaId: serializer.fromJson<int>(json['pregunta']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'valorMinimo': serializer.toJson<double>(valorMinimo),
+      'valorEsperado': serializer.toJson<double>(valorEsperado),
+      'valorMaximo': serializer.toJson<double>(valorMaximo),
+      'criticMenosMinimo': serializer.toJson<int>(criticMenosMinimo),
+      'criticMin_Esp': serializer.toJson<int>(criticMin_Esp),
+      'criticEsp_Max': serializer.toJson<int>(criticEsp_Max),
+      'criticMax': serializer.toJson<int>(criticMax),
+      'pregunta': serializer.toJson<int>(preguntaId),
+    };
+  }
+
+  CriticidadesNumerica copyWith(
+          {int id,
+          double valorMinimo,
+          double valorEsperado,
+          double valorMaximo,
+          int criticMenosMinimo,
+          int criticMin_Esp,
+          int criticEsp_Max,
+          int criticMax,
+          int preguntaId}) =>
+      CriticidadesNumerica(
+        id: id ?? this.id,
+        valorMinimo: valorMinimo ?? this.valorMinimo,
+        valorEsperado: valorEsperado ?? this.valorEsperado,
+        valorMaximo: valorMaximo ?? this.valorMaximo,
+        criticMenosMinimo: criticMenosMinimo ?? this.criticMenosMinimo,
+        criticMin_Esp: criticMin_Esp ?? this.criticMin_Esp,
+        criticEsp_Max: criticEsp_Max ?? this.criticEsp_Max,
+        criticMax: criticMax ?? this.criticMax,
+        preguntaId: preguntaId ?? this.preguntaId,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('CriticidadesNumerica(')
+          ..write('id: $id, ')
+          ..write('valorMinimo: $valorMinimo, ')
+          ..write('valorEsperado: $valorEsperado, ')
+          ..write('valorMaximo: $valorMaximo, ')
+          ..write('criticMenosMinimo: $criticMenosMinimo, ')
+          ..write('criticMin_Esp: $criticMin_Esp, ')
+          ..write('criticEsp_Max: $criticEsp_Max, ')
+          ..write('criticMax: $criticMax, ')
+          ..write('preguntaId: $preguntaId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(
+      id.hashCode,
+      $mrjc(
+          valorMinimo.hashCode,
+          $mrjc(
+              valorEsperado.hashCode,
+              $mrjc(
+                  valorMaximo.hashCode,
+                  $mrjc(
+                      criticMenosMinimo.hashCode,
+                      $mrjc(
+                          criticMin_Esp.hashCode,
+                          $mrjc(
+                              criticEsp_Max.hashCode,
+                              $mrjc(criticMax.hashCode,
+                                  preguntaId.hashCode)))))))));
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) ||
+      (other is CriticidadesNumerica &&
+          other.id == this.id &&
+          other.valorMinimo == this.valorMinimo &&
+          other.valorEsperado == this.valorEsperado &&
+          other.valorMaximo == this.valorMaximo &&
+          other.criticMenosMinimo == this.criticMenosMinimo &&
+          other.criticMin_Esp == this.criticMin_Esp &&
+          other.criticEsp_Max == this.criticEsp_Max &&
+          other.criticMax == this.criticMax &&
+          other.preguntaId == this.preguntaId);
+}
+
+class CriticidadesNumericasCompanion
+    extends UpdateCompanion<CriticidadesNumerica> {
+  final Value<int> id;
+  final Value<double> valorMinimo;
+  final Value<double> valorEsperado;
+  final Value<double> valorMaximo;
+  final Value<int> criticMenosMinimo;
+  final Value<int> criticMin_Esp;
+  final Value<int> criticEsp_Max;
+  final Value<int> criticMax;
+  final Value<int> preguntaId;
+  const CriticidadesNumericasCompanion({
+    this.id = const Value.absent(),
+    this.valorMinimo = const Value.absent(),
+    this.valorEsperado = const Value.absent(),
+    this.valorMaximo = const Value.absent(),
+    this.criticMenosMinimo = const Value.absent(),
+    this.criticMin_Esp = const Value.absent(),
+    this.criticEsp_Max = const Value.absent(),
+    this.criticMax = const Value.absent(),
+    this.preguntaId = const Value.absent(),
+  });
+  CriticidadesNumericasCompanion.insert({
+    this.id = const Value.absent(),
+    @required double valorMinimo,
+    @required double valorEsperado,
+    @required double valorMaximo,
+    @required int criticMenosMinimo,
+    @required int criticMin_Esp,
+    @required int criticEsp_Max,
+    @required int criticMax,
+    @required int preguntaId,
+  })  : valorMinimo = Value(valorMinimo),
+        valorEsperado = Value(valorEsperado),
+        valorMaximo = Value(valorMaximo),
+        criticMenosMinimo = Value(criticMenosMinimo),
+        criticMin_Esp = Value(criticMin_Esp),
+        criticEsp_Max = Value(criticEsp_Max),
+        criticMax = Value(criticMax),
+        preguntaId = Value(preguntaId);
+  static Insertable<CriticidadesNumerica> custom({
+    Expression<int> id,
+    Expression<double> valorMinimo,
+    Expression<double> valorEsperado,
+    Expression<double> valorMaximo,
+    Expression<int> criticMenosMinimo,
+    Expression<int> criticMin_Esp,
+    Expression<int> criticEsp_Max,
+    Expression<int> criticMax,
+    Expression<int> preguntaId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (valorMinimo != null) 'valor_minimo': valorMinimo,
+      if (valorEsperado != null) 'valor_esperado': valorEsperado,
+      if (valorMaximo != null) 'valor_maximo': valorMaximo,
+      if (criticMenosMinimo != null) 'critic_menos_minimo': criticMenosMinimo,
+      if (criticMin_Esp != null) 'critic_min_esp': criticMin_Esp,
+      if (criticEsp_Max != null) 'critic_esp_max': criticEsp_Max,
+      if (criticMax != null) 'critic_max': criticMax,
+      if (preguntaId != null) 'pregunta_id': preguntaId,
+    });
+  }
+
+  CriticidadesNumericasCompanion copyWith(
+      {Value<int> id,
+      Value<double> valorMinimo,
+      Value<double> valorEsperado,
+      Value<double> valorMaximo,
+      Value<int> criticMenosMinimo,
+      Value<int> criticMin_Esp,
+      Value<int> criticEsp_Max,
+      Value<int> criticMax,
+      Value<int> preguntaId}) {
+    return CriticidadesNumericasCompanion(
+      id: id ?? this.id,
+      valorMinimo: valorMinimo ?? this.valorMinimo,
+      valorEsperado: valorEsperado ?? this.valorEsperado,
+      valorMaximo: valorMaximo ?? this.valorMaximo,
+      criticMenosMinimo: criticMenosMinimo ?? this.criticMenosMinimo,
+      criticMin_Esp: criticMin_Esp ?? this.criticMin_Esp,
+      criticEsp_Max: criticEsp_Max ?? this.criticEsp_Max,
+      criticMax: criticMax ?? this.criticMax,
+      preguntaId: preguntaId ?? this.preguntaId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (valorMinimo.present) {
+      map['valor_minimo'] = Variable<double>(valorMinimo.value);
+    }
+    if (valorEsperado.present) {
+      map['valor_esperado'] = Variable<double>(valorEsperado.value);
+    }
+    if (valorMaximo.present) {
+      map['valor_maximo'] = Variable<double>(valorMaximo.value);
+    }
+    if (criticMenosMinimo.present) {
+      map['critic_menos_minimo'] = Variable<int>(criticMenosMinimo.value);
+    }
+    if (criticMin_Esp.present) {
+      map['critic_min_esp'] = Variable<int>(criticMin_Esp.value);
+    }
+    if (criticEsp_Max.present) {
+      map['critic_esp_max'] = Variable<int>(criticEsp_Max.value);
+    }
+    if (criticMax.present) {
+      map['critic_max'] = Variable<int>(criticMax.value);
+    }
+    if (preguntaId.present) {
+      map['pregunta_id'] = Variable<int>(preguntaId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CriticidadesNumericasCompanion(')
+          ..write('id: $id, ')
+          ..write('valorMinimo: $valorMinimo, ')
+          ..write('valorEsperado: $valorEsperado, ')
+          ..write('valorMaximo: $valorMaximo, ')
+          ..write('criticMenosMinimo: $criticMenosMinimo, ')
+          ..write('criticMin_Esp: $criticMin_Esp, ')
+          ..write('criticEsp_Max: $criticEsp_Max, ')
+          ..write('criticMax: $criticMax, ')
+          ..write('preguntaId: $preguntaId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CriticidadesNumericasTable extends CriticidadesNumericas
+    with TableInfo<$CriticidadesNumericasTable, CriticidadesNumerica> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $CriticidadesNumericasTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedIntColumn _id;
+  @override
+  GeneratedIntColumn get id => _id ??= _constructId();
+  GeneratedIntColumn _constructId() {
+    return GeneratedIntColumn('id', $tableName, false,
+        hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _valorMinimoMeta =
+      const VerificationMeta('valorMinimo');
+  GeneratedRealColumn _valorMinimo;
+  @override
+  GeneratedRealColumn get valorMinimo =>
+      _valorMinimo ??= _constructValorMinimo();
+  GeneratedRealColumn _constructValorMinimo() {
+    return GeneratedRealColumn(
+      'valor_minimo',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _valorEsperadoMeta =
+      const VerificationMeta('valorEsperado');
+  GeneratedRealColumn _valorEsperado;
+  @override
+  GeneratedRealColumn get valorEsperado =>
+      _valorEsperado ??= _constructValorEsperado();
+  GeneratedRealColumn _constructValorEsperado() {
+    return GeneratedRealColumn(
+      'valor_esperado',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _valorMaximoMeta =
+      const VerificationMeta('valorMaximo');
+  GeneratedRealColumn _valorMaximo;
+  @override
+  GeneratedRealColumn get valorMaximo =>
+      _valorMaximo ??= _constructValorMaximo();
+  GeneratedRealColumn _constructValorMaximo() {
+    return GeneratedRealColumn(
+      'valor_maximo',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _criticMenosMinimoMeta =
+      const VerificationMeta('criticMenosMinimo');
+  GeneratedIntColumn _criticMenosMinimo;
+  @override
+  GeneratedIntColumn get criticMenosMinimo =>
+      _criticMenosMinimo ??= _constructCriticMenosMinimo();
+  GeneratedIntColumn _constructCriticMenosMinimo() {
+    return GeneratedIntColumn(
+      'critic_menos_minimo',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _criticMin_EspMeta =
+      const VerificationMeta('criticMin_Esp');
+  GeneratedIntColumn _criticMin_Esp;
+  @override
+  GeneratedIntColumn get criticMin_Esp =>
+      _criticMin_Esp ??= _constructCriticMinEsp();
+  GeneratedIntColumn _constructCriticMinEsp() {
+    return GeneratedIntColumn(
+      'critic_min_esp',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _criticEsp_MaxMeta =
+      const VerificationMeta('criticEsp_Max');
+  GeneratedIntColumn _criticEsp_Max;
+  @override
+  GeneratedIntColumn get criticEsp_Max =>
+      _criticEsp_Max ??= _constructCriticEspMax();
+  GeneratedIntColumn _constructCriticEspMax() {
+    return GeneratedIntColumn(
+      'critic_esp_max',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _criticMaxMeta = const VerificationMeta('criticMax');
+  GeneratedIntColumn _criticMax;
+  @override
+  GeneratedIntColumn get criticMax => _criticMax ??= _constructCriticMax();
+  GeneratedIntColumn _constructCriticMax() {
+    return GeneratedIntColumn(
+      'critic_max',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _preguntaIdMeta = const VerificationMeta('preguntaId');
+  GeneratedIntColumn _preguntaId;
+  @override
+  GeneratedIntColumn get preguntaId => _preguntaId ??= _constructPreguntaId();
+  GeneratedIntColumn _constructPreguntaId() {
+    return GeneratedIntColumn('pregunta_id', $tableName, false,
+        $customConstraints: 'REFERENCES preguntas(id) ON DELETE CASCADE');
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        valorMinimo,
+        valorEsperado,
+        valorMaximo,
+        criticMenosMinimo,
+        criticMin_Esp,
+        criticEsp_Max,
+        criticMax,
+        preguntaId
+      ];
+  @override
+  $CriticidadesNumericasTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'criticidades_numericas';
+  @override
+  final String actualTableName = 'criticidades_numericas';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<CriticidadesNumerica> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    }
+    if (data.containsKey('valor_minimo')) {
+      context.handle(
+          _valorMinimoMeta,
+          valorMinimo.isAcceptableOrUnknown(
+              data['valor_minimo'], _valorMinimoMeta));
+    } else if (isInserting) {
+      context.missing(_valorMinimoMeta);
+    }
+    if (data.containsKey('valor_esperado')) {
+      context.handle(
+          _valorEsperadoMeta,
+          valorEsperado.isAcceptableOrUnknown(
+              data['valor_esperado'], _valorEsperadoMeta));
+    } else if (isInserting) {
+      context.missing(_valorEsperadoMeta);
+    }
+    if (data.containsKey('valor_maximo')) {
+      context.handle(
+          _valorMaximoMeta,
+          valorMaximo.isAcceptableOrUnknown(
+              data['valor_maximo'], _valorMaximoMeta));
+    } else if (isInserting) {
+      context.missing(_valorMaximoMeta);
+    }
+    if (data.containsKey('critic_menos_minimo')) {
+      context.handle(
+          _criticMenosMinimoMeta,
+          criticMenosMinimo.isAcceptableOrUnknown(
+              data['critic_menos_minimo'], _criticMenosMinimoMeta));
+    } else if (isInserting) {
+      context.missing(_criticMenosMinimoMeta);
+    }
+    if (data.containsKey('critic_min_esp')) {
+      context.handle(
+          _criticMin_EspMeta,
+          criticMin_Esp.isAcceptableOrUnknown(
+              data['critic_min_esp'], _criticMin_EspMeta));
+    } else if (isInserting) {
+      context.missing(_criticMin_EspMeta);
+    }
+    if (data.containsKey('critic_esp_max')) {
+      context.handle(
+          _criticEsp_MaxMeta,
+          criticEsp_Max.isAcceptableOrUnknown(
+              data['critic_esp_max'], _criticEsp_MaxMeta));
+    } else if (isInserting) {
+      context.missing(_criticEsp_MaxMeta);
+    }
+    if (data.containsKey('critic_max')) {
+      context.handle(_criticMaxMeta,
+          criticMax.isAcceptableOrUnknown(data['critic_max'], _criticMaxMeta));
+    } else if (isInserting) {
+      context.missing(_criticMaxMeta);
+    }
+    if (data.containsKey('pregunta_id')) {
+      context.handle(
+          _preguntaIdMeta,
+          preguntaId.isAcceptableOrUnknown(
+              data['pregunta_id'], _preguntaIdMeta));
+    } else if (isInserting) {
+      context.missing(_preguntaIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CriticidadesNumerica map(Map<String, dynamic> data, {String tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
+    return CriticidadesNumerica.fromData(data, _db, prefix: effectivePrefix);
+  }
+
+  @override
+  $CriticidadesNumericasTable createAlias(String alias) {
+    return $CriticidadesNumericasTable(_db, alias);
+  }
+}
+
 abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   $ActivosTable _activos;
@@ -4517,6 +5089,9 @@ abstract class _$Database extends GeneratedDatabase {
   $SistemasTable get sistemas => _sistemas ??= $SistemasTable(this);
   $SubSistemasTable _subSistemas;
   $SubSistemasTable get subSistemas => _subSistemas ??= $SubSistemasTable(this);
+  $CriticidadesNumericasTable _criticidadesNumericas;
+  $CriticidadesNumericasTable get criticidadesNumericas =>
+      _criticidadesNumericas ??= $CriticidadesNumericasTable(this);
   LlenadoDao _llenadoDao;
   LlenadoDao get llenadoDao => _llenadoDao ??= LlenadoDao(this as Database);
   CreacionDao _creacionDao;
@@ -4541,6 +5116,7 @@ abstract class _$Database extends GeneratedDatabase {
         respuestasXOpcionesDeRespuesta,
         contratistas,
         sistemas,
-        subSistemas
+        subSistemas,
+        criticidadesNumericas
       ];
 }

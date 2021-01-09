@@ -253,7 +253,7 @@ class WidgetRespuestas extends StatelessWidget {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
-                              tooltip: 'borrar respuesta',
+                              tooltip: 'Borrar respuesta',
                               onPressed: () =>
                                   formGroup.borrarRespuesta(element),
                             ),
