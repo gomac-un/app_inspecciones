@@ -34,6 +34,13 @@ class PreguntaConOpcionDeRespuesta {
   PreguntaConOpcionDeRespuesta(this.pregunta, this.opcionDeRespuesta);
 }
 
+class PreguntaNumerica {
+  final Pregunta pregunta;
+  final List<CriticidadesNumerica> criticidades;
+
+  PreguntaNumerica(this.pregunta, this.criticidades);
+}
+
 class PreguntaConOpcionesDeRespuesta {
   final Pregunta pregunta;
   final List<OpcionDeRespuesta> opcionesDeRespuesta;

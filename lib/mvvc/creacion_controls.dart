@@ -158,26 +158,18 @@ class CreadorCriticidadesNumericas extends FormGroup {
       : super({
           'minimo':
               fb.control<double>(d?.valorMinimo ?? 0, [Validators.required]),
-          'esperado':
-              fb.control<double>(d?.valorEsperado ?? 0, [Validators.required]),
           'maximo':
               fb.control<double>(d?.valorMaximo ?? 0, [Validators.required]),
-          'menorMinimo':
-              fb.control<int>(d?.criticMenosMinimo ?? 0, [Validators.required]),
-          'minimoEsperado': fb.control<int>(d?.criticMin_Esp ?? 0),
-          'esperadoMaximo': fb.control<int>(d?.criticEsp_Max ?? 0),
-          'criticimaximo': fb.control<int>(d?.criticMax ?? 0),
+          'criticidad': fb.control<double>(d?.criticidad?.toDouble() ?? 0)
         });
   CriticidadesNumerica toDataClass() => CriticidadesNumerica(
         id: null,
-        criticEsp_Max: (value['esperadoMaximo'] as double).round(),
-        criticMax: (value['criticimaximo'] as double).round(),
-        criticMenosMinimo: (value['menorMinimo'] as double).round(),
-        criticMin_Esp: (value['minimoEsperado'] as double).round(),
-        valorEsperado: value['menorMinimo'] as double,
-        valorMaximo: value['menorMinimo'] as double,
+        criticidad: value['criticidad'] as int ,
+        valorMaximo: value['menorMaximo'] as double,
         valorMinimo: value['menorMinimo'] as double,
       );
+
+  void agregarCriticidad() {}
 }
 
 class CreadorRespuestaFormGroup extends FormGroup {
@@ -305,10 +297,10 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
       );
 }
 
-class CreadorPreguntaNumericaFormGroup extends FormGroup implements Copiable {
+class CreadorPreguntaNumericaFormGroup extends FormGroup implements Copiable, CreadorCriticidadesNumericas {
   final ValueNotifier<List<SubSistema>> subSistemas;
   factory CreadorPreguntaNumericaFormGroup({
-    Pregunta defaultValue,
+    PreguntaNumerica defaultValue,
   }) {
     final d = defaultValue;
     final sistema = fb.control<Sistema>(null, [Validators.required]);
@@ -320,14 +312,20 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup implements Copiable {
     });
 
     final Map<String, AbstractControl<dynamic>> controles = {
-      'titulo': fb.control<String>(d?.titulo ?? "", [Validators.required]),
-      'descripcion': fb.control<String>(d?.descripcion ?? ""),
+      'titulo': fb.control<String>(d?.pregunta?.titulo ?? "", [Validators.required]),
+      'descripcion': fb.control<String>(d?.pregunta?.descripcion ?? ""),
       'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
-      'posicion': fb.control<String>(d?.posicion ?? "no aplica"),
-      'criticidad': fb.control<double>(d?.criticidad?.toDouble() ?? 0),
+      'posicion': fb.control<String>(d?.pregunta?.posicion ?? "no aplica"),
+      'criticidad': fb.control<double>(d?.pregunta?.criticidad?.toDouble() ?? 0),
       'fotosGuia': fb
-          .array<File>(d?.fotosGuia?.iter?.map((e) => File(e))?.toList() ?? []),
+          .array<File>(d?.pregunta?.fotosGuia?.iter?.map((e) => File(e))?.toList() ?? []),
+      'criticidadRespuesta': fb.array<Map<String, dynamic>>(
+        d?.criticidades
+                ?.map((e) => CreadorCriticidadesNumericas(e))
+                ?.toList() ??
+            [],
+      ),
 
       //em realidad para las cuadriculas de debe manejar distinto pero se reescribira mas adelante
     };
@@ -336,18 +334,18 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup implements Copiable {
   }
   CreadorPreguntaNumericaFormGroup._(
       Map<String, AbstractControl<dynamic>> controles, this.subSistemas,
-      {Pregunta d})
+      {PreguntaNumerica d})
       : super(controles) {
     instanciarControls(d);
     // Machetazo que puede dar resultados inesperados si se utiliza el
     // constructor en codigo sincrono ya que no se está esperando a que termine esta funcion asincrona
   }
 
-  Future<void> instanciarControls(Pregunta d) async {
+  Future<void> instanciarControls(PreguntaNumerica d) async {
     controls['sistema'].value =
-        await getIt<Database>().getSistemaPorId(d?.sistemaId);
+        await getIt<Database>().getSistemaPorId(d?.pregunta?.sistemaId);
     controls['subSistema'].value =
-        await getIt<Database>().getSubSistemaPorId(d?.subSistemaId);
+        await getIt<Database>().getSubSistemaPorId(d?.pregunta?.subSistemaId);
   }
 
   @override
@@ -355,7 +353,7 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup implements Copiable {
     return CreadorPreguntaNumericaFormGroup(defaultValue: toDataclass());
   }
 
-  Pregunta toDataclass() => Pregunta(
+  PreguntaNumerica toDataclass() => PreguntaNumerica(Pregunta(
         id: null,
         bloqueId: null,
         titulo: value['titulo'] as String,
@@ -369,7 +367,27 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup implements Copiable {
             .map((e) => e.value.path)
             .toImmutableList(),
         tipo: TipoDePregunta.numerica,
+      ),
+      (control('criticidadRespuesta') as FormArray).controls.map((e) {
+          final formGroup = e as CreadorCriticidadesNumericas;
+          return formGroup.toDataClass();
+        }).toList(),
       );
+
+  @override
+  CriticidadesNumerica toDataClass() {
+    // TODO: implement toDataClass
+    throw UnimplementedError();
+  }
+
+
+  @override
+  void agregarCriticidad() {
+    if((control('criticidadRespuesta') as FormArray).controls.length < 4){
+      (control('criticidadRespuesta') as FormArray).add(CreadorCriticidadesNumericas());
+    }
+    
+  }
 }
 
 /*

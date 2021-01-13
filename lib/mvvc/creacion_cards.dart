@@ -8,6 +8,7 @@ import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_cuadricula_card.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
+import 'package:inspecciones/mvvc/creacion_numerica_card.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -46,6 +47,7 @@ class CreadorTituloCard extends StatelessWidget {
               minLines: 1,
               maxLines: 50,
             ),
+            
             BotonesDeBloque(
               formGroup: formGroup,
               nro: nro,
@@ -71,6 +73,7 @@ class CreadorNumericaCard extends StatelessWidget {
             TipoPreguntaCard(
               formGroup: formGroup,
             ),
+            CriticidadCard(formGroup: formGroup),
             BotonesDeBloque(formGroup: formGroup),
           ],
         ));

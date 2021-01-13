@@ -24,6 +24,7 @@ part 'llenado_dao.g.dart';
   Contratistas,
   Sistemas,
   SubSistemas,
+  CriticidadesNumericas,
 ])
 class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   // this constructor is required so that the main database can create an instance
@@ -114,7 +115,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
         return BloqueConPreguntaNumerica(
          entry.value.first['bloque'] as Bloque,
-         entry.key as Pregunta, //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
+         entry.key as Pregunta, 
          await getRespuestaDePreguntaNumerica(entry.key as Pregunta, inspeccionId),
         );
       }),
@@ -126,7 +127,6 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
 
   Future<RespuestasCompanion> getRespuestaDePreguntaNumerica(
       Pregunta pregunta, int inspeccionId) async {
-    //TODO: mirar el caso donde se presenten varias respuestas a una preguntaXinspeccion
     if (inspeccionId == null) {
       return const RespuestasCompanion(fotosBase: null,id:null,reparado: null,observacion:null, fotosReparacion: null, inspeccionId: null, observacionReparacion: null, preguntaId: null,);
     }

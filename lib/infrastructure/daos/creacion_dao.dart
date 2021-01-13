@@ -25,6 +25,7 @@ part 'creacion_dao.g.dart';
   Contratistas,
   Sistemas,
   SubSistemas,
+  CriticidadesNumericas,
 ])
 class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   // this constructor is required so that the main database can create an instance
@@ -171,7 +172,20 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
             ),
           );
-          // Asociacion de las opciones de respuesta con esta pregunta
+          // Asociacion de las criticidades con esta pregunta
+          await batch((batch) {
+            batch.insertAll(
+              criticidadesNumericas,
+              (control.value["criticidadRespuesta"] as List<Map>)
+                  .map((e) => CriticidadesNumericasCompanion.insert(
+                        preguntaId: Value(pid),
+                        valorMinimo: e["minimo"] as double,
+                        valorMaximo: e['maximo'] as double,
+                        criticidad: e["criticidad"].round() as int,
+                      ))
+                  .toList(),
+            );
+          });
         }
         if (control is CreadorPreguntaCuadriculaFormGroup) {
           final cuadrId = await into(cuadriculasDePreguntas).insert(
