@@ -14,9 +14,8 @@ import 'package:inspecciones/infrastructure/moor_database.dart';
 class InspeccionesRepository {
   final InspeccionesRemoteDataSource _api;
   final Database _db;
-  final String _token;
 
-  InspeccionesRepository(this._api, this._db, @factoryParam this._token);
+  InspeccionesRepository(this._api, this._db);
 
   Future<Either<ApiFailure, Unit>> subirInspeccion(
       Inspeccion inspeccion) async {
@@ -26,7 +25,7 @@ class InspeccionesRepository {
       /*final res = await _api.putRecurso('/inspecciones/${ins['id']}/', ins,
           token: _token);*/
       log(jsonEncode(ins));
-      await _api.postRecurso('/inspecciones/', ins, token: _token);
+      await _api.postRecurso('/inspecciones/', ins);
 
       final idDocumento = ins['id'].toString();
       const tipoDocumento = 'inspecciones';
@@ -59,7 +58,7 @@ class InspeccionesRepository {
       /*final res = await _api.putRecurso('/inspecciones/${ins['id']}/', ins,
           token: _token);*/
       log(jsonEncode(ins));
-      await _api.postRecurso('/cuestionarios-completos/', ins, token: _token);
+      await _api.postRecurso('/cuestionarios-completos/', ins);
       await _db.marcarCuestionarioSubido(cuestionario);
 
       final idDocumento = ins['id'].toString();
