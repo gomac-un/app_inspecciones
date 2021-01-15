@@ -44,13 +44,9 @@ Future<GetIt> $initGetIt(
   gh.lazySingleton<Database>(() => registerModule.constructDb());
   final directorioDeDatos = await directorioDeDatosInjection.dirDatos;
   gh.factory<DirectorioDeDatos>(() => directorioDeDatos);
-  gh.lazySingleton<InspeccionesRemoteDataSource>(() => DjangoJsonAPI());
-  gh.factoryParam<InspeccionesRepository, String, dynamic>(
-      (_token, _) => InspeccionesRepository(
-            get<InspeccionesRemoteDataSource>(),
-            get<Database>(),
-            _token,
-          ));
+  gh.lazySingleton<InspeccionesRemoteDataSource>(() => DjangoJsonAPI.anon());
+  gh.factory<InspeccionesRepository>(() => InspeccionesRepository(
+      get<InspeccionesRemoteDataSource>(), get<Database>()));
   gh.lazySingleton<NetworkInfo>(
       () => NetworkInfoImpl(get<DataConnectionChecker>()));
   final sharedPreferences = await sharedPreferencesInjectableModule.prefs;

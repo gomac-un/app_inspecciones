@@ -27,8 +27,8 @@ class CreacionFormViewModel extends FormGroup {
                 value: [], validators: [Validators.minLength(1)]),
             'contratista':
                 FormControl<Contratista>(validators: [Validators.required]),
-            'periodicidad':
-                FormControl<double>(validators: [Validators.required]),
+            'periodicidad': FormControl<double>(
+                value: 0, validators: [Validators.required]),
             'bloques': FormArray(
                 [CreadorTituloFormGroup()]), //agrega un titulo inicial
           },
