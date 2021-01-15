@@ -16,9 +16,6 @@ abstract class RegisterModule {
   @lazySingleton
   Database constructDb() {
     final appId = getIt<ILocalPreferencesDataSource>().getAppId();
-    if (appId == null) {
-      throw Exception("no se ha definido el appId antes de crear la DB");
-    }
     const logStatements = true;
     if (Platform.isIOS || Platform.isAndroid) {
       final executor = LazyDatabase(() async {
