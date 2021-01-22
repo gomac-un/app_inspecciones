@@ -167,7 +167,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               sistemaId: Value(control.value["sistema"].id as int),
               subSistemaId: Value(control.value["subSistema"].id as int),
               posicion: Value(control.value["posicion"] as String),
-              tipo:  TipoDePregunta.numerica,
+              tipo: TipoDePregunta.numerica,
               criticidad: control.value["criticidad"].round() as int,
               fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
             ),
@@ -178,7 +178,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               criticidadesNumericas,
               (control.value["criticidadRespuesta"] as List<Map>)
                   .map((e) => CriticidadesNumericasCompanion.insert(
-                        preguntaId: Value(pid),
+                        preguntaId: pid,
                         valorMinimo: e["minimo"] as double,
                         valorMaximo: e['maximo'] as double,
                         criticidad: e["criticidad"].round() as int,

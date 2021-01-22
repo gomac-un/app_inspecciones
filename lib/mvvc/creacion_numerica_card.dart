@@ -9,7 +9,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 class TipoPreguntaCard extends StatelessWidget {
   final CreadorPreguntaNumericaFormGroup formGroup;
-  
+
   const TipoPreguntaCard({Key key, this.formGroup}) : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -18,6 +18,8 @@ class TipoPreguntaCard extends StatelessWidget {
       children: [
         ReactiveTextField(
           formControl: formGroup.control('titulo') as FormControl,
+          validationMessages: (control) =>
+              {'required': 'El titulo no debe estar vacío'},
           decoration: const InputDecoration(
             labelText: 'Titulo',
           ),
@@ -38,6 +40,8 @@ class TipoPreguntaCard extends StatelessWidget {
           builder: (context, value, child) {
             return ReactiveDropdownField<Sistema>(
               formControl: formGroup.control('sistema') as FormControl,
+              validationMessages: (control) =>
+                  {'required': 'Seleccione un sistema'},
               items: value
                   .map((e) => DropdownMenuItem<Sistema>(
                         value: e,
@@ -56,6 +60,8 @@ class TipoPreguntaCard extends StatelessWidget {
             builder: (context, value, child) {
               return ReactiveDropdownField<SubSistema>(
                 formControl: formGroup.control('subSistema') as FormControl,
+                validationMessages: (control) =>
+                    {'required': 'Seleccione un subsistema'},
                 items: value
                     .map((e) => DropdownMenuItem<SubSistema>(
                           value: e,
@@ -85,8 +91,8 @@ class TipoPreguntaCard extends StatelessWidget {
           ),
         ),
         InputDecorator(
-          decoration:
-              const InputDecoration(labelText: 'criticidad', filled: false),
+          decoration: const InputDecoration(
+              labelText: 'Criticidad de la pregunta', filled: false),
           child: ReactiveSlider(
             //TODO: consultar de nuevo como se manejara la criticad
 
@@ -115,23 +121,38 @@ class CriticidadCard extends StatelessWidget {
   }) : super(key: key);
 
   final CreadorCriticidadesNumericas formGroup;
-  
+
   @override
   Widget build(BuildContext context) {
-    formGroup.agregarCriticidad();
-    formGroup.agregarCriticidad();
-    formGroup.agregarCriticidad();
-    formGroup.agregarCriticidad();
     return ReactiveValueListenableBuilder(
         formControl: formGroup.control('criticidadRespuesta'),
         builder: (context, control, child) {
           return Column(
             children: [
               Text(
-                'Criticidad',
+                'Criticidad de las respuestas',
                 style: Theme.of(context).textTheme.headline6,
               ),
-              const Text('La criticidad de la respuesta está dada por rangos'),
+              const SizedBox(
+                height: 10,
+              ),
+              Text(
+                'La criticidad de la respuesta está dada por rangos. Empiece con el menor rango posible hasta llegar al máximo.',
+                style: Theme.of(context).textTheme.subtitle1,
+              ),
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.subtitle1,
+                  children: const <TextSpan>[
+                    TextSpan(
+                        text: 'Por ejemplo:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(
+                        text:
+                            ' Si el minimo valor que puede tomar la repsuesta es -100, empiece a llenar los valores así [-100,0), [0,50), [50,100), etc.'),
+                  ],
+                ),
+              ),
               if (control.invalid)
                 Text(
                   control.errors.entries.first.key,
@@ -153,35 +174,38 @@ class CriticidadCard extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                      
                               child: ReactiveTextField(
                                 keyboardType: TextInputType.number,
                                 formControl:
                                     element.control('minimo') as FormControl,
+                                validationMessages: (control) =>
+                                    {'required': 'Este valor es requerido'},
                                 decoration: const InputDecoration(
                                   labelText: 'Valor Minimo',
                                 ),
                               ),
                             ),
-                      
                             Expanded(
-                              
                               child: Padding(
                                 padding: const EdgeInsets.only(left: 5.0),
                                 child: ReactiveTextField(
                                   keyboardType: TextInputType.number,
-                                    formControl:
-                                        element.control('maximo') as FormControl,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Valor Máximo',
-                                    ),
+                                  formControl:
+                                      element.control('maximo') as FormControl,
+                                  validationMessages: (control) =>
+                                      {'required': 'Este valor es requerido',
+                                      'verificarRango': 'El valor debe ser mayor'},
+                                  decoration: const InputDecoration(
+                                    labelText: 'Valor Máximo',
                                   ),
+                                ),
                               ),
                             ),
                           ],
                         ),
                         ReactiveSlider(
-                          formControl: element.control('criticidad') as FormControl<double>,
+                          formControl: element.control('criticidad')
+                              as FormControl<double>,
                           max: 4,
                           divisions: 4,
                           labelBuilder: (v) => v.round().toString(),
@@ -191,7 +215,7 @@ class CriticidadCard extends StatelessWidget {
                     );
                   },
                 ),
-              /* OutlineButton(
+              OutlineButton(
                 onPressed: () {
                   formGroup.agregarCriticidad();
                   control.markAsTouched();
@@ -200,15 +224,12 @@ class CriticidadCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: const [
                     Icon(Icons.add),
-                    Text("Agregar Criticidad"),
+                    Text("Agregar Rango"),
                   ],
                 ),
-              ), */
+              ),
             ],
           );
         });
   }
 }
-
-
-

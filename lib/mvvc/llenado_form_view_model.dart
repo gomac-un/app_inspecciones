@@ -57,8 +57,9 @@ class LlenadoFormViewModel {
           return RespuestaCuadriculaFormArray(
               e.cuadricula, e.preguntasRespondidas);
         }
-        if( e is BloqueConPreguntaNumerica) {
-          return RespuestaNumericaFormGroup(e.pregunta, e.respuesta);
+        if (e is BloqueConPreguntaNumerica) {
+          return RespuestaNumericaFormGroup(
+              e.pregunta, e.respuesta, e.criticidades);
         }
         throw Exception("Tipo de bloque no reconocido");
       }).toList(),
@@ -73,8 +74,6 @@ class LlenadoFormViewModel {
   Future guardarInspeccionEnLocal({@required EstadoDeInspeccion estado}) async {
     form.markAllAsTouched();
 
-    
-    
     final respuestas =
         bloques.controls.expand<RespuestaConOpcionesDeRespuesta>((e) {
       if (e is TituloFormGroup) return [];

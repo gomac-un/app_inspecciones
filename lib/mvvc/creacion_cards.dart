@@ -13,6 +13,7 @@ import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+//TODO: Unificar las cosas en común de los dos tipos de pregunta: las de seleccion y la numéricas.
 class CreadorTituloCard extends StatelessWidget {
   final CreadorTituloFormGroup formGroup;
   final int nro;
@@ -32,6 +33,8 @@ class CreadorTituloCard extends StatelessWidget {
             ReactiveTextField(
               style: Theme.of(context).textTheme.headline5,
               formControl: formGroup.control('titulo') as FormControl,
+              validationMessages: (control) =>
+                  {'required': 'El titulo no debe ser vacío'},
               decoration: const InputDecoration(
                 labelText: 'Titulo',
               ),
@@ -47,7 +50,6 @@ class CreadorTituloCard extends StatelessWidget {
               minLines: 1,
               maxLines: 50,
             ),
-            
             BotonesDeBloque(
               formGroup: formGroup,
               nro: nro,
@@ -70,15 +72,15 @@ class CreadorNumericaCard extends StatelessWidget {
         titulo: 'Pregunta numérica',
         child: Column(
           children: [
-            TipoPreguntaCard(
-              formGroup: formGroup,
-            ),
+            TipoPreguntaCard(formGroup: formGroup),
+            const SizedBox(height: 20),
             CriticidadCard(formGroup: formGroup),
+            const SizedBox(height: 20),
             BotonesDeBloque(formGroup: formGroup),
           ],
         ));
   }
-} 
+}
 
 class CreadorSeleccionSimpleCard extends StatelessWidget {
   final CreadorPreguntaFormGroup formGroup;
@@ -94,6 +96,8 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
         children: [
           ReactiveTextField(
             formControl: formGroup.control('titulo') as FormControl,
+            validationMessages: (control) =>
+                {'required': 'El titulo no debe estar vacío'},
             decoration: const InputDecoration(
               labelText: 'Titulo',
             ),
@@ -114,6 +118,8 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             builder: (context, value, child) {
               return ReactiveDropdownField<Sistema>(
                 formControl: formGroup.control('sistema') as FormControl,
+                validationMessages: (control) =>
+                    {'required': 'Seleccione el sistema'},
                 items: value
                     .map((e) => DropdownMenuItem<Sistema>(
                           value: e,
@@ -132,6 +138,8 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
               builder: (context, value, child) {
                 return ReactiveDropdownField<SubSistema>(
                   formControl: formGroup.control('subSistema') as FormControl,
+                  validationMessages: (control) =>
+                      {'required': 'Seleccione el subsistema'},
                   items: value
                       .map((e) => DropdownMenuItem<SubSistema>(
                             value: e,
@@ -162,7 +170,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           ),
           InputDecorator(
             decoration:
-                const InputDecoration(labelText: 'criticidad', filled: false),
+                const InputDecoration(labelText: 'Criticidad de la pregunta', filled: false),
             child: ReactiveSlider(
               //TODO: consultar de nuevo como se manejara la criticad
 
@@ -182,6 +190,8 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           ),
           ReactiveDropdownField<TipoDePregunta>(
             formControl: formGroup.control('tipoDePregunta') as FormControl,
+            validationMessages: (control) =>
+                {'required': 'Seleccione el tipo de pregunta'},
             items: [
               TipoDePregunta.unicaRespuesta,
               TipoDePregunta.multipleRespuesta,
@@ -249,6 +259,8 @@ class WidgetRespuestas extends StatelessWidget {
                               child: ReactiveTextField(
                                 formControl:
                                     element.control('texto') as FormControl,
+                                validationMessages: (control) =>
+                                    {'required': 'Este valor es requerido'},
                                 decoration: const InputDecoration(
                                   labelText: 'Respuesta',
                                 ),
@@ -310,12 +322,12 @@ class BotonesDeBloque extends StatelessWidget {
           tooltip: 'agregar pregunta',
           onPressed: () => agregarBloque(context, CreadorPreguntaFormGroup()),
         ),
-       IconButton(
+        IconButton(
           icon: const Icon(Icons.calculate),
           tooltip: 'Pregunta Númerica',
           onPressed: () =>
               agregarBloque(context, CreadorPreguntaNumericaFormGroup()),
-        ), 
+        ),
         IconButton(
           icon: const Icon(Icons.format_size),
           tooltip: 'agregar titulo',
@@ -409,11 +421,11 @@ class ControlWidget extends StatelessWidget {
           key: ValueKey(element),
           formGroup: element as CreadorPreguntaCuadriculaFormGroup);
     }
-     if (element is CreadorPreguntaNumericaFormGroup) {
+    if (element is CreadorPreguntaNumericaFormGroup) {
       return CreadorNumericaCard(
         formGroup: element as CreadorPreguntaNumericaFormGroup,
       );
-    } 
+    }
     return Text("error: el bloque $index no tiene una card que lo renderice");
   }
 }

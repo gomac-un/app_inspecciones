@@ -42,6 +42,7 @@ class InicioInspeccionForm extends StatelessWidget {
               children: [
                 ReactiveTextField(
                   formControlName: 'activo',
+                  keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'Escriba el ID del vehiculo',
                     prefixIcon: Icon(Icons.directions_car),

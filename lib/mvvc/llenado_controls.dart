@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'dart:io';
 import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -20,7 +21,6 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     // entonces aca se asignan definen nuevo los valores por defecto que son usados
     // cuando se inicia una nueva inspeccion
     respuesta.respuesta ??= crearRespuestaPorDefecto(pregunta.pregunta.id);
-
 
     FormControl respuestas;
     //TODO: hacer un switch para pregunta.pregunta.tipo
@@ -156,26 +156,28 @@ class RespuestaNumericaFormGroup extends FormGroup
     implements BloqueDeFormulario {
   final Pregunta pregunta;
   RespuestasCompanion respuesta;
+  List<CriticidadesNumerica> criticidades;
   DateTime _momentoRespuesta;
 
   factory RespuestaNumericaFormGroup(Pregunta pregunta,
-      RespuestasCompanion respuesta) {
+      RespuestasCompanion respuesta, List<CriticidadesNumerica> criticidades) {
     // La idea era que los companions devolvieran los valores por defecto pero no es asi
     // https://github.com/simolus3/moor/issues/960
     // entonces aca se asignan definen nuevo los valores por defecto que son usados
     // cuando se inicia una nueva inspeccion
 
-  if(respuesta.preguntaId == null){
-    respuesta= crearRespuestaPorDefecto(pregunta.id);
-  }
+    if (respuesta.preguntaId == null) {
+      respuesta = crearRespuestaPorDefecto(pregunta.id);
+    }
 
-   final FormControl respuestas = FormControl<OpcionesDeRespuesta>(
-      );
+    final FormControl respuestas = FormControl<OpcionesDeRespuesta>();
+    print('Hola otra vez');
+    print(criticidades);
 
     //TODO: hacer un switch para pregunta.pregunta.tipo
     final Map<String, AbstractControl<dynamic>> controles = {
       'respuesta': respuestas,
-      'valor': fb.control<double>(respuesta.valor.value),
+      'valor': fb.control<double>(respuesta.valor.value, [Validators.required]),
       'observacion': fb.control<String>(respuesta.observacion.value),
       'fotosBase': fb.array<File>(
         respuesta.fotosBase.value
@@ -198,14 +200,26 @@ class RespuestaNumericaFormGroup extends FormGroup
       controles,
       pregunta,
       respuesta,
+      criticidades,
     );
   }
   //constructor que le envia los controles a la clase padre
-  RespuestaNumericaFormGroup._(
-      Map<String, AbstractControl> controles, this.pregunta, this.respuesta)
+  RespuestaNumericaFormGroup._(Map<String, AbstractControl> controles,
+      this.pregunta, this.respuesta, this.criticidades)
       : super(controles) {
     valueChanges.listen((_) => _momentoRespuesta =
         DateTime.now()); //guarda el momento de la ultima edicion
+  }
+
+  int lulu(
+    double respuesta,
+    CriticidadesNumerica criticidades,
+  ) {
+    if (respuesta > criticidades.valorMinimo &&
+        respuesta < criticidades.valorMaximo) {
+      return criticidades.criticidad;
+    }
+    return 0;
   }
 
   @override
@@ -214,34 +228,17 @@ class RespuestaNumericaFormGroup extends FormGroup
       * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
       * solo para la pantalla de arreglos
       */
-    int sumres;
+    final double respuesta = (control('valor') as FormControl<double>).value;
 
-    /* switch (pregunta.tipo) {
-      case TipoDePregunta.multipleRespuesta:
-        sumres = (control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
-            .value
-            .fold(0, (p, c) => p + c.criticidad);
-        break;
-      case TipoDePregunta.unicaRespuesta:
-        sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
-            .value
-            .criticidad;
-        break;
-      case TipoDePregunta.parteDeCuadriculaUnica:
-        sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
-            .value
-            .criticidad;
-        break;
-      default:
-        throw Exception("tipo de pregunta no esperado");
-    } */
+    final int criRes =
+        criticidades?.map((cri) => lulu(respuesta, cri))?.toList()[0];
 
-    return /* pregunta.criticidad */ 4 * 2 /* sumres */;
+    return pregunta.criticidad * criRes;
   }
 
   RespuestaConOpcionesDeRespuesta toDB() {
     List<OpcionDeRespuesta> respuestas;
-        respuestas = [control('respuesta').value as OpcionDeRespuesta];
+    respuestas = [control('respuesta').value as OpcionDeRespuesta];
     final double campo = control('valor').value as double;
     return RespuestaConOpcionesDeRespuesta(
       respuesta.copyWith(

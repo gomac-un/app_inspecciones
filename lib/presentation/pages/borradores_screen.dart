@@ -12,6 +12,8 @@ import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
 
 //TODO: creacion de inpecciones con excel
+//TODO: A futuro, Implementar que se puedan seleccionar varios cuestionarios para eliminarlos.
+//TODO: A futuro, implementar que cuando la inspeccion esté en estado finalizado o reparacion, el text field sea solo de lectura.
 class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) {
@@ -120,6 +122,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                       Scaffold.of(context).showSnackBar(SnackBar(
                         content: Text(res),
                       ));
+                      print(res);
                     }),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete),

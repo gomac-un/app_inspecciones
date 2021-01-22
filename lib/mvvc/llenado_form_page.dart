@@ -11,6 +11,7 @@ import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   final int activo;
@@ -188,13 +189,15 @@ class BotonesGuardado extends StatelessWidget {
                                   activo: activo,
                                   cuestionarioId: cuestionarioId));
                         } else {
-                          await guardarYSalir(context);
+                          mostrarMensaje(context,
+                              'Ha finalizado la inspección, no debe hacer reparaciones');
                         }
                         break;
                       case EstadoDeInspeccion.reparacion:
-                        await guardarYSalir(context);
+                        mostrarMensaje(context, 'Inspección finalizada');
                         break;
                       default:
+
                     }
                   },
           ),
@@ -211,8 +214,50 @@ class BotonesGuardado extends StatelessWidget {
       estado: EstadoDeInspeccion.finalizada,
     );
     LoadingDialog.hide(context);
-    ExtendedNavigator.of(context).pop("Inspeccion finalizada");
+    ExtendedNavigator.of(context).pop();
   }
+
+ void mostrarMensaje(BuildContext context, String mensaje) {
+    Alert(
+      context: context,
+      style: AlertStyle(
+        overlayColor: Colors.blueAccent[100],
+        animationType: AnimationType.fromTop,
+        isCloseButton: false,
+        isOverlayTapDismiss: false,
+        descStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+        ),
+        animationDuration: const Duration(milliseconds: 400),
+        alertBorder: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+          side: const BorderSide(
+            color: Colors.grey,
+          ),
+        ),
+        titleStyle: const TextStyle(
+          color: Colors.white,
+        ),
+      ),
+      type: AlertType.success,
+      title: 'Éxito',
+      desc: mensaje,
+      buttons: [
+        DialogButton(
+          onPressed: () async =>
+              {Navigator.pop(context), await guardarYSalir(context)},
+          color: Theme.of(context).accentColor,
+          radius: BorderRadius.circular(10.0),
+          child: const Text(
+            "Aceptar",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+        ),
+      ],
+    ).show();
+  }
+
 }
 
 class ErroresDialog extends StatelessWidget {
@@ -246,3 +291,4 @@ class AlertReparacion extends StatelessWidget {
     );
   }
 }
+

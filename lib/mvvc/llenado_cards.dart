@@ -65,6 +65,9 @@ class NumericaCard extends StatelessWidget {
            
           ReactiveTextField(
             formControl: formGroup.control('valor') as FormControl,
+            validationMessages: (control) => {
+            'required': 'El valor no puede estar vacio'
+          },
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               labelText: "Escriba la respuesta",

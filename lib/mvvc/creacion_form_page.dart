@@ -7,6 +7,7 @@ import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:inspecciones/mvvc/form_scaffold.dart';
 import 'package:inspecciones/mvvc/reactive_multiselect_dialog_field.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
+import 'package:inspecciones/presentation/widgets/alertas.dart';
 import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
@@ -42,6 +43,8 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                     builder: (context, value, child) {
                       return ReactiveDropdownField<String>(
                         formControlName: "tipoDeInspeccion",
+                        validationMessages: (control) =>
+                            {'required': 'Este valor es requerido'},
                         items: value
                             .map((e) => DropdownMenuItem<String>(
                                   value: e,
@@ -61,6 +64,8 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                         if (value.value == "otra") {
                           return ReactiveTextField(
                             formControlName: "nuevoTipoDeInspeccion",
+                            validationMessages: (control) =>
+                                {'required': 'Este valor es requerido'},
                             decoration: const InputDecoration(
                               labelText: 'Escriba el tipo de inspeccion',
                               prefixIcon: Icon(Icons.text_fields),
@@ -98,6 +103,8 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                 builder: (context, value, child) {
                   return ReactiveDropdownField(
                     formControlName: 'contratista',
+                    validationMessages: (control) =>
+                        {'required': 'Seleccione un contratista'},
                     items: value
                         .map((e) => DropdownMenuItem(
                               value: e,
@@ -167,7 +174,7 @@ class BotonFinalizar extends StatelessWidget {
             onPressed: !form.valid
                 ? () {
                     form.markAllAsTouched();
-                    Scaffold.of(context).showSnackBar(SnackBar(
+                    /* Scaffold.of(context).showSnackBar(SnackBar(
                         content: Row(
                       children: [
                         const Text("La inspeccion tiene errores"),
@@ -186,14 +193,17 @@ class BotonFinalizar extends StatelessWidget {
                             },
                             child: const Text("ver errores"))
                       ],
-                    )));
+                    ))); */
+                    mostrarErrores(context, form);
                   }
                 : () async {
                     LoadingDialog.show(context);
                     await (form as CreacionFormViewModel).enviar();
                     LoadingDialog.hide(context);
-                    ExtendedNavigator.of(context)
-                        .pop("Cuestionario creado exitosamente");
+                    /* ExtendedNavigator.of(context)
+                        .pop("Cuestionario creado exitosamente"); */
+                        mostrarMensaje(context,'exito', 'Cuestionario creado exitosamente');
+                        
                   },
           ),
         ],

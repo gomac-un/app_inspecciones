@@ -208,7 +208,7 @@ class CriticidadesNumericas extends Table{
   RealColumn get  valorMaximo => real()();
   IntColumn get criticidad => integer()();
   @JsonKey('pregunta')
-  IntColumn get preguntaId => integer().nullable()();
+  IntColumn get preguntaId => integer()();
 }
 
 class Respuestas extends Table {

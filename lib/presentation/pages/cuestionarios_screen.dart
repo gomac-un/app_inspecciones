@@ -5,9 +5,9 @@ import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/widgets/drawer.dart';
+import 'package:inspecciones/presentation/widgets/alertas.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
-
 import '../../infrastructure/moor_database.dart';
 
 //TODO: creacion de inpecciones con excel
@@ -82,15 +82,14 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
                               .then((res) => res.fold(
                                   (fail) => fail.when(
                                       noHayConexionAlServidor: () =>
-                                          "no hay conexion al servidor",
-                                      noHayInternet: () => "no hay internet",
+                                          "No hay conexion al servidor",
+                                      noHayInternet: () => "No hay internet",
                                       serverError: (msg) =>
-                                          "error inesperado: $msg"),
-                                  (u) => "exito"));
-                          print(res);
-                          Scaffold.of(context).showSnackBar(SnackBar(
-                            content: Text(res),
-                          ));
+                                          "Error inesperado: $msg"),
+                                  (u) => "El cuestionario ha sido enviado"));
+                          res=='El cuestionario ha sido enviado' ?
+                          mostrarMensaje(context,'exito', res, ocultar: false )
+                          : mostrarMensaje(context,'error',res, ocultar: false);
                         })
                     : const SizedBox.shrink(),
                 trailing: cuestionario.esLocal
@@ -174,3 +173,4 @@ class FloatingActionButtonCreacionCuestionario extends StatelessWidget {
     );
   }
 }
+

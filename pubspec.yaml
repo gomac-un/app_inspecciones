@@ -43,6 +43,7 @@ dependencies:
   moor: ^3.3.1
   moor_db_viewer: ^2.0.3
   multi_select_flutter: ^3.1.6
+  rflutter_alert: ^1.1.0
   open_file: ^3.0.3
   path: ^1.7.0
   path_provider: ^1.6.18
@@ -51,7 +52,8 @@ dependencies:
   reactive_forms: ^7.6.2
   share: ^0.6.5+4
   shared_preferences: ^0.5.12+4
-  sqlite3_flutter_libs: ^0.2.0
+  sqlite3_flutter_libs: ^0.3.0
+  
 
 dev_dependencies:
   flutter_test:

@@ -4491,7 +4491,7 @@ class CriticidadesNumerica extends DataClass
       @required this.valorMinimo,
       @required this.valorMaximo,
       @required this.criticidad,
-      this.preguntaId});
+      @required this.preguntaId});
   factory CriticidadesNumerica.fromData(
       Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
@@ -4634,10 +4634,11 @@ class CriticidadesNumericasCompanion
     @required double valorMinimo,
     @required double valorMaximo,
     @required int criticidad,
-    this.preguntaId = const Value.absent(),
+    @required int preguntaId,
   })  : valorMinimo = Value(valorMinimo),
         valorMaximo = Value(valorMaximo),
-        criticidad = Value(criticidad);
+        criticidad = Value(criticidad),
+        preguntaId = Value(preguntaId);
   static Insertable<CriticidadesNumerica> custom({
     Expression<int> id,
     Expression<double> valorMinimo,
@@ -4765,7 +4766,7 @@ class $CriticidadesNumericasTable extends CriticidadesNumericas
     return GeneratedIntColumn(
       'pregunta_id',
       $tableName,
-      true,
+      false,
     );
   }
 
@@ -4816,6 +4817,8 @@ class $CriticidadesNumericasTable extends CriticidadesNumericas
           _preguntaIdMeta,
           preguntaId.isAcceptableOrUnknown(
               data['pregunta_id'], _preguntaIdMeta));
+    } else if (isInserting) {
+      context.missing(_preguntaIdMeta);
     }
     return context;
   }

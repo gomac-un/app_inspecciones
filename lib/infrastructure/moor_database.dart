@@ -133,6 +133,9 @@ class Database extends _$Database {
         final opcionesDeLaPregunta = await (select(opcionesDeRespuesta)
               ..where((op) => op.preguntaId.equals(p.id)))
             .get();
+        final criticidadPregunta = await (select(criticidadesNumericas)
+              ..where((cri) => cri.preguntaId.equals(p.id)))
+            .get(); //TODO: Verificar si esto funciona
 
         //enviar solo el basename al server
         final pregunta =
@@ -141,6 +144,8 @@ class Database extends _$Database {
             pregunta.toJson(serializer: const CustomSerializer());
         preguntaJson["opciones_de_respuesta"] =
             opcionesDeLaPregunta.map((op) => op.toJson()).toList();
+        preguntaJson["criticidades"] =
+            criticidadPregunta.map((cri) => cri.toJson()).toList();
         return preguntaJson;
       }));
 
@@ -173,17 +178,15 @@ class Database extends _$Database {
       Inspeccion inspeccion) async {
     //get inspeccion
     final jsonIns = inspeccion.toJson(serializer: const CustomSerializer());
-
     //get respuestas
     final queryRes = select(respuestas).join([
       leftOuterJoin(respuestasXOpcionesDeRespuesta,
           respuestasXOpcionesDeRespuesta.respuestaId.equalsExp(respuestas.id)),
     ])
       ..where(respuestas.inspeccionId.equals(inspeccion.id));
-
     final res = await queryRes
         .map((row) => RespuestaconOpcionDeRespuestaId(row.readTable(respuestas),
-            row.readTable(respuestasXOpcionesDeRespuesta).opcionDeRespuestaId))
+            row.readTable(respuestasXOpcionesDeRespuesta)?.opcionDeRespuestaId))
         .get();
 
     final resAgrupadas = groupBy<RespuestaconOpcionDeRespuestaId, Respuesta>(
@@ -198,7 +201,7 @@ class Database extends _$Database {
           respuesta.toJson(serializer: const CustomSerializer());
 
       respuestaJson['respuestas'] =
-          entry.value.map((e) => e.opcionDeRespuestaId).toList();
+          entry.value.map((e) => e.respuesta).toList();
 
       return respuestaJson;
     }).toList();
@@ -215,7 +218,6 @@ class Database extends _$Database {
     ];
     pero no se puede hasta que se implemente esto https://github.com/dart-lang/language/issues/216
     */
-
     final activosParseados = (json["Activo"] as List)
         .map((e) => Activo.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -280,6 +282,11 @@ class Database extends _$Database {
     final opcionesDeRespuestaParseados = (json["OpcionDeRespuesta"] as List)
         .map((e) => OpcionDeRespuesta.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    final criticidadesNumericasParseadas = (json['CriticidadNumerica'] as List)
+        .map((e) => CriticidadesNumerica.fromJson(e as Map<String, dynamic>))
+        .toList();
+
     await customStatement('PRAGMA foreign_keys = OFF');
     await transaction(() async {
       final deletes = [
@@ -294,6 +301,7 @@ class Database extends _$Database {
         delete(cuadriculasDePreguntas).go(),
         delete(preguntas).go(),
         delete(opcionesDeRespuesta).go(),
+        delete(criticidadesNumericas).go(),
       ];
       await Future.wait(deletes);
       await batch((b) {
@@ -308,6 +316,7 @@ class Database extends _$Database {
         b.insertAll(cuadriculasDePreguntas, cuadriculasDePreguntasParseados);
         b.insertAll(preguntas, preguntasParseados);
         b.insertAll(opcionesDeRespuesta, opcionesDeRespuestaParseados);
+        b.insertAll(criticidadesNumericas, criticidadesNumericasParseadas);
       });
     });
     await customStatement('PRAGMA foreign_keys = ON');

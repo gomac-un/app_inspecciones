@@ -22,7 +22,7 @@ generarPDF(/*Inspeccion ins*/) async {
   final lista = ListView(
     children: [Text("coltest")],
   );
-  final tabla = Table(children: [TableRow()]);
+  final tabla = Table(children: [const TableRow()]);
 
   final cuadriculaSelUnica1 = Container(
     margin: const EdgeInsets.all(8),
@@ -194,8 +194,7 @@ generarPDF(/*Inspeccion ins*/) async {
 
   final output = await getTemporaryDirectory();
   final file = File("${output.path}/example.pdf");
-  //final file = File("example.pdf");
-  print(file.path);
+  //final file = File("example.pdf")
   await file.writeAsBytes(pdf.save());
   //Share.shareFiles([file.path], text: 'Great pdf');
   OpenFile.open(file.path);

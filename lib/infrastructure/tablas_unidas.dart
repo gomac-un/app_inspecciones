@@ -15,7 +15,7 @@ class BloqueConPreguntaRespondida {
   });
 }
 
-class BloqueConPregunta extends IBloqueOrdenable{
+class BloqueConPregunta extends IBloqueOrdenable {
   final Bloque bloque;
   final Pregunta pregunta;
   final Respuesta respuesta;
@@ -114,8 +114,10 @@ class BloqueConTitulo extends IBloqueOrdenable {
 class BloqueConPreguntaNumerica extends IBloqueOrdenable {
   final Pregunta pregunta;
   final RespuestasCompanion respuesta;
-  BloqueConPreguntaNumerica(Bloque bloque, this.pregunta, this.respuesta) : super(bloque);
-
+  final List<CriticidadesNumerica> criticidades;
+  BloqueConPreguntaNumerica(
+      Bloque bloque, this.pregunta, this.respuesta, this.criticidades)
+      : super(bloque);
 }
 
 class BloqueConPreguntaSimple extends IBloqueOrdenable {
