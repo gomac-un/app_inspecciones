@@ -6,10 +6,11 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/mvvc/auth_listener_widget.dart';
 import 'package:inspecciones/router.gr.dart';
+import 'package:provider/provider.dart';
 import 'injection.dart';
 
 Future main() async {
-  
+  Provider.debugCheckInvalidValueType = null;
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
   final navigatorKey = GlobalKey<NavigatorState>();

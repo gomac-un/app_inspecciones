@@ -62,12 +62,11 @@ class NumericaCard extends StatelessWidget {
                   .iter
                   .toList(),
             ),
-           
+
           ReactiveTextField(
             formControl: formGroup.control('valor') as FormControl,
-            validationMessages: (control) => {
-            'required': 'El valor no puede estar vacio'
-          },
+            validationMessages: (control) =>
+                {'required': 'El valor no puede estar vacio'},
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               labelText: "Escriba la respuesta",
@@ -91,7 +90,7 @@ class NumericaCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Fotos base',
             ),
-          ), 
+          ),
           if (viewModel.estado.value == EstadoDeInspeccion.reparacion)
             ReactiveCheckboxListTile(
               formControl: formGroup.control('reparado') as FormControl,
@@ -117,7 +116,7 @@ class NumericaCard extends StatelessWidget {
                         maxLines: null,
                         textInputAction: TextInputAction.next,
                       ),
-                     /*  FormBuilderImagePicker(
+                      /*  FormBuilderImagePicker(
                         formArray: formGroup.control('fotosReparacion')
                             as FormArray<File>,
                         decoration: const InputDecoration(
@@ -138,10 +137,24 @@ class NumericaCard extends StatelessWidget {
 
 class SeleccionSimpleCard extends StatelessWidget {
   final RespuestaSeleccionSimpleFormGroup formGroup;
-
-  const SeleccionSimpleCard({Key key, this.formGroup}) : super(key: key);
+  
+  const SeleccionSimpleCard({Key key, this.formGroup,}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    //TODO: Tengo que arreglar esto, pero es un machetazo para poder probar las inspecciones de preguntas condicionales. El problema es la forma en la que se está haciendo la consulta en llenado_dao, estaban saliendo repetidas las opciones.
+    final List<OpcionDeRespuesta> listaOpcionesDeRespuesta = [];
+    void obtenerListas() {
+      formGroup.pregunta.opcionesDeRespuesta.forEach((u) => {
+            if (listaOpcionesDeRespuesta.contains(u)){
+            }
+            else{
+              listaOpcionesDeRespuesta.add(u),
+            }
+          });
+      
+    }
+    obtenerListas();
+
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
     return PreguntaCard(
       titulo: formGroup.pregunta.pregunta.titulo,
@@ -159,7 +172,7 @@ class SeleccionSimpleCard extends StatelessWidget {
             ReactiveDropdownField<OpcionDeRespuesta>(
               formControl: formGroup.control('respuestas') as FormControl<
                   OpcionDeRespuesta>, //La de seleccion unica usa el control de la primer pregunta de la lista
-              items: formGroup.pregunta.opcionesDeRespuesta
+              items: listaOpcionesDeRespuesta
                   .map((e) => DropdownMenuItem<OpcionDeRespuesta>(
                       value: e, child: Text(e.texto)))
                   .toList(),
@@ -170,12 +183,18 @@ class SeleccionSimpleCard extends StatelessWidget {
                 FocusScope.of(context)
                     .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
               },
+              onChanged: (value) {
+                if(formGroup.pregunta.pregunta.esCondicional == true){
+                  viewModel.borrarBloque(formGroup.bloque.nOrden, formGroup.seccion,);
+                }
+                
+              },
             ),
           if (formGroup.pregunta.pregunta.tipo ==
               TipoDePregunta.multipleRespuesta)
             ReactiveMultiSelectDialogField<OpcionDeRespuesta>(
               buttonText: const Text('Seleccione entre las opciones'),
-              items: formGroup.pregunta.opcionesDeRespuesta
+              items: listaOpcionesDeRespuesta
                   .map((e) => MultiSelectItem(e, e.texto))
                   .toList(),
               formControl: formGroup.control('respuestas')

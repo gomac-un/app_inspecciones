@@ -10,6 +10,7 @@ import 'package:inspecciones/mvvc/creacion_cuadricula_card.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:inspecciones/mvvc/creacion_numerica_card.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
+import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -63,8 +64,10 @@ class CreadorTituloCard extends StatelessWidget {
 
 class CreadorNumericaCard extends StatelessWidget {
   final CreadorPreguntaNumericaFormGroup formGroup;
+  final int nro;
 
-  const CreadorNumericaCard({Key key, this.formGroup}) : super(key: key);
+  const CreadorNumericaCard({Key key, this.formGroup, this.nro})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +79,7 @@ class CreadorNumericaCard extends StatelessWidget {
             const SizedBox(height: 20),
             CriticidadCard(formGroup: formGroup),
             const SizedBox(height: 20),
-            BotonesDeBloque(formGroup: formGroup),
+            BotonesDeBloque(formGroup: formGroup, nro: nro),
           ],
         ));
   }
@@ -84,14 +87,16 @@ class CreadorNumericaCard extends StatelessWidget {
 
 class CreadorSeleccionSimpleCard extends StatelessWidget {
   final CreadorPreguntaFormGroup formGroup;
+  final int nro;
 
-  const CreadorSeleccionSimpleCard({Key key, this.formGroup}) : super(key: key);
+  const CreadorSeleccionSimpleCard({Key key, this.formGroup, this.nro})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<CreacionFormViewModel>(context);
     return PreguntaCard(
-      titulo: 'Pregunta de seleccion',
+      titulo: 'Pregunta de selección',
       child: Column(
         children: [
           ReactiveTextField(
@@ -99,7 +104,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             validationMessages: (control) =>
                 {'required': 'El titulo no debe estar vacío'},
             decoration: const InputDecoration(
-              labelText: 'Titulo',
+              labelText: 'Título',
             ),
           ),
           const SizedBox(height: 10),
@@ -157,7 +162,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             items: [
               "No aplica",
               "Adelante",
-              "Atras"
+              "Atrás"
             ] //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
@@ -165,12 +170,12 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
                     ))
                 .toList(),
             decoration: const InputDecoration(
-              labelText: 'Posicion',
+              labelText: 'Posición',
             ),
           ),
           InputDecorator(
-            decoration:
-                const InputDecoration(labelText: 'Criticidad de la pregunta', filled: false),
+            decoration: const InputDecoration(
+                labelText: 'Criticidad de la pregunta', filled: false),
             child: ReactiveSlider(
               //TODO: consultar de nuevo como se manejara la criticad
 
@@ -185,7 +190,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           FormBuilderImagePicker(
             formArray: formGroup.control('fotosGuia') as FormArray<File>,
             decoration: const InputDecoration(
-              labelText: 'Fotos guia',
+              labelText: 'Fotos guía',
             ),
           ),
           ReactiveDropdownField<TipoDePregunta>(
@@ -207,8 +212,52 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          WidgetRespuestas(formGroup: formGroup),
-          BotonesDeBloque(formGroup: formGroup),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '¿Es una pregunta condicional?',
+                style: Theme.of(context).textTheme.headline6,
+                textAlign: TextAlign.right,
+              ),
+              ReactiveRadioListTile(
+                formControl:
+                    formGroup.control('condicional') as FormControl<bool>,
+                title: Text('Si'),
+                controlAffinity: ListTileControlAffinity.leading,
+                value: true,
+              ),
+              ReactiveRadioListTile(
+                formControl:
+                    formGroup.control('condicional') as FormControl<bool>,
+                title: Text('No'),
+                controlAffinity: ListTileControlAffinity.leading,
+                value: false,
+              ),
+              // ignore: prefer_const_literals_to_create_immutables
+            ],
+          ),
+
+          ReactiveValueListenableBuilder(
+            formControl: formGroup.control('condicional') as FormControl<bool>,
+            builder: (context, AbstractControl<bool> control, child) {
+              if (control.value) {
+                return Column(
+                  children: [
+                    WidgetRespuestaCondicional(formGroup: formGroup),
+                    BotonesDeBloque(formGroup: formGroup, nro: nro),
+                  ],
+                );
+              }
+              return Column(
+                children: [
+                  WidgetRespuestas(formGroup: formGroup),
+                  BotonesDeBloque(formGroup: formGroup, nro: nro),
+                ],
+              );
+            },
+          ),
+
           // Muestra las observaciones de la reparacion solo si reparado es true
         ],
       ),
@@ -249,6 +298,7 @@ class WidgetRespuestas extends StatelessWidget {
                   itemBuilder: (context, i) {
                     final element = (control as FormArray).controls[i]
                         as CreadorRespuestaFormGroup;
+                        element.control('seccion').removeError('required');
                     //Las keys sirven para que flutter maneje correctamente los widgets de la lista
                     return Column(
                       key: ValueKey(element),
@@ -305,6 +355,128 @@ class WidgetRespuestas extends StatelessWidget {
   }
 }
 
+class WidgetRespuestaCondicional extends StatelessWidget {
+  const WidgetRespuestaCondicional({
+    Key key,
+    @required this.formGroup,
+  }) : super(key: key);
+
+  final ConRespuestas formGroup;
+
+  @override
+  Widget build(BuildContext context) {
+    
+    final viewModel = Provider.of<CreacionFormViewModel>(context);
+    return ReactiveValueListenableBuilder(
+        formControl: (formGroup as FormGroup).control('respuestas'),
+        builder: (context, control, child) {
+          return Column(
+            children: [
+              Text(
+                'Respuestas',
+                style: Theme.of(context).textTheme.headline6,
+              ),
+              if (control.invalid)
+                Text(
+                  control.errors.entries.first.key,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              const SizedBox(height: 10),
+              if ((control as FormArray).controls.isNotEmpty)
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: (control as FormArray).controls.length,
+                  itemBuilder: (context, i) {
+                    final element = (control as FormArray).controls[i]
+                        as CreadorRespuestaFormGroup;
+                    //Las keys sirven para que flutter maneje correctamente los widgets de la lista
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                      child: Column(
+                        key: ValueKey(element),
+                        children: [
+                          Divider(color: Colors.grey[700], height: 5),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: ReactiveTextField(
+                                    formControl:
+                                        element.control('texto') as FormControl,
+                                    validationMessages: (control) =>
+                                        {'required': 'Este valor es requerido'},
+                                    decoration: const InputDecoration(
+                                      labelText: 'Respuesta',
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  tooltip: 'Borrar respuesta',
+                                  onPressed: () =>
+                                      formGroup.borrarRespuesta(element),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ReactiveSlider(
+                            formControl: element.control('criticidad')
+                                as FormControl<double>,
+                            max: 4,
+                            divisions: 4,
+                            labelBuilder: (v) => v.round().toString(),
+                            activeColor: Colors.red,
+                          ),
+
+                          //TODO: Que cuando se elimine el bloque el valor por defecto vuelva a null, así no se envía el valor de un bloque que no existe
+                          ValueListenableBuilder<List<String>>(
+                              valueListenable: viewModel.totalBloques,
+                              builder: (context, value, child) {
+                                return ReactiveDropdownField<String>(
+                                  formControl:
+                                      element.control('seccion') as FormControl,
+                                  validationMessages: (control) =>
+                                      {'required': 'Seleccione el bloque'},
+                                  items: value
+                                      .map((e) => DropdownMenuItem<String>(
+                                            value: e,
+                                            child: Text('Ir a bloque $e'),
+                                          ))
+                                      .toList(),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Seccion',
+                                  ),
+                                  onChanged: (value) => {
+                                    element.control('seccion').removeError('required'),
+                                  },
+                                );
+                              }),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              OutlineButton(
+                onPressed: () {
+                  formGroup.agregarRespuesta();
+                  control.markAsTouched();
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.add),
+                    Text("Agregar respuesta"),
+                  ],
+                ),
+              ),
+            ],
+          );
+        });
+  }
+}
+
 class BotonesDeBloque extends StatelessWidget {
   final int nro;
   const BotonesDeBloque({Key key, this.formGroup, this.nro}) : super(key: key);
@@ -339,22 +511,74 @@ class BotonesDeBloque extends StatelessWidget {
           onPressed: () =>
               agregarBloque(context, CreadorPreguntaCuadriculaFormGroup()),
         ),
-        IconButton(
-          icon: const Icon(Icons.copy),
-          tooltip: 'copiar bloque',
-          onPressed: () => copiarBloque(context),
+        PopupMenuButton<int>(
+          padding: const EdgeInsets.all(2.0),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 1,
+              child: ListTile(
+                /* 
+                leading: const Icon(Icons.copy), */
+                title: Text('Bloque numero ${nro + 1}'),
+                selected: true,
+                onTap: () => {},
+              ),
+            ),
+            PopupMenuItem(
+              value: 2,
+              child: ListTile(
+                leading: const Icon(Icons.copy),
+                title: Text('Copiar bloque',
+                    style: TextStyle(color: Colors.grey[800])),
+                selected: true,
+                onTap: () => {
+                  copiarBloque(context),
+                  Scaffold.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Bloque Copiado'),
+                    ),
+                  ),
+                  Navigator.pop(context),
+                },
+              ),
+            ),
+            PopupMenuItem(
+              value: 3,
+              child: ListTile(
+                leading: const Icon(Icons.paste),
+                title: Text('Pegar bloque',
+                    style: TextStyle(color: Colors.grey[800])),
+                selected: true,
+                onTap: () => {
+                  pegarBloque(context),
+                  Scaffold.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Bloque Pegado'),
+                    ),
+                  ),
+                  Navigator.pop(context),
+                },
+              ),
+            ),
+            PopupMenuItem(
+              value: 4,
+              child: ListTile(
+                  leading: const Icon(Icons.delete),
+                  selected: true,
+                  title: Text('Borrar bloque',
+                      style: TextStyle(color: Colors.grey[800])),
+                  onTap: () => {
+                        borrarBloque(context),
+                        Scaffold.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Bloque eliminado'),
+                          ),
+                        ),
+                        Navigator.pop(context),
+                      }),
+            ),
+          ],
         ),
-        IconButton(
-          icon: const Icon(Icons.paste),
-          tooltip: 'pegar bloque',
-          onPressed: () => pegarBloque(context),
-        ),
-        IconButton(
-          icon: const Icon(Icons.delete),
-          tooltip: 'borrar bloque',
-          onPressed: () => borrarBloque(context),
-        ),
-        if (nro != null) Text('${nro + 1}'),
       ],
     );
   }
@@ -414,16 +638,19 @@ class ControlWidget extends StatelessWidget {
     if (element is CreadorPreguntaFormGroup) {
       return CreadorSeleccionSimpleCard(
           key: ValueKey(element),
-          formGroup: element as CreadorPreguntaFormGroup);
+          formGroup: element as CreadorPreguntaFormGroup,
+          nro: index);
     }
     if (element is CreadorPreguntaCuadriculaFormGroup) {
       return CreadorCuadriculaCard(
           key: ValueKey(element),
-          formGroup: element as CreadorPreguntaCuadriculaFormGroup);
+          formGroup: element as CreadorPreguntaCuadriculaFormGroup,
+          nro: index);
     }
     if (element is CreadorPreguntaNumericaFormGroup) {
       return CreadorNumericaCard(
         formGroup: element as CreadorPreguntaNumericaFormGroup,
+        nro: index,
       );
     }
     return Text("error: el bloque $index no tiene una card que lo renderice");

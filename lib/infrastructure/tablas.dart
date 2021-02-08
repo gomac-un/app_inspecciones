@@ -143,6 +143,9 @@ class Preguntas extends Table {
       .map(const ListInColumnConverter())
       .withDefault(const Constant("[]"))();
 
+  BoolColumn get esCondicional =>
+      boolean().withDefault(const Constant(false))();
+
   @JsonKey('bloque')
   IntColumn get bloqueId =>
       integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();
@@ -158,6 +161,15 @@ class Preguntas extends Table {
   IntColumn get tipo => intEnum<TipoDePregunta>()();
 
   //List<OpcionesDeRespuesta>
+}
+
+class Condicionales extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  @JsonKey('pregunta')
+  IntColumn get preguntaId => integer()
+      .customConstraint('REFERENCES preguntas(id) ON DELETE NO ACTION')();
+  IntColumn get seccion => integer()();//TODO: OPCION DE RESPUESTA NO PUEDE SER NULLABLE
+ TextColumn get opcionDeRespuesta => text().withLength(min: 1, max: 100).nullable()(); 
 }
 
 @DataClassName('OpcionDeRespuesta')
@@ -202,10 +214,10 @@ class Inspecciones extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-class CriticidadesNumericas extends Table{
+class CriticidadesNumericas extends Table {
   IntColumn get id => integer().autoIncrement()();
   RealColumn get valorMinimo => real()();
-  RealColumn get  valorMaximo => real()();
+  RealColumn get valorMaximo => real()();
   IntColumn get criticidad => integer()();
   @JsonKey('pregunta')
   IntColumn get preguntaId => integer()();

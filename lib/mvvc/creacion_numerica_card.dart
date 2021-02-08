@@ -129,29 +129,34 @@ class CriticidadCard extends StatelessWidget {
         builder: (context, control, child) {
           return Column(
             children: [
-              Text(
-                'Criticidad de las respuestas',
-                style: Theme.of(context).textTheme.headline6,
+              ExpansionTile(
+                title: Text(
+                  'Criticidad de las respuestas',
+                  style: Theme.of(context).textTheme.headline6,
+                ),
+                childrenPadding: const EdgeInsets.all(5.0),
+                children: [
+                  Text(
+                    'La criticidad de la respuesta está dada por rangos. Empiece con el menor rango posible hasta llegar al máximo.',
+                    style: Theme.of(context).textTheme.subtitle1,
+                  ),
+                  RichText(
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.subtitle1,
+                      children: const <TextSpan>[
+                        TextSpan(
+                            text: 'Por ejemplo:',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(
+                            text:
+                                ' Si el minimo valor que puede tomar la repsuesta es -100, empiece a llenar los valores así [-100,0), [0,50), [50,100), etc.'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(
                 height: 10,
-              ),
-              Text(
-                'La criticidad de la respuesta está dada por rangos. Empiece con el menor rango posible hasta llegar al máximo.',
-                style: Theme.of(context).textTheme.subtitle1,
-              ),
-              RichText(
-                text: TextSpan(
-                  style: Theme.of(context).textTheme.subtitle1,
-                  children: const <TextSpan>[
-                    TextSpan(
-                        text: 'Por ejemplo:',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(
-                        text:
-                            ' Si el minimo valor que puede tomar la repsuesta es -100, empiece a llenar los valores así [-100,0), [0,50), [50,100), etc.'),
-                  ],
-                ),
               ),
               if (control.invalid)
                 Text(
@@ -192,9 +197,10 @@ class CriticidadCard extends StatelessWidget {
                                   keyboardType: TextInputType.number,
                                   formControl:
                                       element.control('maximo') as FormControl,
-                                  validationMessages: (control) =>
-                                      {'required': 'Este valor es requerido',
-                                      'verificarRango': 'El valor debe ser mayor'},
+                                  validationMessages: (control) => {
+                                    'required': 'Este valor es requerido',
+                                    'verificarRango': 'El valor debe ser mayor'
+                                  },
                                   decoration: const InputDecoration(
                                     labelText: 'Valor Máximo',
                                   ),

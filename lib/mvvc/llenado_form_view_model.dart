@@ -10,12 +10,13 @@ import 'package:reactive_forms/reactive_forms.dart';
 part 'llenado_datos_test.dart';
 
 //TODO: verificar y asociar al usuario
-class LlenadoFormViewModel {
+class LlenadoFormViewModel extends ChangeNotifier {
   final _db = getIt<Database>();
 
   final ValueNotifier<bool> cargada = ValueNotifier(false);
   final ValueNotifier<EstadoDeInspeccion> estado =
       ValueNotifier(EstadoDeInspeccion.borrador);
+  final ValueNotifier<bool> esCondicional = ValueNotifier(false);
 
   final int _activo;
   final int cuestionarioId;
@@ -23,11 +24,14 @@ class LlenadoFormViewModel {
   final form = FormGroup({});
 
   //FormArray bloques = bloquesDeEjemplo;
-  FormArray bloques = FormArray([]);
-
+  FormArray bloques;
+  ValueNotifier<List<AbstractControl<dynamic>>> bloques1;
   //List bloquesMutables;
 
-  LlenadoFormViewModel(this._activo, this.cuestionarioId) {
+  LlenadoFormViewModel(
+    this._activo,
+    this.cuestionarioId,
+  ) {
     /*form.addAll({
       'bloques': bloques,
     });*/
@@ -50,6 +54,11 @@ class LlenadoFormViewModel {
             ))
           .map<AbstractControl>((e) {
         if (e is BloqueConTitulo) return TituloFormGroup(e.titulo);
+        if (e is BloqueConCondicional) {
+          esCondicional.value = true;
+          return RespuestaSeleccionSimpleFormGroup(e.pregunta, e.respuesta,
+              condiciones: e.condiciones, bloque: e.bloque);
+        }
         if (e is BloqueConPreguntaSimple) {
           return RespuestaSeleccionSimpleFormGroup(e.pregunta, e.respuesta);
         }
@@ -69,6 +78,7 @@ class LlenadoFormViewModel {
       'bloques': bloques,
     });
     cargada.value = true;
+    bloques1 = ValueNotifier(bloques.controls);
   }
 
   Future guardarInspeccionEnLocal({@required EstadoDeInspeccion estado}) async {
@@ -96,5 +106,42 @@ class LlenadoFormViewModel {
     cargada.dispose();
     estado.dispose();
     form.dispose();
+  }
+
+  final List<AbstractControl<dynamic>> subListaDeApoyo = [];
+
+  void borrarBloque(int bloqueInicial, int bloqueFinal) {
+    //TODO hacerle dispose si se requiere
+    final element = bloques.controls.elementAt(bloqueInicial + 1);
+    try {
+      if (subListaDeApoyo.contains(element)) {
+        for (int i = bloqueInicial + 1; i <= bloqueFinal; i++) {
+          final element = bloques.controls.elementAt(i);
+          if (element is RespuestaSeleccionSimpleFormGroup) {
+            element.control('respuestas').setErrors({'required': true});
+          }
+          if (element is RespuestaNumericaFormGroup) {
+            element.control('valor').setErrors({'required': true});
+          }
+          subListaDeApoyo.remove(element);
+        }
+      }
+      final subLista = bloques.controls.sublist(bloqueInicial + 1, bloqueFinal);
+      subListaDeApoyo.addAll(subLista);
+      bloques1 = ValueNotifier(
+          bloques.controls.where((x) => !subListaDeApoyo.contains(x)).toList());
+      /* bloques.controls.where((x) => subListaDeApoyo.contains(x)).map((x) => x.); */
+      bloques.controls.forEach((x) => {
+            if (subListaDeApoyo.contains(x))
+              {
+                if (x is RespuestaSeleccionSimpleFormGroup)
+                  {x.control('respuestas').removeError('required')},
+                if (element is RespuestaNumericaFormGroup)
+                  {element.control('valor').removeError('required')}
+              },
+          });
+      bloques1.notifyListeners();
+      // ignore: empty_catches
+    } on FormControlNotFoundException {}
   }
 }

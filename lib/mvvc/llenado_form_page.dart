@@ -54,34 +54,45 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                       valueListenable: viewModel.cargada,
                       builder: (context, cargada, child) {
                         if (!cargada) return const CircularProgressIndicator();
-                        return ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: viewModel.bloques.controls.length,
-                            itemBuilder: (context, i) {
-                              final element = viewModel.bloques.controls[i]
-                                  as BloqueDeFormulario;
-
-                              if (estado == EstadoDeInspeccion.reparacion &&
-                                  element.criticidad == 0) {
-                                return const SizedBox
-                                    .shrink(); //Esconde los que tienen criticidad 0 si la inspeccion esta en reparacion
+                        return ValueListenableBuilder<bool>(
+                            valueListenable: viewModel.esCondicional,
+                            builder: (context, esCondicional, child) {
+                              if (esCondicional) {
+                                return InspeccionCondicional(estado: estado);
                               }
-                              if (element is TituloFormGroup) {
-                                return TituloCard(formGroup: element);
-                              }
-                              if (element
-                                  is RespuestaSeleccionSimpleFormGroup) {
-                                return SeleccionSimpleCard(formGroup: element);
-                              }
-                              if (element is RespuestaCuadriculaFormArray) {
-                                return CuadriculaCard(formArray: element);
-                              }
-                               if(element is RespuestaNumericaFormGroup) {
-                                return NumericaCard(formGroup: element,);
-                              }  
-                              return Text(
-                                  "error: el bloque $i no tiene una card que lo renderice");
+                              return ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: viewModel.bloques.controls.length,
+                                  itemBuilder: (context, i) {
+                                    final element = viewModel.bloques
+                                        .controls[i] as BloqueDeFormulario;
+                                    if (estado ==
+                                            EstadoDeInspeccion.reparacion &&
+                                        element.criticidad == 0) {
+                                      return const SizedBox
+                                          .shrink(); //Esconde los que tienen criticidad 0 si la inspeccion esta en reparacion
+                                    }
+                                    if (element is TituloFormGroup) {
+                                      return TituloCard(formGroup: element);
+                                    }
+                                    if (element
+                                        is RespuestaSeleccionSimpleFormGroup) {
+                                      return SeleccionSimpleCard(
+                                          formGroup: element);
+                                    }
+                                    if (element
+                                        is RespuestaCuadriculaFormArray) {
+                                      return CuadriculaCard(formArray: element);
+                                    }
+                                    if (element is RespuestaNumericaFormGroup) {
+                                      return NumericaCard(
+                                        formGroup: element,
+                                      );
+                                    }
+                                    return Text(
+                                        "error: el bloque $i no tiene una card que lo renderice");
+                                  });
                             });
                       }),
                   const SizedBox(height: 60),
@@ -197,7 +208,6 @@ class BotonesGuardado extends StatelessWidget {
                         mostrarMensaje(context, 'Inspección finalizada');
                         break;
                       default:
-
                     }
                   },
           ),
@@ -217,7 +227,7 @@ class BotonesGuardado extends StatelessWidget {
     ExtendedNavigator.of(context).pop();
   }
 
- void mostrarMensaje(BuildContext context, String mensaje) {
+  void mostrarMensaje(BuildContext context, String mensaje) {
     Alert(
       context: context,
       style: AlertStyle(
@@ -257,7 +267,6 @@ class BotonesGuardado extends StatelessWidget {
       ],
     ).show();
   }
-
 }
 
 class ErroresDialog extends StatelessWidget {
@@ -292,3 +301,60 @@ class AlertReparacion extends StatelessWidget {
   }
 }
 
+class InspeccionCondicional extends StatelessWidget {
+  final EstadoDeInspeccion estado;
+
+  const InspeccionCondicional({Key key, this.estado}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = Provider.of<LlenadoFormViewModel>(context);
+    final listaAMostrar = viewModel.bloques1.value;
+    return ValueListenableBuilder<List<AbstractControl>>(
+      valueListenable: viewModel.bloques1,
+      builder: (BuildContext context, value, Widget child) {
+        return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: listaAMostrar.length,
+            itemBuilder: (context, i) {
+              final element = listaAMostrar[i] as BloqueDeFormulario;
+              if (estado == EstadoDeInspeccion.reparacion &&
+                  element.criticidad == 0) {
+                return const SizedBox
+                    .shrink(); //Esconde los que tienen criticidad 0 si la inspeccion esta en reparacion
+              }
+              if (element is TituloFormGroup) {
+                return TituloCard(formGroup: element);
+              }
+              if (element is RespuestaSeleccionSimpleFormGroup &&
+                  element.pregunta.pregunta.esCondicional != true) {
+                return SeleccionSimpleCard(formGroup: element);
+              }
+              if (element is RespuestaSeleccionSimpleFormGroup &&
+                  element.pregunta.pregunta.esCondicional == true) {
+                /* if(element.seccion != null){
+                borrarBloques(i,element.seccion, listaAMostrar);}
+              else{
+                agregar();
+              } */
+                return SeleccionSimpleCard(
+                  formGroup: element,
+                );
+              }
+              if (element is RespuestaCuadriculaFormArray) {
+                return CuadriculaCard(formArray: element);
+              }
+              if (element is RespuestaNumericaFormGroup) {
+                return NumericaCard(
+                  formGroup: element,
+                );
+              }
+              return Text(
+                  "error: el bloque $i no tiene una card que lo renderice");
+            });
+      },
+    );
+    // TODO: implement build
+  }
+}

@@ -1,7 +1,5 @@
-import 'dart:ffi';
 import 'dart:io';
 import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -9,13 +7,18 @@ import 'package:reactive_forms/reactive_forms.dart';
 //TODO: implementar estos controles como sealed classes
 class RespuestaSeleccionSimpleFormGroup extends FormGroup
     implements BloqueDeFormulario {
+  final Bloque bloque;
   final PreguntaConOpcionesDeRespuesta pregunta;
   final RespuestaConOpcionesDeRespuesta respuesta;
+  final List<Condicionale> condiciones;
   DateTime _momentoRespuesta;
 
   factory RespuestaSeleccionSimpleFormGroup(
-      PreguntaConOpcionesDeRespuesta pregunta,
-      RespuestaConOpcionesDeRespuesta respuesta) {
+    PreguntaConOpcionesDeRespuesta pregunta,
+    RespuestaConOpcionesDeRespuesta respuesta, {
+    List<Condicionale> condiciones,
+    Bloque bloque,
+  }) {
     // La idea era que los companions devolvieran los valores por defecto pero no es asi
     // https://github.com/simolus3/moor/issues/960
     // entonces aca se asignan definen nuevo los valores por defecto que son usados
@@ -74,11 +77,14 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
       controles,
       pregunta,
       respuesta,
+      condiciones: condiciones,
+      bloque: bloque,
     );
   }
   //constructor que le envia los controles a la clase padre
   RespuestaSeleccionSimpleFormGroup._(
-      Map<String, AbstractControl> controles, this.pregunta, this.respuesta)
+      Map<String, AbstractControl> controles, this.pregunta, this.respuesta,
+      {this.condiciones, this.bloque})
       : super(controles) {
     valueChanges.listen((_) => _momentoRespuesta =
         DateTime.now()); //guarda el momento de la ultima edicion
@@ -94,25 +100,63 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
 
     switch (pregunta.pregunta.tipo) {
       case TipoDePregunta.multipleRespuesta:
-        sumres = (control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
-            .value
-            .fold(0, (p, c) => p + c.criticidad);
+        if ((control('respuestas') as FormControl<List<OpcionDeRespuesta>>).value !=
+            null) {
+          sumres =
+              (control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
+                  .value
+                  .fold(0, (p, c) => p + c.criticidad);
+        } else {
+          sumres = 0;
+        }
+
         break;
       case TipoDePregunta.unicaRespuesta:
-        sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
-            .value
-            .criticidad;
+        if ((control('respuestas') as FormControl<OpcionDeRespuesta>).value != null) {
+          sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
+              .value
+              .criticidad;
+        } else {
+          sumres = 0;
+        }
         break;
       case TipoDePregunta.parteDeCuadriculaUnica:
-        sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
-            .value
-            .criticidad;
+        if ((control('respuestas') as FormControl<OpcionDeRespuesta>).value != null) {
+          sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
+              .value
+              .criticidad;
+        } else {
+          sumres = 0;
+        }
         break;
       default:
         throw Exception("tipo de pregunta no esperado");
     }
 
     return pregunta.pregunta.criticidad * sumres;
+  }
+
+  int verificarSeccion(
+    String respuesta,
+    Condicionale secciones,
+  ) {
+    if (respuesta == secciones.opcionDeRespuesta) {
+      return secciones.seccion;
+    }
+    return null;
+  }
+
+  int get seccion {
+    if (pregunta.pregunta.esCondicional) {
+      final String respuesta =
+          (control('respuestas').value as OpcionDeRespuesta)?.texto;
+      final x = condiciones
+          ?.map((con) => verificarSeccion(respuesta, con))
+          ?.lastWhere((e) => e != null, orElse: () => null);
+
+      return x;
+    }
+    return null;
   }
 
   RespuestaConOpcionesDeRespuesta toDB() {
@@ -171,8 +215,6 @@ class RespuestaNumericaFormGroup extends FormGroup
     }
 
     final FormControl respuestas = FormControl<OpcionesDeRespuesta>();
-    print('Hola otra vez');
-    print(criticidades);
 
     //TODO: hacer un switch para pregunta.pregunta.tipo
     final Map<String, AbstractControl<dynamic>> controles = {
@@ -211,11 +253,11 @@ class RespuestaNumericaFormGroup extends FormGroup
         DateTime.now()); //guarda el momento de la ultima edicion
   }
 
-  int lulu(
+  int verificarRango(
     double respuesta,
     CriticidadesNumerica criticidades,
   ) {
-    if (respuesta > criticidades.valorMinimo &&
+    if (respuesta >= criticidades.valorMinimo &&
         respuesta < criticidades.valorMaximo) {
       return criticidades.criticidad;
     }
@@ -231,7 +273,7 @@ class RespuestaNumericaFormGroup extends FormGroup
     final double respuesta = (control('valor') as FormControl<double>).value;
 
     final int criRes =
-        criticidades?.map((cri) => lulu(respuesta, cri))?.toList()[0];
+        criticidades?.map((cri) => verificarRango(respuesta, cri))?.toList()[0];
 
     return pregunta.criticidad * criRes;
   }

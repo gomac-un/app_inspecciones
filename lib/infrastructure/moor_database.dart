@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:dartz/dartz.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
@@ -37,6 +38,7 @@ part 'tablas_unidas.dart';
     Sistemas,
     SubSistemas,
     CriticidadesNumericas,
+    Condicionales,
   ],
   daos: [LlenadoDao, CreacionDao, BorradoresDao],
 )
@@ -135,7 +137,10 @@ class Database extends _$Database {
             .get();
         final criticidadPregunta = await (select(criticidadesNumericas)
               ..where((cri) => cri.preguntaId.equals(p.id)))
-            .get(); //TODO: Verificar si esto funciona
+            .get();
+        final condicionalesPregunta = await (select(condicionales)
+              ..where((con) => con.preguntaId.equals(p.id)))
+            .get();
 
         //enviar solo el basename al server
         final pregunta =
@@ -146,6 +151,8 @@ class Database extends _$Database {
             opcionesDeLaPregunta.map((op) => op.toJson()).toList();
         preguntaJson["criticidades"] =
             criticidadPregunta.map((cri) => cri.toJson()).toList();
+        preguntaJson["condicionales"] =
+            condicionalesPregunta.map((con) => con.toJson()).toList();
         return preguntaJson;
       }));
 
@@ -199,9 +206,10 @@ class Database extends _$Database {
 
       final respuestaJson =
           respuesta.toJson(serializer: const CustomSerializer());
-
-      respuestaJson['respuestas'] =
-          entry.value.map((e) => e.respuesta).toList();
+      respuestaJson["respuestas"] = entry.value
+          .map((op) => op.opcionDeRespuestaId)
+          .where((x) => x != null)
+          .toList();
 
       return respuestaJson;
     }).toList();
@@ -287,6 +295,10 @@ class Database extends _$Database {
         .map((e) => CriticidadesNumerica.fromJson(e as Map<String, dynamic>))
         .toList();
 
+    final condicionalesParseados = (json['Condicionales'] as List)
+        .map((e) => Condicionale.fromJson(e as Map<String, dynamic>))
+        .toList();
+
     await customStatement('PRAGMA foreign_keys = OFF');
     await transaction(() async {
       final deletes = [
@@ -302,6 +314,7 @@ class Database extends _$Database {
         delete(preguntas).go(),
         delete(opcionesDeRespuesta).go(),
         delete(criticidadesNumericas).go(),
+        delete(condicionales).go(),
       ];
       await Future.wait(deletes);
       await batch((b) {
@@ -317,6 +330,7 @@ class Database extends _$Database {
         b.insertAll(preguntas, preguntasParseados);
         b.insertAll(opcionesDeRespuesta, opcionesDeRespuestaParseados);
         b.insertAll(criticidadesNumericas, criticidadesNumericasParseadas);
+        b.insertAll(condicionales, condicionalesParseados);
       });
     });
     await customStatement('PRAGMA foreign_keys = ON');
@@ -351,7 +365,6 @@ class Database extends _$Database {
             (e) => e.id.equals(1),
           ))
         .get();
-    //print(ins.map((e) => e.toJson()).toList());
   }
 }
 

@@ -122,7 +122,6 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                       Scaffold.of(context).showSnackBar(SnackBar(
                         content: Text(res),
                       ));
-                      print(res);
                     }),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete),

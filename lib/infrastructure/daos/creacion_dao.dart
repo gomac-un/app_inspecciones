@@ -26,6 +26,7 @@ part 'creacion_dao.g.dart';
   Sistemas,
   SubSistemas,
   CriticidadesNumericas,
+  Condicionales,
 ])
 class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   // this constructor is required so that the main database can create an instance
@@ -133,21 +134,55 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               tipo: control.value["tipoDePregunta"] as TipoDePregunta,
               criticidad: control.value["criticidad"].round() as int,
               fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
+              esCondicional: Value(control.value['condicional'] as bool),
             ),
           );
-          // Asociacion de las opciones de respuesta con esta pregunta
-          await batch((batch) {
-            batch.insertAll(
-              opcionesDeRespuesta,
-              (control.value["respuestas"] as List<Map>)
-                  .map((e) => OpcionesDeRespuestaCompanion.insert(
-                        preguntaId: Value(pid),
-                        texto: e["texto"] as String,
-                        criticidad: e["criticidad"].round() as int,
-                      ))
-                  .toList(),
+
+          Future<void> insertarCondicion(
+              Map<dynamic, dynamic> e, int id) async {
+            final x = await into(condicionales).insert(
+              CondicionalesCompanion.insert(
+                preguntaId: pid,
+                opcionDeRespuesta:Value(e['texto'] as String) ,
+                seccion: int.parse(
+                    (e['seccion'] as String).replaceAll('Ir a bloque ', '')) -1 ,
+              ),
             );
-          });
+          }
+
+          Future<int> insertarOpcion(Map<dynamic, dynamic> e) async {
+            final opid = await into(opcionesDeRespuesta).insert(
+                OpcionesDeRespuestaCompanion.insert(
+                  preguntaId: Value(pid),
+                    criticidad: e['criticidad'].round() as int,
+                    texto: e['texto'] as String));
+            return opid;
+          }
+
+          // Asociacion de los bloques a los que se dirige la pregunta condicional
+
+          if (control.value['condicional'] as bool) {
+            int x;
+            (control.value["respuestas"] as List<Map>)
+                .map((e) async => {
+                      x = await insertarOpcion(e),
+                      await insertarCondicion(e, x),
+                    })
+                .toList();
+          } else {
+            await batch((batch) {
+              batch.insertAll(
+                opcionesDeRespuesta,
+                (control.value["respuestas"] as List<Map>)
+                    .map((e) => OpcionesDeRespuestaCompanion.insert(
+                          preguntaId: Value(pid),
+                          texto: e["texto"] as String,
+                          criticidad: e["criticidad"].round() as int,
+                        ))
+                    .toList(),
+              );
+            });
+          }
         }
         if (control is CreadorPreguntaNumericaFormGroup) {
           //Mover las fotos a una carpeta unica para cada cuestionario

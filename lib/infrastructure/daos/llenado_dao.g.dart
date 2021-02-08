@@ -27,4 +27,5 @@ mixin _$LlenadoDaoMixin on DatabaseAccessor<Database> {
   $SubSistemasTable get subSistemas => attachedDatabase.subSistemas;
   $CriticidadesNumericasTable get criticidadesNumericas =>
       attachedDatabase.criticidadesNumericas;
+  $CondicionalesTable get condicionales => attachedDatabase.condicionales;
 }

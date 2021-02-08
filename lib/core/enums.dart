@@ -13,3 +13,9 @@ enum EstadoDeInspeccion {
   reparacion,
   finalizada,
 }
+
+enum Seccion {
+  siguientePregunta,
+  numeroBloque,
+  finDeLaInspeccion,
+}

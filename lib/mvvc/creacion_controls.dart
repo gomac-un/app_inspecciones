@@ -62,9 +62,11 @@ class CreadorPreguntaFormGroup extends FormGroup
       'tipoDePregunta': fb.control<TipoDePregunta>(d?.pregunta?.tipo, [
         if (!parteDeCuadricula) Validators.required
       ]), //em realidad para las cuadriculas de debe manejar distinto pero se reescribira mas adelante
+      'condicional': fb.control<bool>(d?.pregunta?.esCondicional ?? false,
+          [if (!parteDeCuadricula & !esNumerica) Validators.required]),
       'respuestas': fb.array<Map<String, dynamic>>(
         d?.opcionesDeRespuesta
-                ?.map((e) => CreadorRespuestaFormGroup(e))
+                ?.map((e) => CreadorRespuestaFormGroup(defaultValue: e,))
                 ?.toList() ??
             [],
         [
@@ -126,6 +128,7 @@ class CreadorPreguntaFormGroup extends FormGroup
               .map((e) => e.value.path)
               .toImmutableList(),
           tipo: value['tipoDePregunta'] as TipoDePregunta,
+          esCondicional: value['condicional'] as bool,
         ),
         (control('respuestas') as FormArray).controls.map((e) {
           final formGroup = e as CreadorRespuestaFormGroup;
@@ -134,8 +137,10 @@ class CreadorPreguntaFormGroup extends FormGroup
       );
 
   @override
-  void agregarRespuesta() =>
-      (control('respuestas') as FormArray).add(CreadorRespuestaFormGroup());
+  void agregarRespuesta() => {
+        (control('respuestas') as FormArray).add(CreadorRespuestaFormGroup(
+            /* esCondicional: value['condicional'] as bool */)),
+      };
 
   @override
   void borrarRespuesta(AbstractControl e) {
@@ -195,16 +200,43 @@ ValidatorFunction _verificarRango(String controlMinimo, String controlMaximo) {
 }
 
 class CreadorRespuestaFormGroup extends FormGroup {
-  CreadorRespuestaFormGroup([OpcionDeRespuesta d])
-      : super({
-          'texto': fb.control<String>(d?.texto ?? "", [Validators.required]),
-          'criticidad': fb.control<double>(d?.criticidad?.toDouble() ?? 0)
-        });
+  factory CreadorRespuestaFormGroup({
+    OpcionDeRespuesta defaultValue,
+  }) {
+    final d = defaultValue;
 
-  OpcionDeRespuesta toDataClass() => OpcionDeRespuesta(
-        id: null,
-        texto: value['texto'] as String,
-        criticidad: (value['criticidad'] as double).round(),
+    final Map<String, AbstractControl<dynamic>> controles = {
+      'texto': fb.control<String>(d?.texto ?? "", [Validators.required]),
+      'criticidad': fb.control<double>(d?.criticidad?.toDouble() ?? 0),
+      'seccion': fb.control<String>(
+        '',
+        [ Validators.required],
+      ),
+      //em realidad para las cuadriculas de debe manejar distinto pero se reescribira mas adelante
+    };
+
+    return CreadorRespuestaFormGroup._(controles, d: d);
+  }
+
+  //constructor que le envia los controles a la clase padre
+  CreadorRespuestaFormGroup._(Map<String, AbstractControl<dynamic>> controles,
+      {OpcionDeRespuesta d})
+      : super(controles);
+
+  OpcionDeRespuestaConCondicional toDataClass() =>
+      OpcionDeRespuestaConCondicional(
+        OpcionDeRespuesta(
+          id: null,
+          texto: value['texto'] as String,
+          criticidad: (value['criticidad'] as double).round(),
+        ),
+        Condicionale(
+          preguntaId: null,
+          id: null,
+          seccion: int.parse(
+              (value['seccion'] as String).replaceAll('Ir a bloque ', '')),
+          opcionDeRespuesta: value['texto'] as String,
+        ),
       );
 }
 
@@ -239,7 +271,7 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
       ),
       'respuestas': fb.array<Map<String, dynamic>>(
         d?.opcionesDeRespuesta
-                ?.map((e) => CreadorRespuestaFormGroup(e))
+                ?.map((e) => CreadorRespuestaFormGroup(defaultValue: e))
                 ?.toList() ??
             [],
         [Validators.minLength(1)],
@@ -391,6 +423,7 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
               .map((e) => e.value.path)
               .toImmutableList(),
           tipo: TipoDePregunta.numerica,
+          esCondicional: null,
         ),
         (control('criticidadRespuesta') as FormArray).controls.map((e) {
           final formGroup = e as CreadorCriticidadesNumericas;

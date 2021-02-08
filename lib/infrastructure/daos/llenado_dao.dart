@@ -25,6 +25,7 @@ part 'llenado_dao.g.dart';
   Sistemas,
   SubSistemas,
   CriticidadesNumericas,
+  Condicionales
 ])
 class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   // this constructor is required so that the main database can create an instance
@@ -113,9 +114,6 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
               'criticidades': row.readTable(criticidadesNumericas)
             })
         .get();
-    print(preguntas.id);
-    print('Este soy yo');
-    print(res.map((e) => e['criticidades']));
 
     final m = Future.wait(
       groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
@@ -183,7 +181,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
           opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
     ])
       ..where(bloques.cuestionarioId.equals(cuestionarioId) &
-          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)));
+          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)) & preguntas.esCondicional.equals(false));
     //unicaRespuesta/multipleRespuesta
     final res = await query
         .map((row) => {
@@ -208,6 +206,51 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         );
       }),
     );
+  }
+
+  Future<List<BloqueConCondicional>> getPreguntasCondicionales(
+      int cuestionarioId,
+      [int inspeccionId]) async {
+    final opcionesPregunta = alias(opcionesDeRespuesta, 'op');
+
+    final query = select(preguntas).join([
+      innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
+      innerJoin(
+          condicionales, condicionales.preguntaId.equalsExp(preguntas.id)),
+      leftOuterJoin(opcionesPregunta,
+          opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
+     
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
+          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)) &
+          preguntas.esCondicional.equals(true));
+    //unicaRespuesta/multipleRespuesta
+    final res = await query
+        .map((row) => {
+              'bloque': row.readTable(bloques),
+              'pregunta': row.readTable(preguntas),
+              'opcionesDePregunta': row.readTable(opcionesPregunta),
+              'condiciones': row.readTable(condicionales),
+            })
+        .get();
+
+      final x= Future.wait(
+      groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
+        return BloqueConCondicional(
+          entry.value.first['bloque'] as Bloque,
+          PreguntaConOpcionesDeRespuesta(
+            entry.key as Pregunta,
+            entry.value
+                .map((item) => item['opcionesDePregunta'] as OpcionDeRespuesta)
+                .toList(),
+          ),
+          await getRespuestaDePregunta(entry.key as Pregunta, inspeccionId),
+          entry.value.map((item) => item['condiciones'] as Condicionale).toList(),
+          //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
+        );
+      }),
+    );      //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
+    return x;
   }
 
   Future<RespuestaConOpcionesDeRespuesta> getRespuestaDePregunta(
@@ -236,6 +279,8 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         .map((row) =>
             [row.readTable(respuestas), row.readTable(opcionesDeRespuesta)])
         .get();
+
+    
 
     //si la inspeccion es nueva entonces no existe una respuesta y se envia nulo
     //para que el control cree una por defecto
@@ -304,6 +349,9 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
 
     final List<BloqueConTitulo> titulos = await getTitulos(cuestionarioId);
 
+    final List<BloqueConCondicional> preguntasCondicionales =
+        await getPreguntasCondicionales(cuestionarioId, inspeccionId);
+
     final List<BloqueConPreguntaSimple> preguntasSimples =
         await getPreguntasSimples(cuestionarioId, inspeccionId);
 
@@ -313,7 +361,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     final List<BloqueConPreguntaNumerica> numerica =
         await getPreguntaNumerica(cuestionarioId, inspeccionId);
 
-    return [...titulos, ...preguntasSimples, ...cuadriculas, ...numerica];
+    return [...titulos, ...preguntasSimples, ...cuadriculas, ...numerica, ...preguntasCondicionales];
   }
 
   int generarId(int activo) {

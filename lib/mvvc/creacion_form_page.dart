@@ -78,7 +78,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
               ),
             ),
             PreguntaCard(
-              titulo: 'Modelos de vehiculo',
+              titulo: 'Modelos de vehículo',
               child: ValueListenableBuilder<List<String>>(
                   valueListenable: formGroup.modelos,
                   builder: (context, modelos, child) {
@@ -123,8 +123,8 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
               ),
             ),
             PreguntaCard(
-              titulo: 'periodicidad',
-              descripcion: '(en dias)',
+              titulo: 'Periodicidad',
+              descripcion: '(en días)',
               child: ReactiveSlider(
                 formControlName: 'periodicidad',
                 max: 100.0,

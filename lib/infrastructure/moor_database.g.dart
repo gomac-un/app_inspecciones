@@ -1663,6 +1663,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
   final int criticidad;
   final String posicion;
   final KtList<String> fotosGuia;
+  final bool esCondicional;
   final int bloqueId;
   final int sistemaId;
   final int subSistemaId;
@@ -1674,6 +1675,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       @required this.criticidad,
       this.posicion,
       @required this.fotosGuia,
+      @required this.esCondicional,
       @required this.bloqueId,
       this.sistemaId,
       this.subSistemaId,
@@ -1683,6 +1685,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
     final stringType = db.typeSystem.forDartType<String>();
+    final boolType = db.typeSystem.forDartType<bool>();
     return Pregunta(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       titulo:
@@ -1695,6 +1698,8 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           .mapFromDatabaseResponse(data['${effectivePrefix}posicion']),
       fotosGuia: $PreguntasTable.$converter0.mapToDart(stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}fotos_guia'])),
+      esCondicional: boolType
+          .mapFromDatabaseResponse(data['${effectivePrefix}es_condicional']),
       bloqueId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}bloque_id']),
       sistemaId:
@@ -1726,6 +1731,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
     if (!nullToAbsent || fotosGuia != null) {
       final converter = $PreguntasTable.$converter0;
       map['fotos_guia'] = Variable<String>(converter.mapToSql(fotosGuia));
+    }
+    if (!nullToAbsent || esCondicional != null) {
+      map['es_condicional'] = Variable<bool>(esCondicional);
     }
     if (!nullToAbsent || bloqueId != null) {
       map['bloque_id'] = Variable<int>(bloqueId);
@@ -1760,6 +1768,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       fotosGuia: fotosGuia == null && nullToAbsent
           ? const Value.absent()
           : Value(fotosGuia),
+      esCondicional: esCondicional == null && nullToAbsent
+          ? const Value.absent()
+          : Value(esCondicional),
       bloqueId: bloqueId == null && nullToAbsent
           ? const Value.absent()
           : Value(bloqueId),
@@ -1783,6 +1794,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       criticidad: serializer.fromJson<int>(json['criticidad']),
       posicion: serializer.fromJson<String>(json['posicion']),
       fotosGuia: serializer.fromJson<KtList<String>>(json['fotosGuia']),
+      esCondicional: serializer.fromJson<bool>(json['esCondicional']),
       bloqueId: serializer.fromJson<int>(json['bloque']),
       sistemaId: serializer.fromJson<int>(json['sistema']),
       subSistemaId: serializer.fromJson<int>(json['subSistema']),
@@ -1799,6 +1811,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       'criticidad': serializer.toJson<int>(criticidad),
       'posicion': serializer.toJson<String>(posicion),
       'fotosGuia': serializer.toJson<KtList<String>>(fotosGuia),
+      'esCondicional': serializer.toJson<bool>(esCondicional),
       'bloque': serializer.toJson<int>(bloqueId),
       'sistema': serializer.toJson<int>(sistemaId),
       'subSistema': serializer.toJson<int>(subSistemaId),
@@ -1813,6 +1826,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           int criticidad,
           String posicion,
           KtList<String> fotosGuia,
+          bool esCondicional,
           int bloqueId,
           int sistemaId,
           int subSistemaId,
@@ -1824,6 +1838,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
         criticidad: criticidad ?? this.criticidad,
         posicion: posicion ?? this.posicion,
         fotosGuia: fotosGuia ?? this.fotosGuia,
+        esCondicional: esCondicional ?? this.esCondicional,
         bloqueId: bloqueId ?? this.bloqueId,
         sistemaId: sistemaId ?? this.sistemaId,
         subSistemaId: subSistemaId ?? this.subSistemaId,
@@ -1838,6 +1853,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           ..write('criticidad: $criticidad, ')
           ..write('posicion: $posicion, ')
           ..write('fotosGuia: $fotosGuia, ')
+          ..write('esCondicional: $esCondicional, ')
           ..write('bloqueId: $bloqueId, ')
           ..write('sistemaId: $sistemaId, ')
           ..write('subSistemaId: $subSistemaId, ')
@@ -1860,11 +1876,13 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
                       $mrjc(
                           fotosGuia.hashCode,
                           $mrjc(
-                              bloqueId.hashCode,
+                              esCondicional.hashCode,
                               $mrjc(
-                                  sistemaId.hashCode,
-                                  $mrjc(subSistemaId.hashCode,
-                                      tipo.hashCode))))))))));
+                                  bloqueId.hashCode,
+                                  $mrjc(
+                                      sistemaId.hashCode,
+                                      $mrjc(subSistemaId.hashCode,
+                                          tipo.hashCode)))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -1875,6 +1893,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           other.criticidad == this.criticidad &&
           other.posicion == this.posicion &&
           other.fotosGuia == this.fotosGuia &&
+          other.esCondicional == this.esCondicional &&
           other.bloqueId == this.bloqueId &&
           other.sistemaId == this.sistemaId &&
           other.subSistemaId == this.subSistemaId &&
@@ -1888,6 +1907,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
   final Value<int> criticidad;
   final Value<String> posicion;
   final Value<KtList<String>> fotosGuia;
+  final Value<bool> esCondicional;
   final Value<int> bloqueId;
   final Value<int> sistemaId;
   final Value<int> subSistemaId;
@@ -1899,6 +1919,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     this.criticidad = const Value.absent(),
     this.posicion = const Value.absent(),
     this.fotosGuia = const Value.absent(),
+    this.esCondicional = const Value.absent(),
     this.bloqueId = const Value.absent(),
     this.sistemaId = const Value.absent(),
     this.subSistemaId = const Value.absent(),
@@ -1911,6 +1932,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     @required int criticidad,
     this.posicion = const Value.absent(),
     this.fotosGuia = const Value.absent(),
+    this.esCondicional = const Value.absent(),
     @required int bloqueId,
     this.sistemaId = const Value.absent(),
     this.subSistemaId = const Value.absent(),
@@ -1927,6 +1949,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     Expression<int> criticidad,
     Expression<String> posicion,
     Expression<String> fotosGuia,
+    Expression<bool> esCondicional,
     Expression<int> bloqueId,
     Expression<int> sistemaId,
     Expression<int> subSistemaId,
@@ -1939,6 +1962,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       if (criticidad != null) 'criticidad': criticidad,
       if (posicion != null) 'posicion': posicion,
       if (fotosGuia != null) 'fotos_guia': fotosGuia,
+      if (esCondicional != null) 'es_condicional': esCondicional,
       if (bloqueId != null) 'bloque_id': bloqueId,
       if (sistemaId != null) 'sistema_id': sistemaId,
       if (subSistemaId != null) 'sub_sistema_id': subSistemaId,
@@ -1953,6 +1977,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       Value<int> criticidad,
       Value<String> posicion,
       Value<KtList<String>> fotosGuia,
+      Value<bool> esCondicional,
       Value<int> bloqueId,
       Value<int> sistemaId,
       Value<int> subSistemaId,
@@ -1964,6 +1989,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       criticidad: criticidad ?? this.criticidad,
       posicion: posicion ?? this.posicion,
       fotosGuia: fotosGuia ?? this.fotosGuia,
+      esCondicional: esCondicional ?? this.esCondicional,
       bloqueId: bloqueId ?? this.bloqueId,
       sistemaId: sistemaId ?? this.sistemaId,
       subSistemaId: subSistemaId ?? this.subSistemaId,
@@ -1993,6 +2019,9 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       final converter = $PreguntasTable.$converter0;
       map['fotos_guia'] = Variable<String>(converter.mapToSql(fotosGuia.value));
     }
+    if (esCondicional.present) {
+      map['es_condicional'] = Variable<bool>(esCondicional.value);
+    }
     if (bloqueId.present) {
       map['bloque_id'] = Variable<int>(bloqueId.value);
     }
@@ -2018,6 +2047,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
           ..write('criticidad: $criticidad, ')
           ..write('posicion: $posicion, ')
           ..write('fotosGuia: $fotosGuia, ')
+          ..write('esCondicional: $esCondicional, ')
           ..write('bloqueId: $bloqueId, ')
           ..write('sistemaId: $sistemaId, ')
           ..write('subSistemaId: $subSistemaId, ')
@@ -2091,6 +2121,17 @@ class $PreguntasTable extends Preguntas
         defaultValue: const Constant("[]"));
   }
 
+  final VerificationMeta _esCondicionalMeta =
+      const VerificationMeta('esCondicional');
+  GeneratedBoolColumn _esCondicional;
+  @override
+  GeneratedBoolColumn get esCondicional =>
+      _esCondicional ??= _constructEsCondicional();
+  GeneratedBoolColumn _constructEsCondicional() {
+    return GeneratedBoolColumn('es_condicional', $tableName, false,
+        defaultValue: const Constant(false));
+  }
+
   final VerificationMeta _bloqueIdMeta = const VerificationMeta('bloqueId');
   GeneratedIntColumn _bloqueId;
   @override
@@ -2140,6 +2181,7 @@ class $PreguntasTable extends Preguntas
         criticidad,
         posicion,
         fotosGuia,
+        esCondicional,
         bloqueId,
         sistemaId,
         subSistemaId,
@@ -2186,6 +2228,12 @@ class $PreguntasTable extends Preguntas
           posicion.isAcceptableOrUnknown(data['posicion'], _posicionMeta));
     }
     context.handle(_fotosGuiaMeta, const VerificationResult.success());
+    if (data.containsKey('es_condicional')) {
+      context.handle(
+          _esCondicionalMeta,
+          esCondicional.isAcceptableOrUnknown(
+              data['es_condicional'], _esCondicionalMeta));
+    }
     if (data.containsKey('bloque_id')) {
       context.handle(_bloqueIdMeta,
           bloqueId.isAcceptableOrUnknown(data['bloque_id'], _bloqueIdMeta));
@@ -4837,6 +4885,294 @@ class $CriticidadesNumericasTable extends CriticidadesNumericas
   }
 }
 
+class Condicionale extends DataClass implements Insertable<Condicionale> {
+  final int id;
+  final int preguntaId;
+  final int seccion;
+  final String opcionDeRespuesta;
+  Condicionale(
+      {@required this.id,
+      @required this.preguntaId,
+      @required this.seccion,
+      this.opcionDeRespuesta});
+  factory Condicionale.fromData(Map<String, dynamic> data, GeneratedDatabase db,
+      {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    final intType = db.typeSystem.forDartType<int>();
+    final stringType = db.typeSystem.forDartType<String>();
+    return Condicionale(
+      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      preguntaId: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}pregunta_id']),
+      seccion:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}seccion']),
+      opcionDeRespuesta: stringType.mapFromDatabaseResponse(
+          data['${effectivePrefix}opcion_de_respuesta']),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || preguntaId != null) {
+      map['pregunta_id'] = Variable<int>(preguntaId);
+    }
+    if (!nullToAbsent || seccion != null) {
+      map['seccion'] = Variable<int>(seccion);
+    }
+    if (!nullToAbsent || opcionDeRespuesta != null) {
+      map['opcion_de_respuesta'] = Variable<String>(opcionDeRespuesta);
+    }
+    return map;
+  }
+
+  CondicionalesCompanion toCompanion(bool nullToAbsent) {
+    return CondicionalesCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      preguntaId: preguntaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(preguntaId),
+      seccion: seccion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(seccion),
+      opcionDeRespuesta: opcionDeRespuesta == null && nullToAbsent
+          ? const Value.absent()
+          : Value(opcionDeRespuesta),
+    );
+  }
+
+  factory Condicionale.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return Condicionale(
+      id: serializer.fromJson<int>(json['id']),
+      preguntaId: serializer.fromJson<int>(json['pregunta']),
+      seccion: serializer.fromJson<int>(json['seccion']),
+      opcionDeRespuesta: serializer.fromJson<String>(json['opcionDeRespuesta']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'pregunta': serializer.toJson<int>(preguntaId),
+      'seccion': serializer.toJson<int>(seccion),
+      'opcionDeRespuesta': serializer.toJson<String>(opcionDeRespuesta),
+    };
+  }
+
+  Condicionale copyWith(
+          {int id, int preguntaId, int seccion, String opcionDeRespuesta}) =>
+      Condicionale(
+        id: id ?? this.id,
+        preguntaId: preguntaId ?? this.preguntaId,
+        seccion: seccion ?? this.seccion,
+        opcionDeRespuesta: opcionDeRespuesta ?? this.opcionDeRespuesta,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('Condicionale(')
+          ..write('id: $id, ')
+          ..write('preguntaId: $preguntaId, ')
+          ..write('seccion: $seccion, ')
+          ..write('opcionDeRespuesta: $opcionDeRespuesta')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(
+      id.hashCode,
+      $mrjc(preguntaId.hashCode,
+          $mrjc(seccion.hashCode, opcionDeRespuesta.hashCode))));
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) ||
+      (other is Condicionale &&
+          other.id == this.id &&
+          other.preguntaId == this.preguntaId &&
+          other.seccion == this.seccion &&
+          other.opcionDeRespuesta == this.opcionDeRespuesta);
+}
+
+class CondicionalesCompanion extends UpdateCompanion<Condicionale> {
+  final Value<int> id;
+  final Value<int> preguntaId;
+  final Value<int> seccion;
+  final Value<String> opcionDeRespuesta;
+  const CondicionalesCompanion({
+    this.id = const Value.absent(),
+    this.preguntaId = const Value.absent(),
+    this.seccion = const Value.absent(),
+    this.opcionDeRespuesta = const Value.absent(),
+  });
+  CondicionalesCompanion.insert({
+    this.id = const Value.absent(),
+    @required int preguntaId,
+    @required int seccion,
+    this.opcionDeRespuesta = const Value.absent(),
+  })  : preguntaId = Value(preguntaId),
+        seccion = Value(seccion);
+  static Insertable<Condicionale> custom({
+    Expression<int> id,
+    Expression<int> preguntaId,
+    Expression<int> seccion,
+    Expression<String> opcionDeRespuesta,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (preguntaId != null) 'pregunta_id': preguntaId,
+      if (seccion != null) 'seccion': seccion,
+      if (opcionDeRespuesta != null) 'opcion_de_respuesta': opcionDeRespuesta,
+    });
+  }
+
+  CondicionalesCompanion copyWith(
+      {Value<int> id,
+      Value<int> preguntaId,
+      Value<int> seccion,
+      Value<String> opcionDeRespuesta}) {
+    return CondicionalesCompanion(
+      id: id ?? this.id,
+      preguntaId: preguntaId ?? this.preguntaId,
+      seccion: seccion ?? this.seccion,
+      opcionDeRespuesta: opcionDeRespuesta ?? this.opcionDeRespuesta,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (preguntaId.present) {
+      map['pregunta_id'] = Variable<int>(preguntaId.value);
+    }
+    if (seccion.present) {
+      map['seccion'] = Variable<int>(seccion.value);
+    }
+    if (opcionDeRespuesta.present) {
+      map['opcion_de_respuesta'] = Variable<String>(opcionDeRespuesta.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CondicionalesCompanion(')
+          ..write('id: $id, ')
+          ..write('preguntaId: $preguntaId, ')
+          ..write('seccion: $seccion, ')
+          ..write('opcionDeRespuesta: $opcionDeRespuesta')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CondicionalesTable extends Condicionales
+    with TableInfo<$CondicionalesTable, Condicionale> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $CondicionalesTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedIntColumn _id;
+  @override
+  GeneratedIntColumn get id => _id ??= _constructId();
+  GeneratedIntColumn _constructId() {
+    return GeneratedIntColumn('id', $tableName, false,
+        hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _preguntaIdMeta = const VerificationMeta('preguntaId');
+  GeneratedIntColumn _preguntaId;
+  @override
+  GeneratedIntColumn get preguntaId => _preguntaId ??= _constructPreguntaId();
+  GeneratedIntColumn _constructPreguntaId() {
+    return GeneratedIntColumn('pregunta_id', $tableName, false,
+        $customConstraints: 'REFERENCES preguntas(id) ON DELETE NO ACTION');
+  }
+
+  final VerificationMeta _seccionMeta = const VerificationMeta('seccion');
+  GeneratedIntColumn _seccion;
+  @override
+  GeneratedIntColumn get seccion => _seccion ??= _constructSeccion();
+  GeneratedIntColumn _constructSeccion() {
+    return GeneratedIntColumn(
+      'seccion',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _opcionDeRespuestaMeta =
+      const VerificationMeta('opcionDeRespuesta');
+  GeneratedTextColumn _opcionDeRespuesta;
+  @override
+  GeneratedTextColumn get opcionDeRespuesta =>
+      _opcionDeRespuesta ??= _constructOpcionDeRespuesta();
+  GeneratedTextColumn _constructOpcionDeRespuesta() {
+    return GeneratedTextColumn('opcion_de_respuesta', $tableName, true,
+        minTextLength: 1, maxTextLength: 100);
+  }
+
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, preguntaId, seccion, opcionDeRespuesta];
+  @override
+  $CondicionalesTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'condicionales';
+  @override
+  final String actualTableName = 'condicionales';
+  @override
+  VerificationContext validateIntegrity(Insertable<Condicionale> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    }
+    if (data.containsKey('pregunta_id')) {
+      context.handle(
+          _preguntaIdMeta,
+          preguntaId.isAcceptableOrUnknown(
+              data['pregunta_id'], _preguntaIdMeta));
+    } else if (isInserting) {
+      context.missing(_preguntaIdMeta);
+    }
+    if (data.containsKey('seccion')) {
+      context.handle(_seccionMeta,
+          seccion.isAcceptableOrUnknown(data['seccion'], _seccionMeta));
+    } else if (isInserting) {
+      context.missing(_seccionMeta);
+    }
+    if (data.containsKey('opcion_de_respuesta')) {
+      context.handle(
+          _opcionDeRespuestaMeta,
+          opcionDeRespuesta.isAcceptableOrUnknown(
+              data['opcion_de_respuesta'], _opcionDeRespuestaMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Condicionale map(Map<String, dynamic> data, {String tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
+    return Condicionale.fromData(data, _db, prefix: effectivePrefix);
+  }
+
+  @override
+  $CondicionalesTable createAlias(String alias) {
+    return $CondicionalesTable(_db, alias);
+  }
+}
+
 abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   $ActivosTable _activos;
@@ -4878,6 +5214,9 @@ abstract class _$Database extends GeneratedDatabase {
   $CriticidadesNumericasTable _criticidadesNumericas;
   $CriticidadesNumericasTable get criticidadesNumericas =>
       _criticidadesNumericas ??= $CriticidadesNumericasTable(this);
+  $CondicionalesTable _condicionales;
+  $CondicionalesTable get condicionales =>
+      _condicionales ??= $CondicionalesTable(this);
   LlenadoDao _llenadoDao;
   LlenadoDao get llenadoDao => _llenadoDao ??= LlenadoDao(this as Database);
   CreacionDao _creacionDao;
@@ -4903,6 +5242,7 @@ abstract class _$Database extends GeneratedDatabase {
         contratistas,
         sistemas,
         subSistemas,
-        criticidadesNumericas
+        criticidadesNumericas,
+        condicionales
       ];
 }

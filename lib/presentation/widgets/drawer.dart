@@ -75,7 +75,7 @@ class Opciones extends StatelessWidget {
               focusColor: Colors.yellow,
               selectedTileColor: Theme.of(context).accentColor,
               title: const Text(
-                  'Cuestionarios', //TODO: mostrar el numero de  inspecciones creadas pendientes por subir
+                  'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
                   style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
               leading: const Icon(
                 Icons.list_alt,
@@ -86,6 +86,23 @@ class Opciones extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 5.0),
+          //TODO: Eliminar esta parte de borradores cuando se pueda diferenciar entre roles
+          Card(
+            child: ListTile(
+              selectedTileColor: Theme.of(context).accentColor,
+              title: const Text(
+                  'Borradores', //TODO: mostrar el numero de  inspecciones creadas pendientes por subir
+                  style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
+              leading: const Icon(
+                Icons.list,
+                color: Colors.black, /* color: Colors.white, */
+              ),
+              onTap: () =>
+                  ExtendedNavigator.of(context).replace(Routes.borradoresPage),
+            ),
+          ),
+          const SizedBox(height: 5.0),
+          //Hasta aquí
           LimpiezaBase(),
           const SizedBox(height: 5.0),
           SincronizarConGomac(),

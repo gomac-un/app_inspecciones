@@ -88,6 +88,13 @@ class CuadriculaDePreguntasConOpcionesDeRespuesta {
       this.cuadricula, this.opcionesDeRespuesta);
 }
 
+class OpcionDeRespuestaConCondicional extends OpcionDeRespuesta {
+  final OpcionDeRespuesta opcionRespuesta;
+  final Condicionale condiciones;
+
+  OpcionDeRespuestaConCondicional(this.opcionRespuesta, this.condiciones);
+}
+
 class CuadriculaConPreguntasYConOpcionesDeRespuesta {
   final CuadriculaDePreguntas cuadricula;
   final List<PreguntaConOpcionesDeRespuesta> preguntas;
@@ -109,6 +116,16 @@ class BloqueConTitulo extends IBloqueOrdenable {
   final Titulo titulo;
 
   BloqueConTitulo(Bloque bloque, this.titulo) : super(bloque);
+}
+
+class BloqueConCondicional extends IBloqueOrdenable {
+  final PreguntaConOpcionesDeRespuesta pregunta;
+  final RespuestaConOpcionesDeRespuesta respuesta;
+  final List<Condicionale> condiciones;
+
+  BloqueConCondicional(
+      Bloque bloque, this.pregunta, this.respuesta, this.condiciones)
+      : super(bloque);
 }
 
 class BloqueConPreguntaNumerica extends IBloqueOrdenable {

@@ -26,7 +26,7 @@ abstract class InspeccionesRemoteDataSource {
 
 @LazySingleton(as: InspeccionesRemoteDataSource)
 class DjangoJsonAPI implements InspeccionesRemoteDataSource {
-  static const _server = 'http://pruebainsgomac.duckdns.org:8000';
+  static const _server = 'http://10.0.2.2:8000';
   //static const _server = 'http://10.0.2.2:8000';
   //TODO: opcion para modificar el servidor desde la app
   static const _apiBase = '/inspecciones/api/v1';
@@ -41,7 +41,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
 
   @override
   Future<Map<String, dynamic>> getToken(Map<String, dynamic> user) async {
-    final url = _server + _apiBase + '/api-token-auth/';
+    const url = _server + _apiBase + '/api-token-auth/';
     print("req: $url\n${jsonEncode(user)}");
     final http.Response response = await http
         .post(
@@ -118,7 +118,6 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   Future<Map<String, dynamic>> putRecurso(
       String recursoEndpoint, Map<String, dynamic> data) async {
     final url = _server + _apiBase + recursoEndpoint;
-    print(url);
     final http.Response response = await http
         .put(
           url,
@@ -181,7 +180,6 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   void descargaFlutterDownloader(
       String recurso, String savedir, String filename) {
     final url = _server + _apiBase + recurso;
-    print(url);
     FlutterDownloader.enqueue(
         url: url,
         headers: <String, String>{

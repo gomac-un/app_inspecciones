@@ -54,7 +54,6 @@ class InspeccionesRepository {
     //TODO: subir las fotos
     final ins = await _db.getCuestionarioCompleto(cuestionario);
     log(jsonEncode(ins));
-    print(ins);
     try {
       /*final res = await _api.putRecurso('/inspecciones/${ins['id']}/', ins,
           token: _token);*/

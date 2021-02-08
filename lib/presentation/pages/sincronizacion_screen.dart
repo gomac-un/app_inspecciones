@@ -56,13 +56,13 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
                     ],
                   ),
                 ),
-              
                 Expanded(
-                  child: Text(state.info),
-                )
+                  child: Text(state.info)
+                ),
               ],
             );
           },
         ));
   }
 }
+

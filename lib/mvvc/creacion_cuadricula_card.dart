@@ -9,8 +9,9 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 class CreadorCuadriculaCard extends StatelessWidget {
   final CreadorPreguntaCuadriculaFormGroup formGroup;
+  final int nro;
 
-  const CreadorCuadriculaCard({Key key, this.formGroup}) : super(key: key);
+  const CreadorCuadriculaCard({Key key, this.formGroup, this.nro}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<CreacionFormViewModel>(context);
@@ -85,7 +86,7 @@ class CreadorCuadriculaCard extends StatelessWidget {
           const SizedBox(height: 10),
           WidgetPreguntas(formGroup: formGroup),
           WidgetRespuestas(formGroup: formGroup),
-          BotonesDeBloque(formGroup: formGroup),
+          BotonesDeBloque(formGroup: formGroup, nro: nro),
         ],
       ),
     );

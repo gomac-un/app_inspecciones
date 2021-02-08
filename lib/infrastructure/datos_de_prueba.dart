@@ -27,7 +27,6 @@ Future<void> _initialize(Batch batch, Database db) async {
     SistemasCompanion.insert(id: const Value(7), nombre: "No aplica"),
   ]);
 
-  //TODO: mover esto a una clase encargada de sincronizar con la api
 /*
   final ap.DjangoAPI tabla = ap.DjangoAPI();
   //final List<Insertable<Sistema>> listaSistemas = [];

@@ -14,6 +14,7 @@ class CreacionFormViewModel extends FormGroup {
   final tiposDeInspeccion = ValueNotifier<List<String>>([]);
   final modelos = ValueNotifier<List<String>>([]);
   final contratistas = ValueNotifier<List<Contratista>>([]);
+  final totalBloques = ValueNotifier<List<String>>(['1']);
 
   Copiable bloqueCopiado;
 
@@ -52,12 +53,21 @@ class CreacionFormViewModel extends FormGroup {
       {AbstractControl bloque, AbstractControl despuesDe}) {
     final bloques = control("bloques") as FormArray;
     bloques.insert(bloques.controls.indexOf(despuesDe) + 1, bloque);
+    if(!totalBloques.value.contains((bloques.controls.indexOf(bloque) + 1).toString())){
+      totalBloques.value.add((bloques.controls.indexOf(bloque) + 1).toString());
+    }
+    else{
+      totalBloques.value.add((int.parse(totalBloques.value.last) + 1 ).toString());
+    }
   }
 
   void borrarBloque(AbstractControl e) {
     //TODO hacerle dispose si se requiere
     try {
-      (control("bloques") as FormArray).remove(e);
+      final bloques = control("bloques") as FormArray;
+      final numeroABorrar= bloques.controls.indexOf(e)+1;
+      bloques.remove(e);
+      totalBloques.value.remove(numeroABorrar.toString()/* (bloques.controls.indexOf(e)+1).toString() */);
       // ignore: empty_catches
     } on FormControlNotFoundException {}
   }
