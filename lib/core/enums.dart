@@ -14,8 +14,3 @@ enum EstadoDeInspeccion {
   finalizada,
 }
 
-enum Seccion {
-  siguientePregunta,
-  numeroBloque,
-  finDeLaInspeccion,
-}

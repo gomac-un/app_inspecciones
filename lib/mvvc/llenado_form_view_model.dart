@@ -109,21 +109,24 @@ class LlenadoFormViewModel extends ChangeNotifier {
   }
 
   final List<AbstractControl<dynamic>> subListaDeApoyo = [];
+  final List<int> ultimaSeccion = [1];
 
   void borrarBloque(int bloqueInicial, int bloqueFinal) {
     //TODO hacerle dispose si se requiere
     final element = bloques.controls.elementAt(bloqueInicial + 1);
     try {
-      if (subListaDeApoyo.contains(element)) {
-        for (int i = bloqueInicial + 1; i <= bloqueFinal; i++) {
-          final element = bloques.controls.elementAt(i);
-          if (element is RespuestaSeleccionSimpleFormGroup) {
-            element.control('respuestas').setErrors({'required': true});
+      if (subListaDeApoyo.contains(element) &&
+          bloqueFinal <= ultimaSeccion.last) {
+        for (int i = bloqueInicial + 1; i <= ultimaSeccion.last; i++) {
+          final x = bloques.controls.elementAt(i);
+          if (x is RespuestaSeleccionSimpleFormGroup) {
+            x.control('respuestas').setErrors({'required': true});
           }
-          if (element is RespuestaNumericaFormGroup) {
-            element.control('valor').setErrors({'required': true});
+          if (x is RespuestaNumericaFormGroup) {
+            x.control('valor').setErrors({'required': true});
           }
           subListaDeApoyo.remove(element);
+          subListaDeApoyo.remove(x);
         }
       }
       final subLista = bloques.controls.sublist(bloqueInicial + 1, bloqueFinal);
@@ -140,8 +143,16 @@ class LlenadoFormViewModel extends ChangeNotifier {
                   {element.control('valor').removeError('required')}
               },
           });
+      ultimaSeccion.add(bloqueFinal);
       bloques1.notifyListeners();
       // ignore: empty_catches
     } on FormControlNotFoundException {}
+  }
+
+  final subListaDeApoyo1 = [];
+  void borrarBloque1(int nro, String valor, List<Condicionale> condiciones) {
+    final condicion =
+        condiciones.where((u) => u.opcionDeRespuesta == valor).first;
+    final element = bloques.controls.elementAt(nro);
   }
 }

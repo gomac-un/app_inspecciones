@@ -210,32 +210,45 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Tipo de pregunta',
             ),
+            onChanged: (value) {
+              formGroup.tipoUnicaRespuesta.value = value;
+            },
           ),
           const SizedBox(height: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '¿Es una pregunta condicional?',
-                style: Theme.of(context).textTheme.headline6,
-                textAlign: TextAlign.right,
-              ),
-              ReactiveRadioListTile(
-                formControl:
-                    formGroup.control('condicional') as FormControl<bool>,
-                title: Text('Si'),
-                controlAffinity: ListTileControlAffinity.leading,
-                value: true,
-              ),
-              ReactiveRadioListTile(
-                formControl:
-                    formGroup.control('condicional') as FormControl<bool>,
-                title: Text('No'),
-                controlAffinity: ListTileControlAffinity.leading,
-                value: false,
-              ),
-              // ignore: prefer_const_literals_to_create_immutables
-            ],
+          ValueListenableBuilder<TipoDePregunta>(
+            valueListenable: formGroup.tipoUnicaRespuesta,
+            builder: (BuildContext context, value, Widget child) {
+              if (value == TipoDePregunta.unicaRespuesta) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '¿Es una pregunta condicional?',
+                      style: Theme.of(context).textTheme.headline6,
+                      textAlign: TextAlign.right,
+                    ),
+                    ReactiveRadioListTile(
+                      formControl:
+                          formGroup.control('condicional') as FormControl<bool>,
+                      title: const Text('Si'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: true,
+                    ),
+
+                    ReactiveRadioListTile(
+                      formControl:
+                          formGroup.control('condicional') as FormControl<bool>,
+                      title: const Text('No'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: false,
+                    ),
+
+                    // ignore: prefer_const_literals_to_create_immutables
+                  ],
+                );
+              }
+              return Divider();
+            },
           ),
 
           ReactiveValueListenableBuilder(
@@ -249,6 +262,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
                   ],
                 );
               }
+
               return Column(
                 children: [
                   WidgetRespuestas(formGroup: formGroup),
@@ -298,7 +312,7 @@ class WidgetRespuestas extends StatelessWidget {
                   itemBuilder: (context, i) {
                     final element = (control as FormArray).controls[i]
                         as CreadorRespuestaFormGroup;
-                        element.control('seccion').removeError('required');
+                    element.control('seccion').removeError('required');
                     //Las keys sirven para que flutter maneje correctamente los widgets de la lista
                     return Column(
                       key: ValueKey(element),
@@ -365,7 +379,6 @@ class WidgetRespuestaCondicional extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     final viewModel = Provider.of<CreacionFormViewModel>(context);
     return ReactiveValueListenableBuilder(
         formControl: (formGroup as FormGroup).control('respuestas'),
@@ -448,9 +461,6 @@ class WidgetRespuestaCondicional extends StatelessWidget {
                                   decoration: const InputDecoration(
                                     labelText: 'Seccion',
                                   ),
-                                  onChanged: (value) => {
-                                    element.control('seccion').removeError('required'),
-                                  },
                                 );
                               }),
                         ],

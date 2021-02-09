@@ -120,12 +120,12 @@ class CriticidadCard extends StatelessWidget {
     @required this.formGroup,
   }) : super(key: key);
 
-  final CreadorCriticidadesNumericas formGroup;
+  final Numerica formGroup;
 
   @override
   Widget build(BuildContext context) {
     return ReactiveValueListenableBuilder(
-        formControl: formGroup.control('criticidadRespuesta'),
+        formControl: (formGroup as FormGroup).control('criticidadRespuesta'),
         builder: (context, control, child) {
           return Column(
             children: [
@@ -149,7 +149,7 @@ class CriticidadCard extends StatelessWidget {
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         TextSpan(
                             text:
-                                ' Si el minimo valor que puede tomar la repsuesta es -100, empiece a llenar los valores así [-100,0), [0,50), [50,100), etc.'),
+                                ' Si el minimo valor que puede tomar la respuesta es -100, empiece a llenar los valores así [-100,0), [0,50), [50,100), etc.'),
                       ],
                     ),
                   ),

@@ -139,8 +139,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
           );
 
           Future<void> insertarCondicion(
-              Map<dynamic, dynamic> e, int id) async {
-            final x = await into(condicionales).insert(
+              Map<dynamic, dynamic> e,) async {
+             await into(condicionales).insert(
               CondicionalesCompanion.insert(
                 preguntaId: pid,
                 opcionDeRespuesta:Value(e['texto'] as String) ,
@@ -162,14 +162,12 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
           // Asociacion de los bloques a los que se dirige la pregunta condicional
 
           if (control.value['condicional'] as bool) {
-            int x;
             (control.value["respuestas"] as List<Map>)
                 .map((e) async => {
-                      x = await insertarOpcion(e),
-                      await insertarCondicion(e, x),
+                      await insertarCondicion(e),
                     })
                 .toList();
-          } else {
+          } 
             await batch((batch) {
               batch.insertAll(
                 opcionesDeRespuesta,
@@ -182,7 +180,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                     .toList(),
               );
             });
-          }
+
         }
         if (control is CreadorPreguntaNumericaFormGroup) {
           //Mover las fotos a una carpeta unica para cada cuestionario

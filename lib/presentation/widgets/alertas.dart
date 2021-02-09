@@ -9,7 +9,10 @@ final _alertStyle = AlertStyle(
   animationType: AnimationType.fromTop,
   isCloseButton: false,
   isOverlayTapDismiss: false,
-  descStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20,),
+  descStyle: const TextStyle(
+    fontWeight: FontWeight.bold,
+    fontSize: 20,
+  ),
   animationDuration: const Duration(milliseconds: 400),
   alertBorder: RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(20.0),
@@ -22,7 +25,8 @@ final _alertStyle = AlertStyle(
   ),
 );
 
-void mostrarMensaje(BuildContext context, String tipo, String mensaje, {bool ocultar = true}) {
+void mostrarMensaje(BuildContext context, String tipo, String mensaje,
+    {bool ocultar = true}) {
   Alert(
     context: context,
     style: _alertStyle,
@@ -68,15 +72,13 @@ void mostrarErrores(BuildContext context, AbstractControl<dynamic> form) {
       DialogButton(
           onPressed: () {
             showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                  title: const Text("Errores: "),
-                  content: Text(
-                    /*JsonEncoder.withIndent('  ')
+                context: context,
+                builder: (context) =>
+                    AlertDialog(title: const Text("Errores: "), content: Text(
+                        /*JsonEncoder.withIndent('  ')
                                         .convert(json.encode(form.errors)),*/
-                    form.errors.toString(),
-                  )),
-            );
+                        /* form.errors.values.toString(), */
+                        obtenerErrores(form))));
           },
           color: Theme.of(context).accentColor,
           radius: BorderRadius.circular(10.0),
@@ -86,4 +88,12 @@ void mostrarErrores(BuildContext context, AbstractControl<dynamic> form) {
           ))
     ],
   ).show();
+}
+
+String obtenerErrores(AbstractControl<dynamic> form) {
+  String texto = '';
+  String textoApoyo = '';
+  form.errors.forEach((key, value) =>
+      {textoApoyo = '- $key: \n    $value ', texto = '$texto \n$textoApoyo'});
+  return texto;
 }

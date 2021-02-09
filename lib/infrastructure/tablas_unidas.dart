@@ -92,7 +92,7 @@ class OpcionDeRespuestaConCondicional extends OpcionDeRespuesta {
   final OpcionDeRespuesta opcionRespuesta;
   final Condicionale condiciones;
 
-  OpcionDeRespuestaConCondicional(this.opcionRespuesta, this.condiciones);
+  OpcionDeRespuestaConCondicional(this.opcionRespuesta, {this.condiciones});
 }
 
 class CuadriculaConPreguntasYConOpcionesDeRespuesta {

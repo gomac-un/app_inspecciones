@@ -185,7 +185,7 @@ class SeleccionSimpleCard extends StatelessWidget {
               },
               onChanged: (value) {
                 if(formGroup.pregunta.pregunta.esCondicional == true){
-                  viewModel.borrarBloque(formGroup.bloque.nOrden, formGroup.seccion,);
+                  viewModel.borrarBloque(formGroup.bloque.nOrden, formGroup.seccion, );
                 }
                 
               },
