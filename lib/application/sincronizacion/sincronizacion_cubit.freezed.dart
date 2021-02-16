@@ -33,6 +33,7 @@ mixin _$Task {
   DownloadTaskStatus get status;
   int get progress;
 
+  @JsonKey(ignore: true)
   $TaskCopyWith<Task> get copyWith;
 }
 
@@ -142,6 +143,7 @@ class _$_Task with DiagnosticableTreeMixin implements _Task {
       const DeepCollectionEquality().hash(status) ^
       const DeepCollectionEquality().hash(progress);
 
+  @JsonKey(ignore: true)
   @override
   _$TaskCopyWith<_Task> get copyWith =>
       __$TaskCopyWithImpl<_Task>(this, _$identity);
@@ -157,6 +159,7 @@ abstract class _Task implements Task {
   @override
   int get progress;
   @override
+  @JsonKey(ignore: true)
   _$TaskCopyWith<_Task> get copyWith;
 }
 
@@ -184,6 +187,7 @@ mixin _$SincronizacionState {
   Task get task;
   String get info;
 
+  @JsonKey(ignore: true)
   $SincronizacionStateCopyWith<SincronizacionState> get copyWith;
 }
 
@@ -318,6 +322,7 @@ class _$_SincronizacionState
       const DeepCollectionEquality().hash(task) ^
       const DeepCollectionEquality().hash(info);
 
+  @JsonKey(ignore: true)
   @override
   _$SincronizacionStateCopyWith<_SincronizacionState> get copyWith =>
       __$SincronizacionStateCopyWithImpl<_SincronizacionState>(
@@ -335,5 +340,6 @@ abstract class _SincronizacionState implements SincronizacionState {
   @override
   String get info;
   @override
+  @JsonKey(ignore: true)
   _$SincronizacionStateCopyWith<_SincronizacionState> get copyWith;
 }

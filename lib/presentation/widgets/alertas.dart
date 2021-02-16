@@ -93,7 +93,49 @@ void mostrarErrores(BuildContext context, AbstractControl<dynamic> form) {
 String obtenerErrores(AbstractControl<dynamic> form) {
   String texto = '';
   String textoApoyo = '';
-  form.errors.forEach((key, value) =>
-      {textoApoyo = '- $key: \n    $value ', texto = '$texto \n$textoApoyo'});
+  form.errors.forEach((key, value) => {
+        if ((value as Map<String, dynamic>).length > 1)
+          {
+            textoApoyo =
+                '- $key:     ${obtenertextoValores(value as Map<String, dynamic>)} ',
+            texto = '$texto \n$textoApoyo',
+          }
+        else
+          {
+            textoApoyo = '- $key:\n    $value ',
+            texto = '$texto \n$textoApoyo',
+          }
+      });
+  texto = texto.replaceAll('{', '');
+  texto = texto.replaceAll('}', '');
+  return texto;
+}
+
+String obtenertextoValores(Map<String, dynamic> value) {
+  String texto = '';
+  String textoApoyo = '';
+  value.forEach((key, value) => {
+        if ((value as Map<String, dynamic>).isNotEmpty)
+          {
+            textoApoyo =
+                '    - $key: ${obtenertextoValores2(value as Map<String, dynamic>)} ',
+            texto = '$texto \n$textoApoyo',
+          }
+        else
+          {
+            textoApoyo = '   $key: $value ',
+            texto = '$texto \n $textoApoyo',
+          }
+      });
+  return texto;
+}
+
+String obtenertextoValores2(Map<String, dynamic> value) {
+  String texto = '';
+  String textoApoyo = '';
+  value.forEach((key, value) => {
+        textoApoyo = '        $key: $value ',
+        texto = '$texto \n $textoApoyo',
+      });
   return texto;
 }

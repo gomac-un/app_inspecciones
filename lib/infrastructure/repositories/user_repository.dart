@@ -21,6 +21,7 @@ class UserRepository {
   Future<Either<AuthFailure, Usuario>> authenticateUser(
       {UserLogin userLogin}) async {
     String token;
+    bool esAdmin;
     final hayInternet = await _hayInternet();
 
     if (!hayInternet) {
@@ -37,11 +38,21 @@ class UserRepository {
       return const Left(AuthFailure.serverError());
     }
 
+   try {
+      esAdmin = await _getPermisos(userLogin, token);
+    } on TimeoutException {
+      return const Left(AuthFailure.noHayConexionAlServidor());
+    } on CredencialesException {
+      return const Left(AuthFailure.usuarioOPasswordInvalidos());
+    } catch (e) {
+      return const Left(AuthFailure.serverError());
+    } 
+
     final user = Usuario(
         documento: userLogin.username,
         password: userLogin.password,
         esAdmin:
-            false, //TODO: averiguar si es admin desde el server o desde la bd local
+            esAdmin, //TODO: averiguar si es admin desde el server o desde la bd local
         token: token);
     return Right(user);
   }
@@ -50,6 +61,11 @@ class UserRepository {
     final res = await api.getToken(userLogin.toJson());
     return res['token'] as String;
   }
+
+  Future<bool> _getPermisos(UserLogin userLogin, String token) async {
+    final res= await api.getPermisos(userLogin.toJson(), token);
+    return res['esAdmin'] as bool;
+  } 
 
   Future<void> saveLocalUser({@required Usuario user}) async {
     // write token with the user to the local database

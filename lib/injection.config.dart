@@ -42,15 +42,16 @@ Future<GetIt> $initGetIt(
   gh.factory<DataConnectionChecker>(
       () => thirdPartyInjections.dataConnectionChecker);
   gh.lazySingleton<Database>(() => registerModule.constructDb());
-  final directorioDeDatos = await directorioDeDatosInjection.dirDatos;
-  gh.factory<DirectorioDeDatos>(() => directorioDeDatos);
+  final resolvedDirectorioDeDatos = await directorioDeDatosInjection.dirDatos;
+  gh.factory<DirectorioDeDatos>(() => resolvedDirectorioDeDatos);
   gh.lazySingleton<InspeccionesRemoteDataSource>(() => DjangoJsonAPI.anon());
   gh.factory<InspeccionesRepository>(() => InspeccionesRepository(
       get<InspeccionesRemoteDataSource>(), get<Database>()));
   gh.lazySingleton<NetworkInfo>(
       () => NetworkInfoImpl(get<DataConnectionChecker>()));
-  final sharedPreferences = await sharedPreferencesInjectableModule.prefs;
-  gh.factory<SharedPreferences>(() => sharedPreferences);
+  final resolvedSharedPreferences =
+      await sharedPreferencesInjectableModule.prefs;
+  gh.factory<SharedPreferences>(() => resolvedSharedPreferences);
   gh.lazySingleton<ILocalPreferencesDataSource>(
       () => SharedPreferencesDataSource(get<SharedPreferences>()));
   gh.factory<SincronizacionCubit>(() => SincronizacionCubit(

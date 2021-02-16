@@ -4885,22 +4885,24 @@ class $CriticidadesNumericasTable extends CriticidadesNumericas
   }
 }
 
-class Condicionale extends DataClass implements Insertable<Condicionale> {
+class PreguntasCondicionalData extends DataClass
+    implements Insertable<PreguntasCondicionalData> {
   final int id;
   final int preguntaId;
   final int seccion;
   final String opcionDeRespuesta;
-  Condicionale(
+  PreguntasCondicionalData(
       {@required this.id,
       @required this.preguntaId,
       @required this.seccion,
-      this.opcionDeRespuesta});
-  factory Condicionale.fromData(Map<String, dynamic> data, GeneratedDatabase db,
+      @required this.opcionDeRespuesta});
+  factory PreguntasCondicionalData.fromData(
+      Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
     final stringType = db.typeSystem.forDartType<String>();
-    return Condicionale(
+    return PreguntasCondicionalData(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       preguntaId: intType
           .mapFromDatabaseResponse(data['${effectivePrefix}pregunta_id']),
@@ -4928,8 +4930,8 @@ class Condicionale extends DataClass implements Insertable<Condicionale> {
     return map;
   }
 
-  CondicionalesCompanion toCompanion(bool nullToAbsent) {
-    return CondicionalesCompanion(
+  PreguntasCondicionalCompanion toCompanion(bool nullToAbsent) {
+    return PreguntasCondicionalCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
       preguntaId: preguntaId == null && nullToAbsent
           ? const Value.absent()
@@ -4943,10 +4945,10 @@ class Condicionale extends DataClass implements Insertable<Condicionale> {
     );
   }
 
-  factory Condicionale.fromJson(Map<String, dynamic> json,
+  factory PreguntasCondicionalData.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
-    return Condicionale(
+    return PreguntasCondicionalData(
       id: serializer.fromJson<int>(json['id']),
       preguntaId: serializer.fromJson<int>(json['pregunta']),
       seccion: serializer.fromJson<int>(json['seccion']),
@@ -4964,9 +4966,9 @@ class Condicionale extends DataClass implements Insertable<Condicionale> {
     };
   }
 
-  Condicionale copyWith(
+  PreguntasCondicionalData copyWith(
           {int id, int preguntaId, int seccion, String opcionDeRespuesta}) =>
-      Condicionale(
+      PreguntasCondicionalData(
         id: id ?? this.id,
         preguntaId: preguntaId ?? this.preguntaId,
         seccion: seccion ?? this.seccion,
@@ -4974,7 +4976,7 @@ class Condicionale extends DataClass implements Insertable<Condicionale> {
       );
   @override
   String toString() {
-    return (StringBuffer('Condicionale(')
+    return (StringBuffer('PreguntasCondicionalData(')
           ..write('id: $id, ')
           ..write('preguntaId: $preguntaId, ')
           ..write('seccion: $seccion, ')
@@ -4991,32 +4993,34 @@ class Condicionale extends DataClass implements Insertable<Condicionale> {
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
-      (other is Condicionale &&
+      (other is PreguntasCondicionalData &&
           other.id == this.id &&
           other.preguntaId == this.preguntaId &&
           other.seccion == this.seccion &&
           other.opcionDeRespuesta == this.opcionDeRespuesta);
 }
 
-class CondicionalesCompanion extends UpdateCompanion<Condicionale> {
+class PreguntasCondicionalCompanion
+    extends UpdateCompanion<PreguntasCondicionalData> {
   final Value<int> id;
   final Value<int> preguntaId;
   final Value<int> seccion;
   final Value<String> opcionDeRespuesta;
-  const CondicionalesCompanion({
+  const PreguntasCondicionalCompanion({
     this.id = const Value.absent(),
     this.preguntaId = const Value.absent(),
     this.seccion = const Value.absent(),
     this.opcionDeRespuesta = const Value.absent(),
   });
-  CondicionalesCompanion.insert({
+  PreguntasCondicionalCompanion.insert({
     this.id = const Value.absent(),
     @required int preguntaId,
     @required int seccion,
-    this.opcionDeRespuesta = const Value.absent(),
+    @required String opcionDeRespuesta,
   })  : preguntaId = Value(preguntaId),
-        seccion = Value(seccion);
-  static Insertable<Condicionale> custom({
+        seccion = Value(seccion),
+        opcionDeRespuesta = Value(opcionDeRespuesta);
+  static Insertable<PreguntasCondicionalData> custom({
     Expression<int> id,
     Expression<int> preguntaId,
     Expression<int> seccion,
@@ -5030,12 +5034,12 @@ class CondicionalesCompanion extends UpdateCompanion<Condicionale> {
     });
   }
 
-  CondicionalesCompanion copyWith(
+  PreguntasCondicionalCompanion copyWith(
       {Value<int> id,
       Value<int> preguntaId,
       Value<int> seccion,
       Value<String> opcionDeRespuesta}) {
-    return CondicionalesCompanion(
+    return PreguntasCondicionalCompanion(
       id: id ?? this.id,
       preguntaId: preguntaId ?? this.preguntaId,
       seccion: seccion ?? this.seccion,
@@ -5063,7 +5067,7 @@ class CondicionalesCompanion extends UpdateCompanion<Condicionale> {
 
   @override
   String toString() {
-    return (StringBuffer('CondicionalesCompanion(')
+    return (StringBuffer('PreguntasCondicionalCompanion(')
           ..write('id: $id, ')
           ..write('preguntaId: $preguntaId, ')
           ..write('seccion: $seccion, ')
@@ -5073,11 +5077,11 @@ class CondicionalesCompanion extends UpdateCompanion<Condicionale> {
   }
 }
 
-class $CondicionalesTable extends Condicionales
-    with TableInfo<$CondicionalesTable, Condicionale> {
+class $PreguntasCondicionalTable extends PreguntasCondicional
+    with TableInfo<$PreguntasCondicionalTable, PreguntasCondicionalData> {
   final GeneratedDatabase _db;
   final String _alias;
-  $CondicionalesTable(this._db, [this._alias]);
+  $PreguntasCondicionalTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   GeneratedIntColumn _id;
   @override
@@ -5115,7 +5119,7 @@ class $CondicionalesTable extends Condicionales
   GeneratedTextColumn get opcionDeRespuesta =>
       _opcionDeRespuesta ??= _constructOpcionDeRespuesta();
   GeneratedTextColumn _constructOpcionDeRespuesta() {
-    return GeneratedTextColumn('opcion_de_respuesta', $tableName, true,
+    return GeneratedTextColumn('opcion_de_respuesta', $tableName, false,
         minTextLength: 1, maxTextLength: 100);
   }
 
@@ -5123,13 +5127,14 @@ class $CondicionalesTable extends Condicionales
   List<GeneratedColumn> get $columns =>
       [id, preguntaId, seccion, opcionDeRespuesta];
   @override
-  $CondicionalesTable get asDslTable => this;
+  $PreguntasCondicionalTable get asDslTable => this;
   @override
-  String get $tableName => _alias ?? 'condicionales';
+  String get $tableName => _alias ?? 'preguntas_condicional';
   @override
-  final String actualTableName = 'condicionales';
+  final String actualTableName = 'preguntas_condicional';
   @override
-  VerificationContext validateIntegrity(Insertable<Condicionale> instance,
+  VerificationContext validateIntegrity(
+      Insertable<PreguntasCondicionalData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -5155,6 +5160,8 @@ class $CondicionalesTable extends Condicionales
           _opcionDeRespuestaMeta,
           opcionDeRespuesta.isAcceptableOrUnknown(
               data['opcion_de_respuesta'], _opcionDeRespuestaMeta));
+    } else if (isInserting) {
+      context.missing(_opcionDeRespuestaMeta);
     }
     return context;
   }
@@ -5162,14 +5169,16 @@ class $CondicionalesTable extends Condicionales
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Condicionale map(Map<String, dynamic> data, {String tablePrefix}) {
+  PreguntasCondicionalData map(Map<String, dynamic> data,
+      {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
-    return Condicionale.fromData(data, _db, prefix: effectivePrefix);
+    return PreguntasCondicionalData.fromData(data, _db,
+        prefix: effectivePrefix);
   }
 
   @override
-  $CondicionalesTable createAlias(String alias) {
-    return $CondicionalesTable(_db, alias);
+  $PreguntasCondicionalTable createAlias(String alias) {
+    return $PreguntasCondicionalTable(_db, alias);
   }
 }
 
@@ -5214,9 +5223,9 @@ abstract class _$Database extends GeneratedDatabase {
   $CriticidadesNumericasTable _criticidadesNumericas;
   $CriticidadesNumericasTable get criticidadesNumericas =>
       _criticidadesNumericas ??= $CriticidadesNumericasTable(this);
-  $CondicionalesTable _condicionales;
-  $CondicionalesTable get condicionales =>
-      _condicionales ??= $CondicionalesTable(this);
+  $PreguntasCondicionalTable _preguntasCondicional;
+  $PreguntasCondicionalTable get preguntasCondicional =>
+      _preguntasCondicional ??= $PreguntasCondicionalTable(this);
   LlenadoDao _llenadoDao;
   LlenadoDao get llenadoDao => _llenadoDao ??= LlenadoDao(this as Database);
   CreacionDao _creacionDao;
@@ -5243,6 +5252,6 @@ abstract class _$Database extends GeneratedDatabase {
         sistemas,
         subSistemas,
         criticidadesNumericas,
-        condicionales
+        preguntasCondicional
       ];
 }

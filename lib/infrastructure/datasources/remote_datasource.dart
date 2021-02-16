@@ -18,6 +18,8 @@ abstract class InspeccionesRemoteDataSource {
       String recursoEndpoint, Map<String, dynamic> data);
   Future<Map<String, dynamic>> putRecurso(
       String recursoEndpoint, Map<String, dynamic> data);
+  Future<Map<String, dynamic>> getPermisos(
+       Map<String, dynamic> data, String token);
   Future subirFotos(
       Iterable<File> fotos, String iddocumento, String tipodocumento);
   void descargaFlutterDownloader(
@@ -53,8 +55,10 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
         )
         .timeout(_timeLimit);
     print("res: ${response.statusCode}\n${response.body}");
+    
     if (response.statusCode == 200 || response.statusCode == 201) {
-      return json.decode(response.body) as Map<String, dynamic>;
+      final res = json.decode(response.body) as Map<String, dynamic>;
+      return res;
     } else if (response.statusCode == 400) {
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
@@ -62,6 +66,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
       log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
+
   }
 
   @override
@@ -138,6 +143,34 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
       //TODO: mirar los tipos de errores que pueden venir de la api
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
+  }
+
+  Future<Map<String, dynamic>> getPermisos(Map<String, dynamic> user, String tokenUsuario) async {
+    const url = _server + _apiBase + '/groups/';
+    print("req: $url\n${jsonEncode(user)}");
+    final http.Response response = await http
+        .post(
+          url,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            if (tokenUsuario != null) HttpHeaders.authorizationHeader: "Token $tokenUsuario"
+          },
+          body: jsonEncode(user),
+        )
+        .timeout(_timeLimit);
+    print("res: ${response.statusCode}\n${response.body}");
+    
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final res = json.decode(response.body) as Map<String, dynamic>;
+      return res;
+    } else if (response.statusCode == 400) {
+      throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
+    } else {
+      //TODO: mirar los tipos de errores que pueden venir de la api
+      log(response.body);
+      throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
+    }
+
   }
 
   @override

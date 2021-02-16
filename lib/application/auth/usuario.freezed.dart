@@ -45,6 +45,7 @@ mixin _$Usuario {
   bool get esAdmin;
 
   Map<String, dynamic> toJson();
+  @JsonKey(ignore: true)
   $UsuarioCopyWith<Usuario> get copyWith;
 }
 
@@ -159,6 +160,7 @@ class _$_Usuario implements _Usuario {
       const DeepCollectionEquality().hash(token) ^
       const DeepCollectionEquality().hash(esAdmin);
 
+  @JsonKey(ignore: true)
   @override
   _$UsuarioCopyWith<_Usuario> get copyWith =>
       __$UsuarioCopyWithImpl<_Usuario>(this, _$identity);
@@ -187,5 +189,6 @@ abstract class _Usuario implements Usuario {
   @override
   bool get esAdmin;
   @override
+  @JsonKey(ignore: true)
   _$UsuarioCopyWith<_Usuario> get copyWith;
 }

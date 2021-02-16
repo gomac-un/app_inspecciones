@@ -17,7 +17,10 @@ import 'package:reactive_forms/reactive_forms.dart';
 class TituloCard extends StatelessWidget {
   final TituloFormGroup formGroup;
 
-  const TituloCard({Key key, this.formGroup}) : super(key: key);
+  const TituloCard({
+    Key key,
+    this.formGroup,
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -46,7 +49,9 @@ class TituloCard extends StatelessWidget {
 
 class NumericaCard extends StatelessWidget {
   final RespuestaNumericaFormGroup formGroup;
-  const NumericaCard({Key key, this.formGroup}) : super(key: key);
+  final bool readOnly;
+  const NumericaCard({Key key, this.formGroup, this.readOnly = false})
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
@@ -71,6 +76,15 @@ class NumericaCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: "Escriba la respuesta",
             ),
+            readOnly: readOnly,
+            enableInteractiveSelection: !readOnly,
+            onTap: () => {
+              if (readOnly == true)
+                {
+                  (formGroup.control('valor') as FormControl)
+                      .removeError('required'),
+                }
+            },
           ),
           const SizedBox(height: 10),
           ReactiveTextField(
@@ -82,6 +96,8 @@ class NumericaCard extends StatelessWidget {
             keyboardType: TextInputType.multiline,
             maxLines: null,
             textInputAction: TextInputAction.next,
+            readOnly: readOnly,
+            enableInteractiveSelection: !readOnly,
           ),
           //TODO: mostrar los botones de agregar imagenes y el checkbox de
           //reparación de una manera mas optima, no uno en cada fila
@@ -90,6 +106,7 @@ class NumericaCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Fotos base',
             ),
+            readOnly: readOnly,
           ),
           if (viewModel.estado.value == EstadoDeInspeccion.reparacion)
             ReactiveCheckboxListTile(
@@ -137,22 +154,28 @@ class NumericaCard extends StatelessWidget {
 
 class SeleccionSimpleCard extends StatelessWidget {
   final RespuestaSeleccionSimpleFormGroup formGroup;
-  
-  const SeleccionSimpleCard({Key key, this.formGroup,}) : super(key: key);
+  final bool readOnly;
+
+  const SeleccionSimpleCard({
+    Key key,
+    this.formGroup,
+    this.readOnly,
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     //TODO: Tengo que arreglar esto, pero es un machetazo para poder probar las inspecciones de preguntas condicionales. El problema es la forma en la que se está haciendo la consulta en llenado_dao, estaban saliendo repetidas las opciones.
     final List<OpcionDeRespuesta> listaOpcionesDeRespuesta = [];
     void obtenerListas() {
       formGroup.pregunta.opcionesDeRespuesta.forEach((u) => {
-            if (listaOpcionesDeRespuesta.contains(u)){
-            }
-            else{
-              listaOpcionesDeRespuesta.add(u),
-            }
+            if (listaOpcionesDeRespuesta.contains(u))
+              {}
+            else
+              {
+                listaOpcionesDeRespuesta.add(u),
+              }
           });
-      
     }
+
     obtenerListas();
 
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
@@ -184,11 +207,14 @@ class SeleccionSimpleCard extends StatelessWidget {
                     .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
               },
               onChanged: (value) {
-                if(formGroup.pregunta.pregunta.esCondicional == true){
-                  viewModel.borrarBloque(formGroup.bloque.nOrden, formGroup.seccion, );
+                if (formGroup.pregunta.pregunta.esCondicional == true) {
+                  viewModel.borrarBloque(
+                    formGroup.bloque.nOrden,
+                    formGroup.seccion,
+                  );
                 }
-                
               },
+              readOnly: readOnly,
             ),
           if (formGroup.pregunta.pregunta.tipo ==
               TipoDePregunta.multipleRespuesta)
@@ -211,6 +237,7 @@ class SeleccionSimpleCard extends StatelessWidget {
             keyboardType: TextInputType.multiline,
             maxLines: null,
             textInputAction: TextInputAction.next,
+            readOnly: readOnly,
           ),
           //TODO: mostrar los botones de agregar imagenes y el checkbox de
           //reparación de una manera mas optima, no uno en cada fila
@@ -219,6 +246,7 @@ class SeleccionSimpleCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Fotos base',
             ),
+            readOnly: readOnly,
           ),
           if (viewModel.estado.value == EstadoDeInspeccion.reparacion)
             ReactiveCheckboxListTile(

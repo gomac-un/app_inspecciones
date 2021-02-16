@@ -8,6 +8,7 @@ abstract class UserLogin implements _$UserLogin {
   factory UserLogin({
     String username,
     String password,
+    bool esdAdmin,
   }) = _UserLogin;
 
   const UserLogin._();

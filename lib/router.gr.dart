@@ -20,16 +20,16 @@ import 'presentation/pages/splash_screen.dart';
 class Routes {
   static const String splashPage = '/';
   static const String loginScreen = '/login-screen';
-  static const String borradoresPage = '/borradores-page';
   static const String creacionFormPage = '/creacion-form-page';
+  static const String borradoresPage = '/borradores-page';
   static const String llenadoFormPage = '/llenado-form-page';
   static const String sincronizacionPage = '/sincronizacion-page';
   static const String cuestionariosPage = '/cuestionarios-page';
   static const all = <String>{
     splashPage,
     loginScreen,
-    borradoresPage,
     creacionFormPage,
+    borradoresPage,
     llenadoFormPage,
     sincronizacionPage,
     cuestionariosPage,
@@ -42,8 +42,8 @@ class AutoRouter extends RouterBase {
   final _routes = <RouteDef>[
     RouteDef(Routes.splashPage, page: SplashPage),
     RouteDef(Routes.loginScreen, page: LoginScreen),
-    RouteDef(Routes.borradoresPage, page: BorradoresPage),
     RouteDef(Routes.creacionFormPage, page: CreacionFormPage),
+    RouteDef(Routes.borradoresPage, page: BorradoresPage),
     RouteDef(Routes.llenadoFormPage, page: LlenadoFormPage),
     RouteDef(Routes.sincronizacionPage, page: SincronizacionPage),
     RouteDef(Routes.cuestionariosPage, page: CuestionariosPage),
@@ -63,15 +63,15 @@ class AutoRouter extends RouterBase {
         settings: data,
       );
     },
-    BorradoresPage: (data) {
-      return MaterialPageRoute<dynamic>(
-        builder: (context) => BorradoresPage().wrappedRoute(context),
-        settings: data,
-      );
-    },
     CreacionFormPage: (data) {
       return MaterialPageRoute<dynamic>(
         builder: (context) => const CreacionFormPage().wrappedRoute(context),
+        settings: data,
+      );
+    },
+    BorradoresPage: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => BorradoresPage().wrappedRoute(context),
         settings: data,
       );
     },
@@ -112,10 +112,10 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
 
   Future<dynamic> pushLoginScreen() => push<dynamic>(Routes.loginScreen);
 
-  Future<dynamic> pushBorradoresPage() => push<dynamic>(Routes.borradoresPage);
-
   Future<dynamic> pushCreacionFormPage() =>
       push<dynamic>(Routes.creacionFormPage);
+
+  Future<dynamic> pushBorradoresPage() => push<dynamic>(Routes.borradoresPage);
 
   Future<dynamic> pushLlenadoFormPage({
     Key key,

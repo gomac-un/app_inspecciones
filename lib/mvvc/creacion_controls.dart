@@ -253,7 +253,7 @@ class CreadorRespuestaFormGroup extends FormGroup {
           texto: value['texto'] as String,
           criticidad: (value['criticidad'] as double).round(),
         ),
-        condiciones: Condicionale(
+        condiciones: PreguntasCondicionalData(
           preguntaId: null,
           id: null,
           seccion: int.parse(

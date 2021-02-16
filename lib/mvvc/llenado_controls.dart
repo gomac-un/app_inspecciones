@@ -10,13 +10,13 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
   final Bloque bloque;
   final PreguntaConOpcionesDeRespuesta pregunta;
   final RespuestaConOpcionesDeRespuesta respuesta;
-  final List<Condicionale> condiciones;
+  final List<PreguntasCondicionalData> condiciones;
   DateTime _momentoRespuesta;
 
   factory RespuestaSeleccionSimpleFormGroup(
     PreguntaConOpcionesDeRespuesta pregunta,
     RespuestaConOpcionesDeRespuesta respuesta, {
-    List<Condicionale> condiciones,
+    List<PreguntasCondicionalData> condiciones,
     Bloque bloque,
   }) {
     // La idea era que los companions devolvieran los valores por defecto pero no es asi
@@ -138,7 +138,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
 
   int verificarSeccion(
     String respuesta,
-    Condicionale secciones,
+    PreguntasCondicionalData secciones,
   ) {
     if (respuesta == secciones.opcionDeRespuesta) {
       return secciones.seccion;
@@ -257,7 +257,7 @@ class RespuestaNumericaFormGroup extends FormGroup
     double respuesta,
     CriticidadesNumerica criticidades,
   ) {
-    if (respuesta >= criticidades.valorMinimo &&
+    if (respuesta !=null && respuesta >= criticidades.valorMinimo &&
         respuesta < criticidades.valorMaximo) {
       return criticidades.criticidad;
     }

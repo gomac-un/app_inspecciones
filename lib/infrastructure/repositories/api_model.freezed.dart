@@ -17,10 +17,11 @@ class _$UserLoginTearOff {
   const _$UserLoginTearOff();
 
 // ignore: unused_element
-  _UserLogin call({String username, String password}) {
+  _UserLogin call({String username, String password, bool esdAdmin}) {
     return _UserLogin(
       username: username,
       password: password,
+      esdAdmin: esdAdmin,
     );
   }
 
@@ -38,8 +39,10 @@ const $UserLogin = _$UserLoginTearOff();
 mixin _$UserLogin {
   String get username;
   String get password;
+  bool get esdAdmin;
 
   Map<String, dynamic> toJson();
+  @JsonKey(ignore: true)
   $UserLoginCopyWith<UserLogin> get copyWith;
 }
 
@@ -47,7 +50,7 @@ mixin _$UserLogin {
 abstract class $UserLoginCopyWith<$Res> {
   factory $UserLoginCopyWith(UserLogin value, $Res Function(UserLogin) then) =
       _$UserLoginCopyWithImpl<$Res>;
-  $Res call({String username, String password});
+  $Res call({String username, String password, bool esdAdmin});
 }
 
 /// @nodoc
@@ -62,10 +65,12 @@ class _$UserLoginCopyWithImpl<$Res> implements $UserLoginCopyWith<$Res> {
   $Res call({
     Object username = freezed,
     Object password = freezed,
+    Object esdAdmin = freezed,
   }) {
     return _then(_value.copyWith(
       username: username == freezed ? _value.username : username as String,
       password: password == freezed ? _value.password : password as String,
+      esdAdmin: esdAdmin == freezed ? _value.esdAdmin : esdAdmin as bool,
     ));
   }
 }
@@ -76,7 +81,7 @@ abstract class _$UserLoginCopyWith<$Res> implements $UserLoginCopyWith<$Res> {
           _UserLogin value, $Res Function(_UserLogin) then) =
       __$UserLoginCopyWithImpl<$Res>;
   @override
-  $Res call({String username, String password});
+  $Res call({String username, String password, bool esdAdmin});
 }
 
 /// @nodoc
@@ -92,10 +97,12 @@ class __$UserLoginCopyWithImpl<$Res> extends _$UserLoginCopyWithImpl<$Res>
   $Res call({
     Object username = freezed,
     Object password = freezed,
+    Object esdAdmin = freezed,
   }) {
     return _then(_UserLogin(
       username: username == freezed ? _value.username : username as String,
       password: password == freezed ? _value.password : password as String,
+      esdAdmin: esdAdmin == freezed ? _value.esdAdmin : esdAdmin as bool,
     ));
   }
 }
@@ -104,7 +111,7 @@ class __$UserLoginCopyWithImpl<$Res> extends _$UserLoginCopyWithImpl<$Res>
 
 /// @nodoc
 class _$_UserLogin extends _UserLogin {
-  _$_UserLogin({this.username, this.password}) : super._();
+  _$_UserLogin({this.username, this.password, this.esdAdmin}) : super._();
 
   factory _$_UserLogin.fromJson(Map<String, dynamic> json) =>
       _$_$_UserLoginFromJson(json);
@@ -113,10 +120,12 @@ class _$_UserLogin extends _UserLogin {
   final String username;
   @override
   final String password;
+  @override
+  final bool esdAdmin;
 
   @override
   String toString() {
-    return 'UserLogin(username: $username, password: $password)';
+    return 'UserLogin(username: $username, password: $password, esdAdmin: $esdAdmin)';
   }
 
   @override
@@ -128,15 +137,20 @@ class _$_UserLogin extends _UserLogin {
                     .equals(other.username, username)) &&
             (identical(other.password, password) ||
                 const DeepCollectionEquality()
-                    .equals(other.password, password)));
+                    .equals(other.password, password)) &&
+            (identical(other.esdAdmin, esdAdmin) ||
+                const DeepCollectionEquality()
+                    .equals(other.esdAdmin, esdAdmin)));
   }
 
   @override
   int get hashCode =>
       runtimeType.hashCode ^
       const DeepCollectionEquality().hash(username) ^
-      const DeepCollectionEquality().hash(password);
+      const DeepCollectionEquality().hash(password) ^
+      const DeepCollectionEquality().hash(esdAdmin);
 
+  @JsonKey(ignore: true)
   @override
   _$UserLoginCopyWith<_UserLogin> get copyWith =>
       __$UserLoginCopyWithImpl<_UserLogin>(this, _$identity);
@@ -149,7 +163,8 @@ class _$_UserLogin extends _UserLogin {
 
 abstract class _UserLogin extends UserLogin {
   _UserLogin._() : super._();
-  factory _UserLogin({String username, String password}) = _$_UserLogin;
+  factory _UserLogin({String username, String password, bool esdAdmin}) =
+      _$_UserLogin;
 
   factory _UserLogin.fromJson(Map<String, dynamic> json) =
       _$_UserLogin.fromJson;
@@ -159,5 +174,8 @@ abstract class _UserLogin extends UserLogin {
   @override
   String get password;
   @override
+  bool get esdAdmin;
+  @override
+  @JsonKey(ignore: true)
   _$UserLoginCopyWith<_UserLogin> get copyWith;
 }

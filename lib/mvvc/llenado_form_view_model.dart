@@ -108,10 +108,14 @@ class LlenadoFormViewModel extends ChangeNotifier {
     form.dispose();
   }
 
+
+  //TODO: hacer esta parte menos a lo fundamentos de programación.
+
   final List<AbstractControl<dynamic>> subListaDeApoyo = [];
   final List<int> ultimaSeccion = [1];
 
   void borrarBloque(int bloqueInicial, int bloqueFinal) {
+    print('inicial: $bloqueInicial final: $bloqueFinal');
     //TODO hacerle dispose si se requiere
     final element = bloques.controls.elementAt(bloqueInicial + 1);
     try {
@@ -138,10 +142,11 @@ class LlenadoFormViewModel extends ChangeNotifier {
             if (subListaDeApoyo.contains(x))
               {
                 if (x is RespuestaSeleccionSimpleFormGroup)
-                  {x.control('respuestas').removeError('required')},
-                if (element is RespuestaNumericaFormGroup)
-                  {element.control('valor').removeError('required')}
+                  {x.control('respuestas').removeError('required'), print('se borró')},
+                if (x is RespuestaNumericaFormGroup)
+                  {x.control('valor').removeError('required'), print('se borró numerica')}
               },
+            
           });
       ultimaSeccion.add(bloqueFinal);
       bloques1.notifyListeners();
@@ -149,10 +154,4 @@ class LlenadoFormViewModel extends ChangeNotifier {
     } on FormControlNotFoundException {}
   }
 
-  final subListaDeApoyo1 = [];
-  void borrarBloque1(int nro, String valor, List<Condicionale> condiciones) {
-    final condicion =
-        condiciones.where((u) => u.opcionDeRespuesta == valor).first;
-    final element = bloques.controls.elementAt(nro);
-  }
 }

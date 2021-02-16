@@ -326,6 +326,7 @@ class _$ServerError implements ServerError {
   int get hashCode =>
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(msg);
 
+  @JsonKey(ignore: true)
   @override
   $ServerErrorCopyWith<ServerError> get copyWith =>
       _$ServerErrorCopyWithImpl<ServerError>(this, _$identity);
@@ -391,5 +392,6 @@ abstract class ServerError implements ApiFailure {
   const factory ServerError(String msg) = _$ServerError;
 
   String get msg;
+  @JsonKey(ignore: true)
   $ServerErrorCopyWith<ServerError> get copyWith;
 }

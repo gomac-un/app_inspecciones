@@ -99,14 +99,8 @@ class LoginControl extends FormGroup {
           razon:
               'No se puede conectar al servidor, por favor informe al encargado',
         );
-      }, serverError: () {
-        problemaDialog(
-          context,
-          authBloc,
-          login,
-          razon: 'Ocurrió un error desconocido',
-        );
-      }, usuarioOPasswordInvalidos: () {
+      },
+      usuarioOPasswordInvalidos: () {
         showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -117,7 +111,14 @@ class LoginControl extends FormGroup {
                         child: const Text("ok"))
                   ],
                 ));
-      }),
+      }, serverError: () {
+        problemaDialog(
+          context,
+          authBloc,
+          login,
+          razon: 'Ocurrió un error desconocido',
+        );
+      }, ),
       (usuario) {
         authBloc.add(AuthEvent.loggingIn(usuario: usuario));
       },
@@ -143,7 +144,7 @@ class LoginControl extends FormGroup {
                       usuario: Usuario(
                         documento: login.username,
                         password: login.password,
-                        esAdmin: false,
+                        esAdmin: login.esdAdmin,
                       ),
                     ),
                   ),

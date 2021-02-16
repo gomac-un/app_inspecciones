@@ -7,6 +7,7 @@ import 'package:inspecciones/mvvc/llenado_cards.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
 import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
+import 'package:inspecciones/presentation/widgets/alertas.dart';
 import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
@@ -57,6 +58,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                         return ValueListenableBuilder<bool>(
                             valueListenable: viewModel.esCondicional,
                             builder: (context, esCondicional, child) {
+                              bool readOnly = false;
                               if (esCondicional) {
                                 return InspeccionCondicional(estado: estado);
                               }
@@ -65,6 +67,10 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                                   physics: const NeverScrollableScrollPhysics(),
                                   itemCount: viewModel.bloques.controls.length,
                                   itemBuilder: (context, i) {
+                                    if (estado ==
+                                        EstadoDeInspeccion.finalizada) {
+                                      readOnly = true;
+                                    }
                                     final element = viewModel.bloques
                                         .controls[i] as BloqueDeFormulario;
                                     if (estado ==
@@ -79,15 +85,20 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                                     if (element
                                         is RespuestaSeleccionSimpleFormGroup) {
                                       return SeleccionSimpleCard(
-                                          formGroup: element);
+                                        formGroup: element,
+                                        readOnly: readOnly,
+                                      );
                                     }
                                     if (element
                                         is RespuestaCuadriculaFormArray) {
-                                      return CuadriculaCard(formArray: element);
+                                      return CuadriculaCard(
+                                        formArray: element,
+                                      );
                                     }
                                     if (element is RespuestaNumericaFormGroup) {
                                       return NumericaCard(
                                         formGroup: element,
+                                        readOnly: readOnly,
                                       );
                                     }
                                     return Text(
@@ -161,7 +172,7 @@ class BotonesGuardado extends StatelessWidget {
             onPressed: !form.valid
                 ? () {
                     form.markAllAsTouched();
-                    Scaffold.of(context).showSnackBar(SnackBar(
+                    /* Scaffold.of(context).showSnackBar(SnackBar(
                         content: Row(
                       children: [
                         const Text("La inspeccion tiene errores"),
@@ -172,7 +183,8 @@ class BotonesGuardado extends StatelessWidget {
                           child: const Text("ver errores"),
                         ),
                       ],
-                    )));
+                    ))); */
+                    mostrarErrores(context, form);
                   }
                 : () async {
                     switch (estado) {
@@ -310,6 +322,7 @@ class InspeccionCondicional extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
     final listaAMostrar = viewModel.bloques1.value;
+    bool readOnly = false;
     return ValueListenableBuilder<List<AbstractControl>>(
       valueListenable: viewModel.bloques1,
       builder: (BuildContext context, value, Widget child) {
@@ -318,6 +331,9 @@ class InspeccionCondicional extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: listaAMostrar.length,
             itemBuilder: (context, i) {
+              if (estado == EstadoDeInspeccion.finalizada) {
+                readOnly = true;
+              }
               final element = listaAMostrar[i] as BloqueDeFormulario;
               if (estado == EstadoDeInspeccion.reparacion &&
                   element.criticidad == 0) {
@@ -329,7 +345,8 @@ class InspeccionCondicional extends StatelessWidget {
               }
               if (element is RespuestaSeleccionSimpleFormGroup &&
                   element.pregunta.pregunta.esCondicional != true) {
-                return SeleccionSimpleCard(formGroup: element);
+                return SeleccionSimpleCard(
+                    formGroup: element, readOnly: readOnly);
               }
               if (element is RespuestaSeleccionSimpleFormGroup &&
                   element.pregunta.pregunta.esCondicional == true) {
@@ -340,6 +357,7 @@ class InspeccionCondicional extends StatelessWidget {
               } */
                 return SeleccionSimpleCard(
                   formGroup: element,
+                  readOnly: readOnly,
                 );
               }
               if (element is RespuestaCuadriculaFormArray) {
@@ -348,6 +366,7 @@ class InspeccionCondicional extends StatelessWidget {
               if (element is RespuestaNumericaFormGroup) {
                 return NumericaCard(
                   formGroup: element,
+                  readOnly: readOnly,
                 );
               }
               return Text(

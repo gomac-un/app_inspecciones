@@ -90,7 +90,7 @@ class CuadriculaDePreguntasConOpcionesDeRespuesta {
 
 class OpcionDeRespuestaConCondicional extends OpcionDeRespuesta {
   final OpcionDeRespuesta opcionRespuesta;
-  final Condicionale condiciones;
+  final PreguntasCondicionalData condiciones;
 
   OpcionDeRespuestaConCondicional(this.opcionRespuesta, {this.condiciones});
 }
@@ -121,7 +121,7 @@ class BloqueConTitulo extends IBloqueOrdenable {
 class BloqueConCondicional extends IBloqueOrdenable {
   final PreguntaConOpcionesDeRespuesta pregunta;
   final RespuestaConOpcionesDeRespuesta respuesta;
-  final List<Condicionale> condiciones;
+  final List<PreguntasCondicionalData> condiciones;
 
   BloqueConCondicional(
       Bloque bloque, this.pregunta, this.respuesta, this.condiciones)

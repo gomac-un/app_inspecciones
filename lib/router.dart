@@ -13,8 +13,8 @@ import 'package:inspecciones/presentation/pages/splash_screen.dart';
     // initial route is named "/"
     MaterialRoute(page: SplashPage, initial: true),
     MaterialRoute(page: LoginScreen),
-    MaterialRoute(page: BorradoresPage),
     MaterialRoute(page: CreacionFormPage),
+    MaterialRoute(page: BorradoresPage),
     MaterialRoute(page: LlenadoFormPage),
     MaterialRoute(page: SincronizacionPage),
     MaterialRoute(page: CuestionariosPage),

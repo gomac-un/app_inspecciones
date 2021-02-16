@@ -25,7 +25,7 @@ part 'llenado_dao.g.dart';
   Sistemas,
   SubSistemas,
   CriticidadesNumericas,
-  Condicionales
+  PreguntasCondicional,
 ])
 class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   // this constructor is required so that the main database can create an instance
@@ -216,7 +216,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
       innerJoin(
-          condicionales, condicionales.preguntaId.equalsExp(preguntas.id)),
+          preguntasCondicional, preguntasCondicional.preguntaId.equalsExp(preguntas.id)),
       leftOuterJoin(opcionesPregunta,
           opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
      
@@ -230,7 +230,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
               'bloque': row.readTable(bloques),
               'pregunta': row.readTable(preguntas),
               'opcionesDePregunta': row.readTable(opcionesPregunta),
-              'condiciones': row.readTable(condicionales),
+              'condiciones': row.readTable(preguntasCondicional),
             })
         .get();
 
@@ -245,7 +245,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
                 .toList(),
           ),
           await getRespuestaDePregunta(entry.key as Pregunta, inspeccionId),
-          entry.value.map((item) => item['condiciones'] as Condicionale).toList(),
+          entry.value.map((item) => item['condiciones'] as PreguntasCondicionalData).toList(),
           //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
         );
       }),

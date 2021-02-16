@@ -163,13 +163,14 @@ class Preguntas extends Table {
   //List<OpcionesDeRespuesta>
 }
 
-class Condicionales extends Table {
+@JsonKey('PreguntaCondicional')
+class PreguntasCondicional extends Table {
   IntColumn get id => integer().autoIncrement()();
   @JsonKey('pregunta')
   IntColumn get preguntaId => integer()
       .customConstraint('REFERENCES preguntas(id) ON DELETE NO ACTION')();
-  IntColumn get seccion => integer()();//TODO: OPCION DE RESPUESTA NO PUEDE SER NULLABLE
- TextColumn get opcionDeRespuesta => text().withLength(min: 1, max: 100).nullable()(); 
+  IntColumn get seccion => integer()();
+ TextColumn get opcionDeRespuesta => text().withLength(min: 1, max: 100)(); 
 }
 
 @DataClassName('OpcionDeRespuesta')

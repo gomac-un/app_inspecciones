@@ -38,7 +38,7 @@ part 'tablas_unidas.dart';
     Sistemas,
     SubSistemas,
     CriticidadesNumericas,
-    Condicionales,
+    PreguntasCondicional,
   ],
   daos: [LlenadoDao, CreacionDao, BorradoresDao],
 )
@@ -138,7 +138,7 @@ class Database extends _$Database {
         final criticidadPregunta = await (select(criticidadesNumericas)
               ..where((cri) => cri.preguntaId.equals(p.id)))
             .get();
-        final condicionalesPregunta = await (select(condicionales)
+        final condicionalesPregunta = await (select(preguntasCondicional)
               ..where((con) => con.preguntaId.equals(p.id)))
             .get();
 
@@ -295,8 +295,8 @@ class Database extends _$Database {
         .map((e) => CriticidadesNumerica.fromJson(e as Map<String, dynamic>))
         .toList();
 
-    final condicionalesParseados = (json['Condicionales'] as List)
-        .map((e) => Condicionale.fromJson(e as Map<String, dynamic>))
+    final condicionalesParseados = (json['PreguntaCondicional'] as List)
+        .map((e) => PreguntasCondicionalData.fromJson(e as Map<String, dynamic>))
         .toList();
 
     await customStatement('PRAGMA foreign_keys = OFF');
@@ -314,7 +314,7 @@ class Database extends _$Database {
         delete(preguntas).go(),
         delete(opcionesDeRespuesta).go(),
         delete(criticidadesNumericas).go(),
-        delete(condicionales).go(),
+        delete(preguntasCondicional).go(),
       ];
       await Future.wait(deletes);
       await batch((b) {
@@ -330,7 +330,7 @@ class Database extends _$Database {
         b.insertAll(preguntas, preguntasParseados);
         b.insertAll(opcionesDeRespuesta, opcionesDeRespuestaParseados);
         b.insertAll(criticidadesNumericas, criticidadesNumericasParseadas);
-        b.insertAll(condicionales, condicionalesParseados);
+        b.insertAll(preguntasCondicional, condicionalesParseados);
       });
     });
     await customStatement('PRAGMA foreign_keys = ON');

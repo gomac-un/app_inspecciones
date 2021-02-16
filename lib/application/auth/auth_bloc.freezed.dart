@@ -238,6 +238,7 @@ class _$LoggingIn implements LoggingIn {
   int get hashCode =>
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(usuario);
 
+  @JsonKey(ignore: true)
   @override
   $LoggingInCopyWith<LoggingIn> get copyWith =>
       _$LoggingInCopyWithImpl<LoggingIn>(this, _$identity);
@@ -303,6 +304,7 @@ abstract class LoggingIn implements AuthEvent {
   const factory LoggingIn({Usuario usuario}) = _$LoggingIn;
 
   Usuario get usuario;
+  @JsonKey(ignore: true)
   $LoggingInCopyWith<LoggingIn> get copyWith;
 }
 
@@ -645,6 +647,7 @@ class _$Authenticated implements Authenticated {
   int get hashCode =>
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(usuario);
 
+  @JsonKey(ignore: true)
   @override
   $AuthenticatedCopyWith<Authenticated> get copyWith =>
       _$AuthenticatedCopyWithImpl<Authenticated>(this, _$identity);
@@ -716,6 +719,7 @@ abstract class Authenticated implements AuthState {
   const factory Authenticated({Usuario usuario}) = _$Authenticated;
 
   Usuario get usuario;
+  @JsonKey(ignore: true)
   $AuthenticatedCopyWith<Authenticated> get copyWith;
 }
 

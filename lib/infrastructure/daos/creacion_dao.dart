@@ -26,7 +26,7 @@ part 'creacion_dao.g.dart';
   Sistemas,
   SubSistemas,
   CriticidadesNumericas,
-  Condicionales,
+  PreguntasCondicional,
 ])
 class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   // this constructor is required so that the main database can create an instance
@@ -140,10 +140,10 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
 
           Future<void> insertarCondicion(
               Map<dynamic, dynamic> e,) async {
-             await into(condicionales).insert(
-              CondicionalesCompanion.insert(
+             await into(preguntasCondicional).insert(
+              PreguntasCondicionalCompanion.insert(
                 preguntaId: pid,
-                opcionDeRespuesta:Value(e['texto'] as String) ,
+                opcionDeRespuesta: e['texto'] as String ,
                 seccion: int.parse(
                     (e['seccion'] as String).replaceAll('Ir a bloque ', '')) -1 ,
               ),

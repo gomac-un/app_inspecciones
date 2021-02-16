@@ -67,7 +67,7 @@ class Opciones extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authBloc = Provider.of<AuthBloc>(context);
-    if ((authBloc.state as Authenticated).usuario.esAdmin == false) {
+    if ((authBloc.state as Authenticated).usuario.esAdmin) {
       return Column(
         children: <Widget>[
           Card(
@@ -81,28 +81,12 @@ class Opciones extends StatelessWidget {
                 Icons.list_alt,
                 color: Colors.black, /* color: Colors.white, */
               ),
-              onTap: () => ExtendedNavigator.of(context)
-                  .replace(Routes.cuestionariosPage),
+              onTap: () => {
+                ExtendedNavigator.of(context).pop(),
+                  ExtendedNavigator.of(context).replace(Routes.cuestionariosPage),}
             ),
           ),
           const SizedBox(height: 5.0),
-          //TODO: Eliminar esta parte de borradores cuando se pueda diferenciar entre roles
-          Card(
-            child: ListTile(
-              selectedTileColor: Theme.of(context).accentColor,
-              title: const Text(
-                  'Borradores', //TODO: mostrar el numero de  inspecciones creadas pendientes por subir
-                  style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
-              leading: const Icon(
-                Icons.list,
-                color: Colors.black, /* color: Colors.white, */
-              ),
-              onTap: () =>
-                  ExtendedNavigator.of(context).replace(Routes.borradoresPage),
-            ),
-          ),
-          const SizedBox(height: 5.0),
-          //Hasta aquí
           LimpiezaBase(),
           const SizedBox(height: 5.0),
           SincronizarConGomac(),
@@ -147,8 +131,9 @@ class Opciones extends StatelessWidget {
                   ExtendedNavigator.of(context).replace(Routes.borradoresPage),
             ),
           ),
-          SincronizarConGomac(),
           LimpiezaBase(),
+          SincronizarConGomac(),
+          
         ],
       );
     }
