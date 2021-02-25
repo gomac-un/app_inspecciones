@@ -99,7 +99,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         bloques,
         bloques.id.equalsExp(preguntas.bloqueId),
       ),
-      innerJoin(criticidadesNumericas,
+      leftOuterJoin(criticidadesNumericas,
           criticidadesNumericas.preguntaId.equalsExp(preguntas.id)),
       leftOuterJoin(respuesta, respuesta.preguntaId.equalsExp(preguntas.id)),
     ])
@@ -119,12 +119,14 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
         return BloqueConPreguntaNumerica(
           entry.value.first['bloque'] as Bloque,
-          entry.key as Pregunta,
-          await getRespuestaDePreguntaNumerica(
+          PreguntaNumerica(
+            entry.key as Pregunta,
+            entry.value
+                .map((item) => item['criticidades'] as CriticidadesNumerica)
+                .toList(),
+          ),
+          respuesta: await getRespuestaDePreguntaNumerica(
               entry.key as Pregunta, inspeccionId),
-          entry.value
-              .map((item) => item['criticidades'] as CriticidadesNumerica)
-              .toList(),
         );
       }),
     );
@@ -181,7 +183,8 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
           opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
     ])
       ..where(bloques.cuestionarioId.equals(cuestionarioId) &
-          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)) & preguntas.esCondicional.equals(false));
+          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)) &
+          preguntas.esCondicional.equals(false));
     //unicaRespuesta/multipleRespuesta
     final res = await query
         .map((row) => {
@@ -201,7 +204,8 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
                 .map((item) => item['opcionesDePregunta'] as OpcionDeRespuesta)
                 .toList(),
           ),
-          await getRespuestaDePregunta(entry.key as Pregunta, inspeccionId),
+          respuesta:
+              await getRespuestaDePregunta(entry.key as Pregunta, inspeccionId),
           //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
         );
       }),
@@ -215,11 +219,10 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
 
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
-      innerJoin(
-          preguntasCondicional, preguntasCondicional.preguntaId.equalsExp(preguntas.id)),
+      innerJoin(preguntasCondicional,
+          preguntasCondicional.preguntaId.equalsExp(preguntas.id)),
       leftOuterJoin(opcionesPregunta,
           opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
-     
     ])
       ..where(bloques.cuestionarioId.equals(cuestionarioId) &
           (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)) &
@@ -234,7 +237,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
             })
         .get();
 
-      final x= Future.wait(
+    final x = Future.wait(
       groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
         return BloqueConCondicional(
           entry.value.first['bloque'] as Bloque,
@@ -244,12 +247,16 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
                 .map((item) => item['opcionesDePregunta'] as OpcionDeRespuesta)
                 .toList(),
           ),
-          await getRespuestaDePregunta(entry.key as Pregunta, inspeccionId),
-          entry.value.map((item) => item['condiciones'] as PreguntasCondicionalData).toList(),
+          entry.value
+              .map((item) => item['condiciones'] as PreguntasCondicionalData)
+              .toList(),
+          respuesta:
+              await getRespuestaDePregunta(entry.key as Pregunta, inspeccionId),
+
           //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
         );
       }),
-    );      //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
+    ); //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
     return x;
   }
 
@@ -280,8 +287,6 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
             [row.readTable(respuestas), row.readTable(opcionesDeRespuesta)])
         .get();
 
-    
-
     //si la inspeccion es nueva entonces no existe una respuesta y se envia nulo
     //para que el control cree una por defecto
     if (res.isEmpty) return RespuestaConOpcionesDeRespuesta(null, null);
@@ -292,18 +297,55 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         res.map((item) => item[1] as OpcionDeRespuesta).toList());
   }
 
+  Future<List<BloqueConCuadricula>> getCuadriculasSinPreguntas(int cuestionarioId) async {
+  
+
+    final query1 = select(cuadriculasDePreguntas).join([
+      innerJoin(bloques, bloques.id.equalsExp(cuadriculasDePreguntas.bloqueId)),
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId));
+    //parteDeCuadriculaUnica
+
+    final res = await query1
+        .map((row) => {
+              'bloque': row.readTable(bloques),
+              'cuadricula': row.readTable(cuadriculasDePreguntas),
+            })
+        .get();
+
+    return Future.wait(
+      groupBy(res, (e) => e['bloque'] as Bloque).entries.map((entry) async {
+        return BloqueConCuadricula(
+          entry.key,
+          CuadriculaDePreguntasConOpcionesDeRespuesta(
+            entry.value.first['cuadricula'] as CuadriculaDePreguntas,
+            await respuestasDeCuadricula(
+                (entry.value.first['cuadricula'] as CuadriculaDePreguntas).id),
+          ),
+        );
+      }),
+    );
+  }
+
   Future<List<BloqueConCuadricula>> getCuadriculas(int cuestionarioId,
       [int inspeccionId]) async {
-    final query = select(preguntas).join([
+    /* final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
       innerJoin(cuadriculasDePreguntas,
           cuadriculasDePreguntas.bloqueId.equalsExp(bloques.id)),
     ])
       ..where(bloques.cuestionarioId.equals(cuestionarioId) &
+          preguntas.tipo.equals(2)); */
+
+    final query1 = select(cuadriculasDePreguntas).join([
+      innerJoin(bloques, bloques.id.equalsExp(cuadriculasDePreguntas.bloqueId)),
+      leftOuterJoin(preguntas, preguntas.bloqueId.equalsExp(bloques.id))
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
           preguntas.tipo.equals(2));
     //parteDeCuadriculaUnica
 
-    final res = await query
+    final res = await query1
         .map((row) => {
               'pregunta': row.readTable(preguntas),
               'bloque': row.readTable(bloques),
@@ -320,11 +362,15 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
             await respuestasDeCuadricula(
                 (entry.value.first['cuadricula'] as CuadriculaDePreguntas).id),
           ),
-          await Future.wait(entry.value.map(
+          preguntasRespondidas: await Future.wait(entry.value.map(
             (item) async => PreguntaConRespuestaConOpcionesDeRespuesta(
                 item['pregunta'] as Pregunta,
                 await getRespuestaDePregunta(
                     item['pregunta'] as Pregunta, inspeccionId)),
+          )),
+          preguntas: await Future.wait(entry.value.map(
+            (item) async => PreguntaConOpcionesDeRespuesta(
+                item['pregunta'] as Pregunta, []),
           )),
         );
       }),
@@ -337,8 +383,9 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     return query.get();
   }
 
-  Future<List<IBloqueOrdenable>> cargarCuestionario(
-      int cuestionarioId, int activoId) async {
+  //TODO: hacer activoId no opcional
+  Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId,
+      {int activoId}) async {
     final inspeccion = await (select(inspecciones)
           ..where((tbl) =>
               tbl.cuestionarioId.equals(cuestionarioId) &
@@ -355,13 +402,23 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     final List<BloqueConPreguntaSimple> preguntasSimples =
         await getPreguntasSimples(cuestionarioId, inspeccionId);
 
-    final List<BloqueConCuadricula> cuadriculas =
+    final List<BloqueConCuadricula> cuadriculasDeApoyo =
         await getCuadriculas(cuestionarioId, inspeccionId);
+
+    final List<BloqueConCuadricula> cuadriculas = cuadriculasDeApoyo.isEmpty
+        ? await getCuadriculasSinPreguntas(cuestionarioId)
+        : cuadriculasDeApoyo;
 
     final List<BloqueConPreguntaNumerica> numerica =
         await getPreguntaNumerica(cuestionarioId, inspeccionId);
 
-    return [...titulos, ...preguntasSimples, ...cuadriculas, ...numerica, ...preguntasCondicionales];
+    return [
+      ...titulos,
+      ...preguntasSimples,
+      ...cuadriculas,
+      ...numerica,
+      ...preguntasCondicionales
+    ];
   }
 
   int generarId(int activo) {
@@ -421,7 +478,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
           fotosBase: Value(fotosBaseProc.toImmutableList()),
           fotosReparacion: Value(fotosRepProc.toImmutableList()),
         );
-
+        final lulu = e.respuesta.id.present;
         int res;
         if (e.respuesta.id.present) {
           await into(respuestas).insertOnConflictUpdate(e.respuesta);

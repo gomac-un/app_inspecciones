@@ -294,8 +294,9 @@ class SeleccionSimpleCard extends StatelessWidget {
 
 class CuadriculaCard extends StatelessWidget {
   final RespuestaCuadriculaFormArray formArray;
+  final bool readOnly;
 
-  const CuadriculaCard({Key key, this.formArray}) : super(key: key);
+  const CuadriculaCard({Key key, this.formArray, this.readOnly}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
@@ -344,9 +345,11 @@ class CuadriculaCard extends StatelessWidget {
                       icon: viewModel.estado.value !=
                                   EstadoDeInspeccion.borrador &&
                               e.criticidad > 0
-                          ? const Icon(
-                              Icons.broken_image,
-                              color: Colors.red,
+                          ?  Icon(
+                              Icons.assignment_late_rounded,
+                              color: viewModel.estado.value ==
+                                  EstadoDeInspeccion.reparacion &&
+                              e.criticidad > 0 ? Colors.red : Colors.green
                             )
                           : const Icon(Icons.remove_red_eye),
                       onPressed: () async {
@@ -357,7 +360,7 @@ class CuadriculaCard extends StatelessWidget {
                             content: Provider(
                               create: (_) => viewModel,
                               child: SingleChildScrollView(
-                                  child: SeleccionSimpleCard(formGroup: e)),
+                                  child: SeleccionSimpleCard(formGroup: e, readOnly: readOnly,)),
                             ),
                             actions: [
                               OutlineButton(

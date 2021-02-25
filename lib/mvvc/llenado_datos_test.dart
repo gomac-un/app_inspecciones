@@ -6,8 +6,8 @@ final bloquesDeEjemplo = FormArray([
       bloqueId: 1,
       descripcion: "descripcion del titulazo",
       fotos: listOf(),
-      id: 1,
-      titulo: "El titulazo",
+      id:  1,
+      titulo: 'el titulazo',
     ),
   ),
   RespuestaSeleccionSimpleFormGroup(

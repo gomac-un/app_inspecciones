@@ -41,6 +41,8 @@ class Cuestionarios extends Table {
 
   TextColumn get tipoDeInspeccion => text()();
 
+  IntColumn get estado => intEnum<EstadoDeCuestionario>()();
+
   // campo usado solo en la app para identificar los cuestionarios nuevos que deben ser enviados al server
   BoolColumn get esLocal => boolean().withDefault(const Constant(true))();
   // List<Inspecciones>
@@ -168,7 +170,7 @@ class PreguntasCondicional extends Table {
   IntColumn get id => integer().autoIncrement()();
   @JsonKey('pregunta')
   IntColumn get preguntaId => integer()
-      .customConstraint('REFERENCES preguntas(id) ON DELETE NO ACTION')();
+      .customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
   IntColumn get seccion => integer()();
  TextColumn get opcionDeRespuesta => text().withLength(min: 1, max: 100)(); 
 }
@@ -221,7 +223,7 @@ class CriticidadesNumericas extends Table {
   RealColumn get valorMaximo => real()();
   IntColumn get criticidad => integer()();
   @JsonKey('pregunta')
-  IntColumn get preguntaId => integer()();
+  IntColumn get preguntaId => integer().customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
 }
 
 class Respuestas extends Table {

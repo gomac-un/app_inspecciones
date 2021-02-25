@@ -567,10 +567,12 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
 class Cuestionario extends DataClass implements Insertable<Cuestionario> {
   final int id;
   final String tipoDeInspeccion;
+  final EstadoDeCuestionario estado;
   final bool esLocal;
   Cuestionario(
       {@required this.id,
       @required this.tipoDeInspeccion,
+      @required this.estado,
       @required this.esLocal});
   factory Cuestionario.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
@@ -582,6 +584,8 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       tipoDeInspeccion: stringType.mapFromDatabaseResponse(
           data['${effectivePrefix}tipo_de_inspeccion']),
+      estado: $CuestionariosTable.$converter0.mapToDart(
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}estado'])),
       esLocal:
           boolType.mapFromDatabaseResponse(data['${effectivePrefix}es_local']),
     );
@@ -595,6 +599,10 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     if (!nullToAbsent || tipoDeInspeccion != null) {
       map['tipo_de_inspeccion'] = Variable<String>(tipoDeInspeccion);
     }
+    if (!nullToAbsent || estado != null) {
+      final converter = $CuestionariosTable.$converter0;
+      map['estado'] = Variable<int>(converter.mapToSql(estado));
+    }
     if (!nullToAbsent || esLocal != null) {
       map['es_local'] = Variable<bool>(esLocal);
     }
@@ -607,6 +615,8 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
       tipoDeInspeccion: tipoDeInspeccion == null && nullToAbsent
           ? const Value.absent()
           : Value(tipoDeInspeccion),
+      estado:
+          estado == null && nullToAbsent ? const Value.absent() : Value(estado),
       esLocal: esLocal == null && nullToAbsent
           ? const Value.absent()
           : Value(esLocal),
@@ -619,6 +629,7 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     return Cuestionario(
       id: serializer.fromJson<int>(json['id']),
       tipoDeInspeccion: serializer.fromJson<String>(json['tipoDeInspeccion']),
+      estado: serializer.fromJson<EstadoDeCuestionario>(json['estado']),
       esLocal: serializer.fromJson<bool>(json['esLocal']),
     );
   }
@@ -628,14 +639,20 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'tipoDeInspeccion': serializer.toJson<String>(tipoDeInspeccion),
+      'estado': serializer.toJson<EstadoDeCuestionario>(estado),
       'esLocal': serializer.toJson<bool>(esLocal),
     };
   }
 
-  Cuestionario copyWith({int id, String tipoDeInspeccion, bool esLocal}) =>
+  Cuestionario copyWith(
+          {int id,
+          String tipoDeInspeccion,
+          EstadoDeCuestionario estado,
+          bool esLocal}) =>
       Cuestionario(
         id: id ?? this.id,
         tipoDeInspeccion: tipoDeInspeccion ?? this.tipoDeInspeccion,
+        estado: estado ?? this.estado,
         esLocal: esLocal ?? this.esLocal,
       );
   @override
@@ -643,54 +660,68 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     return (StringBuffer('Cuestionario(')
           ..write('id: $id, ')
           ..write('tipoDeInspeccion: $tipoDeInspeccion, ')
+          ..write('estado: $estado, ')
           ..write('esLocal: $esLocal')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => $mrjf(
-      $mrjc(id.hashCode, $mrjc(tipoDeInspeccion.hashCode, esLocal.hashCode)));
+  int get hashCode => $mrjf($mrjc(
+      id.hashCode,
+      $mrjc(tipoDeInspeccion.hashCode,
+          $mrjc(estado.hashCode, esLocal.hashCode))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is Cuestionario &&
           other.id == this.id &&
           other.tipoDeInspeccion == this.tipoDeInspeccion &&
+          other.estado == this.estado &&
           other.esLocal == this.esLocal);
 }
 
 class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
   final Value<int> id;
   final Value<String> tipoDeInspeccion;
+  final Value<EstadoDeCuestionario> estado;
   final Value<bool> esLocal;
   const CuestionariosCompanion({
     this.id = const Value.absent(),
     this.tipoDeInspeccion = const Value.absent(),
+    this.estado = const Value.absent(),
     this.esLocal = const Value.absent(),
   });
   CuestionariosCompanion.insert({
     this.id = const Value.absent(),
     @required String tipoDeInspeccion,
+    @required EstadoDeCuestionario estado,
     this.esLocal = const Value.absent(),
-  }) : tipoDeInspeccion = Value(tipoDeInspeccion);
+  })  : tipoDeInspeccion = Value(tipoDeInspeccion),
+        estado = Value(estado);
   static Insertable<Cuestionario> custom({
     Expression<int> id,
     Expression<String> tipoDeInspeccion,
+    Expression<int> estado,
     Expression<bool> esLocal,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (tipoDeInspeccion != null) 'tipo_de_inspeccion': tipoDeInspeccion,
+      if (estado != null) 'estado': estado,
       if (esLocal != null) 'es_local': esLocal,
     });
   }
 
   CuestionariosCompanion copyWith(
-      {Value<int> id, Value<String> tipoDeInspeccion, Value<bool> esLocal}) {
+      {Value<int> id,
+      Value<String> tipoDeInspeccion,
+      Value<EstadoDeCuestionario> estado,
+      Value<bool> esLocal}) {
     return CuestionariosCompanion(
       id: id ?? this.id,
       tipoDeInspeccion: tipoDeInspeccion ?? this.tipoDeInspeccion,
+      estado: estado ?? this.estado,
       esLocal: esLocal ?? this.esLocal,
     );
   }
@@ -704,6 +735,10 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
     if (tipoDeInspeccion.present) {
       map['tipo_de_inspeccion'] = Variable<String>(tipoDeInspeccion.value);
     }
+    if (estado.present) {
+      final converter = $CuestionariosTable.$converter0;
+      map['estado'] = Variable<int>(converter.mapToSql(estado.value));
+    }
     if (esLocal.present) {
       map['es_local'] = Variable<bool>(esLocal.value);
     }
@@ -715,6 +750,7 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
     return (StringBuffer('CuestionariosCompanion(')
           ..write('id: $id, ')
           ..write('tipoDeInspeccion: $tipoDeInspeccion, ')
+          ..write('estado: $estado, ')
           ..write('esLocal: $esLocal')
           ..write(')'))
         .toString();
@@ -749,6 +785,18 @@ class $CuestionariosTable extends Cuestionarios
     );
   }
 
+  final VerificationMeta _estadoMeta = const VerificationMeta('estado');
+  GeneratedIntColumn _estado;
+  @override
+  GeneratedIntColumn get estado => _estado ??= _constructEstado();
+  GeneratedIntColumn _constructEstado() {
+    return GeneratedIntColumn(
+      'estado',
+      $tableName,
+      false,
+    );
+  }
+
   final VerificationMeta _esLocalMeta = const VerificationMeta('esLocal');
   GeneratedBoolColumn _esLocal;
   @override
@@ -759,7 +807,7 @@ class $CuestionariosTable extends Cuestionarios
   }
 
   @override
-  List<GeneratedColumn> get $columns => [id, tipoDeInspeccion, esLocal];
+  List<GeneratedColumn> get $columns => [id, tipoDeInspeccion, estado, esLocal];
   @override
   $CuestionariosTable get asDslTable => this;
   @override
@@ -782,6 +830,7 @@ class $CuestionariosTable extends Cuestionarios
     } else if (isInserting) {
       context.missing(_tipoDeInspeccionMeta);
     }
+    context.handle(_estadoMeta, const VerificationResult.success());
     if (data.containsKey('es_local')) {
       context.handle(_esLocalMeta,
           esLocal.isAcceptableOrUnknown(data['es_local'], _esLocalMeta));
@@ -801,6 +850,10 @@ class $CuestionariosTable extends Cuestionarios
   $CuestionariosTable createAlias(String alias) {
     return $CuestionariosTable(_db, alias);
   }
+
+  static TypeConverter<EstadoDeCuestionario, int> $converter0 =
+      const EnumIndexConverter<EstadoDeCuestionario>(
+          EstadoDeCuestionario.values);
 }
 
 class Bloque extends DataClass implements Insertable<Bloque> {
@@ -4811,11 +4864,8 @@ class $CriticidadesNumericasTable extends CriticidadesNumericas
   @override
   GeneratedIntColumn get preguntaId => _preguntaId ??= _constructPreguntaId();
   GeneratedIntColumn _constructPreguntaId() {
-    return GeneratedIntColumn(
-      'pregunta_id',
-      $tableName,
-      false,
-    );
+    return GeneratedIntColumn('pregunta_id', $tableName, false,
+        $customConstraints: 'REFERENCES preguntas(id) ON DELETE CASCADE');
   }
 
   @override
@@ -5097,7 +5147,7 @@ class $PreguntasCondicionalTable extends PreguntasCondicional
   GeneratedIntColumn get preguntaId => _preguntaId ??= _constructPreguntaId();
   GeneratedIntColumn _constructPreguntaId() {
     return GeneratedIntColumn('pregunta_id', $tableName, false,
-        $customConstraints: 'REFERENCES preguntas(id) ON DELETE NO ACTION');
+        $customConstraints: 'REFERENCES preguntas(id) ON DELETE CASCADE');
   }
 
   final VerificationMeta _seccionMeta = const VerificationMeta('seccion');

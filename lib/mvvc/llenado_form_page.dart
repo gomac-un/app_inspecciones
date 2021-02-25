@@ -34,7 +34,6 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
-
     return ReactiveForm(
       formGroup: viewModel.form,
       child: ValueListenableBuilder<EstadoDeInspeccion>(
@@ -45,9 +44,12 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                   ? 'Reparación de problemas'
                   : 'Llenado de inspeccion'),
               actions: [
-                BotonGuardarBorrador(
-                  estado: estado,
-                ),
+                if (estado == EstadoDeInspeccion.borrador)
+                  BotonGuardarBorrador(
+                    estado: estado,
+                  )
+                else
+                  const SizedBox.shrink(),
               ],
               body: Column(
                 children: [
@@ -93,6 +95,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                                         is RespuestaCuadriculaFormArray) {
                                       return CuadriculaCard(
                                         formArray: element,
+                                        readOnly: readOnly,
                                       );
                                     }
                                     if (element is RespuestaNumericaFormGroup) {
@@ -168,64 +171,108 @@ class BotonesGuardado extends StatelessWidget {
         children: <Widget>[
           ActionButton(
             iconData: Icons.done_all_outlined,
-            label: 'Finalizar',
+            label: estado == EstadoDeInspeccion.finalizada
+                ? 'Aceptar'
+                : 'Finalizar',
             onPressed: !form.valid
                 ? () {
                     form.markAllAsTouched();
-                    /* Scaffold.of(context).showSnackBar(SnackBar(
-                        content: Row(
-                      children: [
-                        const Text("La inspeccion tiene errores"),
-                        FlatButton(
-                          onPressed: () => showDialog(
-                              context: context,
-                              builder: (context) => ErroresDialog(form: form)),
-                          child: const Text("ver errores"),
-                        ),
-                      ],
-                    ))); */
                     mostrarErrores(context, form);
                   }
-                : () async {
-                    switch (estado) {
-                      case EstadoDeInspeccion.borrador:
-                        final criticidadTotal = viewModel.bloques.controls
-                            .fold<int>(
-                                0,
-                                (p, c) =>
-                                    p + (c as BloqueDeFormulario).criticidad);
-                        if (criticidadTotal > 0) {
-                          viewModel.estado.value =
-                              EstadoDeInspeccion.reparacion;
-                          LoadingDialog.show(context);
-                          await viewModel.guardarInspeccionEnLocal(
-                              estado: EstadoDeInspeccion.reparacion);
-                          LoadingDialog.hide(context);
-                          await showDialog(
-                            context: context,
-                            builder: (context) => AlertReparacion(),
-                          );
-                          //machetazo para recargar el formulario con los datos insertados en la DB
-                          ExtendedNavigator.of(context).popAndPush(
-                              Routes.llenadoFormPage,
-                              arguments: LlenadoFormPageArguments(
-                                  activo: activo,
-                                  cuestionarioId: cuestionarioId));
-                        } else {
-                          mostrarMensaje(context,
-                              'Ha finalizado la inspección, no debe hacer reparaciones');
-                        }
-                        break;
-                      case EstadoDeInspeccion.reparacion:
-                        mostrarMensaje(context, 'Inspección finalizada');
-                        break;
-                      default:
-                    }
+                : () {
+                    finalizarInspeccion(context, estado);
                   },
           ),
         ],
       ),
     );
+  }
+
+  Future<void> finalizarInspeccion(
+      BuildContext context, EstadoDeInspeccion estadoIns) async {
+    final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
+    // set up the buttons
+    final cancelButton = FlatButton(
+      onPressed: () => Navigator.of(context).pop(),
+      child: const Text("Cancelar"), // OJO con el context
+    );
+    final Widget continueButton = FlatButton(
+      onPressed: () async {
+        Navigator.of(context).pop();
+
+        await guardarParaReparacion(context, estado);
+      },
+      child: const Text("Aceptar"),
+    );
+    // set up the AlertDialog
+    final alert = AlertDialog(
+      title: const Text("Alerta"),
+      content: const Text(
+          "¿Está seguro que desea finalizar esta inspección? Si lo hace, no podrá editarla después "),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+    // show the dialog
+
+    if (estado == EstadoDeInspeccion.reparacion) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return alert;
+        },
+      );
+    } else if (estado == EstadoDeInspeccion.borrador) {
+      final criticidadTotal = viewModel.bloques.controls
+          .fold<int>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+      if (criticidadTotal <= 0) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return alert;
+          },
+        );
+      } else {
+        await guardarParaReparacion(context, estado);
+      }
+      
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  Future guardarParaReparacion(
+      BuildContext context, EstadoDeInspeccion estadoIns) async {
+    final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
+    switch (estadoIns) {
+      case EstadoDeInspeccion.borrador:
+        final criticidadTotal = viewModel.bloques.controls
+            .fold<int>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+        if (criticidadTotal > 0) {
+          viewModel.estado.value = EstadoDeInspeccion.reparacion;
+          LoadingDialog.show(context);
+          await viewModel.guardarInspeccionEnLocal(
+              estado: EstadoDeInspeccion.reparacion);
+          LoadingDialog.hide(context);
+          await showDialog(
+            context: context,
+            builder: (context) => AlertReparacion(),
+          );
+          //machetazo para recargar el formulario con los datos insertados en la DB
+          ExtendedNavigator.of(context).popAndPush(Routes.llenadoFormPage,
+              arguments: LlenadoFormPageArguments(
+                  activo: activo, cuestionarioId: cuestionarioId));
+        } else {
+          mostrarMensaje(context,
+              'Ha finalizado la inspección, no debe hacer reparaciones');
+        }
+        break;
+      case EstadoDeInspeccion.reparacion:
+        mostrarMensaje(context, 'Inspección finalizada');
+        break;
+      default:
+    }
   }
 
   Future guardarYSalir(BuildContext context) async {

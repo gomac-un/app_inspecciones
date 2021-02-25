@@ -44,7 +44,7 @@ class LlenadoFormViewModel extends ChangeNotifier {
     estado.value = inspeccion?.estado ?? EstadoDeInspeccion.borrador;
 
     final bloquesBD =
-        await _db.llenadoDao.cargarCuestionario(cuestionarioId, _activo);
+        await _db.llenadoDao.cargarCuestionario(cuestionarioId, activoId: _activo);
 
     //ordenamiento y creacion de los controles dependiendo del tipo de elemento
     bloques = FormArray(
@@ -68,7 +68,7 @@ class LlenadoFormViewModel extends ChangeNotifier {
         }
         if (e is BloqueConPreguntaNumerica) {
           return RespuestaNumericaFormGroup(
-              e.pregunta, e.respuesta, e.criticidades);
+              e.pregunta.pregunta, e.respuesta, e.pregunta.criticidades);
         }
         throw Exception("Tipo de bloque no reconocido");
       }).toList(),

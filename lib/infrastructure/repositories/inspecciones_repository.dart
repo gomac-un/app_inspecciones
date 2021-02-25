@@ -52,16 +52,16 @@ class InspeccionesRepository {
   Future<Either<ApiFailure, Unit>> subirCuestionario(
       Cuestionario cuestionario) async {
     //TODO: subir las fotos
-    final ins = await _db.getCuestionarioCompleto(cuestionario);
-    log(jsonEncode(ins));
+    final cues = await _db.getCuestionarioCompleto(cuestionario);
+    log(jsonEncode(cues));
     try {
       /*final res = await _api.putRecurso('/inspecciones/${ins['id']}/', ins,
           token: _token);*/
-      log(jsonEncode(ins));
-      await _api.postRecurso('/cuestionarios-completos/', ins);
+      log(jsonEncode(cues));
+      await _api.postRecurso('/cuestionarios-completos/', cues);
       await _db.marcarCuestionarioSubido(cuestionario);
 
-      final idDocumento = ins['id'].toString();
+      final idDocumento = cues['id'].toString();
       const tipoDocumento = 'cuestionarios';
       final fotos = await FotosManager.getFotosDeDocumento(
           idDocumento: idDocumento, tipoDocumento: tipoDocumento);

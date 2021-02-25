@@ -32,7 +32,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   //static const _server = 'http://10.0.2.2:8000';
   //TODO: opcion para modificar el servidor desde la app
   static const _apiBase = '/inspecciones/api/v1';
-  static const _timeLimit = Duration(seconds: 5); //TODO: ajustar el timelimit
+  static const _timeLimit = Duration(seconds: 90); //TODO: ajustar el timelimit
   final Usuario _usuario;
   String get token => _usuario.token;
 

@@ -41,6 +41,14 @@ class PreguntaNumerica {
   PreguntaNumerica(this.pregunta, this.criticidades);
 }
 
+
+class CuestionarioConContratista {
+  final List<CuestionarioDeModelo> cuestionarioDeModelo;
+  final Contratista contratista;
+
+  CuestionarioConContratista(this.cuestionarioDeModelo, this.contratista);
+}
+
 class PreguntaConOpcionesDeRespuesta {
   final Pregunta pregunta;
   final List<OpcionDeRespuesta> opcionesDeRespuesta;
@@ -105,7 +113,7 @@ class CuadriculaConPreguntasYConOpcionesDeRespuesta {
 }
 
 abstract class IBloqueOrdenable {
-  final Bloque bloque;
+  Bloque bloque;
 
   IBloqueOrdenable(this.bloque);
 
@@ -113,7 +121,7 @@ abstract class IBloqueOrdenable {
 }
 
 class BloqueConTitulo extends IBloqueOrdenable {
-  final Titulo titulo;
+   Titulo titulo;
 
   BloqueConTitulo(Bloque bloque, this.titulo) : super(bloque);
 }
@@ -124,16 +132,15 @@ class BloqueConCondicional extends IBloqueOrdenable {
   final List<PreguntasCondicionalData> condiciones;
 
   BloqueConCondicional(
-      Bloque bloque, this.pregunta, this.respuesta, this.condiciones)
+      Bloque bloque, this.pregunta, this.condiciones, {this.respuesta})
       : super(bloque);
 }
 
 class BloqueConPreguntaNumerica extends IBloqueOrdenable {
-  final Pregunta pregunta;
+  final PreguntaNumerica pregunta;
   final RespuestasCompanion respuesta;
-  final List<CriticidadesNumerica> criticidades;
   BloqueConPreguntaNumerica(
-      Bloque bloque, this.pregunta, this.respuesta, this.criticidades)
+      Bloque bloque, this.pregunta, {this.respuesta})
       : super(bloque);
 }
 
@@ -141,15 +148,16 @@ class BloqueConPreguntaSimple extends IBloqueOrdenable {
   final PreguntaConOpcionesDeRespuesta pregunta;
   final RespuestaConOpcionesDeRespuesta respuesta;
 
-  BloqueConPreguntaSimple(Bloque bloque, this.pregunta, this.respuesta)
+  BloqueConPreguntaSimple(Bloque bloque, this.pregunta, {this.respuesta})
       : super(bloque);
 }
 
 class BloqueConCuadricula extends IBloqueOrdenable {
   final CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula;
   final List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas;
+  final List<PreguntaConOpcionesDeRespuesta> preguntas;
 
-  BloqueConCuadricula(Bloque bloque, this.cuadricula, this.preguntasRespondidas)
+  BloqueConCuadricula(Bloque bloque, this.cuadricula,  {this.preguntasRespondidas, this.preguntas,})
       : super(bloque);
 }
 

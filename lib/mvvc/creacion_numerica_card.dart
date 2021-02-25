@@ -209,13 +209,26 @@ class CriticidadCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        ReactiveSlider(
-                          formControl: element.control('criticidad')
-                              as FormControl<double>,
-                          max: 4,
-                          divisions: 4,
-                          labelBuilder: (v) => v.round().toString(),
-                          activeColor: Colors.red,
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 5,
+                              child: ReactiveSlider(
+                                formControl: element.control('criticidad')
+                                    as FormControl<double>,
+                                max: 4,
+                                divisions: 4,
+                                labelBuilder: (v) => v.round().toString(),
+                                activeColor: Colors.red,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              tooltip: 'Borrar respuesta',
+                              onPressed: () =>
+                                  formGroup.borrarCriticidad(element),
+                            ),
+                          ],
                         ),
                       ],
                     );

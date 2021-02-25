@@ -14,8 +14,12 @@ class UserDrawer extends StatelessWidget {
     final authBloc = Provider.of<AuthBloc>(context);
 
     final authState = authBloc.state;
+    bool esAdmin = false;
 
     if (authState is Authenticated) {
+      if((authBloc.state as Authenticated).usuario.esAdmin != null){
+        esAdmin = (authBloc.state as Authenticated).usuario.esAdmin;
+      }
       return SafeArea(
         child: Drawer(
           child: Column(
@@ -31,10 +35,10 @@ class UserDrawer extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 30.0),
                         child: UserAccountsDrawerHeader(
                           accountName: Text(
-                            (authBloc.state as Authenticated).usuario.esAdmin
+                            esAdmin
                                 ? "Administrador"
                                 : "Inspector",
-                            style: TextStyle(fontSize: 15),
+                            style: const  TextStyle(fontSize: 15),
                           ),
                           accountEmail: Text(authState.usuario.documento),
                           currentAccountPicture: CircleAvatar(
@@ -48,7 +52,7 @@ class UserDrawer extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 5.0),
-                    Opciones(),
+                    Opciones(esAdmin: esAdmin),
                   ],
                 ),
               ),
@@ -64,10 +68,12 @@ class UserDrawer extends StatelessWidget {
 }
 
 class Opciones extends StatelessWidget {
+  final bool esAdmin;
+
+  const Opciones({Key key, this.esAdmin}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    final authBloc = Provider.of<AuthBloc>(context);
-    if ((authBloc.state as Authenticated).usuario.esAdmin) {
+    if (esAdmin) {
       return Column(
         children: <Widget>[
           Card(

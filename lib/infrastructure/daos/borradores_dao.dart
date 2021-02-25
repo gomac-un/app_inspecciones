@@ -47,10 +47,33 @@ class BorradoresDao extends DatabaseAccessor<Database>
   }
 
   Stream<List<Cuestionario>> getCuestionarios() =>
-      select(cuestionarios).watch();
+     select(cuestionarios).watch();
+
+      
 
   Future eliminarCuestionario(Cuestionario cuestionario) async {
     await (delete(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
         .go();
+  }
+
+  Future<CuestionarioConContratista> cargarCuestionarioDeModelo(
+      Cuestionario cuestionario) async {
+    final query = select(cuestionarioDeModelos).join([
+      leftOuterJoin(contratistas,
+          contratistas.id.equalsExp(cuestionarioDeModelos.contratistaId)),
+    ])
+      ..where(cuestionarioDeModelos.cuestionarioId.equals(cuestionario.id));
+
+    final res = await query
+        .map((row) =>
+            [row.readTable(cuestionarioDeModelos), row.readTable(contratistas)])
+        .get();
+
+    
+    if(res.isEmpty) return null;
+
+    return CuestionarioConContratista(
+        res.map((cu) => cu[0] as CuestionarioDeModelo).toList(),
+        res.first[1] as Contratista);
   }
 }

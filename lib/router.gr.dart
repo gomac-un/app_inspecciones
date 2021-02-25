@@ -9,6 +9,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
+import 'infrastructure/moor_database.dart';
 import 'mvvc/creacion_form_page.dart';
 import 'mvvc/llenado_form_page.dart';
 import 'presentation/pages/borradores_screen.dart';
@@ -64,8 +65,16 @@ class AutoRouter extends RouterBase {
       );
     },
     CreacionFormPage: (data) {
+      final args = data.getArgs<CreacionFormPageArguments>(
+        orElse: () => CreacionFormPageArguments(),
+      );
       return MaterialPageRoute<dynamic>(
-        builder: (context) => const CreacionFormPage().wrappedRoute(context),
+        builder: (context) => CreacionFormPage(
+          key: args.key,
+          cuestionario: args.cuestionario,
+          cuestionarioDeModelo: args.cuestionarioDeModelo,
+          bloques: args.bloques,
+        ).wrappedRoute(context),
         settings: data,
       );
     },
@@ -112,8 +121,20 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
 
   Future<dynamic> pushLoginScreen() => push<dynamic>(Routes.loginScreen);
 
-  Future<dynamic> pushCreacionFormPage() =>
-      push<dynamic>(Routes.creacionFormPage);
+  Future<dynamic> pushCreacionFormPage({
+    Key key,
+    dynamic cuestionario,
+    CuestionarioConContratista cuestionarioDeModelo,
+    List<IBloqueOrdenable> bloques,
+  }) =>
+      push<dynamic>(
+        Routes.creacionFormPage,
+        arguments: CreacionFormPageArguments(
+            key: key,
+            cuestionario: cuestionario,
+            cuestionarioDeModelo: cuestionarioDeModelo,
+            bloques: bloques),
+      );
 
   Future<dynamic> pushBorradoresPage() => push<dynamic>(Routes.borradoresPage);
 
@@ -138,6 +159,16 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
 /// ************************************************************************
 /// Arguments holder classes
 /// *************************************************************************
+
+/// CreacionFormPage arguments holder class
+class CreacionFormPageArguments {
+  final Key key;
+  final dynamic cuestionario;
+  final CuestionarioConContratista cuestionarioDeModelo;
+  final List<IBloqueOrdenable> bloques;
+  CreacionFormPageArguments(
+      {this.key, this.cuestionario, this.cuestionarioDeModelo, this.bloques});
+}
 
 /// LlenadoFormPage arguments holder class
 class LlenadoFormPageArguments {

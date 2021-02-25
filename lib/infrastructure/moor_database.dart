@@ -170,7 +170,7 @@ class Database extends _$Database {
       bloqueJson['preguntas'] = preguntasConOpciones;
       return bloqueJson;
     }));
-    final cuestionarioJson = cuestionario.toJson();
+    final cuestionarioJson = cuestionario.toJson(serializer: const CustomSerializer());
     cuestionarioJson['modelos'] =
         modelosCuest.map((cm) => cm.toJson()).toList();
     cuestionarioJson['bloques'] = bloquesExtJson;
@@ -243,7 +243,7 @@ class Database extends _$Database {
         .toList();
 
     final cuestionariosParseados = (json["Cuestionario"] as List)
-        .map((e) => Cuestionario.fromJson(e as Map<String, dynamic>))
+        .map((e) => Cuestionario.fromJson(e as Map<String, dynamic>, serializer: const CustomSerializer()))
         .map((c) => c.copyWith(esLocal: false))
         .toList();
 
@@ -374,6 +374,7 @@ class CustomSerializer extends ValueSerializer {
       EnumIndexConverter<TipoDePregunta>(TipoDePregunta.values);
   static const estadoDeInspeccionConverter =
       EnumIndexConverter<EstadoDeInspeccion>(EstadoDeInspeccion.values);
+  static const estadoDeCuestionarioConverter = EnumIndexConverter<EstadoDeCuestionario>(EstadoDeCuestionario.values);
 
   @override
   T fromJson<T>(dynamic json) {
@@ -398,6 +399,10 @@ class CustomSerializer extends ValueSerializer {
 
     if (T == EstadoDeInspeccion) {
       return estadoDeInspeccionConverter.mapToDart(json as int) as T;
+    }
+
+    if (T == EstadoDeCuestionario) {
+      return estadoDeCuestionarioConverter.mapToDart(json as int) as T;
     }
 
     if (T == DateTime) {
@@ -430,6 +435,10 @@ class CustomSerializer extends ValueSerializer {
 
     if (value is EstadoDeInspeccion) {
       return estadoDeInspeccionConverter.mapToSql(value);
+    }
+
+    if (value is EstadoDeCuestionario) {
+      return estadoDeCuestionarioConverter.mapToSql(value);
     }
 
     if (value is KtList) {

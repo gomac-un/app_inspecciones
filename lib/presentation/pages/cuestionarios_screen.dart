@@ -2,6 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
+import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/widgets/drawer.dart';
@@ -76,20 +78,43 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
                     ? IconButton(
                         icon: const Icon(Icons.cloud_upload),
                         onPressed: () async {
-                          final res = await RepositoryProvider.of<
-                                  InspeccionesRepository>(context)
-                              .subirCuestionario(cuestionario)
-                              .then((res) => res.fold(
-                                  (fail) => fail.when(
-                                      noHayConexionAlServidor: () =>
-                                          "No hay conexion al servidor",
-                                      noHayInternet: () => "No hay internet",
-                                      serverError: (msg) =>
-                                          "Error inesperado: $msg"),
-                                  (u) => "El cuestionario ha sido enviado"));
-                          res=='El cuestionario ha sido enviado' ?
-                          mostrarMensaje(context,'exito', res, ocultar: false )
-                          : mostrarMensaje(context,'error',res, ocultar: false);
+                          final estado = cuestionario.estado;
+                          if (estado == EstadoDeCuestionario.finalizada) {
+                            final res = await RepositoryProvider.of<
+                                    InspeccionesRepository>(context)
+                                .subirCuestionario(cuestionario)
+                                .then((res) => res.fold(
+                                    (fail) => fail.when(
+                                        noHayConexionAlServidor: () =>
+                                            "No hay conexion al servidor",
+                                        noHayInternet: () => "No hay internet",
+                                        serverError: (msg) =>
+                                            "Error inesperado: $msg"),
+                                    (u) => "El cuestionario ha sido enviado"));
+                            res == 'El cuestionario ha sido enviado'
+                                ? mostrarMensaje(context, 'exito', res,
+                                    ocultar: false)
+                                : mostrarMensaje(context, 'error', res,
+                                    ocultar: false);
+                          } else {
+                            showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: const Text('Advertencia'),
+                                content: const Text(
+                                    "Aún no finalizado este cuestionario, no puede ser enviado"),
+                                actions: [
+                                  FlatButton(
+                                    textColor: Colors.blue,
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text("Aceptar"),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
                         })
                     : const SizedBox.shrink(),
                 trailing: cuestionario.esLocal
@@ -100,16 +125,33 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
                       )
                     : const Icon(Icons
                         .cloud), //Los cuestionarios subidos ya no se pueden borrar
-                onTap: () => {
-                  throw UnimplementedError(
-                      "implementar la edicion de cuestionarios")
-                },
+                onTap: () => {cargarCreacionPage(cuestionario, context)},
               );
             },
           );
         },
       ),
       floatingActionButton: const FloatingActionButtonCreacionCuestionario(),
+    );
+  }
+
+  // ignore: avoid_void_async
+  void cargarCreacionPage(
+      Cuestionario cuestionario, BuildContext context) async {
+    final cuestionarioDeModelo = await RepositoryProvider.of<Database>(context)
+        .borradoresDao
+        .cargarCuestionarioDeModelo(cuestionario);
+    final bloquesBD = await RepositoryProvider.of<Database>(context)
+        .llenadoDao
+        .cargarCuestionario(cuestionario.id);
+
+    ExtendedNavigator.of(context).push(
+      Routes.creacionFormPage,
+      arguments: CreacionFormPageArguments(
+        cuestionario: cuestionario,
+        cuestionarioDeModelo: cuestionarioDeModelo,
+        bloques: bloquesBD,
+      ),
     );
   }
 
@@ -173,4 +215,3 @@ class FloatingActionButtonCreacionCuestionario extends StatelessWidget {
     );
   }
 }
-

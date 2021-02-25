@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
@@ -6,36 +7,51 @@ import 'package:inspecciones/mvvc/creacion_validators.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 //TODO: implementar la edicion de cuestionarios
-//TODO: este viewmodel podria extender de FormGroup
 class CreacionFormViewModel extends FormGroup {
   final _db = getIt<Database>();
-
+  final Cuestionario cuestionario;
+  final List<IBloqueOrdenable> bloquesBD;
   final sistemas = ValueNotifier<List<Sistema>>([]);
   final tiposDeInspeccion = ValueNotifier<List<String>>([]);
   final modelos = ValueNotifier<List<String>>([]);
   final contratistas = ValueNotifier<List<Contratista>>([]);
-  final totalBloques = ValueNotifier<List<String>>(['1']);
-
+  final totalBloques = ValueNotifier<List<String>>([]);
+  final CuestionarioConContratista cuestionarioDeModelo;
+  final ValueNotifier<EstadoDeCuestionario> estado =
+      ValueNotifier(EstadoDeCuestionario.borrador);
+  
   Copiable bloqueCopiado;
 
-  CreacionFormViewModel()
+  CreacionFormViewModel(this.cuestionario, this.cuestionarioDeModelo,
+      {this.bloquesBD = const []})
       : super(
           {
-            'tipoDeInspeccion':
-                FormControl<String>(validators: [Validators.required]),
+            'tipoDeInspeccion': FormControl<String>(
+                value: cuestionario?.tipoDeInspeccion ?? '',
+                validators: [Validators.required]),
             'nuevoTipoDeInspeccion': FormControl<String>(value: ""),
+            'contratista': FormControl<Contratista>(
+                value: cuestionarioDeModelo?.contratista,
+                validators: [Validators.required]),
+            'periodicidad': FormControl<double>(
+                value: cuestionarioDeModelo
+                        ?.cuestionarioDeModelo?.first?.periodicidad
+                        ?.toDouble() ??
+                    0,
+                validators: [Validators.required]),
             'modelos': FormControl<List<String>>(
-                value: [], validators: [Validators.minLength(1)]),
-            'contratista':
-                FormControl<Contratista>(validators: [Validators.required]),
-            'periodicidad':
-                FormControl<double>(validators: [Validators.required]),
-            'bloques': FormArray(
-                [CreadorTituloFormGroup()]), //agrega un titulo inicial
+                value: cuestionarioDeModelo?.cuestionarioDeModelo
+                        ?.map((e) => e.modelo)
+                        ?.toList() ??
+                    []),
+            'bloques': _cargarBloques(cuestionario, bloquesBD),
+            //agrega un titulo inicial
           },
           validators: [nuevoTipoDeInspeccion],
           asyncValidators: [cuestionariosExistentes],
-        );
+        ) {
+    cargarDatos();
+  }
 
   Future cargarDatos() async {
     tiposDeInspeccion.value = await _db.creacionDao.getTiposDeInspecciones();
@@ -46,6 +62,23 @@ class CreacionFormViewModel extends FormGroup {
 
     contratistas.value = await _db.creacionDao.getContratistas();
     sistemas.value = await _db.creacionDao.getSistemas();
+
+    estado.value = cuestionario?.estado ?? EstadoDeCuestionario.borrador;
+   
+    if (cuestionario != null) {
+      bloquesBD.forEach(
+        (u) => {
+          if (!totalBloques.value.contains((u.bloque.nOrden + 1).toString()))
+            {totalBloques.value.add((u.bloque.nOrden + 1).toString())}
+          else
+            {
+              totalBloques.value
+                  .add((int.parse(totalBloques.value.last)).toString())
+            },
+        },
+      );
+      totalBloques.notifyListeners();
+    } 
   }
 
   /// Metodo que funciona sorprendentemente bien con los nulos y los casos extremos
@@ -53,11 +86,12 @@ class CreacionFormViewModel extends FormGroup {
       {AbstractControl bloque, AbstractControl despuesDe}) {
     final bloques = control("bloques") as FormArray;
     bloques.insert(bloques.controls.indexOf(despuesDe) + 1, bloque);
-    if(!totalBloques.value.contains((bloques.controls.indexOf(bloque) + 1).toString())){
+    if (!totalBloques.value
+        .contains((bloques.controls.indexOf(bloque) + 1).toString())) {
       totalBloques.value.add((bloques.controls.indexOf(bloque) + 1).toString());
-    }
-    else{
-      totalBloques.value.add((int.parse(totalBloques.value.last) + 1 ).toString());
+    } else {
+      totalBloques.value
+          .add((int.parse(totalBloques.value.last) + 1).toString());
     }
   }
 
@@ -65,17 +99,15 @@ class CreacionFormViewModel extends FormGroup {
     //TODO hacerle dispose si se requiere
     try {
       final bloques = control("bloques") as FormArray;
-      final numeroABorrar= bloques.controls.indexOf(e)+1;
+      final numeroABorrar = bloques.controls.indexOf(e) + 1;
       bloques.remove(e);
-      totalBloques.value.remove(numeroABorrar.toString()/* (bloques.controls.indexOf(e)+1).toString() */);
+      totalBloques.value.remove(numeroABorrar
+          .toString() /* (bloques.controls.indexOf(e)+1).toString() */);
       // ignore: empty_catches
     } on FormControlNotFoundException {}
   }
 
-  Future enviar() async {
-    markAllAsTouched();
-    await _db.creacionDao.crearCuestionario(controls);
-  }
+  
 
   /// Cierra todos los streams para evitar fugas de memoria, se suele llamar desde el provider
   @override
@@ -84,6 +116,129 @@ class CreacionFormViewModel extends FormGroup {
     modelos.dispose();
     contratistas.dispose();
     sistemas.dispose();
+    estado.dispose();
     super.dispose();
+  }
+
+  Future guardarCuestionarioEnLocal(EstadoDeCuestionario estado) async {
+
+    markAllAsTouched();
+    final int cuestionarioId = cuestionario?.id;
+    final int contratistaId = (control('contratista').value as Contratista)?.id;
+
+    final String tipoDeInspeccion = control("tipoDeInspeccion").value == "otra"
+        ? control("nuevoTipoDeInspeccion").value as String
+        : control("tipoDeInspeccion").value as String;
+
+    final Cuestionario nuevoCuestionario = Cuestionario(
+      tipoDeInspeccion: tipoDeInspeccion,
+      esLocal: null,
+      id: cuestionarioId, estado: estado,
+    );
+
+    final List<CuestionarioDeModelo> nuevoscuestionariosDeModelos =
+        (control('modelos').value as List<String>)
+            .map((String modelo) => CuestionarioDeModelo(
+                modelo: modelo,
+                periodicidad: (control('periodicidad').value as double).round(),
+                contratistaId: contratistaId,
+                cuestionarioId: cuestionarioId,
+                id: null))
+            .toList();
+
+    final x = (control('bloques') as FormArray).controls.asMap().entries;
+
+    final bloquesAGuardar = x.expand<IBloqueOrdenable>((e) {
+      final i = e.key;
+      final control = e.value;
+      final bloque =
+          Bloque(cuestionarioId: cuestionarioId, id: null, nOrden: i);
+      if (control is CreadorTituloFormGroup) {
+        return [
+          BloqueConTitulo(
+            bloque,
+            control.toDB(),
+          )
+        ];
+      }
+      if (control is CreadorPreguntaFormGroup) {
+        final esCondicional = control.toDB().pregunta.esCondicional;
+        if (!esCondicional) {
+          return [
+            BloqueConPreguntaSimple(
+              bloque,
+              control.toDB(),
+            )
+          ];
+        } else {
+          return [
+            BloqueConCondicional(
+              bloque,
+              control.toDB(),
+              control.condicionesToDB(),
+            ),
+          ];
+        }
+      }
+      if (control is CreadorPreguntaCuadriculaFormGroup) {
+        return [
+          BloqueConCuadricula(
+            bloque,
+            CuadriculaDePreguntasConOpcionesDeRespuesta(
+                control.toDB().cuadricula,
+                control.toDB().opcionesDeRespuesta,
+                ),
+               preguntas:  control.toDB().preguntas
+          )
+        ];
+      }
+      if (control is CreadorPreguntaNumericaFormGroup) {
+        return [
+          BloqueConPreguntaNumerica(
+            bloque,
+            control.toDB(),
+          )
+        ];
+      }
+      throw Exception("Tipo de control no reconocido");
+    }).toList();
+
+    await _db.creacionDao.guardarCuestionario(nuevoCuestionario,
+        nuevoscuestionariosDeModelos, bloquesAGuardar);
+  }
+}
+
+FormArray _cargarBloques(
+    Cuestionario cuestionario, List<IBloqueOrdenable> bloquesBD) {
+  if (cuestionario != null) {
+    //ordenamiento y creacion de los controles dependiendo del tipo de elemento
+    final bloques = FormArray(
+      (bloquesBD
+            ..sort(
+              (a, b) => a.nOrden.compareTo(b.bloque.nOrden),
+            ))
+          .map<AbstractControl>((e) {
+        if (e is BloqueConTitulo) return CreadorTituloFormGroup(d: e.titulo);
+        if (e is BloqueConCondicional) {
+          return CreadorPreguntaFormGroup(defaultValue: e.pregunta);
+        }
+        if (e is BloqueConPreguntaSimple) {
+          return CreadorPreguntaFormGroup(defaultValue: e.pregunta);
+        }
+        if (e is BloqueConCuadricula) {
+          return CreadorPreguntaCuadriculaFormGroup(
+              preguntasDeCuadricula: e.preguntas, cuadricula: e.cuadricula, preguntas: e.preguntasRespondidas);
+        }
+        if (e is BloqueConPreguntaNumerica) {
+          return CreadorPreguntaNumericaFormGroup(defaultValue: e.pregunta);
+        }
+        throw Exception("Tipo de bloque no reconocido");
+      }).toList(),
+    );
+
+    return bloques;
+  } else {
+    final bloques = FormArray([CreadorTituloFormGroup()]);
+    return bloques;
   }
 }

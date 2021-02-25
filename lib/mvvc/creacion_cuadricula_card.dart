@@ -11,7 +11,8 @@ class CreadorCuadriculaCard extends StatelessWidget {
   final CreadorPreguntaCuadriculaFormGroup formGroup;
   final int nro;
 
-  const CreadorCuadriculaCard({Key key, this.formGroup, this.nro}) : super(key: key);
+  const CreadorCuadriculaCard({Key key, this.formGroup, this.nro})
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<CreacionFormViewModel>(context);
@@ -155,8 +156,12 @@ class WidgetPreguntas extends StatelessWidget {
                                           create: (_) => Provider.of<
                                                   CreacionFormViewModel>(
                                               maincontext),
-                                          child: CreadorSeleccionSimpleCard(
-                                            formGroup: element,
+                                          // ignore: sized_box_for_whitespace
+                                          child: Container(
+                                            width: 300.0,
+                                            child: CreadorSeleccionSimpleCard(
+                                              formGroup: element,
+                                            ),
                                           ),
                                         )),
                                         actions: [

@@ -14,3 +14,7 @@ enum EstadoDeInspeccion {
   finalizada,
 }
 
+enum EstadoDeCuestionario {
+  borrador,
+  finalizada,
+}
