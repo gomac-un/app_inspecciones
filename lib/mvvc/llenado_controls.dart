@@ -24,10 +24,10 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     // entonces aca se asignan definen nuevo los valores por defecto que son usados
     // cuando se inicia una nueva inspeccion
     respuesta.respuesta ??= crearRespuestaPorDefecto(pregunta.pregunta.id);
-
     FormControl respuestas;
     //TODO: hacer un switch para pregunta.pregunta.tipo
-    if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta) {
+    if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta ||
+        pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaMultiple) {
       respuestas = FormControl<List<OpcionDeRespuesta>>(
         value: pregunta.opcionesDeRespuesta
             .where(
@@ -36,7 +36,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
                   false,
             )
             .toList(),
-        validators: [Validators.minLength(1)],
+        validators: [ if(!(pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaMultiple)) Validators.minLength(1)],
       );
     }
     if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta ||
@@ -64,7 +64,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
       ),
       'reparado': fb.control<bool>(respuesta.respuesta.reparado.value),
       'observacionReparacion':
-          fb.control<String>(respuesta.respuesta.observacionReparacion.value),
+          fb.control<String>(respuesta.respuesta.observacionReparacion.value, ),
       'fotosReparacion': fb.array<File>(
         respuesta.respuesta.fotosReparacion.value
             .map((e) => FormControl(value: File(e)))
@@ -84,7 +84,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
   //constructor que le envia los controles a la clase padre
   RespuestaSeleccionSimpleFormGroup._(
       Map<String, AbstractControl> controles, this.pregunta, this.respuesta,
-      {this.condiciones, this.bloque})
+      {this.condiciones, this.bloque,})
       : super(controles) {
     valueChanges.listen((_) => _momentoRespuesta =
         DateTime.now()); //guarda el momento de la ultima edicion
@@ -100,7 +100,8 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
 
     switch (pregunta.pregunta.tipo) {
       case TipoDePregunta.multipleRespuesta:
-        if ((control('respuestas') as FormControl<List<OpcionDeRespuesta>>).value !=
+        if ((control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
+                .value !=
             null) {
           sumres =
               (control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
@@ -112,7 +113,8 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
 
         break;
       case TipoDePregunta.unicaRespuesta:
-        if ((control('respuestas') as FormControl<OpcionDeRespuesta>).value != null) {
+        if ((control('respuestas') as FormControl<OpcionDeRespuesta>).value !=
+            null) {
           sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
               .value
               .criticidad;
@@ -121,7 +123,8 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
         }
         break;
       case TipoDePregunta.parteDeCuadriculaUnica:
-        if ((control('respuestas') as FormControl<OpcionDeRespuesta>).value != null) {
+        if ((control('respuestas') as FormControl<OpcionDeRespuesta>).value !=
+            null) {
           sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
               .value
               .criticidad;
@@ -129,11 +132,34 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
           sumres = 0;
         }
         break;
+      case TipoDePregunta.parteDeCuadriculaMultiple:
+        if ((control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
+                .value !=
+            null) {
+          sumres =
+              (control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
+                  .value
+                  .fold(0, (p, c) => p + c.criticidad);
+        } else {
+          sumres = 0;
+        }
+
+        break;
       default:
         throw Exception("tipo de pregunta no esperado");
     }
 
     return pregunta.pregunta.criticidad * sumres;
+  }
+
+  @override
+  int get criticidadReparacion{
+    if(control('reparado').value as bool){
+      return 0;
+    }
+    else{
+      return criticidad;
+    }
   }
 
   int verificarSeccion(
@@ -170,6 +196,9 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
         break;
       case TipoDePregunta.parteDeCuadriculaUnica:
         respuestas = [control('respuestas').value as OpcionDeRespuesta];
+        break;
+      case TipoDePregunta.parteDeCuadriculaMultiple:
+        respuestas = control('respuestas').value as List<OpcionDeRespuesta>;
         break;
       default:
         throw Exception("tipo de pregunta no esperado");
@@ -216,7 +245,6 @@ class RespuestaNumericaFormGroup extends FormGroup
 
     final FormControl respuestas = FormControl<OpcionesDeRespuesta>();
 
-    //TODO: hacer un switch para pregunta.pregunta.tipo
     final Map<String, AbstractControl<dynamic>> controles = {
       'respuesta': respuestas,
       'valor': fb.control<double>(respuesta.valor.value, [Validators.required]),
@@ -253,17 +281,6 @@ class RespuestaNumericaFormGroup extends FormGroup
         DateTime.now()); //guarda el momento de la ultima edicion
   }
 
-  int verificarRango(
-    double respuesta,
-    CriticidadesNumerica criticidades,
-  ) {
-    if (respuesta !=null && respuesta >= criticidades.valorMinimo &&
-        respuesta < criticidades.valorMaximo) {
-      return criticidades.criticidad;
-    }
-    return 0;
-  }
-
   @override
   int get criticidad {
     /*TODO: calcular la criticidad de las multiples con las reglas de
@@ -271,17 +288,20 @@ class RespuestaNumericaFormGroup extends FormGroup
       * solo para la pantalla de arreglos
       */
     final double respuesta = (control('valor') as FormControl<double>).value;
+    final criRes = respuesta != null
+        ? criticidades?.firstWhere(
+            (x) => respuesta >= x.valorMinimo && respuesta <= x.valorMaximo, orElse: (){
+              return CriticidadesNumerica(criticidad: 0);
+            })
+        : CriticidadesNumerica(criticidad: 0);
 
-    final int criRes =
-        criticidades?.map((cri) => verificarRango(respuesta, cri))?.toList()[0];
-
-    return pregunta.criticidad * criRes;
+    return pregunta.criticidad * criRes.criticidad;
   }
 
   RespuestaConOpcionesDeRespuesta toDB() {
     List<OpcionDeRespuesta> respuestas;
     respuestas = [control('respuesta').value as OpcionDeRespuesta];
-    final double campo = control('valor').value as double;
+    final double campo = value['valor'] as double;
     return RespuestaConOpcionesDeRespuesta(
       respuesta.copyWith(
         valor: Value(campo),
@@ -301,6 +321,16 @@ class RespuestaNumericaFormGroup extends FormGroup
       ),
       respuestas,
     );
+  }
+
+  @override
+  int get criticidadReparacion {
+    if(control('reparado').value as bool){
+      return 0;
+    }
+    else{
+     return criticidad;
+    }
   }
 }
 
@@ -325,7 +355,7 @@ class RespuestaCuadriculaFormArray extends FormArray
                   cuadricula.opcionesDeRespuesta,
                 ),
                 e.respuesta))
-            .toList(); //TODO: seleccion multiple
+            .toList(); 
 
     return RespuestaCuadriculaFormArray._(
       controles,
@@ -350,15 +380,49 @@ class RespuestaCuadriculaFormArray extends FormArray
       * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
       * solo para la pantalla de arreglos
       */
-
-    return controls.map((d) {
+    final int x = controls.map((d) {
       final e = d as RespuestaSeleccionSimpleFormGroup;
-      final ctrlPregunta =
-          e.control('respuestas') as FormControl<OpcionDeRespuesta>;
-      return e.pregunta.pregunta.criticidad * ctrlPregunta.value.criticidad;
+      if (e.pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaUnica) {
+        final ctrlPregunta =
+            e.control('respuestas') as FormControl<OpcionDeRespuesta>;
+        return e.pregunta.pregunta.criticidad *
+            (ctrlPregunta?.value?.criticidad ?? 0);
+      } else {
+        final int sumRespuesta =
+            (e.control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
+                .value
+                .fold(0, (p, c) => p + c?.criticidad ?? 0);
+
+        return e.pregunta.pregunta.criticidad * sumRespuesta;
+      }
     }).fold(0, (p, c) => p + c);
+    return x;
 
     //return pregunta.pregunta.criticidad * sumres;
+  }
+
+  @override
+  int get criticidadReparacion {
+    final int x = controls.map((d) {
+      final e = d as RespuestaSeleccionSimpleFormGroup;
+      if(e.control('reparado').value as bool){
+        return 0;
+      }
+      else if (e.pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaUnica) {
+        final ctrlPregunta =
+            e.control('respuestas') as FormControl<OpcionDeRespuesta>;
+        return e.pregunta.pregunta.criticidad *
+            (ctrlPregunta?.value?.criticidad ?? 0);
+      } else {
+        final int sumRespuesta =
+            (e.control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
+                .value
+                .fold(0, (p, c) => p + c?.criticidad ?? 0);
+
+        return e.pregunta.pregunta.criticidad * sumRespuesta;
+      }
+    }).fold(0, (p, c) => p + c);
+    return x;
   }
 }
 
@@ -369,6 +433,11 @@ class TituloFormGroup extends FormGroup implements BloqueDeFormulario {
 
   @override
   int get criticidad => 0;
+
+  @override
+  int get criticidadReparacion => 0;
+
+  
 }
 
 RespuestasCompanion crearRespuestaPorDefecto(int preguntaId) =>
@@ -384,4 +453,5 @@ RespuestasCompanion crearRespuestaPorDefecto(int preguntaId) =>
 
 abstract class BloqueDeFormulario {
   int get criticidad;
+  int get criticidadReparacion;
 }

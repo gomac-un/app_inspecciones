@@ -99,7 +99,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         bloques,
         bloques.id.equalsExp(preguntas.bloqueId),
       ),
-      leftOuterJoin(criticidadesNumericas,
+      innerJoin(criticidadesNumericas,
           criticidadesNumericas.preguntaId.equalsExp(preguntas.id)),
       leftOuterJoin(respuesta, respuesta.preguntaId.equalsExp(preguntas.id)),
     ])
@@ -248,7 +248,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
                 .toList(),
           ),
           entry.value
-              .map((item) => item['condiciones'] as PreguntasCondicionalData)
+              .map((e) => e['condiciones'] as PreguntasCondicionalData)
               .toList(),
           respuesta:
               await getRespuestaDePregunta(entry.key as Pregunta, inspeccionId),
@@ -297,55 +297,19 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         res.map((item) => item[1] as OpcionDeRespuesta).toList());
   }
 
-  Future<List<BloqueConCuadricula>> getCuadriculasSinPreguntas(int cuestionarioId) async {
-  
-
-    final query1 = select(cuadriculasDePreguntas).join([
-      innerJoin(bloques, bloques.id.equalsExp(cuadriculasDePreguntas.bloqueId)),
-    ])
-      ..where(bloques.cuestionarioId.equals(cuestionarioId));
-    //parteDeCuadriculaUnica
-
-    final res = await query1
-        .map((row) => {
-              'bloque': row.readTable(bloques),
-              'cuadricula': row.readTable(cuadriculasDePreguntas),
-            })
-        .get();
-
-    return Future.wait(
-      groupBy(res, (e) => e['bloque'] as Bloque).entries.map((entry) async {
-        return BloqueConCuadricula(
-          entry.key,
-          CuadriculaDePreguntasConOpcionesDeRespuesta(
-            entry.value.first['cuadricula'] as CuadriculaDePreguntas,
-            await respuestasDeCuadricula(
-                (entry.value.first['cuadricula'] as CuadriculaDePreguntas).id),
-          ),
-        );
-      }),
-    );
-  }
-
   Future<List<BloqueConCuadricula>> getCuadriculas(int cuestionarioId,
       [int inspeccionId]) async {
-    /* final query = select(preguntas).join([
+    final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
       innerJoin(cuadriculasDePreguntas,
           cuadriculasDePreguntas.bloqueId.equalsExp(bloques.id)),
     ])
       ..where(bloques.cuestionarioId.equals(cuestionarioId) &
-          preguntas.tipo.equals(2)); */
+          (preguntas.tipo.equals(2) | preguntas.tipo.equals(3)));
 
-    final query1 = select(cuadriculasDePreguntas).join([
-      innerJoin(bloques, bloques.id.equalsExp(cuadriculasDePreguntas.bloqueId)),
-      leftOuterJoin(preguntas, preguntas.bloqueId.equalsExp(bloques.id))
-    ])
-      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
-          preguntas.tipo.equals(2));
     //parteDeCuadriculaUnica
 
-    final res = await query1
+    final res = await query
         .map((row) => {
               'pregunta': row.readTable(preguntas),
               'bloque': row.readTable(bloques),
@@ -368,10 +332,6 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
                 await getRespuestaDePregunta(
                     item['pregunta'] as Pregunta, inspeccionId)),
           )),
-          preguntas: await Future.wait(entry.value.map(
-            (item) async => PreguntaConOpcionesDeRespuesta(
-                item['pregunta'] as Pregunta, []),
-          )),
         );
       }),
     );
@@ -383,9 +343,8 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     return query.get();
   }
 
-  //TODO: hacer activoId no opcional
   Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId,
-      {int activoId}) async {
+      int activoId) async {
     final inspeccion = await (select(inspecciones)
           ..where((tbl) =>
               tbl.cuestionarioId.equals(cuestionarioId) &
@@ -402,12 +361,8 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     final List<BloqueConPreguntaSimple> preguntasSimples =
         await getPreguntasSimples(cuestionarioId, inspeccionId);
 
-    final List<BloqueConCuadricula> cuadriculasDeApoyo =
+    final List<BloqueConCuadricula> cuadriculas =
         await getCuadriculas(cuestionarioId, inspeccionId);
-
-    final List<BloqueConCuadricula> cuadriculas = cuadriculasDeApoyo.isEmpty
-        ? await getCuadriculasSinPreguntas(cuestionarioId)
-        : cuadriculasDeApoyo;
 
     final List<BloqueConPreguntaNumerica> numerica =
         await getPreguntaNumerica(cuestionarioId, inspeccionId);
@@ -427,12 +382,18 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   }
 
   Future<Inspeccion> crearInspeccion(
-      int cuestionarioId, int activo, EstadoDeInspeccion estado) async {
+      int cuestionarioId,
+      int activo,
+      EstadoDeInspeccion estado,
+      int criticidad,
+      int criticidadReparacion) async {
     if (activo == null) throw Exception("activo nulo");
     final ins = InspeccionesCompanion.insert(
       id: Value(generarId(activo)),
       cuestionarioId: cuestionarioId,
       estado: estado,
+      criticidadTotal: criticidad,
+      criticidadReparacion: criticidadReparacion,
       activoId: activo,
       momentoInicio: Value(DateTime.now()),
     );
@@ -440,12 +401,17 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     return (select(inspecciones)..where((i) => i.id.equals(id))).getSingle();
   }
 
-  Future guardarInspeccion(List<RespuestaConOpcionesDeRespuesta> respuestasForm,
-      int cuestionarioId, int activoId, EstadoDeInspeccion estado) async {
+  Future guardarInspeccion(
+      List<RespuestaConOpcionesDeRespuesta> respuestasForm,
+      int cuestionarioId,
+      int activoId,
+      EstadoDeInspeccion estado,
+      int criticidad,
+      int criticidadReparacion) async {
     return transaction(() async {
       Inspeccion ins = await getInspeccion(activoId, cuestionarioId);
-      ins ??= await crearInspeccion(cuestionarioId, activoId, estado);
-
+      ins ??= await crearInspeccion(
+          cuestionarioId, activoId, estado, criticidad, criticidadReparacion);
       for (final rf in respuestasForm) {
         rf.respuesta = rf.respuesta.copyWith(inspeccionId: Value(ins.id));
       }
@@ -454,10 +420,13 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
             ? InspeccionesCompanion(
                 momentoEnvio: Value(DateTime.now()),
                 estado: Value(estado),
-              )
+                criticidadTotal: Value(criticidad),
+                criticidadReparacion: Value(criticidadReparacion))
             : InspeccionesCompanion(
                 momentoBorradorGuardado: Value(DateTime.now()),
                 estado: Value(estado),
+                criticidadTotal: Value(criticidad),
+                criticidadReparacion: Value(criticidadReparacion),
               ),
       );
       await Future.forEach<RespuestaConOpcionesDeRespuesta>(respuestasForm,
@@ -478,7 +447,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
           fotosBase: Value(fotosBaseProc.toImmutableList()),
           fotosReparacion: Value(fotosRepProc.toImmutableList()),
         );
-        final lulu = e.respuesta.id.present;
+
         int res;
         if (e.respuesta.id.present) {
           await into(respuestas).insertOnConflictUpdate(e.respuesta);

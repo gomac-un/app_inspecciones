@@ -25,6 +25,7 @@ class LlenadoFormViewModel extends ChangeNotifier {
 
   //FormArray bloques = bloquesDeEjemplo;
   FormArray bloques;
+  FormArray bloques2;
   ValueNotifier<List<AbstractControl<dynamic>>> bloques1;
   //List bloquesMutables;
 
@@ -43,8 +44,8 @@ class LlenadoFormViewModel extends ChangeNotifier {
         await _db.llenadoDao.getInspeccion(_activo, cuestionarioId);
     estado.value = inspeccion?.estado ?? EstadoDeInspeccion.borrador;
 
-    final bloquesBD =
-        await _db.llenadoDao.cargarCuestionario(cuestionarioId, activoId: _activo);
+    final bloquesBD = await _db.llenadoDao
+        .cargarCuestionario(cuestionarioId, _activo);
 
     //ordenamiento y creacion de los controles dependiendo del tipo de elemento
     bloques = FormArray(
@@ -78,29 +79,29 @@ class LlenadoFormViewModel extends ChangeNotifier {
       'bloques': bloques,
     });
     cargada.value = true;
+
     bloques1 = ValueNotifier(bloques.controls);
   }
 
-  Future guardarInspeccionEnLocal({@required EstadoDeInspeccion estado}) async {
+  Future guardarInspeccionEnLocal(
+      {@required EstadoDeInspeccion estado,
+      @required int criticidadTotal,
+      @required int criticidadReparacion,}) async {
     form.markAllAsTouched();
+    bloques2 = FormArray(bloques1.value);
+    List<RespuestaConOpcionesDeRespuesta> respuestas;
 
-    final respuestas =
-        bloques.controls.expand<RespuestaConOpcionesDeRespuesta>((e) {
+    respuestas = bloques.controls.expand<RespuestaConOpcionesDeRespuesta>((e) {
       if (e is TituloFormGroup) return [];
       if (e is RespuestaSeleccionSimpleFormGroup) return [e.toDB()];
       if (e is RespuestaCuadriculaFormArray) return e.toDB();
       if (e is RespuestaNumericaFormGroup) return [e.toDB()];
       throw Exception("Tipo de control no reconocido");
     }).toList();
-
-    await _db.llenadoDao
-        .guardarInspeccion(respuestas, cuestionarioId, _activo, estado);
+    await _db.llenadoDao.guardarInspeccion(
+        respuestas, cuestionarioId, _activo, estado, criticidadTotal, criticidadReparacion);
   }
 
-  void finalizar() {
-    //TODO: implementar
-    form.markAllAsTouched();
-  }
 
   void dispose() {
     cargada.dispose();
@@ -108,8 +109,7 @@ class LlenadoFormViewModel extends ChangeNotifier {
     form.dispose();
   }
 
-
-  //TODO: hacer esta parte menos a lo fundamentos de programación.
+  /* 
 
   final List<AbstractControl<dynamic>> subListaDeApoyo = [];
   final List<int> ultimaSeccion = [1];
@@ -121,15 +121,14 @@ class LlenadoFormViewModel extends ChangeNotifier {
     try {
       if (subListaDeApoyo.contains(element) &&
           bloqueFinal <= ultimaSeccion.last) {
-        for (int i = bloqueInicial + 1; i <= ultimaSeccion.last; i++) {
+        for (int i = bloqueInicial; i <= ultimaSeccion.last; i++) {
           final x = bloques.controls.elementAt(i);
-          if (x is RespuestaSeleccionSimpleFormGroup) {
+          /* if (x is RespuestaSeleccionSimpleFormGroup) {
             x.control('respuestas').setErrors({'required': true});
           }
           if (x is RespuestaNumericaFormGroup) {
             x.control('valor').setErrors({'required': true});
-          }
-          subListaDeApoyo.remove(element);
+          } */
           subListaDeApoyo.remove(x);
         }
       }
@@ -139,19 +138,20 @@ class LlenadoFormViewModel extends ChangeNotifier {
           bloques.controls.where((x) => !subListaDeApoyo.contains(x)).toList());
       /* bloques.controls.where((x) => subListaDeApoyo.contains(x)).map((x) => x.); */
       bloques.controls.forEach((x) => {
-            if (subListaDeApoyo.contains(x))
+            if (x is RespuestaSeleccionSimpleFormGroup)
               {
-                if (x is RespuestaSeleccionSimpleFormGroup)
-                  {x.control('respuestas').removeError('required'), print('se borró')},
-                if (x is RespuestaNumericaFormGroup)
-                  {x.control('valor').removeError('required'), print('se borró numerica')}
+                x.control('respuestas').removeError('required'),
               },
-            
+            if (x is RespuestaNumericaFormGroup)
+              {
+                x.control('valor').removeError('required'),
+              }
           });
       ultimaSeccion.add(bloqueFinal);
       bloques1.notifyListeners();
       // ignore: empty_catches
     } on FormControlNotFoundException {}
   }
-
+  */
 }
+ 

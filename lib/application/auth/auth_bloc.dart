@@ -42,9 +42,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       loggingIn: (usuario) async* {
         registrarAPI(usuario);
         final appId = await getIt<UserRepository>()
-            .getAppId(); //TODO: si no tiene internet por primera vez para obtener el appId no se puede dejar ingresar
-        if (appId == null)
+            .getAppId(); 
+        if (appId == null) {
           throw Exception("no se puede ingresar sin internet por primera vez");
+        }
         await userRepository.saveLocalUser(user: usuario);
         yield AuthState.authenticated(usuario: usuario);
       },

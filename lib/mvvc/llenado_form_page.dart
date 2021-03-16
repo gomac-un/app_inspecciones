@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/form_scaffold.dart';
 import 'package:inspecciones/mvvc/llenado_cards.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
@@ -34,6 +35,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
+
     return ReactiveForm(
       formGroup: viewModel.form,
       child: ValueListenableBuilder<EstadoDeInspeccion>(
@@ -44,7 +46,8 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                   ? 'Reparación de problemas'
                   : 'Llenado de inspeccion'),
               actions: [
-                if (estado == EstadoDeInspeccion.borrador)
+                if (estado == EstadoDeInspeccion.borrador ||
+                    estado == EstadoDeInspeccion.reparacion)
                   BotonGuardarBorrador(
                     estado: estado,
                   )
@@ -61,9 +64,9 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                             valueListenable: viewModel.esCondicional,
                             builder: (context, esCondicional, child) {
                               bool readOnly = false;
-                              if (esCondicional) {
+                              /* if (esCondicional) {
                                 return InspeccionCondicional(estado: estado);
-                              }
+                              } */
                               return ListView.builder(
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
@@ -109,6 +112,121 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                                   });
                             });
                       }),
+                  const SizedBox(height: 20),
+                  ValueListenableBuilder<bool>(
+                      valueListenable: viewModel.cargada,
+                      builder: (context, cargada, child) {
+                        if (!cargada) return const CircularProgressIndicator();
+                        final criticidadTotal = viewModel.bloques.controls
+                            .fold<int>(
+                                0,
+                                (p, c) =>
+                                    p + (c as BloqueDeFormulario).criticidad);
+                        final criticidadReparacion = viewModel.bloques.controls
+                            .fold<int>(
+                                0,
+                                (p, c) =>
+                                    p +
+                                    (c as BloqueDeFormulario)
+                                        .criticidadReparacion);
+                        String titulo;
+                        if (estado == EstadoDeInspeccion.borrador ||
+                            estado == EstadoDeInspeccion.reparacion) {
+                          titulo =
+                              'Calificación parcial\nantes de la reparación';
+                        } else {
+                          titulo =
+                              'Calificación total\n antes de la reparación';
+                        }
+                        String titulo1;
+                        if (estado == EstadoDeInspeccion.borrador ||
+                            estado == EstadoDeInspeccion.reparacion) {
+                          titulo1 =
+                              'Calificación parcial\ndespués de reparación';
+                        } else {
+                          titulo1 = 'Calificación total\ndespués de reparación';
+                        }
+                        return Row(
+                          children: [
+                            Expanded(child: Container()),
+                            Expanded(
+                              flex: 4,
+                              child: Column(
+                                children: [
+                                  PreguntaCard(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Text(
+                                          titulo,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headline6,
+                                        ),
+                                        if (criticidadTotal > 0)
+                                          const Icon(
+                                            Icons.warning_amber_rounded,
+                                            color: Colors.red,
+                                            size: 25, /* color: Colors.white, */
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.remove_red_eye,
+                                            color: Colors.green[
+                                                200], /* color: Colors.white, */
+                                          ),
+                                        Text(
+                                          ' ${criticidadTotal.toString()}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyText1,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  PreguntaCard(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Text(
+                                          titulo1,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headline6,
+                                        ),
+                                        if (criticidadTotal > 0)
+                                          const Icon(
+                                            Icons.warning_amber_rounded,
+                                            color: Colors.red,
+                                            size: 25, /* color: Colors.white, */
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.remove_red_eye,
+                                            color: Colors.green[
+                                                200], /* color: Colors.white, */
+                                          ),
+                                        Text(
+                                          ' ${criticidadReparacion.toString()}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyText1,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                        /*  }
+                        return const SizedBox(
+                          height: 1,
+                        ); */
+                      }),
                   const SizedBox(height: 60),
                 ],
               ),
@@ -138,8 +256,15 @@ class BotonGuardarBorrador extends StatelessWidget {
       icon: const Icon(Icons.archive),
       //label: 'Guardar borrador',
       onPressed: () async {
+        final criticidadTotal = viewModel.bloques.controls
+            .fold<int>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+        final criticidadReparacion = viewModel.bloques.controls.fold<int>(
+            0, (p, c) => p + (c as BloqueDeFormulario).criticidadReparacion);
         LoadingDialog.show(context);
-        await viewModel.guardarInspeccionEnLocal(estado: estado);
+        await viewModel.guardarInspeccionEnLocal(
+            estado: estado,
+            criticidadTotal: criticidadTotal,
+            criticidadReparacion: criticidadReparacion);
         LoadingDialog.hide(context);
         Scaffold.of(context)
             .showSnackBar(const SnackBar(content: Text("Guardado exitoso")));
@@ -163,7 +288,6 @@ class BotonesGuardado extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final form = ReactiveForm.of(context);
-    final viewModel = Provider.of<LlenadoFormViewModel>(context);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -176,8 +300,18 @@ class BotonesGuardado extends StatelessWidget {
                 : 'Finalizar',
             onPressed: !form.valid
                 ? () {
-                    form.markAllAsTouched();
-                    mostrarErrores(context, form);
+                    if (estado == EstadoDeInspeccion.borrador) {
+                      form.markAllAsTouched();
+
+                      mostrarErrores(context, form);
+                    } else if (estado == EstadoDeInspeccion.reparacion) {
+                      form.markAllAsTouched();
+                      if (form.errors.isEmpty) {
+                        finalizarInspeccion(context, estado);
+                      } else {
+                        mostrarErrores(context, form);
+                      }
+                    }
                   }
                 : () {
                     finalizarInspeccion(context, estado);
@@ -236,7 +370,6 @@ class BotonesGuardado extends StatelessWidget {
       } else {
         await guardarParaReparacion(context, estado);
       }
-      
     } else {
       Navigator.of(context).pop();
     }
@@ -249,11 +382,15 @@ class BotonesGuardado extends StatelessWidget {
       case EstadoDeInspeccion.borrador:
         final criticidadTotal = viewModel.bloques.controls
             .fold<int>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+        final criticidadReparacion = viewModel.bloques.controls.fold<int>(
+            0, (p, c) => p + (c as BloqueDeFormulario).criticidadReparacion);
         if (criticidadTotal > 0) {
           viewModel.estado.value = EstadoDeInspeccion.reparacion;
           LoadingDialog.show(context);
           await viewModel.guardarInspeccionEnLocal(
-              estado: EstadoDeInspeccion.reparacion);
+              estado: EstadoDeInspeccion.reparacion,
+              criticidadTotal: criticidadTotal,
+              criticidadReparacion: criticidadReparacion);
           LoadingDialog.hide(context);
           await showDialog(
             context: context,
@@ -277,10 +414,16 @@ class BotonesGuardado extends StatelessWidget {
 
   Future guardarYSalir(BuildContext context) async {
     final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
+    final criticidadTotal = viewModel.bloques.controls
+        .fold<int>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+    final criticidadReparacion = viewModel.bloques.controls.fold<int>(
+        0, (p, c) => p + (c as BloqueDeFormulario).criticidadReparacion);
     viewModel.estado.value = EstadoDeInspeccion.finalizada;
     LoadingDialog.show(context);
     await viewModel.guardarInspeccionEnLocal(
       estado: EstadoDeInspeccion.finalizada,
+      criticidadTotal: criticidadTotal,
+      criticidadReparacion: criticidadReparacion,
     );
     LoadingDialog.hide(context);
     ExtendedNavigator.of(context).pop();
@@ -360,7 +503,7 @@ class AlertReparacion extends StatelessWidget {
   }
 }
 
-class InspeccionCondicional extends StatelessWidget {
+/* class InspeccionCondicional extends StatelessWidget {
   final EstadoDeInspeccion estado;
 
   const InspeccionCondicional({Key key, this.estado}) : super(key: key);
@@ -376,7 +519,7 @@ class InspeccionCondicional extends StatelessWidget {
         return ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: listaAMostrar.length,
+            itemCount: viewModel.bloques1.value.length,
             itemBuilder: (context, i) {
               if (estado == EstadoDeInspeccion.finalizada) {
                 readOnly = true;
@@ -421,6 +564,6 @@ class InspeccionCondicional extends StatelessWidget {
             });
       },
     );
-    // TODO: implement build
   }
 }
+ */

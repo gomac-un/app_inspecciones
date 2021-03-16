@@ -33,8 +33,6 @@ Future<void> _initialize(Batch batch, Database db) async {
 
   batch.insertAll(db.contratistas, listaContratistas);
 
-  //TODO: mover esto a una clase encargada de sincronizar con la api
-
   final List<Insertable<Sistema>> listaSistemas = sistemas
       .map((item) =>
           SistemasCompanion.insert(id: Value(item.id), nombre: item.nombre))

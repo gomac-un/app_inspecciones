@@ -6,20 +6,18 @@ import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_validators.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-//TODO: implementar la edicion de cuestionarios
 class CreacionFormViewModel extends FormGroup {
   final _db = getIt<Database>();
-  final Cuestionario cuestionario;
+  Cuestionario cuestionario;
   final List<IBloqueOrdenable> bloquesBD;
   final sistemas = ValueNotifier<List<Sistema>>([]);
   final tiposDeInspeccion = ValueNotifier<List<String>>([]);
   final modelos = ValueNotifier<List<String>>([]);
   final contratistas = ValueNotifier<List<Contratista>>([]);
-  final totalBloques = ValueNotifier<List<String>>([]);
+  /* final totalBloques = ValueNotifier<List<int>>([]); */
   final CuestionarioConContratista cuestionarioDeModelo;
-  final ValueNotifier<EstadoDeCuestionario> estado =
-      ValueNotifier(EstadoDeCuestionario.borrador);
-  
+  final estado = ValueNotifier(EstadoDeCuestionario.borrador);
+
   Copiable bloqueCopiado;
 
   CreacionFormViewModel(this.cuestionario, this.cuestionarioDeModelo,
@@ -64,21 +62,18 @@ class CreacionFormViewModel extends FormGroup {
     sistemas.value = await _db.creacionDao.getSistemas();
 
     estado.value = cuestionario?.estado ?? EstadoDeCuestionario.borrador;
-   
-    if (cuestionario != null) {
+
+    /* if (cuestionario != null) {
       bloquesBD.forEach(
         (u) => {
-          if (!totalBloques.value.contains((u.bloque.nOrden + 1).toString()))
-            {totalBloques.value.add((u.bloque.nOrden + 1).toString())}
+          if (!totalBloques.value.contains(u.bloque.nOrden + 1))
+            {totalBloques.value.add(u.bloque.nOrden + 1)}
           else
-            {
-              totalBloques.value
-                  .add((int.parse(totalBloques.value.last)).toString())
-            },
+            {totalBloques.value.add(totalBloques.value.last + 1)},
         },
       );
       totalBloques.notifyListeners();
-    } 
+    } */
   }
 
   /// Metodo que funciona sorprendentemente bien con los nulos y los casos extremos
@@ -86,28 +81,33 @@ class CreacionFormViewModel extends FormGroup {
       {AbstractControl bloque, AbstractControl despuesDe}) {
     final bloques = control("bloques") as FormArray;
     bloques.insert(bloques.controls.indexOf(despuesDe) + 1, bloque);
-    if (!totalBloques.value
-        .contains((bloques.controls.indexOf(bloque) + 1).toString())) {
-      totalBloques.value.add((bloques.controls.indexOf(bloque) + 1).toString());
+    /* if (!totalBloques.value.contains(bloques.controls.indexOf(bloque) + 1)) {
+      totalBloques.value.add(bloques.controls.indexOf(bloque) + 1);
     } else {
-      totalBloques.value
-          .add((int.parse(totalBloques.value.last) + 1).toString());
-    }
+      totalBloques.value.add((totalBloques.value.last) + 1);
+    } */
   }
 
-  void borrarBloque(AbstractControl e) {
+  /* void borrarBloque(AbstractControl e) {
     //TODO hacerle dispose si se requiere
     try {
       final bloques = control("bloques") as FormArray;
       final numeroABorrar = bloques.controls.indexOf(e) + 1;
       bloques.remove(e);
       totalBloques.value.remove(numeroABorrar
-          .toString() /* (bloques.controls.indexOf(e)+1).toString() */);
-      // ignore: empty_catches
+          /* (bloques.controls.indexOf(e)+1).toString() */);
+      totalBloques.value.forEach((e) {
+        if (e > numeroABorrar) {
+          final x = e - 1;
+          totalBloques.value.remove(e);
+          totalBloques.value.add(x);
+        }
+      });
+      totalBloques.value.sort((a, b) => a.compareTo(b));
+      ; // ignore: empty_catches
+      /* numerosAModificar.map((e) => totalBloques.value.add(e-1)); */
     } on FormControlNotFoundException {}
-  }
-
-  
+  } */
 
   /// Cierra todos los streams para evitar fugas de memoria, se suele llamar desde el provider
   @override
@@ -116,12 +116,12 @@ class CreacionFormViewModel extends FormGroup {
     modelos.dispose();
     contratistas.dispose();
     sistemas.dispose();
-    estado.dispose();
+    estado.dispose();/* 
+    totalBloques.dispose(); */
     super.dispose();
   }
 
   Future guardarCuestionarioEnLocal(EstadoDeCuestionario estado) async {
-
     markAllAsTouched();
     final int cuestionarioId = cuestionario?.id;
     final int contratistaId = (control('contratista').value as Contratista)?.id;
@@ -133,7 +133,8 @@ class CreacionFormViewModel extends FormGroup {
     final Cuestionario nuevoCuestionario = Cuestionario(
       tipoDeInspeccion: tipoDeInspeccion,
       esLocal: null,
-      id: cuestionarioId, estado: estado,
+      id: cuestionarioId,
+      estado: estado,
     );
 
     final List<CuestionarioDeModelo> nuevoscuestionariosDeModelos =
@@ -170,26 +171,25 @@ class CreacionFormViewModel extends FormGroup {
               control.toDB(),
             )
           ];
-        } else {
+        } /* else {
           return [
             BloqueConCondicional(
               bloque,
-              control.toDB(),
-              control.condicionesToDB(),
+              control.toDB(),/* 
+              control.condicionesToDB(), */
             ),
           ];
-        }
+        } */
       }
       if (control is CreadorPreguntaCuadriculaFormGroup) {
         return [
           BloqueConCuadricula(
-            bloque,
-            CuadriculaDePreguntasConOpcionesDeRespuesta(
+              bloque,
+              CuadriculaDePreguntasConOpcionesDeRespuesta(
                 control.toDB().cuadricula,
                 control.toDB().opcionesDeRespuesta,
-                ),
-               preguntas:  control.toDB().preguntas
-          )
+              ),
+              preguntas: control.toDB().preguntas)
         ];
       }
       if (control is CreadorPreguntaNumericaFormGroup) {
@@ -203,8 +203,8 @@ class CreacionFormViewModel extends FormGroup {
       throw Exception("Tipo de control no reconocido");
     }).toList();
 
-    await _db.creacionDao.guardarCuestionario(nuevoCuestionario,
-        nuevoscuestionariosDeModelos, bloquesAGuardar);
+    await _db.creacionDao.guardarCuestionario(
+        nuevoCuestionario, nuevoscuestionariosDeModelos, bloquesAGuardar, this);
   }
 }
 
@@ -227,7 +227,9 @@ FormArray _cargarBloques(
         }
         if (e is BloqueConCuadricula) {
           return CreadorPreguntaCuadriculaFormGroup(
-              preguntasDeCuadricula: e.preguntas, cuadricula: e.cuadricula, preguntas: e.preguntasRespondidas);
+              preguntasDeCuadricula: e.preguntas,
+              cuadricula: e.cuadricula,
+              preguntas: e.preguntasRespondidas);
         }
         if (e is BloqueConPreguntaNumerica) {
           return CreadorPreguntaNumericaFormGroup(defaultValue: e.pregunta);

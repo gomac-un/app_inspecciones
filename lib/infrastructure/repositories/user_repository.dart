@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:flutter/services.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/auth/usuario.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
@@ -34,7 +35,8 @@ class UserRepository {
       return const Left(AuthFailure.noHayConexionAlServidor());
     } on CredencialesException {
       return const Left(AuthFailure.usuarioOPasswordInvalidos());
-    } catch (e) {
+    } 
+      catch (e) {
       return const Left(AuthFailure.serverError());
     }
 
@@ -52,7 +54,7 @@ class UserRepository {
         documento: userLogin.username,
         password: userLogin.password,
         esAdmin:
-            esAdmin, //TODO: averiguar si es admin desde el server o desde la bd local
+            esAdmin, 
         token: token);
     return Right(user);
   }
@@ -82,14 +84,17 @@ class UserRepository {
     if (localPreferences.getAppId() != null) {
       return localPreferences.getAppId();
     }
-    final res = await api.postRecurso(
+  
+      final res = await api.postRecurso(
       '/registro-app/',
       {},
     );
     final appId = res['id'] as int;
     localPreferences.saveAppId(appId);
     return appId;
-  }
+    }
+    
+  
 
   Future<bool> _hayInternet() async => DataConnectionChecker().hasConnection;
 }

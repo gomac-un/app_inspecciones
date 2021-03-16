@@ -3,6 +3,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
 import 'package:inspecciones/injection.dart';
@@ -12,7 +13,7 @@ import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
 
 //TODO: creacion de inpecciones con excel
-//TODO: A futuro, Implementar que se puedan seleccionar varios cuestionarios para eliminarlos.
+//TODO: A futuro, Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) {
@@ -89,18 +90,39 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
             itemBuilder: (context, index) {
               final borrador = borradores[index];
               final f = borrador.inspeccion.momentoBorradorGuardado;
+              final criticidad =
+                  borrador.inspeccion.estado == EstadoDeInspeccion.finalizada
+                      ? 'Criticidad total inicial: '
+                      : 'Criticidad parcial inicial: ';
+              
               final fechaBorrador = f == null
                   ? ''
-                  : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute} \n";
+                  : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute}";
               return ListTile(
                 tileColor: Theme.of(context).cardColor,
                 title:
                     Text("${borrador.activo.id} - ${borrador.activo.modelo}"),
-                subtitle: Text(
-                    "Tipo de inspeccion: ${borrador.cuestionario.tipoDeInspeccion} \n" +
-                        "$fechaBorrador Estado: " +
-                        EnumToString.convertToString(
-                            borrador.inspeccion.estado)),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Tipo de inspeccion: ${borrador.cuestionario.tipoDeInspeccion} \n" +
+                          "$fechaBorrador\nEstado: " +
+                          EnumToString.convertToString(
+                              borrador.inspeccion.estado),
+                    ),
+                    Text(
+                      '$criticidad ${borrador.inspeccion.criticidadTotal}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    Text(
+                      'Criticidad reparaciones pendientes: ${borrador.inspeccion.criticidadReparacion}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 15),
+                    )
+                  ],
+                ),
                 leading: IconButton(
                     icon: const Icon(Icons.cloud_upload),
                     onPressed: () async {
@@ -111,10 +133,10 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                               res.fold(
                                   (fail) => fail.when(
                                       noHayConexionAlServidor: () =>
-                                          "no hay conexion al servidor",
-                                      noHayInternet: () => "no hay internet",
+                                          "No hay conexion al servidor",
+                                      noHayInternet: () => "No hay internet",
                                       serverError: (msg) =>
-                                          "error inesperado: $msg"), (u) {
+                                          "Error inesperado: $msg"), (u) {
                                 db.borradoresDao.eliminarBorrador(borrador);
                                 return "exito";
                               }));

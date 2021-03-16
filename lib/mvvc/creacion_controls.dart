@@ -10,7 +10,7 @@ import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 class CreadorTituloFormGroup extends FormGroup implements Copiable {
-  final Titulo d;
+ final Titulo d;
   CreadorTituloFormGroup({this.d})
       : super({
           'titulo': fb.control<String>(d?.titulo ?? " ", [Validators.required]),
@@ -45,6 +45,7 @@ class CreadorPreguntaFormGroup extends FormGroup
   final ValueNotifier<List<SubSistema>> subSistemas;
   final ValueNotifier<TipoDePregunta> tipoUnicaRespuesta;
   final PreguntaConOpcionesDeRespuesta preguntaPorDefecto;
+  final bool parteDeCuadricula;
 
   factory CreadorPreguntaFormGroup({
     PreguntaConOpcionesDeRespuesta defaultValue,
@@ -52,14 +53,15 @@ class CreadorPreguntaFormGroup extends FormGroup
     bool esNumerica = false,
   }) {
     final d = defaultValue;
+    final c = parteDeCuadricula;
     final sistema = fb.control<Sistema>(null, [Validators.required]);
     final subSistemas = ValueNotifier<List<SubSistema>>([]);
     final tipoDePregunta = fb.control<TipoDePregunta>(
         d?.pregunta?.tipo, [if (!parteDeCuadricula) Validators.required]);
     final tipoUnicaRespuesta =
-        ValueNotifier(d?.pregunta?.tipo ?? TipoDePregunta.multipleRespuesta);
+        ValueNotifier(d?.pregunta?.tipo);
     final respuestas = fb.array<Map<String, dynamic>>(
-      d?.opcionesDeRespuesta
+      d?.opcionesDeRespuestaConCondicional
               ?.map((e) => CreadorRespuestaFormGroup(
                     defaultValue: e,
                   ))
@@ -96,12 +98,12 @@ class CreadorPreguntaFormGroup extends FormGroup
     };
 
     return CreadorPreguntaFormGroup._(
-        controles, subSistemas, tipoUnicaRespuesta, d);
+        controles, subSistemas, tipoUnicaRespuesta, d, c);
   }
 
   //constructor que le envia los controles a la clase padre
   CreadorPreguntaFormGroup._(Map<String, AbstractControl<dynamic>> controles,
-      this.subSistemas, this.tipoUnicaRespuesta, this.preguntaPorDefecto)
+      this.subSistemas, this.tipoUnicaRespuesta, this.preguntaPorDefecto, this.parteDeCuadricula)
       : super(controles) {
     instanciarControls(preguntaPorDefecto);
     // Machetazo que puede dar resultados inesperados si se utiliza el
@@ -147,29 +149,38 @@ class CreadorPreguntaFormGroup extends FormGroup
             .controls
             .map((e) => e.value.path)
             .toImmutableList(),
-        tipo: value['tipoDePregunta'] as TipoDePregunta ??
-            TipoDePregunta.unicaRespuesta,
+        tipo: value['tipoDePregunta'] as TipoDePregunta,
         esCondicional: value['condicional'] as bool,
       ),
       (control('respuestas') as FormArray).controls.map((e) {
         final formGroup = e as CreadorRespuestaFormGroup;
-        if (value['condicional'] as bool) {
+        /* if (value['condicional'] as bool) {
           final x = formGroup.toDataClassCondicional();
-          return x.opcionRespuesta;
-        }
-        return formGroup.toDataClass();
+          return OpcionDeRespuestaConCondicional(x.opcionRespuesta,
+              condiciones: x.condiciones);
+        } */
+        return OpcionDeRespuestaConCondicional(formGroup.toDataClass());
+      }).toList(),
+      opcionesDeRespuestaConCondicional:  (control('respuestas') as FormArray).controls.map((e) {
+        final formGroup = e as CreadorRespuestaFormGroup;
+        /* if (value['condicional'] as bool) {
+          final x = formGroup.toDataClassCondicional();
+          return OpcionDeRespuestaConCondicional(x.opcionRespuesta,
+              condiciones: x.condiciones);
+        } */
+        return OpcionDeRespuestaConCondicional(formGroup.toDataClass());
       }).toList(),
     );
   }
 
-  List<PreguntasCondicionalData> condicionesToDB() {
+  /* List<PreguntasCondicionalData> condicionesToDB() {
     final y = (control('respuestas') as FormArray).controls.map((e) {
       final formGroup = e as CreadorRespuestaFormGroup;
       final x = formGroup.toDBCondicional();
       return x.condiciones;
     }).toList();
     return y;
-  }
+  } */
 
   PreguntaConOpcionesDeRespuesta toDB() {
     final PreguntaConOpcionesDeRespuesta preguntas =
@@ -192,11 +203,16 @@ class CreadorPreguntaFormGroup extends FormGroup
           toDataclass().pregunta,
       (control('respuestas') as FormArray).controls.map((e) {
         final formGroup = e as CreadorRespuestaFormGroup;
-        if (value['condicional'] as bool) {
-          final x = formGroup.toDBCondicional();
-          return x.opcionRespuesta;
-        }
         return formGroup.toDB();
+      }).toList(),
+      opcionesDeRespuestaConCondicional: (control('respuestas') as FormArray).controls.map((e) {
+        final formGroup = e as CreadorRespuestaFormGroup;
+        /* if (value['condicional'] as bool) {
+          final x = formGroup.toDBCondicional();
+          return OpcionDeRespuestaConCondicional(x.opcionRespuesta,
+              condiciones: x.condiciones);
+        } */
+        return OpcionDeRespuestaConCondicional(formGroup.toDB());
       }).toList(),
     );
     return preguntas;
@@ -274,30 +290,37 @@ ValidatorFunction _verificarRango(String controlMinimo, String controlMaximo) {
 }
 
 class CreadorRespuestaFormGroup extends FormGroup {
-  final OpcionDeRespuesta respuesta;
+  final OpcionDeRespuestaConCondicional respuesta;
 
   factory CreadorRespuestaFormGroup({
-    OpcionDeRespuesta defaultValue,
-    bool parteDeCuadricula = false,
+    OpcionDeRespuestaConCondicional defaultValue,
+    bool parteDeCuadricula = false, 
   }) {
     final d = defaultValue;
     final p = parteDeCuadricula;
+    
     final Map<String, AbstractControl<dynamic>> controles = {
-      'texto': fb.control<String>(d?.texto ?? " ", [Validators.required]),
-      'criticidad': fb.control<double>(d?.criticidad?.toDouble() ?? 0),
+      'texto': fb.control<String>(
+          d?.opcionRespuesta?.texto ?? " ", [Validators.required]),
+      'criticidad':
+          fb.control<double>(d?.opcionRespuesta?.criticidad?.toDouble() ?? 0),
       'seccion': fb.control<String>(
         '',
         [if (!parteDeCuadricula) Validators.required],
       ),
-      //em realidad para las cuadriculas de debe manejar distinto pero se reescribira mas adelante
     };
 
-    return CreadorRespuestaFormGroup._(controles, d, d: d);
+    return CreadorRespuestaFormGroup._(
+      controles,
+      d,
+      d: d,
+      
+    );
   }
 
   //constructor que le envia los controles a la clase padre
   CreadorRespuestaFormGroup._(
-      Map<String, AbstractControl<dynamic>> controles, this.respuesta,
+      Map<String, AbstractControl<dynamic>> controles, this.respuesta, 
       {OpcionDeRespuesta d})
       : super(controles);
 
@@ -314,13 +337,13 @@ class CreadorRespuestaFormGroup extends FormGroup {
       );
 
   OpcionDeRespuesta toDB() =>
-      respuesta?.copyWith(
+      respuesta?.opcionRespuesta?.copyWith(
         texto: value['texto'] as String ?? ' ',
         criticidad: (value['criticidad'] as double).round(),
       ) ??
       toDataClass();
 
-  OpcionDeRespuestaConCondicional toDataClassCondicional() =>
+  /* OpcionDeRespuestaConCondicional toDataClassCondicional() =>
       OpcionDeRespuestaConCondicional(
         toDataClass(),
         condiciones: PreguntasCondicionalData(
@@ -331,24 +354,23 @@ class CreadorRespuestaFormGroup extends FormGroup {
 
                   (value['seccion'] as String).replaceAll('Ir a bloque ', ''),
                   onError: (value) => null) ??
-              0,
-          opcionDeRespuesta: value['texto'] as String ,
+              0, 
+          opcionDeRespuesta: value['texto'] as String,
         ),
-      );
+      ); */
 
-//TODO: arreglar la parte de las condiciones
+/* //TODO: arreglar la parte de las condiciones
   OpcionDeRespuestaConCondicional toDBCondicional() =>
       OpcionDeRespuestaConCondicional(
         toDB(),
-        condiciones: PreguntasCondicionalData(
-          preguntaId: null,
-          id: null,
-          seccion: int.parse(
-              (value['seccion'] as String).replaceAll('Ir a bloque ', ''),
-              onError: (value) => null),
-          opcionDeRespuesta: value['texto'] as String,
-        ),
-      );
+        condiciones: respuesta?.condiciones?.copyWith(
+              seccion: int.parse(
+                  (value['seccion'] as String).replaceAll('Ir a bloque ', ''),
+                  onError: (value) => null) -1,
+              opcionDeRespuesta: value['texto'] as String,
+            ) ??
+            toDataClassCondicional().condiciones,
+      ); */
 }
 
 class CreadorPreguntaCuadriculaFormGroup extends FormGroup
@@ -367,7 +389,6 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     final n = preguntasDeCuadricula;
     final sistema = fb.control<Sistema>(null, [Validators.required]);
     final subSistemas = ValueNotifier<List<SubSistema>>([]);
-
     sistema.valueChanges.asBroadcastStream().listen((sistema) async {
       subSistemas.value =
           await getIt<Database>().creacionDao.getSubSistemas(sistema);
@@ -379,11 +400,13 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
       'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
       'posicion': fb.control<String>("no aplica"),
+      'tipoDePregunta': fb.control<TipoDePregunta>(
+        n?.first?.pregunta?.tipo , [Validators.required]),
       'preguntas': fb.array<Map<String, dynamic>>(
         preguntasDeCuadricula
                 ?.map((e) => CreadorPreguntaFormGroup(
                     defaultValue: PreguntaConOpcionesDeRespuesta(
-                        e.pregunta, d.opcionesDeRespuesta),
+                        e.pregunta, e.opcionesDeRespuesta),
                     parteDeCuadricula: true))
                 ?.toList() ??
             [],
@@ -392,7 +415,8 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
       'respuestas': fb.array<Map<String, dynamic>>(
         d?.opcionesDeRespuesta
                 ?.map((e) => CreadorRespuestaFormGroup(
-                    parteDeCuadricula: true, defaultValue: e))
+                    parteDeCuadricula: true,
+                    defaultValue: OpcionDeRespuestaConCondicional(e)))
                 ?.toList() ??
             [],
         [Validators.minLength(1)],
@@ -418,6 +442,7 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     controls['subSistema'].value =
         await getIt<Database>().getSubSistemaPorId(d?.pregunta?.subSistemaId);
     controls['posicion'].value = d?.pregunta?.posicion;
+    controls['tipoDePregunta'].value = d?.pregunta?.tipo;
   }
 
   /// Se le agrega el sistema y subsistema por defecto de la cuadricula,
@@ -430,6 +455,7 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     instancia.controls['sistema'].value = value['sistema'] as Sistema;
     instancia.controls['subSistema'].value = value['subSistema'] as SubSistema;
     instancia.controls['posicion'].value = value['posicion'] as String;
+    instancia.controls['tipoDePregunta'].value = value['tipoDePregunta'] as TipoDePregunta;
     (control('preguntas') as FormArray).add(instancia);
   }
 
@@ -534,8 +560,8 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
     });
 
     final Map<String, AbstractControl<dynamic>> controles = {
-      'titulo':
-          fb.control<String>(d?.pregunta?.titulo ?? "  ", [Validators.required]),
+      'titulo': fb
+          .control<String>(d?.pregunta?.titulo ?? "  ", [Validators.required]),
       'descripcion': fb.control<String>(d?.pregunta?.descripcion ?? ""),
       'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
