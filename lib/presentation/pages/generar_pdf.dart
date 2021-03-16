@@ -16,14 +16,17 @@ observacion
 observacion de reparacion
 fotos
 */
+
 generarPDF(/*Inspeccion ins*/) async {
   //final lista = pw.Column();
-
+// ignore: unused_local_variable
   final lista = ListView(
     children: [Text("coltest")],
   );
+  // ignore: unused_local_variable
   final tabla = Table(children: [const TableRow()]);
 
+  // ignore: unused_local_variable
   final cuadriculaSelUnica1 = Container(
     margin: const EdgeInsets.all(8),
     padding: const EdgeInsets.all(8),
@@ -48,6 +51,7 @@ generarPDF(/*Inspeccion ins*/) async {
       ],
     ),
   );
+  // ignore: unused_local_variable
   final cuadriculaSelUnica2 = Container(
     margin: const EdgeInsets.all(8),
     padding: const EdgeInsets.all(8),
@@ -74,6 +78,7 @@ generarPDF(/*Inspeccion ins*/) async {
       ],
     ),
   );
+  // ignore: unused_local_variable
   final cuadriculaSelUnica3 = Container(
     margin: const EdgeInsets.all(8),
     padding: const EdgeInsets.all(8),

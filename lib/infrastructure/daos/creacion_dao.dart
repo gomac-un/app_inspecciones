@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
+import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
@@ -101,10 +103,294 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     return resultado;
   }
 
-  Future<List<OpcionDeRespuesta>> respuestasDeCuadricula(int cuadriculaId) {
+  Future<List<BloqueConTitulo>> getTitulos(int cuestionarioId) {
+    final query = select(titulos).join([
+      innerJoin(bloques, bloques.id.equalsExp(titulos.bloqueId)),
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId));
+    return query
+        .map((row) => BloqueConTitulo(
+              row.readTable(bloques),
+              row.readTable(titulos),
+            ))
+        .get();
+  }
+
+  Future<List<BloqueConPreguntaNumerica>> getPreguntaNumerica(
+      int cuestionarioId) async {
+    final query = select(preguntas).join([
+      innerJoin(
+        bloques,
+        bloques.id.equalsExp(preguntas.bloqueId),
+      ),
+      leftOuterJoin(criticidadesNumericas,
+          criticidadesNumericas.preguntaId.equalsExp(preguntas.id)),
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
+          (preguntas.tipo.equals(4)));
+
+    final res = await query
+        .map((row) => {
+              'bloque': row.readTable(bloques),
+              'pregunta': row.readTable(preguntas),
+              'criticidades': row.readTable(criticidadesNumericas)
+            })
+        .get();
+
+    final m = Future.wait(
+      groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
+        return BloqueConPreguntaNumerica(
+          entry.value.first['bloque'] as Bloque,
+          PreguntaNumerica(
+            entry.key as Pregunta,
+            entry.value
+                .map((item) => item['criticidades'] as CriticidadesNumerica)
+                .toList(),
+          ),
+        );
+      }),
+    );
+    return m;
+  }
+
+  Future<List<BloqueConPreguntaSimple>> getPreguntasSimples(
+      int cuestionarioId) async {
+    final opcionesPregunta = alias(opcionesDeRespuesta, 'op');
+
+    final query = select(preguntas).join([
+      innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
+      leftOuterJoin(opcionesPregunta,
+          opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
+          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)) &
+          preguntas.esCondicional.equals(false));
+    //unicaRespuesta/multipleRespuesta
+    final res = await query
+        .map((row) => {
+              'bloque': row.readTable(bloques),
+              'pregunta': row.readTable(preguntas),
+              'opcionesDePregunta': row.readTable(opcionesPregunta)
+            })
+        .get();
+
+    return Future.wait(
+      groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
+        return BloqueConPreguntaSimple(
+          entry.value.first['bloque'] as Bloque,
+          PreguntaConOpcionesDeRespuesta(
+            entry.key as Pregunta,
+            entry.value
+                .map((e) => e['opcionesDePregunta'] as OpcionDeRespuesta)
+                .toList(),
+            opcionesDeRespuestaConCondicional: entry.value
+                .map(
+                  (e) => OpcionDeRespuestaConCondicional(
+                    e['opcionesDePregunta'] as OpcionDeRespuesta,
+                  ),
+                )
+                .toList(),
+          ),
+        );
+      }),
+    );
+  }
+
+  Future<List<BloqueConCondicional>> getPreguntasCondicionales(
+      int cuestionarioId) async {
+    final opcionesPregunta = alias(opcionesDeRespuesta, 'op');
+
+    final query = select(preguntas).join([
+      innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
+      innerJoin(opcionesPregunta,
+          opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
+      /* innerJoin(preguntasCondicional,
+          preguntasCondicional.preguntaId.equalsExp(preguntas.id)) */
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
+          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)) &
+          preguntas.esCondicional.equals(true));
+    //unicaRespuesta/multipleRespuesta
+
+    final res = await query
+        .map((row) => {
+              'bloque': row.readTable(bloques),
+              'pregunta': row.readTable(preguntas),
+              'opcionesDePregunta': row.readTable(opcionesPregunta),
+            })
+        .get();
+
+    final x = Future.wait(
+      groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
+        return BloqueConCondicional(
+          entry.value.first['bloque'] as Bloque,
+          PreguntaConOpcionesDeRespuesta(
+            entry.key as Pregunta,
+            entry.value
+                .map((e) => e['opcionesDePregunta'] as OpcionDeRespuesta)
+                .toList(),
+            opcionesDeRespuestaConCondicional: entry.value
+                .map(
+                  (e) => OpcionDeRespuestaConCondicional(
+                    e['opcionesDePregunta'] as OpcionDeRespuesta,
+                  ),
+                )
+                .toList(),
+          ),
+          await getCondiciones(cuestionarioId),
+        );
+      }),
+    ); //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
+    return x;
+  }
+
+  Future<List<PreguntasCondicionalData>> getCondiciones(
+      int cuestionarioId) async {
+    final query = select(preguntas).join([
+      innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
+      leftOuterJoin(preguntasCondicional,
+          preguntasCondicional.preguntaId.equalsExp(preguntas.id)),
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
+          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)) &
+          preguntas.esCondicional.equals(true));
+
+    final res = await query
+        .map((row) => {
+              'pregunta': row.readTable(preguntas),
+              'condiciones': row.readTable(preguntasCondicional),
+            })
+        .get();
+
+    final List<PreguntasCondicionalData> condiciones = [];
+    Future.wait(
+      groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
+        entry.value
+            .map((e) =>
+                condiciones.add(e['condiciones'] as PreguntasCondicionalData))
+            .toList();
+      }),
+    );
+
+    return condiciones;
+  }
+
+  Future<List<BloqueConCuadricula>> getCuadriculasSinPreguntas(
+      int cuestionarioId) async {
+    final query1 = select(cuadriculasDePreguntas).join([
+      innerJoin(bloques, bloques.id.equalsExp(cuadriculasDePreguntas.bloqueId)),
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId));
+    //parteDeCuadriculaUnica
+
+    final res = await query1
+        .map((row) => {
+              'bloque': row.readTable(bloques),
+              'cuadricula': row.readTable(cuadriculasDePreguntas),
+            })
+        .get();
+
+    return Future.wait(
+      groupBy(res, (e) => e['bloque'] as Bloque).entries.map((entry) async {
+        return BloqueConCuadricula(
+          entry.key,
+          CuadriculaDePreguntasConOpcionesDeRespuesta(
+            entry.value.first['cuadricula'] as CuadriculaDePreguntas,
+            await respuestasDeCuadricula1(
+                (entry.value.first['cuadricula'] as CuadriculaDePreguntas).id),
+          ),
+        );
+      }),
+    );
+  }
+
+  Future<List<BloqueConCuadricula>> getCuadriculas(int cuestionarioId,
+      [int inspeccionId]) async {
+    final query1 = select(cuadriculasDePreguntas).join([
+      innerJoin(bloques, bloques.id.equalsExp(cuadriculasDePreguntas.bloqueId)),
+      leftOuterJoin(preguntas, preguntas.bloqueId.equalsExp(bloques.id))
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
+          (preguntas.tipo.equals(2) | preguntas.tipo.equals(3)));
+    //parteDeCuadriculaUnica
+
+    final res = await query1
+        .map((row) => {
+              'pregunta': row.readTable(preguntas),
+              'bloque': row.readTable(bloques),
+              'cuadricula': row.readTable(cuadriculasDePreguntas),
+            })
+        .get();
+
+    return Future.wait(
+      groupBy(res, (e) => e['bloque'] as Bloque).entries.map((entry) async {
+        return BloqueConCuadricula(
+          entry.key,
+          CuadriculaDePreguntasConOpcionesDeRespuesta(
+            entry.value.first['cuadricula'] as CuadriculaDePreguntas,
+            await respuestasDeCuadricula1(
+                (entry.value.first['cuadricula'] as CuadriculaDePreguntas).id),
+          ),
+          preguntas: await Future.wait(entry.value.map(
+            (item) async => PreguntaConOpcionesDeRespuesta(
+                item['pregunta'] as Pregunta, []),
+          )),
+        );
+      }),
+    );
+  }
+
+  Future<List<OpcionDeRespuesta>> respuestasDeCuadricula1(int cuadriculaId) {
     final query = select(opcionesDeRespuesta)
       ..where((or) => or.cuadriculaId.equals(cuadriculaId));
     return query.get();
+  }
+
+  Future<List<OpcionDeRespuestaConCondicional>> respuestasDeCuadricula(
+      int cuadriculaId) async {
+    final query = select(opcionesDeRespuesta)
+      ..where((or) => or.cuadriculaId.equals(cuadriculaId));
+    final res = await query.get();
+    final opcionesDeCuadricula =
+        res.map((e) => OpcionDeRespuestaConCondicional(e)).toList();
+    return opcionesDeCuadricula;
+  }
+
+  Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId,
+      {int activoId}) async {
+    final inspeccion = await (select(inspecciones)
+          ..where((tbl) =>
+              tbl.cuestionarioId.equals(cuestionarioId) &
+              tbl.activoId.equals(activoId)))
+        .getSingle();
+
+    final inspeccionId = inspeccion?.id;
+
+    final List<BloqueConTitulo> titulos = await getTitulos(cuestionarioId);
+
+    final List<BloqueConCondicional> preguntasCondicionales =
+        await getPreguntasCondicionales(cuestionarioId);
+
+    final List<BloqueConPreguntaSimple> preguntasSimples =
+        await getPreguntasSimples(cuestionarioId);
+
+    final List<BloqueConCuadricula> cuadriculasDeApoyo =
+        await getCuadriculas(cuestionarioId, inspeccionId);
+
+    final List<BloqueConCuadricula> cuadriculas = cuadriculasDeApoyo.isEmpty
+        ? await getCuadriculasSinPreguntas(cuestionarioId)
+        : cuadriculasDeApoyo;
+
+    final List<BloqueConPreguntaNumerica> numerica =
+        await getPreguntaNumerica(cuestionarioId);
+
+    return [
+      ...titulos,
+      ...preguntasSimples,
+      ...cuadriculas,
+      ...numerica,
+      ...preguntasCondicionales
+    ];
   }
 
   Future<Cuestionario> getCuestionarioToSave(
@@ -139,201 +425,18 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     return (select(cuestionarios)..where((i) => i.id.equals(cid))).getSingle();
   }
 
-  /* Future crearCuestionario(Map<String, AbstractControl> form, EstadoDeCuestionario estado) {
-    return transaction(() async {
-      final String tipoDeInspeccion = form["tipoDeInspeccion"].value == "otra"
-          ? form["nuevoTipoDeInspeccion"].value as String
-          : form["tipoDeInspeccion"].value as String;
-
-      final int cid = await into(cuestionarios).insert(
-          CuestionariosCompanion.insert(tipoDeInspeccion: tipoDeInspeccion, estado: estado));
-
-      await batch((batch) {
-        // asociar a cada modelo con este cuestionario
-        batch.insertAll(
-            cuestionarioDeModelos,
-            (form["modelos"].value as List<String>)
-                .map((String modelo) => CuestionarioDeModelosCompanion.insert(
-                    modelo: modelo,
-                    periodicidad:
-                        (form["periodicidad"].value as double).round(),
-                    contratistaId:
-                        Value((form["contratista"].value as Contratista).id),
-                    cuestionarioId: cid))
-                .toList()); //TODO: distintas periodicidades y contratistas por cuestionarioDeModelo
-      });
-      //procesamiento de cada bloque ya sea titulo, pregunta o cuadricula
-      await Future.forEach(
-          (form["bloques"] as FormArray).controls.asMap().entries,
-          (entry) async {
-        final i = entry.key as int;
-        final control = entry.value;
-        final bid = await into(bloques)
-            .insert(BloquesCompanion.insert(cuestionarioId: cid, nOrden: i));
-
-        //TODO: guardar inserts de cada tipo en listas para luego insertarlos en batch
-        //TODO: usar los metodos toDataClass de los formGroups para obtener los datos de cada bloque
-        if (control is CreadorTituloFormGroup) {
-          await into(titulos).insert(TitulosCompanion.insert(
-            bloqueId: bid,
-            titulo: control.value["titulo"] as String,
-            descripcion: control.value["descripcion"] as String,
-          ));
-        }
-        if (control is CreadorPreguntaFormGroup) {
-          //Mover las fotos a una carpeta unica para cada cuestionario
-          final fotosGuiaProcesadas = await FotosManager.organizarFotos(
-            (control.value["fotosGuia"] as List<File>)
-                .map((e) => e.path)
-                .toImmutableList(),
-            tipoDocumento: "cuestionarios",
-            idDocumento: cid.toString(),
-          );
-
-          final pid = await into(preguntas).insert(
-            PreguntasCompanion.insert(
-              bloqueId: bid,
-              titulo: control.value["titulo"] as String,
-              descripcion: control.value["descripcion"] as String,
-              sistemaId: Value(control.value["sistema"].id as int),
-              subSistemaId: Value(control.value["subSistema"].id as int),
-              posicion: Value(control.value["posicion"] as String),
-              tipo: control.value["tipoDePregunta"] as TipoDePregunta,
-              criticidad: control.value["criticidad"].round() as int,
-              fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
-              esCondicional: Value(control.value['condicional'] as bool),
-            ),
-          );
-
-          Future<void> insertarCondicion(
-            Map<dynamic, dynamic> e,
-          ) async {
-            final numero = int.parse(
-                    (e['seccion'] as String).replaceAll('Ir a bloque ', '')) -
-                1;
-            await into(preguntasCondicional).insert(
-              PreguntasCondicionalCompanion.insert(
-                preguntaId: pid,
-                opcionDeRespuesta: e['texto'] as String,
-                seccion: numero,
-              ),
-            );
-          }
-
-          // Asociacion de los bloques a los que se dirige la pregunta condicional
-
-          if (control.value['condicional'] as bool) {
-            (control.value["respuestas"] as List<Map>)
-                .map((e) async => {
-                      await insertarCondicion(e),
-                    })
-                .toList();
-          }
-          await batch((batch) {
-            batch.insertAll(
-              opcionesDeRespuesta,
-              (control.value["respuestas"] as List<Map>)
-                  .map((e) => OpcionesDeRespuestaCompanion.insert(
-                        preguntaId: Value(pid),
-                        texto: e["texto"] as String,
-                        criticidad: e["criticidad"].round() as int,
-                      ))
-                  .toList(),
-            );
-          });
-        }
-        if (control is CreadorPreguntaNumericaFormGroup) {
-          //Mover las fotos a una carpeta unica para cada cuestionario
-          final fotosGuiaProcesadas = await FotosManager.organizarFotos(
-            (control.value["fotosGuia"] as List<File>)
-                .map((e) => e.path)
-                .toImmutableList(),
-            tipoDocumento: "cuestionarios",
-            idDocumento: cid.toString(),
-          );
-
-          final pid = await into(preguntas).insert(
-            PreguntasCompanion.insert(
-              bloqueId: bid,
-              titulo: control.value["titulo"] as String,
-              descripcion: control.value["descripcion"] as String,
-              sistemaId: Value(control.value["sistema"].id as int),
-              subSistemaId: Value(control.value["subSistema"].id as int),
-              posicion: Value(control.value["posicion"] as String),
-              tipo: TipoDePregunta.numerica,
-              criticidad: control.value["criticidad"].round() as int,
-              fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
-            ),
-          );
-          // Asociacion de las criticidades con esta pregunta
-          await batch((batch) {
-            batch.insertAll(
-              criticidadesNumericas,
-              (control.value["criticidadRespuesta"] as List<Map>)
-                  .map((e) => CriticidadesNumericasCompanion.insert(
-                        preguntaId: pid,
-                        valorMinimo: e["minimo"] as double,
-                        valorMaximo: e['maximo'] as double,
-                        criticidad: e["criticidad"].round() as int,
-                      ))
-                  .toList(),
-            );
-          });
-        }
-        if (control is CreadorPreguntaCuadriculaFormGroup) {
-          final cuadrId = await into(cuadriculasDePreguntas).insert(
-              CuadriculasDePreguntasCompanion.insert(
-                  bloqueId: bid,
-                  titulo: control.value["titulo"] as String,
-                  descripcion: control.value["descripcion"] as String));
-
-          //Asociacion de las preguntas con esta cuadricula
-          await batch((batch) {
-            batch.insertAll(
-              preguntas,
-              (control.value["preguntas"] as List<Map>)
-                  .map((e) => PreguntasCompanion.insert(
-                        bloqueId: bid,
-                        titulo: e["titulo"] as String,
-                        descripcion: e["descripcion"] as String,
-                        sistemaId: Value(e["sistema"].id as int),
-                        subSistemaId: Value(e["subSistema"].id as int),
-                        posicion: Value(e["posicion"] as String),
-                        tipo: TipoDePregunta
-                            .parteDeCuadriculaUnica, //TODO: multiple respuesta para cuadriculas
-                        criticidad: e["criticidad"].round() as int,
-                        //TODO: fotos para cada pregunta
-                      ))
-                  .toList(),
-            );
-          });
-          // Asociacion de las opciones de respuesta de esta cuadricula
-          await batch((batch) {
-            batch.insertAll(
-              opcionesDeRespuesta,
-              (control.value["respuestas"] as List<Map>)
-                  .map((e) => OpcionesDeRespuestaCompanion.insert(
-                        cuadriculaId: Value(cuadrId),
-                        texto: e["texto"] as String,
-                        criticidad: e["criticidad"].round() as int,
-                      ))
-                  .toList(),
-            );
-          });
-        }
-      });
-    });
-  } */
-
   Future guardarCuestionario(
       Cuestionario cuestionario,
       List<CuestionarioDeModelo> cuestionariosDeModelo,
-      List<IBloqueOrdenable> bloquesAGuardar) async {
+      List<IBloqueOrdenable> bloquesAGuardar,
+      CreacionFormViewModel form) async {
     return transaction(
       () async {
         Cuestionario cuesti =
             await getCuestionarioToSave(cuestionario, cuestionariosDeModelo);
         cuesti ??= await crearCuestionarioToSave(cuestionario);
+
+        form.cuestionario = cuesti;
 
         final List<int> mo = [];
         await Future.forEach<CuestionarioDeModelo>(cuestionariosDeModelo,
@@ -402,13 +505,15 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               //Mover las fotos a una carpeta unica para cada inspeccion
               final opcion =
                   or.toCompanion(true).copyWith(preguntaId: Value(preguntaId));
+
+              int opcionId;
               if (opcion.id.present) {
-                final x = await into(opcionesDeRespuesta)
-                    .insertOnConflictUpdate(opcion);
-                opcionesId.add(x);
+                await into(opcionesDeRespuesta).insertOnConflictUpdate(opcion);
+                opcionId = opcion.id.value;
               } else {
-                opcionesId.add(await into(opcionesDeRespuesta).insert(opcion));
+                opcionId = await into(opcionesDeRespuesta).insert(opcion);
               }
+              opcionesId.add(opcionId);
             });
 
             await (delete(opcionesDeRespuesta)
@@ -437,26 +542,25 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
             }
 
             final List<int> opcionesId = [];
-            await Future.forEach<OpcionDeRespuesta>(
-                e?.pregunta?.opcionesDeRespuesta, (or) async {
-              //Mover las fotos a una carpeta unica para cada inspeccion
-              final opcion =
-                  or.toCompanion(true).copyWith(preguntaId: Value(preguntaId));
-              if (opcion.id.present) {
-                final x = await into(opcionesDeRespuesta)
-                    .insertOnConflictUpdate(opcion);
-                opcionesId.add(x);
-              } else {
-                opcionesId.add(await into(opcionesDeRespuesta).insert(opcion));
-              }
-            });
-
             final List<int> condicionesId = [];
-            await Future.forEach<PreguntasCondicionalData>(e?.condiciones,
-                (con) async {
+            await Future.forEach<OpcionDeRespuestaConCondicional>(
+                e?.pregunta?.opcionesDeRespuestaConCondicional, (or) async {
               //Mover las fotos a una carpeta unica para cada inspeccion
-              final condicion =
-                  con.toCompanion(true).copyWith(preguntaId: Value(preguntaId));
+              final opcion = or.opcionRespuesta
+                  .toCompanion(true)
+                  .copyWith(preguntaId: Value(preguntaId));
+              int opcionId;
+              if (opcion.id.present) {
+                await into(opcionesDeRespuesta).insertOnConflictUpdate(opcion);
+                opcionId = opcion.id.value;
+              } else {
+                opcionId = await into(opcionesDeRespuesta).insert(opcion);
+              }
+              opcionesId.add(opcionId);
+
+              final condicion = or.condiciones.toCompanion(true).copyWith(
+                  preguntaId: Value(preguntaId),
+                  seccion: Value(or.condiciones.seccion - 1));
               if (condicion.id.present) {
                 final x = await into(preguntasCondicional)
                     .insertOnConflictUpdate(condicion);
@@ -466,7 +570,6 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                     .add(await into(preguntasCondicional).insert(condicion));
               }
             });
-
             await (delete(opcionesDeRespuesta)
                   ..where((rxor) =>
                       rxor.id.isNotIn(opcionesId) &
@@ -498,15 +601,15 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                 (or) async {
               //Mover las fotos a una carpeta unica para cada inspeccion
               final pregunta = or.pregunta.toCompanion(true).copyWith(
-                  bloqueId: Value(bloqueId),
-                  tipo: const Value(TipoDePregunta.parteDeCuadriculaUnica));
+                  bloqueId: Value(bloqueId));
+              int preguntaId;
               if (pregunta.id.present) {
-                final x =
-                    await into(preguntas).insertOnConflictUpdate(pregunta);
-                preguntasId.add(x);
+                await into(preguntas).insertOnConflictUpdate(pregunta);
+                preguntaId = or.pregunta.id;
               } else {
-                preguntasId.add(await into(preguntas).insert(pregunta));
+                preguntaId = await into(preguntas).insert(pregunta);
               }
+              preguntasId.add(preguntaId);
             });
             await (delete(preguntas)
                   ..where((rxor) =>
@@ -520,13 +623,15 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
               final opcion = or
                   .toCompanion(true)
                   .copyWith(cuadriculaId: Value(cuadriculaId));
+
+              int opcionId;
               if (opcion.id.present) {
-                final x = await into(opcionesDeRespuesta)
-                    .insertOnConflictUpdate(opcion);
-                opcionesId.add(x);
+                await into(opcionesDeRespuesta).insertOnConflictUpdate(opcion);
+                opcionId = opcion.id.value;
               } else {
-                opcionesId.add(await into(opcionesDeRespuesta).insert(opcion));
+                opcionId = await into(opcionesDeRespuesta).insert(opcion);
               }
+              opcionesId.add(opcionId);
             });
             await (delete(opcionesDeRespuesta)
                   ..where((rxor) =>
@@ -551,17 +656,29 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
             } else {
               preguntaId = await into(preguntas).insert(pregunta);
             }
-            final criticidades = e.pregunta.criticidades
-                .map((e) =>
-                    e.toCompanion(true).copyWith(preguntaId: Value(preguntaId)))
-                .toList();
-            await batch((batch) {
-              batch.insertAll(
-                criticidadesNumericas,
-                criticidades,
-                mode: InsertMode.insertOrReplace,
-              );
+            final List<int> criticidadesId = [];
+            await Future.forEach<CriticidadesNumerica>(
+                e?.pregunta?.criticidades, (cri) async {
+              //Mover las fotos a una carpeta unica para cada inspeccion
+              final criticidad =
+                  cri.toCompanion(true).copyWith(preguntaId: Value(preguntaId));
+
+              int criticidadId;
+              if (criticidad.id.present) {
+                await into(criticidadesNumericas)
+                    .insertOnConflictUpdate(criticidad);
+                criticidadId = criticidad.id.value;
+              } else {
+                criticidadId =
+                    await into(criticidadesNumericas).insert(criticidad);
+              }
+              criticidadesId.add(criticidadId);
             });
+            await (delete(criticidadesNumericas)
+                  ..where((cri) =>
+                      cri.id.isNotIn(criticidadesId) &
+                      cri.preguntaId.equals(preguntaId)))
+                .go();
           }
         });
         await (delete(bloques)

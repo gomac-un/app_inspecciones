@@ -10,7 +10,6 @@ import 'package:inspecciones/mvvc/creacion_cuadricula_card.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:inspecciones/mvvc/creacion_numerica_card.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
-import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -25,7 +24,8 @@ class CreadorTituloCard extends StatelessWidget {
     return Card(
       //TODO: destacar mejor los titulos
       shape: RoundedRectangleBorder(
-          side: BorderSide(color: Theme.of(context).accentColor, width: 2.0),
+          side:
+              BorderSide(color: Theme.of(context).backgroundColor, width: 2.0),
           borderRadius: BorderRadius.circular(4.0)),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -95,6 +95,12 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<CreacionFormViewModel>(context);
+    final List<TipoDePregunta> itemsTipoPregunta = formGroup.parteDeCuadricula
+        ? [
+            TipoDePregunta.parteDeCuadriculaUnica,
+            TipoDePregunta.parteDeCuadriculaMultiple
+          ]
+        : [TipoDePregunta.unicaRespuesta, TipoDePregunta.multipleRespuesta];
     return PreguntaCard(
       titulo: 'Pregunta de selección',
       child: Column(
@@ -193,14 +199,12 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
               labelText: 'Fotos guía',
             ),
           ),
+          const SizedBox(height: 10),
           ReactiveDropdownField<TipoDePregunta>(
             formControl: formGroup.control('tipoDePregunta') as FormControl,
             validationMessages: (control) =>
                 {'required': 'Seleccione el tipo de pregunta'},
-            items: [
-              TipoDePregunta.unicaRespuesta,
-              TipoDePregunta.multipleRespuesta,
-            ]
+            items: itemsTipoPregunta
                 .map((e) => DropdownMenuItem<TipoDePregunta>(
                       value: e,
                       child: Text(
@@ -210,67 +214,43 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Tipo de pregunta',
             ),
-            onChanged: (value) {
-              formGroup.tipoUnicaRespuesta.value = value;
-            },
           ),
           const SizedBox(height: 10),
-          ValueListenableBuilder<TipoDePregunta>(
-            valueListenable: formGroup.tipoUnicaRespuesta,
-            builder: (BuildContext context, value, Widget child) {
-              if (value == TipoDePregunta.unicaRespuesta) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '¿Es una pregunta condicional?',
-                      style: Theme.of(context).textTheme.headline6,
-                      textAlign: TextAlign.right,
-                    ),
-                    ReactiveRadioListTile(
-                      formControl:
-                          formGroup.control('condicional') as FormControl<bool>,
-                      title: const Text('Si'),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: true,
-                    ),
+          /* if (!formGroup.parteDeCuadricula)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '¿Es una pregunta condicional?',
+                  style: Theme.of(context).textTheme.headline6,
+                  textAlign: TextAlign.right,
+                ),
+                ReactiveRadioListTile(
+                  formControl:
+                      formGroup.control('condicional') as FormControl<bool>,
+                  title: const Text('Si'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: true,
+                ),
 
-                    ReactiveRadioListTile(
-                      formControl:
-                          formGroup.control('condicional') as FormControl<bool>,
-                      title: const Text('No'),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: false,
-                    ),
+                ReactiveRadioListTile(
+                  formControl:
+                      formGroup.control('condicional') as FormControl<bool>,
+                  title: const Text('No'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: false,
+                ),
 
-                    // ignore: prefer_const_literals_to_create_immutables
-                  ],
-                );
-              }
-              return Divider();
-            },
-          ),
-
-          ReactiveValueListenableBuilder(
-            formControl: formGroup.control('condicional') as FormControl<bool>,
-            builder: (context, AbstractControl<bool> control, child) {
-              if (control.value) {
-                return Column(
-                  children: [
-                    WidgetRespuestaCondicional(formGroup: formGroup),
-                    BotonesDeBloque(formGroup: formGroup, nro: nro),
-                  ],
-                );
-              }
-
-              return Column(
-                children: [
-                  WidgetRespuestas(formGroup: formGroup),
-                  BotonesDeBloque(formGroup: formGroup, nro: nro),
-                ],
-              );
-            },
-          ),
+                // ignore: prefer_const_literals_to_create_immutables
+              ],
+            ), */
+          if (!formGroup.parteDeCuadricula)
+            Column(
+              children: [
+                WidgetRespuestas(formGroup: formGroup),
+                BotonesDeBloque(formGroup: formGroup, nro: nro),
+              ],
+            )
 
           // Muestra las observaciones de la reparacion solo si reparado es true
         ],
@@ -403,6 +383,7 @@ class WidgetRespuestaCondicional extends StatelessWidget {
                   itemBuilder: (context, i) {
                     final element = (control as FormArray).controls[i]
                         as CreadorRespuestaFormGroup;
+
                     //Las keys sirven para que flutter maneje correctamente los widgets de la lista
                     return Padding(
                       padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
@@ -443,18 +424,18 @@ class WidgetRespuestaCondicional extends StatelessWidget {
                             activeColor: Colors.red,
                           ),
 
-                          //TODO: Que cuando se elimine el bloque el valor por defecto vuelva a null, así no se envía el valor de un bloque que no existe
-                          ValueListenableBuilder<List<String>>(
+                          /* //TODO: Que cuando se elimine el bloque el valor por defecto vuelva a null, así no se envía el valor de un bloque que no existe
+                          ValueListenableBuilder<List<int>>(
                               valueListenable: viewModel.totalBloques,
                               builder: (context, value, child) {
                                 return ReactiveDropdownField<String>(
-                                  formControl:
-                                      element.control('seccion') as FormControl,
+                                  formControl: element.control('seccion')
+                                      as FormControl<String>,
                                   validationMessages: (control) =>
                                       {'required': 'Seleccione el bloque'},
                                   items: value
                                       .map((e) => DropdownMenuItem<String>(
-                                            value: e,
+                                            value: e.toString(),
                                             child: Text('Ir a bloque $e'),
                                           ))
                                       .toList(),
@@ -462,7 +443,7 @@ class WidgetRespuestaCondicional extends StatelessWidget {
                                     labelText: 'Seccion',
                                   ),
                                 );
-                              }),
+                              }), */
                         ],
                       ),
                     );
@@ -529,7 +510,10 @@ class BotonesDeBloque extends StatelessWidget {
               child: ListTile(
                 /* 
                 leading: const Icon(Icons.copy), */
-                title: Text('Bloque numero ${nro + 1}'),
+                title: Text('Bloque número ${nro + 1}',
+                    style:  const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    )),
                 selected: true,
                 onTap: () => {},
               ),
@@ -537,7 +521,10 @@ class BotonesDeBloque extends StatelessWidget {
             PopupMenuItem(
               value: 2,
               child: ListTile(
-                leading: const Icon(Icons.copy),
+                leading: Icon(
+                  Icons.copy,
+                  color: Theme.of(context).accentColor,
+                ),
                 title: Text('Copiar bloque',
                     style: TextStyle(color: Colors.grey[800])),
                 selected: true,
@@ -555,7 +542,10 @@ class BotonesDeBloque extends StatelessWidget {
             PopupMenuItem(
               value: 3,
               child: ListTile(
-                leading: const Icon(Icons.paste),
+                leading: Icon(
+                  Icons.paste,
+                  color: Theme.of(context).accentColor,
+                ),
                 title: Text('Pegar bloque',
                     style: TextStyle(color: Colors.grey[800])),
                 selected: true,
@@ -573,7 +563,10 @@ class BotonesDeBloque extends StatelessWidget {
             PopupMenuItem(
               value: 4,
               child: ListTile(
-                  leading: const Icon(Icons.delete),
+                  leading: Icon(
+                    Icons.delete,
+                    color: Theme.of(context).accentColor,
+                  ),
                   selected: true,
                   title: Text('Borrar bloque',
                       style: TextStyle(color: Colors.grey[800])),
@@ -619,7 +612,7 @@ class BotonesDeBloque extends StatelessWidget {
         animation: animation,
       ),
     );
-    viewModel.borrarBloque(formGroup);
+    /* viewModel.borrarBloque(formGroup); */
   }
 
   void agregarBloque(BuildContext context, AbstractControl nuevo) {

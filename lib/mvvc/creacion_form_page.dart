@@ -47,10 +47,10 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                 : 'Visualización cuestionario'),
             // ignore: prefer_const_literals_to_create_immutables
             actions: [
-              if (estado == EstadoDeCuestionario.borrador)
-                BotonGuardarBorrador(
-                  estado: estado,
-                ),
+              /* if (estado == EstadoDeCuestionario.borrador) */
+              BotonGuardarBorrador(
+                estado: estado,
+              ),
             ],
             body: Column(
               children: [
@@ -187,9 +187,11 @@ class BotonGuardarBorrador extends StatelessWidget {
     @required this.estado,
   }) : super(key: key);
   final EstadoDeCuestionario estado;
+
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<CreacionFormViewModel>(context);
+    final form = ReactiveForm.of(context);
     return IconButton(
       icon: const Icon(Icons.archive),
       //label: 'Guardar borrador',
@@ -203,10 +205,13 @@ class BotonGuardarBorrador extends StatelessWidget {
           Scaffold.of(context).showSnackBar(const SnackBar(
               content: Text(
                   "Seleccione el tipo de inspección o elija por lo menos un modelo antes de guardar el cuestionario")));
+        } else if (!form.valid) {
+          form.markAllAsTouched();
+          mostrarErrores(context, form);
         } else {
-          LoadingDialog.show(context);
+          /* LoadingDialog.show(context); */
           await viewModel.guardarCuestionarioEnLocal(estado);
-          LoadingDialog.hide(context);
+          /* LoadingDialog.hide(context); */
           Scaffold.of(context)
               .showSnackBar(const SnackBar(content: Text("Guardado exitoso")));
         }
@@ -237,9 +242,13 @@ class BotonFinalizar extends StatelessWidget {
                 : 'Aceptar',
             onPressed: !form.valid
                 ? () {
-                    form.markAllAsTouched();
+                    if (estado == EstadoDeCuestionario.borrador) {
+                      form.markAllAsTouched();
 
-                    mostrarErrores(context, form);
+                      mostrarErrores(context, form);
+                    } else {
+                      Navigator.of(context).pop();
+                    }
                   }
                 : () {
                     finalizarCuestionario(context);

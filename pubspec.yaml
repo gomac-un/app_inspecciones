@@ -54,6 +54,7 @@ dependencies:
   shared_preferences: ^0.5.12+4
   sqlite3_flutter_libs: ^0.3.0
   timeline_tile: ^1.0.0
+  checkbox_formfield: ^0.1.0+3
 
   
 

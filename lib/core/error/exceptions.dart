@@ -10,4 +10,7 @@ class CredencialesException {
   CredencialesException(this.respuesta);
 }
 
+class InternetException {
+}
+
 class CacheException implements Exception {}

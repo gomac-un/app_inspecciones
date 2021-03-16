@@ -17,7 +17,7 @@ class UserDrawer extends StatelessWidget {
     bool esAdmin = false;
 
     if (authState is Authenticated) {
-      if((authBloc.state as Authenticated).usuario.esAdmin != null){
+      if ((authBloc.state as Authenticated).usuario.esAdmin != null) {
         esAdmin = (authBloc.state as Authenticated).usuario.esAdmin;
       }
       return SafeArea(
@@ -29,23 +29,21 @@ class UserDrawer extends StatelessWidget {
                 child: ListView(
                   children: <Widget>[
                     Container(
-                      color: Theme.of(context).backgroundColor,
+                      color: Theme.of(context).primaryColor,
                       height: 200,
                       child: Padding(
                         padding: const EdgeInsets.only(top: 30.0),
                         child: UserAccountsDrawerHeader(
                           accountName: Text(
-                            esAdmin
-                                ? "Administrador"
-                                : "Inspector",
-                            style: const  TextStyle(fontSize: 15),
+                            esAdmin ? "Administrador" : "Inspector",
+                            style: const TextStyle(fontSize: 15),
                           ),
                           accountEmail: Text(authState.usuario.documento),
                           currentAccountPicture: CircleAvatar(
-                            backgroundColor: Colors.deepPurple,
+                            backgroundColor: Theme.of(context).primaryColorLight,
                             child: Text(
                               authState.usuario.documento[0],
-                              style: const TextStyle(fontSize: 35),
+                              style:  TextStyle(fontSize: 50, color: Theme.of(context).accentColor),
                             ),
                           ),
                         ),
@@ -78,18 +76,33 @@ class Opciones extends StatelessWidget {
         children: <Widget>[
           Card(
             child: ListTile(
-              focusColor: Colors.yellow,
+                focusColor: Colors.yellow,
+                selectedTileColor: Theme.of(context).accentColor,
+                title: const Text(
+                    'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
+                    style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
+                leading: const Icon(
+                  Icons.list_alt,
+                  color: Colors.black, /* color: Colors.white, */
+                ),
+                onTap: () => {
+                      ExtendedNavigator.of(context).pop(),
+                      ExtendedNavigator.of(context)
+                          .replace(Routes.cuestionariosPage),
+                    }),
+          ),
+          Card(
+            child: ListTile(
               selectedTileColor: Theme.of(context).accentColor,
               title: const Text(
-                  'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
+                  'Borradores', //TODO: mostrar el numero de  inspecciones creadas pendientes por subir
                   style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
               leading: const Icon(
-                Icons.list_alt,
+                Icons.list,
                 color: Colors.black, /* color: Colors.white, */
               ),
-              onTap: () => {
-                ExtendedNavigator.of(context).pop(),
-                  ExtendedNavigator.of(context).replace(Routes.cuestionariosPage),}
+              onTap: () =>
+                  ExtendedNavigator.of(context).replace(Routes.borradoresPage),
             ),
           ),
           const SizedBox(height: 5.0),
@@ -139,7 +152,6 @@ class Opciones extends StatelessWidget {
           ),
           LimpiezaBase(),
           SincronizarConGomac(),
-          
         ],
       );
     }
@@ -189,6 +201,61 @@ class SincronizarConGomac extends StatelessWidget {
 class LimpiezaBase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final cancelButton = FlatButton(
+      onPressed: () => Navigator.of(context).pop(),
+      child: Text("Cancelar",
+          style: TextStyle(
+              color: Theme.of(context).accentColor)), // OJO con el context
+    );
+    final Widget continueButton = FlatButton(
+      onPressed: () {
+        Navigator.of(context).pop();
+        getIt<Database>().limpiezaBD();
+        Scaffold.of(context).showSnackBar(const SnackBar(
+          content: Text('La limpieza de datos ha finalizado'),
+        ));
+      },
+      child: Text("Limpiar",
+          style: TextStyle(color: Theme.of(context).accentColor)),
+    );
+    // set up the AlertDialog
+    final alert = AlertDialog(
+      title: Text(
+        "Alerta",
+        style: TextStyle(color: Theme.of(context).accentColor),
+      ),
+      content: RichText(
+        text: TextSpan(
+          text:
+              'Si limpia la base de datos, perderá todos los borradores que tenga.\n\n',
+          style: TextStyle(color: Theme.of(context).hintColor, fontSize: 15),
+          children: <TextSpan>[
+            TextSpan(
+              text: 'IMPORTANTE: ',
+              style: TextStyle(
+                color: Theme.of(context).accentColor,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text:
+                  'debe sincronizar nuevamente con GOMAC después de la limpieza',
+              style:
+                  TextStyle(color: Theme.of(context).hintColor, fontSize: 15),
+            ),
+          ],
+        ),
+      ),
+
+      /* Text(
+          "Si limpia la base de datos, perderá todos los borradores que tenga.\n\nIMPORTANTE: debe sincronizar nuevamente con GOMAC después de la limpieza",
+          style: TextStyle(color: Theme.of(context).hintColor)), */
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
     return Card(
       child: ListTile(
         title: const Text(
@@ -199,7 +266,12 @@ class LimpiezaBase extends StatelessWidget {
           Icons.cleaning_services,
           color: Colors.black,
         ),
-        onTap: () => getIt<Database>().limpiezaBD(),
+        onTap: () => showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return alert;
+          },
+        ),
       ),
     );
   }

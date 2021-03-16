@@ -3,10 +3,13 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:dartz/dartz.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
 import 'package:inspecciones/application/auth/usuario.dart';
+import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:path/path.dart' as path;
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
@@ -28,11 +31,11 @@ abstract class InspeccionesRemoteDataSource {
 
 @LazySingleton(as: InspeccionesRemoteDataSource)
 class DjangoJsonAPI implements InspeccionesRemoteDataSource {
-  static const _server = 'http://10.0.2.2:8000';
+  static const _server = 'http://10.0.2.2:8000'/* http://pruebainsgomac.duckdns.org:8000' */;
   //static const _server = 'http://10.0.2.2:8000';
   //TODO: opcion para modificar el servidor desde la app
   static const _apiBase = '/inspecciones/api/v1';
-  static const _timeLimit = Duration(seconds: 90); //TODO: ajustar el timelimit
+  static const _timeLimit = Duration(seconds: 5); //TODO: ajustar el timelimit
   final Usuario _usuario;
   String get token => _usuario.token;
 
@@ -43,7 +46,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
 
   @override
   Future<Map<String, dynamic>> getToken(Map<String, dynamic> user) async {
-    const url = _server + _apiBase + '/api-token-auth/';
+    const url = '$_server$_apiBase/api-token-auth/';
     print("req: $url\n${jsonEncode(user)}");
     final http.Response response = await http
         .post(
@@ -60,7 +63,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
       final res = json.decode(response.body) as Map<String, dynamic>;
       return res;
     } else if (response.statusCode == 400) {
-      throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
+      throw CredencialesException(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
       log(response.body);
@@ -83,7 +86,6 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     if (response.statusCode == 200) {
       return json.decode(response.body) as Map<String, dynamic>;
     } else if (response.statusCode == 400) {
-      //TODO: verificar que el 400 pasa sii las credenciales estan mal
       throw CredencialesException(
           jsonDecode(response.body) as Map<String, dynamic>);
     } else {
@@ -92,12 +94,21 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     }
   }
 
+  Future<bool> _hayInternet() async => DataConnectionChecker().hasConnection;
+
   @override
   Future<Map<String, dynamic>> postRecurso(
       String recursoEndpoint, Map<String, dynamic> data) async {
     final url = _server + _apiBase + recursoEndpoint;
     print("req: $url\n${jsonEncode(data)}");
-    final http.Response response = await http
+    http.Response response;
+    
+      final hayInternet = await _hayInternet();
+
+    if (!hayInternet) {
+      throw InternetException();
+    }
+     response = await http
         .post(
           url,
           headers: <String, String>{

@@ -1,4 +1,6 @@
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_cards.dart';
@@ -82,6 +84,25 @@ class CreadorCuadriculaCard extends StatelessWidget {
                 .toList(),
             decoration: const InputDecoration(
               labelText: 'Posicion',
+            ),
+          ),
+          const SizedBox(height: 10),
+          ReactiveDropdownField<TipoDePregunta>(
+            formControl: formGroup.control('tipoDePregunta') as FormControl,
+            validationMessages: (control) =>
+                {'required': 'Seleccione el tipo de pregunta'},
+            items: [
+              TipoDePregunta.parteDeCuadriculaUnica,
+              TipoDePregunta.parteDeCuadriculaMultiple,
+            ]
+                .map((e) => DropdownMenuItem<TipoDePregunta>(
+                      value: e,
+                      child: Text(
+                          EnumToString.convertToString(e, camelCase: true)),
+                    ))
+                .toList(),
+            decoration: const InputDecoration(
+              labelText: 'Tipo de pregunta',
             ),
           ),
           const SizedBox(height: 10),

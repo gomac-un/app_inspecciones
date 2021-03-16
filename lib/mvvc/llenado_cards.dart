@@ -13,6 +13,7 @@ import 'package:kt_dart/kt.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:checkbox_formfield/checkbox_formfield.dart';
 
 class TituloCard extends StatelessWidget {
   final TituloFormGroup formGroup;
@@ -26,8 +27,9 @@ class TituloCard extends StatelessWidget {
     return Card(
       //TODO: destacar mejor los titulos
       shape: RoundedRectangleBorder(
-          side: BorderSide(color: Theme.of(context).accentColor, width: 2.0),
+          side: BorderSide(color: Theme.of(context).primaryColor, width: 2.0),
           borderRadius: BorderRadius.circular(4.0)),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -55,9 +57,18 @@ class NumericaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
+    final criticidad = viewModel.estado.value == EstadoDeInspeccion.borrador
+        ? formGroup.pregunta.criticidad
+        : formGroup.criticidad;
+    final mensajeCriticidad =
+        viewModel.estado.value == EstadoDeInspeccion.borrador
+            ? 'Criticidad pregunta'
+            : 'Criticidad total pregunta';
     return PreguntaCard(
       titulo: formGroup.pregunta.titulo,
       descripcion: formGroup.pregunta.descripcion,
+      criticidad: criticidad,
+      estado: mensajeCriticidad,
       child: Column(
         children: [
           if (formGroup.pregunta.fotosGuia.size > 0)
@@ -120,6 +131,21 @@ class NumericaCard extends StatelessWidget {
               formControl: formGroup.control('reparado') as FormControl<bool>,
               builder: (context, AbstractControl<bool> control, child) {
                 if (control.value) {
+                  final observacion = formGroup
+                      .control('observacionReparacion')
+                      .value as String;
+                  if (observacion.length <= 1) {
+                    formGroup
+                        .control('observacionReparacion')
+                        .setErrors({'required': true});
+                  }
+                  final fotos =
+                      formGroup.control('fotosReparacion').value as List;
+                  if (fotos.isEmpty) {
+                    formGroup
+                        .control('fotosReparacion')
+                        .setErrors({'required': true});
+                  }
                   return Column(
                     children: [
                       ReactiveTextField(
@@ -133,17 +159,22 @@ class NumericaCard extends StatelessWidget {
                         maxLines: null,
                         textInputAction: TextInputAction.next,
                       ),
-                      /*  FormBuilderImagePicker(
+                      FormBuilderImagePicker(
                         formArray: formGroup.control('fotosReparacion')
                             as FormArray<File>,
                         decoration: const InputDecoration(
                           labelText: 'Fotos de la reparación',
                         ),
-                      ), */
+                      ),
                     ],
                   );
+                } else {
+                  formGroup
+                      .control('observacionReparacion')
+                      .removeError('required');
+                  formGroup.control('fotosReparacion').removeError('required');
+                  return const SizedBox.shrink();
                 }
-                return const SizedBox.shrink();
               },
             ),
         ],
@@ -163,25 +194,19 @@ class SeleccionSimpleCard extends StatelessWidget {
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    //TODO: Tengo que arreglar esto, pero es un machetazo para poder probar las inspecciones de preguntas condicionales. El problema es la forma en la que se está haciendo la consulta en llenado_dao, estaban saliendo repetidas las opciones.
-    final List<OpcionDeRespuesta> listaOpcionesDeRespuesta = [];
-    void obtenerListas() {
-      formGroup.pregunta.opcionesDeRespuesta.forEach((u) => {
-            if (listaOpcionesDeRespuesta.contains(u))
-              {}
-            else
-              {
-                listaOpcionesDeRespuesta.add(u),
-              }
-          });
-    }
-
-    obtenerListas();
-
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
+    final criticidad = viewModel.estado.value == EstadoDeInspeccion.borrador
+        ? formGroup.pregunta.pregunta.criticidad
+        : formGroup.criticidad;
+    final mensajeCriticidad =
+        viewModel.estado.value == EstadoDeInspeccion.borrador
+            ? 'Criticidad pregunta'
+            : 'Criticidad total pregunta';
     return PreguntaCard(
       titulo: formGroup.pregunta.pregunta.titulo,
       descripcion: formGroup.pregunta.pregunta.descripcion,
+      criticidad: criticidad,
+      estado: mensajeCriticidad,
       child: Column(
         children: [
           if (formGroup.pregunta.pregunta.fotosGuia.size > 0)
@@ -195,7 +220,7 @@ class SeleccionSimpleCard extends StatelessWidget {
             ReactiveDropdownField<OpcionDeRespuesta>(
               formControl: formGroup.control('respuestas') as FormControl<
                   OpcionDeRespuesta>, //La de seleccion unica usa el control de la primer pregunta de la lista
-              items: listaOpcionesDeRespuesta
+              items: formGroup.pregunta.opcionesDeRespuesta
                   .map((e) => DropdownMenuItem<OpcionDeRespuesta>(
                       value: e, child: Text(e.texto)))
                   .toList(),
@@ -206,26 +231,34 @@ class SeleccionSimpleCard extends StatelessWidget {
                 FocusScope.of(context)
                     .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
               },
-              onChanged: (value) {
+              /* onChanged: (value) {
                 if (formGroup.pregunta.pregunta.esCondicional == true) {
                   viewModel.borrarBloque(
                     formGroup.bloque.nOrden,
                     formGroup.seccion,
                   );
                 }
-              },
+              }, */
               readOnly: readOnly,
             ),
           if (formGroup.pregunta.pregunta.tipo ==
               TipoDePregunta.multipleRespuesta)
             ReactiveMultiSelectDialogField<OpcionDeRespuesta>(
               buttonText: const Text('Seleccione entre las opciones'),
-              items: listaOpcionesDeRespuesta
+              items: formGroup.pregunta.opcionesDeRespuesta
                   .map((e) => MultiSelectItem(e, e.texto))
                   .toList(),
               formControl: formGroup.control('respuestas')
                   as FormControl<List<OpcionDeRespuesta>>,
               onTap: () => FocusScope.of(context).unfocus(),
+              /* onChanged: (value) {
+                if (formGroup.pregunta.pregunta.esCondicional == true) {
+                  viewModel.borrarBloque(
+                    formGroup.bloque.nOrden,
+                    formGroup.seccion,
+                  );
+                }
+              }, */
             ),
           const SizedBox(height: 10),
           ReactiveTextField(
@@ -260,6 +293,21 @@ class SeleccionSimpleCard extends StatelessWidget {
               formControl: formGroup.control('reparado') as FormControl<bool>,
               builder: (context, AbstractControl<bool> control, child) {
                 if (control.value) {
+                  final observacion = formGroup
+                      .control('observacionReparacion')
+                      .value as String;
+                  if (observacion.length <= 1) {
+                    formGroup
+                        .control('observacionReparacion')
+                        .setErrors({'required': true});
+                  }
+                  final fotos =
+                      formGroup.control('fotosReparacion').value as List;
+                  if (fotos.isEmpty) {
+                    formGroup
+                        .control('fotosReparacion')
+                        .setErrors({'required': true});
+                  }
                   return Column(
                     children: [
                       ReactiveTextField(
@@ -282,8 +330,13 @@ class SeleccionSimpleCard extends StatelessWidget {
                       ),
                     ],
                   );
+                } else {
+                  formGroup
+                      .control('observacionReparacion')
+                      .removeError('required');
+                  formGroup.control('fotosReparacion').removeError('required');
+                  return const SizedBox.shrink();
                 }
-                return const SizedBox.shrink();
               },
             ),
         ],
@@ -296,7 +349,8 @@ class CuadriculaCard extends StatelessWidget {
   final RespuestaCuadriculaFormArray formArray;
   final bool readOnly;
 
-  const CuadriculaCard({Key key, this.formArray, this.readOnly}) : super(key: key);
+  const CuadriculaCard({Key key, this.formArray, this.readOnly})
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
@@ -331,27 +385,29 @@ class CuadriculaCard extends StatelessWidget {
                 final e = d as RespuestaSeleccionSimpleFormGroup;
                 /*final ctrlPregunta =
                     e.control('respuestas') ;*/
+                final reparacion = e.control('reparado') as FormControl<bool>;
+                Widget icon;
+                if (viewModel.estado.value != EstadoDeInspeccion.borrador &&
+                    e.criticidad > 0) {
+                  icon = Icon(Icons.assignment_late_rounded,
+                      color: viewModel.estado.value ==
+                                  EstadoDeInspeccion.reparacion &&
+                              e.criticidad > 0 &&
+                              reparacion.value != true
+                          ? Colors.red
+                          : Colors.green);
+                } else {
+                  icon = const Icon(Icons.remove_red_eye);
+                }
                 return TableRow(
                   children: [
                     Text(e.pregunta.pregunta.titulo),
                     ...formArray.cuadricula.opcionesDeRespuesta
-                        .map((res) => ReactiveRadio(
-                              value: res,
-                              formControl:
-                                  e.control('respuestas') as FormControl,
-                            ))
+                        .map((res) => WidgetSeleccion(pregunta: e, opcion: res))
                         .toList(),
+
                     IconButton(
-                      icon: viewModel.estado.value !=
-                                  EstadoDeInspeccion.borrador &&
-                              e.criticidad > 0
-                          ?  Icon(
-                              Icons.assignment_late_rounded,
-                              color: viewModel.estado.value ==
-                                  EstadoDeInspeccion.reparacion &&
-                              e.criticidad > 0 ? Colors.red : Colors.green
-                            )
-                          : const Icon(Icons.remove_red_eye),
+                      icon: icon,
                       onPressed: () async {
                         //FocusScope.of(context).unfocus();
                         showDialog(
@@ -360,7 +416,10 @@ class CuadriculaCard extends StatelessWidget {
                             content: Provider(
                               create: (_) => viewModel,
                               child: SingleChildScrollView(
-                                  child: SeleccionSimpleCard(formGroup: e, readOnly: readOnly,)),
+                                  child: SeleccionSimpleCard(
+                                formGroup: e,
+                                readOnly: readOnly,
+                              )),
                             ),
                             actions: [
                               OutlineButton(
@@ -381,5 +440,58 @@ class CuadriculaCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class WidgetSeleccion extends StatefulWidget {
+  final RespuestaSeleccionSimpleFormGroup pregunta;
+  final OpcionDeRespuesta opcion;
+  const WidgetSeleccion({Key key, this.pregunta, this.opcion})
+      : super(key: key);
+
+  @override
+  _WidgetSeleccionState createState() =>
+      _WidgetSeleccionState(pregunta, opcion);
+}
+
+class _WidgetSeleccionState extends State<WidgetSeleccion> {
+  final RespuestaSeleccionSimpleFormGroup pregunta;
+  final OpcionDeRespuesta opcion;
+  bool _isSelected = false;
+
+  _WidgetSeleccionState(this.pregunta, this.opcion);
+  @override
+  Widget build(BuildContext context) {
+    if (pregunta.pregunta.pregunta.tipo ==
+        TipoDePregunta.parteDeCuadriculaMultiple) {
+      final control = (pregunta.control('respuestas')
+              as FormControl<List<OpcionDeRespuesta>>)
+          .value;
+      _isSelected = control.contains(opcion);
+      return Checkbox(
+        value: _isSelected,
+        onChanged: (bool newValue) {
+          setState(() {
+            _isSelected = newValue;
+          });
+          if (newValue) {
+            if (!control.contains(opcion)) {
+              control.add(opcion);
+            }
+          } else {
+            (pregunta.control('respuestas')
+                    as FormControl<List<OpcionDeRespuesta>>)
+                .value
+                .remove(opcion);
+          }
+        },
+      );
+    } else {
+      return ReactiveRadio(
+        value: opcion,
+        formControl:
+            pregunta.control('respuestas') as FormControl<OpcionDeRespuesta>,
+      );
+    }
   }
 }

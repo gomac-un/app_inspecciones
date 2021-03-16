@@ -181,10 +181,9 @@ class OpcionesDeRespuesta extends Table {
 
   //uno de estos 2 debe ser no nulo
   @JsonKey('pregunta')
-  IntColumn get preguntaId => integer().nullable()();
-  //.customConstraint('REFERENCES preguntas(id)')();
+  IntColumn get preguntaId => integer().nullable().customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
   @JsonKey('cuadricula')
-  IntColumn get cuadriculaId => integer().nullable()();
+  IntColumn get cuadriculaId => integer().nullable().customConstraint('REFERENCES cuadriculas_de_preguntas(id) ON DELETE CASCADE')();
   //.customConstraint('REFERENCES cuadriculas_de_preguntas(id) ')();
 
   TextColumn get texto => text().withLength(min: 1, max: 100)();
@@ -198,6 +197,10 @@ class Inspecciones extends Table {
   IntColumn get id => integer()();
 
   IntColumn get estado => intEnum<EstadoDeInspeccion>()();
+
+  IntColumn get criticidadTotal => integer()();
+
+  IntColumn get criticidadReparacion => integer()();
 
   DateTimeColumn get momentoInicio => dateTime().nullable()();
 

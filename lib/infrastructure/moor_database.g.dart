@@ -2566,11 +2566,8 @@ class $OpcionesDeRespuestaTable extends OpcionesDeRespuesta
   @override
   GeneratedIntColumn get preguntaId => _preguntaId ??= _constructPreguntaId();
   GeneratedIntColumn _constructPreguntaId() {
-    return GeneratedIntColumn(
-      'pregunta_id',
-      $tableName,
-      true,
-    );
+    return GeneratedIntColumn('pregunta_id', $tableName, true,
+        $customConstraints: 'REFERENCES preguntas(id) ON DELETE CASCADE');
   }
 
   final VerificationMeta _cuadriculaIdMeta =
@@ -2580,11 +2577,9 @@ class $OpcionesDeRespuestaTable extends OpcionesDeRespuesta
   GeneratedIntColumn get cuadriculaId =>
       _cuadriculaId ??= _constructCuadriculaId();
   GeneratedIntColumn _constructCuadriculaId() {
-    return GeneratedIntColumn(
-      'cuadricula_id',
-      $tableName,
-      true,
-    );
+    return GeneratedIntColumn('cuadricula_id', $tableName, true,
+        $customConstraints:
+            'REFERENCES cuadriculas_de_preguntas(id) ON DELETE CASCADE');
   }
 
   final VerificationMeta _textoMeta = const VerificationMeta('texto');
@@ -2671,6 +2666,8 @@ class $OpcionesDeRespuestaTable extends OpcionesDeRespuesta
 class Inspeccion extends DataClass implements Insertable<Inspeccion> {
   final int id;
   final EstadoDeInspeccion estado;
+  final int criticidadTotal;
+  final int criticidadReparacion;
   final DateTime momentoInicio;
   final DateTime momentoBorradorGuardado;
   final DateTime momentoEnvio;
@@ -2679,6 +2676,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
   Inspeccion(
       {@required this.id,
       @required this.estado,
+      @required this.criticidadTotal,
+      @required this.criticidadReparacion,
       this.momentoInicio,
       this.momentoBorradorGuardado,
       this.momentoEnvio,
@@ -2693,6 +2692,10 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       estado: $InspeccionesTable.$converter0.mapToDart(
           intType.mapFromDatabaseResponse(data['${effectivePrefix}estado'])),
+      criticidadTotal: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}criticidad_total']),
+      criticidadReparacion: intType.mapFromDatabaseResponse(
+          data['${effectivePrefix}criticidad_reparacion']),
       momentoInicio: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}momento_inicio']),
       momentoBorradorGuardado: dateTimeType.mapFromDatabaseResponse(
@@ -2714,6 +2717,12 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
     if (!nullToAbsent || estado != null) {
       final converter = $InspeccionesTable.$converter0;
       map['estado'] = Variable<int>(converter.mapToSql(estado));
+    }
+    if (!nullToAbsent || criticidadTotal != null) {
+      map['criticidad_total'] = Variable<int>(criticidadTotal);
+    }
+    if (!nullToAbsent || criticidadReparacion != null) {
+      map['criticidad_reparacion'] = Variable<int>(criticidadReparacion);
     }
     if (!nullToAbsent || momentoInicio != null) {
       map['momento_inicio'] = Variable<DateTime>(momentoInicio);
@@ -2739,6 +2748,12 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
       estado:
           estado == null && nullToAbsent ? const Value.absent() : Value(estado),
+      criticidadTotal: criticidadTotal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(criticidadTotal),
+      criticidadReparacion: criticidadReparacion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(criticidadReparacion),
       momentoInicio: momentoInicio == null && nullToAbsent
           ? const Value.absent()
           : Value(momentoInicio),
@@ -2763,6 +2778,9 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
     return Inspeccion(
       id: serializer.fromJson<int>(json['id']),
       estado: serializer.fromJson<EstadoDeInspeccion>(json['estado']),
+      criticidadTotal: serializer.fromJson<int>(json['criticidadTotal']),
+      criticidadReparacion:
+          serializer.fromJson<int>(json['criticidadReparacion']),
       momentoInicio: serializer.fromJson<DateTime>(json['momentoInicio']),
       momentoBorradorGuardado:
           serializer.fromJson<DateTime>(json['momentoBorradorGuardado']),
@@ -2777,6 +2795,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'estado': serializer.toJson<EstadoDeInspeccion>(estado),
+      'criticidadTotal': serializer.toJson<int>(criticidadTotal),
+      'criticidadReparacion': serializer.toJson<int>(criticidadReparacion),
       'momentoInicio': serializer.toJson<DateTime>(momentoInicio),
       'momentoBorradorGuardado':
           serializer.toJson<DateTime>(momentoBorradorGuardado),
@@ -2789,6 +2809,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
   Inspeccion copyWith(
           {int id,
           EstadoDeInspeccion estado,
+          int criticidadTotal,
+          int criticidadReparacion,
           DateTime momentoInicio,
           DateTime momentoBorradorGuardado,
           DateTime momentoEnvio,
@@ -2797,6 +2819,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       Inspeccion(
         id: id ?? this.id,
         estado: estado ?? this.estado,
+        criticidadTotal: criticidadTotal ?? this.criticidadTotal,
+        criticidadReparacion: criticidadReparacion ?? this.criticidadReparacion,
         momentoInicio: momentoInicio ?? this.momentoInicio,
         momentoBorradorGuardado:
             momentoBorradorGuardado ?? this.momentoBorradorGuardado,
@@ -2809,6 +2833,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
     return (StringBuffer('Inspeccion(')
           ..write('id: $id, ')
           ..write('estado: $estado, ')
+          ..write('criticidadTotal: $criticidadTotal, ')
+          ..write('criticidadReparacion: $criticidadReparacion, ')
           ..write('momentoInicio: $momentoInicio, ')
           ..write('momentoBorradorGuardado: $momentoBorradorGuardado, ')
           ..write('momentoEnvio: $momentoEnvio, ')
@@ -2824,17 +2850,25 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       $mrjc(
           estado.hashCode,
           $mrjc(
-              momentoInicio.hashCode,
+              criticidadTotal.hashCode,
               $mrjc(
-                  momentoBorradorGuardado.hashCode,
-                  $mrjc(momentoEnvio.hashCode,
-                      $mrjc(cuestionarioId.hashCode, activoId.hashCode)))))));
+                  criticidadReparacion.hashCode,
+                  $mrjc(
+                      momentoInicio.hashCode,
+                      $mrjc(
+                          momentoBorradorGuardado.hashCode,
+                          $mrjc(
+                              momentoEnvio.hashCode,
+                              $mrjc(cuestionarioId.hashCode,
+                                  activoId.hashCode)))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is Inspeccion &&
           other.id == this.id &&
           other.estado == this.estado &&
+          other.criticidadTotal == this.criticidadTotal &&
+          other.criticidadReparacion == this.criticidadReparacion &&
           other.momentoInicio == this.momentoInicio &&
           other.momentoBorradorGuardado == this.momentoBorradorGuardado &&
           other.momentoEnvio == this.momentoEnvio &&
@@ -2845,6 +2879,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
 class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
   final Value<int> id;
   final Value<EstadoDeInspeccion> estado;
+  final Value<int> criticidadTotal;
+  final Value<int> criticidadReparacion;
   final Value<DateTime> momentoInicio;
   final Value<DateTime> momentoBorradorGuardado;
   final Value<DateTime> momentoEnvio;
@@ -2853,6 +2889,8 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
   const InspeccionesCompanion({
     this.id = const Value.absent(),
     this.estado = const Value.absent(),
+    this.criticidadTotal = const Value.absent(),
+    this.criticidadReparacion = const Value.absent(),
     this.momentoInicio = const Value.absent(),
     this.momentoBorradorGuardado = const Value.absent(),
     this.momentoEnvio = const Value.absent(),
@@ -2862,17 +2900,23 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
   InspeccionesCompanion.insert({
     this.id = const Value.absent(),
     @required EstadoDeInspeccion estado,
+    @required int criticidadTotal,
+    @required int criticidadReparacion,
     this.momentoInicio = const Value.absent(),
     this.momentoBorradorGuardado = const Value.absent(),
     this.momentoEnvio = const Value.absent(),
     @required int cuestionarioId,
     @required int activoId,
   })  : estado = Value(estado),
+        criticidadTotal = Value(criticidadTotal),
+        criticidadReparacion = Value(criticidadReparacion),
         cuestionarioId = Value(cuestionarioId),
         activoId = Value(activoId);
   static Insertable<Inspeccion> custom({
     Expression<int> id,
     Expression<int> estado,
+    Expression<int> criticidadTotal,
+    Expression<int> criticidadReparacion,
     Expression<DateTime> momentoInicio,
     Expression<DateTime> momentoBorradorGuardado,
     Expression<DateTime> momentoEnvio,
@@ -2882,6 +2926,9 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (estado != null) 'estado': estado,
+      if (criticidadTotal != null) 'criticidad_total': criticidadTotal,
+      if (criticidadReparacion != null)
+        'criticidad_reparacion': criticidadReparacion,
       if (momentoInicio != null) 'momento_inicio': momentoInicio,
       if (momentoBorradorGuardado != null)
         'momento_borrador_guardado': momentoBorradorGuardado,
@@ -2894,6 +2941,8 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
   InspeccionesCompanion copyWith(
       {Value<int> id,
       Value<EstadoDeInspeccion> estado,
+      Value<int> criticidadTotal,
+      Value<int> criticidadReparacion,
       Value<DateTime> momentoInicio,
       Value<DateTime> momentoBorradorGuardado,
       Value<DateTime> momentoEnvio,
@@ -2902,6 +2951,8 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     return InspeccionesCompanion(
       id: id ?? this.id,
       estado: estado ?? this.estado,
+      criticidadTotal: criticidadTotal ?? this.criticidadTotal,
+      criticidadReparacion: criticidadReparacion ?? this.criticidadReparacion,
       momentoInicio: momentoInicio ?? this.momentoInicio,
       momentoBorradorGuardado:
           momentoBorradorGuardado ?? this.momentoBorradorGuardado,
@@ -2920,6 +2971,12 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     if (estado.present) {
       final converter = $InspeccionesTable.$converter0;
       map['estado'] = Variable<int>(converter.mapToSql(estado.value));
+    }
+    if (criticidadTotal.present) {
+      map['criticidad_total'] = Variable<int>(criticidadTotal.value);
+    }
+    if (criticidadReparacion.present) {
+      map['criticidad_reparacion'] = Variable<int>(criticidadReparacion.value);
     }
     if (momentoInicio.present) {
       map['momento_inicio'] = Variable<DateTime>(momentoInicio.value);
@@ -2945,6 +3002,8 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     return (StringBuffer('InspeccionesCompanion(')
           ..write('id: $id, ')
           ..write('estado: $estado, ')
+          ..write('criticidadTotal: $criticidadTotal, ')
+          ..write('criticidadReparacion: $criticidadReparacion, ')
           ..write('momentoInicio: $momentoInicio, ')
           ..write('momentoBorradorGuardado: $momentoBorradorGuardado, ')
           ..write('momentoEnvio: $momentoEnvio, ')
@@ -2979,6 +3038,34 @@ class $InspeccionesTable extends Inspecciones
   GeneratedIntColumn _constructEstado() {
     return GeneratedIntColumn(
       'estado',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _criticidadTotalMeta =
+      const VerificationMeta('criticidadTotal');
+  GeneratedIntColumn _criticidadTotal;
+  @override
+  GeneratedIntColumn get criticidadTotal =>
+      _criticidadTotal ??= _constructCriticidadTotal();
+  GeneratedIntColumn _constructCriticidadTotal() {
+    return GeneratedIntColumn(
+      'criticidad_total',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _criticidadReparacionMeta =
+      const VerificationMeta('criticidadReparacion');
+  GeneratedIntColumn _criticidadReparacion;
+  @override
+  GeneratedIntColumn get criticidadReparacion =>
+      _criticidadReparacion ??= _constructCriticidadReparacion();
+  GeneratedIntColumn _constructCriticidadReparacion() {
+    return GeneratedIntColumn(
+      'criticidad_reparacion',
       $tableName,
       false,
     );
@@ -3050,6 +3137,8 @@ class $InspeccionesTable extends Inspecciones
   List<GeneratedColumn> get $columns => [
         id,
         estado,
+        criticidadTotal,
+        criticidadReparacion,
         momentoInicio,
         momentoBorradorGuardado,
         momentoEnvio,
@@ -3071,6 +3160,22 @@ class $InspeccionesTable extends Inspecciones
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     }
     context.handle(_estadoMeta, const VerificationResult.success());
+    if (data.containsKey('criticidad_total')) {
+      context.handle(
+          _criticidadTotalMeta,
+          criticidadTotal.isAcceptableOrUnknown(
+              data['criticidad_total'], _criticidadTotalMeta));
+    } else if (isInserting) {
+      context.missing(_criticidadTotalMeta);
+    }
+    if (data.containsKey('criticidad_reparacion')) {
+      context.handle(
+          _criticidadReparacionMeta,
+          criticidadReparacion.isAcceptableOrUnknown(
+              data['criticidad_reparacion'], _criticidadReparacionMeta));
+    } else if (isInserting) {
+      context.missing(_criticidadReparacionMeta);
+    }
     if (data.containsKey('momento_inicio')) {
       context.handle(
           _momentoInicioMeta,

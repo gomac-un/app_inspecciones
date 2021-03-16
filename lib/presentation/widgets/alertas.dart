@@ -4,32 +4,30 @@ import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
-final _alertStyle = AlertStyle(
-  overlayColor: Colors.blueAccent[100],
-  animationType: AnimationType.fromTop,
-  isCloseButton: false,
-  isOverlayTapDismiss: false,
-  descStyle: const TextStyle(
-    fontWeight: FontWeight.bold,
-    fontSize: 20,
-  ),
-  animationDuration: const Duration(milliseconds: 400),
-  alertBorder: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(20.0),
-    side: const BorderSide(
-      color: Colors.grey,
-    ),
-  ),
-  titleStyle: const TextStyle(
-    color: Colors.white,
-  ),
-);
-
 void mostrarMensaje(BuildContext context, String tipo, String mensaje,
     {bool ocultar = true}) {
   Alert(
     context: context,
-    style: _alertStyle,
+    style: AlertStyle(
+      overlayColor: Theme.of(context).primaryColorLight,
+      animationType: AnimationType.fromTop,
+      isCloseButton: false,
+      isOverlayTapDismiss: false,
+      descStyle: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 20,
+      ),
+      animationDuration: const Duration(milliseconds: 400),
+      alertBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20.0),
+        side: const BorderSide(
+          color: Colors.grey,
+        ),
+      ),
+      titleStyle: const TextStyle(
+        color: Colors.white,
+      ),
+    ),
     type: tipo == 'exito' ? AlertType.success : AlertType.error,
     title: tipo == 'exito' ? 'Éxito' : 'Error',
     desc: mensaje,
@@ -53,7 +51,26 @@ void mostrarMensaje(BuildContext context, String tipo, String mensaje,
 void mostrarErrores(BuildContext context, AbstractControl<dynamic> form) {
   Alert(
     context: context,
-    style: _alertStyle,
+    style: AlertStyle(
+      overlayColor: Theme.of(context).primaryColorLight,
+      animationType: AnimationType.fromTop,
+      isCloseButton: false,
+      isOverlayTapDismiss: false,
+      descStyle: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 20,
+      ),
+      animationDuration: const Duration(milliseconds: 400),
+      alertBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20.0),
+        side: const BorderSide(
+          color: Colors.grey,
+        ),
+      ),
+      titleStyle: const TextStyle(
+        color: Colors.white,
+      ),
+    ),
     type: AlertType.error,
     title: 'Error',
     desc: 'La inspección tiene errores',

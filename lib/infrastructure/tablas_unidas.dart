@@ -1,46 +1,14 @@
 part of 'moor_database.dart';
 
 //Esto es una mazamorra de clases que ayudan a manejar mejor las respuestas de las consultas
-// pero no es muy mantenible
+// pero no es muy mantenible. Estoy de acuerdo
 // TODO: mirar como hacer esto mantenible
-class BloqueConPreguntaRespondida {
-  Bloque bloque;
-  Pregunta pregunta;
-  RespuestasCompanion respuesta; //Insertable<Respuestas>
-
-  BloqueConPreguntaRespondida({
-    @required this.bloque,
-    @required this.pregunta,
-    @required this.respuesta,
-  });
-}
-
-class BloqueConPregunta extends IBloqueOrdenable {
-  final Bloque bloque;
-  final Pregunta pregunta;
-  final Respuesta respuesta;
-
-  BloqueConPregunta({
-    @required this.bloque,
-    @required this.pregunta,
-    this.respuesta,
-  }) : super(bloque);
-}
-
-class PreguntaConOpcionDeRespuesta {
-  final Pregunta pregunta;
-  final OpcionDeRespuesta opcionDeRespuesta;
-
-  PreguntaConOpcionDeRespuesta(this.pregunta, this.opcionDeRespuesta);
-}
-
 class PreguntaNumerica {
   final Pregunta pregunta;
   final List<CriticidadesNumerica> criticidades;
 
   PreguntaNumerica(this.pregunta, this.criticidades);
 }
-
 
 class CuestionarioConContratista {
   final List<CuestionarioDeModelo> cuestionarioDeModelo;
@@ -51,9 +19,11 @@ class CuestionarioConContratista {
 
 class PreguntaConOpcionesDeRespuesta {
   final Pregunta pregunta;
+  final List<OpcionDeRespuestaConCondicional> opcionesDeRespuestaConCondicional;
   final List<OpcionDeRespuesta> opcionesDeRespuesta;
 
-  PreguntaConOpcionesDeRespuesta(this.pregunta, this.opcionesDeRespuesta);
+  PreguntaConOpcionesDeRespuesta(this.pregunta, this.opcionesDeRespuesta,
+      {this.opcionesDeRespuestaConCondicional});
 }
 
 //TODO: Refactorizar a RespuestaCompanionConOpcionesDeRespuesta
@@ -121,7 +91,7 @@ abstract class IBloqueOrdenable {
 }
 
 class BloqueConTitulo extends IBloqueOrdenable {
-   Titulo titulo;
+  Titulo titulo;
 
   BloqueConTitulo(Bloque bloque, this.titulo) : super(bloque);
 }
@@ -131,16 +101,15 @@ class BloqueConCondicional extends IBloqueOrdenable {
   final RespuestaConOpcionesDeRespuesta respuesta;
   final List<PreguntasCondicionalData> condiciones;
 
-  BloqueConCondicional(
-      Bloque bloque, this.pregunta, this.condiciones, {this.respuesta})
+  BloqueConCondicional(Bloque bloque, this.pregunta, this.condiciones,
+      {this.respuesta})
       : super(bloque);
 }
 
 class BloqueConPreguntaNumerica extends IBloqueOrdenable {
   final PreguntaNumerica pregunta;
   final RespuestasCompanion respuesta;
-  BloqueConPreguntaNumerica(
-      Bloque bloque, this.pregunta, {this.respuesta})
+  BloqueConPreguntaNumerica(Bloque bloque, this.pregunta, {this.respuesta})
       : super(bloque);
 }
 
@@ -157,22 +126,14 @@ class BloqueConCuadricula extends IBloqueOrdenable {
   final List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas;
   final List<PreguntaConOpcionesDeRespuesta> preguntas;
 
-  BloqueConCuadricula(Bloque bloque, this.cuadricula,  {this.preguntasRespondidas, this.preguntas,})
-      : super(bloque);
+  BloqueConCuadricula(
+    Bloque bloque,
+    this.cuadricula, {
+    this.preguntasRespondidas,
+    this.preguntas,
+  }) : super(bloque);
 }
 
-/*
-@JsonSerializable()
-class InspeccionConRespuestas {
-  final Inspeccion inspeccion;
-  final List<RespuestaConOpcionesDeRespuesta2> respuestas;
-
-  InspeccionConRespuestas(this.inspeccion, this.respuestas);
-
-  factory InspeccionConRespuestas.fromJson(Map<String, dynamic> json) =>
-      _$InspeccionConRespuestasFromJson(json);
-  Map<String, dynamic> toJson() => _$InspeccionConRespuestasToJson(this);
-}*/
 class RespuestaconOpcionDeRespuestaId {
   final Respuesta respuesta;
   final int opcionDeRespuestaId;

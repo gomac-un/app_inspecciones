@@ -10,7 +10,7 @@ final bloquesDeEjemplo = FormArray([
       titulo: 'el titulazo',
     ),
   ),
-  RespuestaSeleccionSimpleFormGroup(
+  /* RespuestaSeleccionSimpleFormGroup(
     PreguntaConOpcionesDeRespuesta(
       Pregunta(
         bloqueId: 2,
@@ -44,7 +44,7 @@ final bloquesDeEjemplo = FormArray([
         OpcionDeRespuesta(id: 2, preguntaId: 1, texto: "res2", criticidad: 2),
       ],
     ),
-  ),
+  ), */
   RespuestaCuadriculaFormArray(
       CuadriculaDePreguntasConOpcionesDeRespuesta(
         CuadriculaDePreguntas(

@@ -84,41 +84,46 @@ class LoginControl extends FormGroup {
     LoadingDialog.hide(context);
 
     autenticate.fold(
-      (failure) => failure.when(noHayInternet: () {
-        problemaDialog(
-          context,
-          authBloc,
-          login,
-          razon: 'No tiene conexión a internet',
-        );
-      }, noHayConexionAlServidor: () {
-        problemaDialog(
-          context,
-          authBloc,
-          login,
-          razon:
-              'No se puede conectar al servidor, por favor informe al encargado',
-        );
-      },
-      usuarioOPasswordInvalidos: () {
-        showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-                  content: const Text("Usuario o contraseña invalidos"),
-                  actions: [
-                    FlatButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text("ok"))
-                  ],
-                ));
-      }, serverError: () {
-        problemaDialog(
-          context,
-          authBloc,
-          login,
-          razon: 'Ocurrió un error desconocido',
-        );
-      }, ),
+      (failure) => failure.when(
+        usuarioOPasswordInvalidos: () {
+          showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                    content: const Text("Usuario o contraseña invalidos"),
+                    actions: [
+                      FlatButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text("ok"))
+                    ],
+                  ));
+        },
+        noHayInternet: () {
+          problemaDialog(
+            context,
+            authBloc,
+            login,
+            razon: 'No tiene conexión a internet',
+            userRepository: userRepository,
+          );
+        },
+        noHayConexionAlServidor: () {
+          problemaDialog(
+            context,
+            authBloc,
+            login,
+            razon:
+                'No se puede conectar al servidor, por favor informe al encargado',
+          );
+        },
+        serverError: () {
+          problemaDialog(
+            context,
+            authBloc,
+            login,
+            razon: 'Ocurrió un error desconocido',
+          );
+        },
+      ),
       (usuario) {
         authBloc.add(AuthEvent.loggingIn(usuario: usuario));
       },
@@ -127,7 +132,7 @@ class LoginControl extends FormGroup {
 
   Future problemaDialog(
       BuildContext context, AuthBloc authBloc, UserLogin login,
-      {@required String razon}) {
+      {@required String razon, UserRepository userRepository}) {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -139,7 +144,9 @@ class LoginControl extends FormGroup {
             child: const Text("Cancelar"),
           ),
           FlatButton(
-              onPressed: () => authBloc.add(
+              onPressed: () {
+                if (userRepository.localPreferences.getAppId() != null) {
+                  authBloc.add(
                     AuthEvent.loggingIn(
                       usuario: Usuario(
                         documento: login.username,
@@ -147,7 +154,23 @@ class LoginControl extends FormGroup {
                         esAdmin: login.esdAdmin,
                       ),
                     ),
-                  ),
+                  );
+                } else {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      content: const Text(
+                          'Debe tener conexión a internet para ingresar por primera vez'),
+                      actions: [
+                        FlatButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text("Aceptar"),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
               child: const Text("continuar"))
         ],
       ),

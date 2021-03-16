@@ -40,6 +40,8 @@ class InspeccionesRepository {
       return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
     } on ServerException catch (e) {
       return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    } on InternetException {
+      return const Left(ApiFailure.noHayInternet());
     } catch (e) {
       return Left(ApiFailure.serverError(e.toString()));
     }
@@ -51,7 +53,6 @@ class InspeccionesRepository {
 
   Future<Either<ApiFailure, Unit>> subirCuestionario(
       Cuestionario cuestionario) async {
-    //TODO: subir las fotos
     final cues = await _db.getCuestionarioCompleto(cuestionario);
     log(jsonEncode(cues));
     try {
@@ -71,6 +72,8 @@ class InspeccionesRepository {
       return const Left(ApiFailure.noHayConexionAlServidor());
     } on CredencialesException catch (e) {
       return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    } on InternetException {
+      return const Left(ApiFailure.noHayInternet());
     } on ServerException catch (e) {
       return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
     }

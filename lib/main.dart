@@ -32,10 +32,10 @@ Future main() async {
             }
           },
           child: Theme(
-            data: customTheme, //TODO: seleccion de tema
+            data: customTheme, 
             child: BlocProvider(
               create: (context) =>
-              getIt<AuthBloc>()..add(const AuthEvent.startingApp()),
+                  getIt<AuthBloc>()..add(const AuthEvent.startingApp()),
               child: AuthListener(
                 navigatorKey: navigatorKey,
                 child: extendedNav,
@@ -50,11 +50,13 @@ Future main() async {
 
 final customTheme = ThemeData(
   //brightness: Brightness.dark,
+  primaryColorLight: const Color.fromRGBO(229, 236, 233, 1),
   brightness: Brightness.light,
-  primaryColor: Colors.blue,
-  accentColor: Colors.deepPurple,
-  highlightColor: Colors.purple,
-  scaffoldBackgroundColor: Colors.blue,
+  primaryColor: const Color.fromRGBO(28, 44, 59, 1),
+  /*const Color.fromRGBO(28, 44, 59, 1),const Color.fromRGBO(114, 163, 141, 1), Colors.blue */
+  accentColor: const Color.fromRGBO(237, 181, 34, 1),
+  highlightColor: const Color.fromRGBO(237, 181, 34, 0.5),
+  scaffoldBackgroundColor: const Color.fromRGBO(114, 163, 141, 1),
   visualDensity: VisualDensity.compact,
   inputDecorationTheme: InputDecorationTheme(
     border: const UnderlineInputBorder(),
