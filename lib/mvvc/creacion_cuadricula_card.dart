@@ -39,26 +39,8 @@ class CreadorCuadriculaCard extends StatelessWidget {
             maxLines: 50,
           ),
           const SizedBox(height: 10),
-          ValueListenableBuilder<List<Sistema>>(
-            valueListenable: viewModel.sistemas,
-            builder: (context, value, child) {
-              return ReactiveDropdownField<Sistema>(
-                formControl: formGroup.control('sistema') as FormControl,
-                items: value
-                    .map((e) => DropdownMenuItem<Sistema>(
-                          value: e,
-                          child: Text(e.nombre),
-                        ))
-                    .toList(),
-                decoration: const InputDecoration(
-                  labelText: 'Sistema',
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
           ValueListenableBuilder<List<SubSistema>>(
-              valueListenable: formGroup.subSistemas,
+              valueListenable: viewModel.subSistemas,
               builder: (context, value, child) {
                 return ReactiveDropdownField<SubSistema>(
                   formControl: formGroup.control('subSistema') as FormControl,
@@ -76,7 +58,13 @@ class CreadorCuadriculaCard extends StatelessWidget {
           const SizedBox(height: 10),
           ReactiveDropdownField<String>(
             formControl: formGroup.control('posicion') as FormControl,
-            items: ["No aplica", "Adelante", "Atras"]
+            items:  [
+              "No aplica",
+              "Adelante",
+              "Atrás",
+              'Izquierda',
+              'Derecha'
+            ] 
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),
@@ -125,6 +113,7 @@ class WidgetPreguntas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context).size;
     return ReactiveValueListenableBuilder(
         formControl: formGroup.control('preguntas'),
         builder: (context, control, child) {
@@ -166,7 +155,7 @@ class WidgetPreguntas extends StatelessWidget {
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.fullscreen),
-                                  tooltip: 'mas detalles',
+                                  tooltip: 'Más detalles',
                                   onPressed: () async {
                                     final maincontext = context;
                                     showDialog(
@@ -178,8 +167,8 @@ class WidgetPreguntas extends StatelessWidget {
                                                   CreacionFormViewModel>(
                                               maincontext),
                                           // ignore: sized_box_for_whitespace
-                                          child: Container(
-                                            width: 300.0,
+                                          child: SizedBox(
+                                            width: media.width * 0.7,
                                             child: CreadorSeleccionSimpleCard(
                                               formGroup: element,
                                             ),
@@ -198,7 +187,7 @@ class WidgetPreguntas extends StatelessWidget {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete),
-                                  tooltip: 'borrar pregunta',
+                                  tooltip: 'Borrar pregunta',
                                   onPressed: () =>
                                       formGroup.borrarPregunta(element),
                                 ),
@@ -233,3 +222,4 @@ class WidgetPreguntas extends StatelessWidget {
         });
   }
 }
+
