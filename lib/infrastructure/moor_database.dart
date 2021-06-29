@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:dartz/dartz.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
@@ -11,6 +10,8 @@ import 'package:json_annotation/json_annotation.dart' show JsonSerializable;
 import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
 import 'package:path/path.dart' as path;
+
+import 'daos/planeacion_dao.dart';
 
 export 'package:moor_flutter/moor_flutter.dart' show Value;
 
@@ -33,14 +34,16 @@ part 'tablas_unidas.dart';
     OpcionesDeRespuesta,
     Inspecciones,
     Respuestas,
-    RespuestasXOpcionesDeRespuesta,
     Contratistas,
     Sistemas,
     SubSistemas,
     CriticidadesNumericas,
-    PreguntasCondicional,
+    GruposInspeccioness,
+    ProgramacionSistemas,
+    ProgramacionSistemasXActivo,
+    TiposDeInspecciones,
   ],
-  daos: [LlenadoDao, CreacionDao, BorradoresDao],
+  daos: [LlenadoDao, CreacionDao, BorradoresDao, PlaneacionDao],
 )
 class Database extends _$Database {
   final int _appId;
@@ -138,9 +141,6 @@ class Database extends _$Database {
         final criticidadPregunta = await (select(criticidadesNumericas)
               ..where((cri) => cri.preguntaId.equals(p.id)))
             .get();
-        final condicionalesPregunta = await (select(preguntasCondicional)
-              ..where((con) => con.preguntaId.equals(p.id)))
-            .get();
 
         //enviar solo el basename al server
         final pregunta =
@@ -151,8 +151,6 @@ class Database extends _$Database {
             opcionesDeLaPregunta.map((op) => op.toJson()).toList();
         preguntaJson["criticidades"] =
             criticidadPregunta.map((cri) => cri.toJson()).toList();
-        preguntaJson["condicionales"] =
-            condicionalesPregunta.map((con) => con.toJson()).toList();
         return preguntaJson;
       }));
 
@@ -170,12 +168,16 @@ class Database extends _$Database {
       bloqueJson['preguntas'] = preguntasConOpciones;
       return bloqueJson;
     }));
-    final cuestionarioJson = cuestionario.toJson(serializer: const CustomSerializer());
+    final cuestionarioJson =
+        cuestionario.toJson(serializer: const CustomSerializer());
     cuestionarioJson['modelos'] =
         modelosCuest.map((cm) => cm.toJson()).toList();
     cuestionarioJson['bloques'] = bloquesExtJson;
     return cuestionarioJson;
   }
+
+  Future<Inspeccion> getInspeccionParaTerminar(int id) =>
+      (select(inspecciones)..where((ins) => ins.id.equals(id))).getSingle();
 
   Future marcarCuestionarioSubido(Cuestionario cuestionario) =>
       (update(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
@@ -187,13 +189,13 @@ class Database extends _$Database {
     final jsonIns = inspeccion.toJson(serializer: const CustomSerializer());
     //get respuestas
     final queryRes = select(respuestas).join([
-      leftOuterJoin(respuestasXOpcionesDeRespuesta,
-          respuestasXOpcionesDeRespuesta.respuestaId.equalsExp(respuestas.id)),
+      leftOuterJoin(opcionesDeRespuesta,
+          respuestas.opcionDeRespuestaId.equalsExp(opcionesDeRespuesta.id)),
     ])
       ..where(respuestas.inspeccionId.equals(inspeccion.id));
     final res = await queryRes
-        .map((row) => RespuestaconOpcionDeRespuestaId(row.readTable(respuestas),
-            row.readTable(respuestasXOpcionesDeRespuesta)?.opcionDeRespuestaId))
+        .map((row) => RespuestaconOpcionDeRespuestaId(
+            row.readTable(respuestas), row.readTable(opcionesDeRespuesta)?.id))
         .get();
 
     final resAgrupadas = groupBy<RespuestaconOpcionDeRespuestaId, Respuesta>(
@@ -206,10 +208,6 @@ class Database extends _$Database {
 
       final respuestaJson =
           respuesta.toJson(serializer: const CustomSerializer());
-      respuestaJson["respuestas"] = entry.value
-          .map((op) => op.opcionDeRespuestaId)
-          .where((x) => x != null)
-          .toList();
 
       return respuestaJson;
     }).toList();
@@ -219,7 +217,44 @@ class Database extends _$Database {
     return jsonIns;
   }
 
+  // Método usado para cuando se descarga una inspección desde el servidor se guarde en la bd y se pueda seguir el curso normal
+  Future guardarInspeccionBD(Map<String, dynamic> json) async {
+    final respuestasParseadas = (json["respuestas"] as List).map((p) {
+      // se hace este proceso para agregarle el path completo a las fotos
+      final respuesta = Respuesta.fromJson(
+        p as Map<String, dynamic>,
+        serializer: const CustomSerializer(),
+      );
+      return respuesta.copyWith(
+          fotosBase: respuesta.fotosBase.map((e) =>
+              FotosManager.convertirAUbicacionAbsoluta(
+                  tipoDeDocumento: 'inspecciones',
+                  idDocumento: (json['id'] as int).toString(),
+                  basename: e)),
+          fotosReparacion: respuesta?.fotosReparacion?.map((e) =>
+              FotosManager.convertirAUbicacionAbsoluta(
+                  tipoDeDocumento: 'inspecciones',
+                  idDocumento: (json['id'] as int).toString(),
+                  basename: e)));
+    }).toList();
+    json.remove('respuestas');
+    final inspeccionParseadas = Inspeccion.fromJson(
+      json,
+      serializer: const CustomSerializer(),
+    ).copyWith(esNueva: false);
+
+    await customStatement('PRAGMA foreign_keys = OFF');
+    await transaction(() async {
+      await batch((b) {
+        b.insert(inspecciones, inspeccionParseadas);
+        b.insertAll(respuestas, respuestasParseadas);
+      });
+    });
+    await customStatement('PRAGMA foreign_keys = ON');
+  }
+
   Future instalarBD(Map<String, dynamic> json) async {
+    print(json);
     /*TODO: hacer este proceso sin repetir tanto codigo, por ejemplo usando una estructura asi:
     final tablasPorActualizar = [
       InstaladorHelper("Activo", Activo, activos),
@@ -238,12 +273,17 @@ class Database extends _$Database {
         .map((e) => Sistema.fromJson(e as Map<String, dynamic>))
         .toList();
 
+    final tipoInspeccionParseados = (json["TipoInspeccion"] as List)
+        .map((e) => TiposDeInspeccione.fromJson(e as Map<String, dynamic>))
+        .toList();
+
     final subSistemasParseados = (json["Subsistema"] as List)
         .map((e) => SubSistema.fromJson(e as Map<String, dynamic>))
         .toList();
 
     final cuestionariosParseados = (json["Cuestionario"] as List)
-        .map((e) => Cuestionario.fromJson(e as Map<String, dynamic>, serializer: const CustomSerializer()))
+        .map((e) => Cuestionario.fromJson(e as Map<String, dynamic>,
+            serializer: const CustomSerializer()))
         .map((c) => c.copyWith(esLocal: false))
         .toList();
 
@@ -295,10 +335,6 @@ class Database extends _$Database {
         .map((e) => CriticidadesNumerica.fromJson(e as Map<String, dynamic>))
         .toList();
 
-    final condicionalesParseados = (json['PreguntaCondicional'] as List)
-        .map((e) => PreguntasCondicionalData.fromJson(e as Map<String, dynamic>))
-        .toList();
-
     await customStatement('PRAGMA foreign_keys = OFF');
     await transaction(() async {
       final deletes = [
@@ -314,7 +350,7 @@ class Database extends _$Database {
         delete(preguntas).go(),
         delete(opcionesDeRespuesta).go(),
         delete(criticidadesNumericas).go(),
-        delete(preguntasCondicional).go(),
+        delete(tiposDeInspecciones).go(),
       ];
       await Future.wait(deletes);
       await batch((b) {
@@ -330,7 +366,7 @@ class Database extends _$Database {
         b.insertAll(preguntas, preguntasParseados);
         b.insertAll(opcionesDeRespuesta, opcionesDeRespuestaParseados);
         b.insertAll(criticidadesNumericas, criticidadesNumericasParseadas);
-        b.insertAll(preguntasCondicional, condicionalesParseados);
+        b.insertAll(tiposDeInspecciones, tipoInspeccionParseados);
       });
     });
     await customStatement('PRAGMA foreign_keys = ON');
@@ -355,6 +391,18 @@ class Database extends _$Database {
     return query.getSingle();
   }
 
+  Future<int> getTotalPreguntas(int id) async {
+    final bloq = await (select(bloques)
+          ..where((b) => b.cuestionarioId.equals(id)))
+        .get();
+    final bloquesId = bloq.map((e) => e.id).toList();
+    final count = countAll(filter: preguntas.bloqueId.isIn(bloquesId));
+    final res = (selectOnly(preguntas)..addColumns([count]))
+        .map((row) => row.read(count))
+        .getSingle();
+    return res;
+  }
+
   // Esta funcion deberá exportar las inspecciones llenadas de manera
   // local al servidor
   Future exportarInspeccion() async {
@@ -374,7 +422,8 @@ class CustomSerializer extends ValueSerializer {
       EnumIndexConverter<TipoDePregunta>(TipoDePregunta.values);
   static const estadoDeInspeccionConverter =
       EnumIndexConverter<EstadoDeInspeccion>(EstadoDeInspeccion.values);
-  static const estadoDeCuestionarioConverter = EnumIndexConverter<EstadoDeCuestionario>(EstadoDeCuestionario.values);
+  static const estadoDeCuestionarioConverter =
+      EnumIndexConverter<EstadoDeCuestionario>(EstadoDeCuestionario.values);
 
   @override
   T fromJson<T>(dynamic json) {

@@ -5,11 +5,15 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:bloc/bloc.dart';
+import 'package:dartz/dartz.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_archive/flutter_archive.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:inspecciones/core/error/exceptions.dart';
+import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
@@ -41,12 +45,37 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     final ultimaAct = _localPreferences.getUltimaActualizacion();
     emit(state.copyWith(
       cargado: true,
-      info: 'Ultima sincronización: $ultimaAct',
+      paso: 0,
+      info: {
+        0: 'Ultima sincronización: ${ultimaAct ?? 'ninguna'}',
+        1: '',
+        2: '',
+        3: '',
+      },
     ));
   }
 
+  Future<Either<ApiFailure, Unit>> descargarServer() async {
+    try {
+      await descargarServerConErrores();
+      return right(unit);
+    } on TimeoutException {
+      return const Left(ApiFailure.noHayConexionAlServidor());
+    } on CredencialesException {
+      return const Left(ApiFailure.credencialesException());
+    } on ServerException catch (e) {
+      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    } on InternetException {
+      return const Left(ApiFailure.noHayInternet());
+    } on PageNotFoundException {
+      return const Left(ApiFailure.pageNotFound());
+    } catch (e) {
+      return Left(ApiFailure.serverError(e.toString()));
+    }
+  }
+
   //TODO: manejo de errores
-  Future descargarServer() async {
+  Future descargarServerConErrores() async {
     //inicializacion del downloader sacada del ejemplo flutter_downloader donde
     // se muestra como hacer descargas de una lista de links y agregar opcion de pausa
     // https://github.com/fluttercommunity/flutter_downloader/blob/master/example/lib/main.dart
@@ -56,26 +85,37 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     _bindBackgroundIsolate();
 
     FlutterDownloader.registerCallback(downloadCallback);
-
-    emit(state.copyWith(info: '${state.info}\nDescargando cuestionarios'));
+    emit(
+      state.copyWith(
+        paso: 1,
+        info: {0: state.info[0], 1: 'Descargando cuestionarios', 2: '', 3: ''},
+      ),
+    );
 
     final dir = await _localPath;
-    await _inspeccionesRepository.descargarCuestionarios(dir, nombreJson);
+    Future<bool> _hayInternet() async => DataConnectionChecker().hasConnection;
 
+    final hayInternet = await _hayInternet();
+
+    if (!hayInternet) {
+      throw InternetException();
+    }
+    await _inspeccionesRepository.descargarCuestionarios(dir, nombreJson);
     // Escucha de las actualizaciones que ofrece el downloader
     StreamSubscription<dynamic> streamSubs1;
     streamSubs1 = _portStream.listen((data) {
       final task = data as Task;
+      print(task.status);
       emit(state.copyWith(task: task));
-      /*
-      if ([
-        DownloadTaskStatus.undefined,
-        DownloadTaskStatus.enqueued,
-        DownloadTaskStatus.running,
-      ].contains(task.status)) {}*/
-
       if (DownloadTaskStatus.complete == task.status) {
-        emit(state.copyWith(info: '${state.info}\nDescarga exitosa'));
+        emit(state.copyWith(
+          info: {
+            0: state.info[0],
+            1: '${state.info[1]}\nDescarga exitosa',
+            2: '',
+            3: ''
+          },
+        ));
         instalarBD();
         streamSubs1.cancel();
       }
@@ -85,13 +125,24 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
         DownloadTaskStatus.canceled,
         DownloadTaskStatus.paused,
       ].contains(task.status)) {
-        emit(state.copyWith(info: '${state.info}\nError de descarga'));
+        emit(state.copyWith(info: {
+          0: state.info[0],
+          1: '${state.info[1]}\nError de descarga',
+          2: '',
+          3: ''
+        }));
       }
     });
   }
 
   Future instalarBD() async {
-    emit(state.copyWith(info: '${state.info}\nInstalando base de datos'));
+    await Future.delayed(const Duration(seconds: 2));
+    emit(state.copyWith(paso: 2, info: {
+      0: state.info[0],
+      1: state.info[1],
+      2: 'Instalando base de datos',
+      3: ''
+    }));
     final dir = await _localPath;
     final archivoDescargado = File(path.join(dir, nombreJson));
     final jsonString = await archivoDescargado.readAsString();
@@ -100,11 +151,21 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     final parsed =
         await compute(jsonDecode, jsonString) as Map<String, dynamic>;
 
-    emit(state.copyWith(info: '${state.info}\nParsed Json'));
+    emit(state.copyWith(info: {
+      0: state.info[0],
+      1: state.info[1],
+      2: '${state.info[2]}\nParsed Json',
+      3: ''
+    }));
 
     await _db.instalarBD(parsed);
 
-    emit(state.copyWith(info: '${state.info}\nInstalacion exitosa'));
+    emit(state.copyWith(info: {
+      0: state.info[0],
+      1: state.info[1],
+      2: '${state.info[2]}\nInstalación exitosa',
+      3: ''
+    }));
     descargarFotos();
   }
 
@@ -112,8 +173,13 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     _bindBackgroundIsolate();
 
     FlutterDownloader.registerCallback(downloadCallback);
-
-    emit(state.copyWith(info: '${state.info}\nDescargando fotos'));
+    await Future.delayed(const Duration(seconds: 2));
+    emit(state.copyWith(paso: 3, info: {
+      0: state.info[0],
+      1: state.info[1],
+      2: state.info[2],
+      3: 'Descargando fotos'
+    }));
     final dir = await _localPath;
     await _inspeccionesRepository.descargarFotos(dir, nombreZip);
     // Escucha de las actualizaciones que ofrece el downloader
@@ -123,7 +189,12 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
       emit(state.copyWith(task: task));
 
       if (DownloadTaskStatus.complete == task.status) {
-        emit(state.copyWith(info: '${state.info}\nDescarga exitosa'));
+        emit(state.copyWith(info: {
+          0: state.info[0],
+          1: state.info[1],
+          2: state.info[2],
+          3: '${state.info[3]}\nDescarga exitosa'
+        }));
         descomprimirZip();
         streamSubs2.cancel();
       }
@@ -133,8 +204,12 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
         DownloadTaskStatus.canceled,
         DownloadTaskStatus.paused,
       ].contains(task.status)) {
-        emit(state.copyWith(
-            info: '${state.info}\nError de descarga de las fotos'));
+        emit(state.copyWith(info: {
+          0: state.info[0],
+          1: state.info[1],
+          2: state.info[2],
+          3: '${state.info[3]}\nError de descarga de las fotos'
+        }));
       }
     });
   }
@@ -146,10 +221,28 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     try {
       await ZipFile.extractToDirectory(
           zipFile: zipFile, destinationDir: destinationDir);
-      emit(state.copyWith(info: '${state.info}\nFotos descomprimidas'));
-      emit(state.copyWith(info: '${state.info}\nSincronización finalizada'));
+      emit(state.copyWith(info: {
+        0: state.info[0],
+        1: state.info[1],
+        2: state.info[2],
+        3: '${state.info[3]}\nFotos descomprimidas'
+      }));
+      await Future.delayed(const Duration(seconds: 2));
+      emit(state.copyWith(paso: 4, info: {
+        0: state.info[0],
+        1: state.info[1],
+        2: state.info[2],
+        3: state.info[3],
+        4: 'Sincronización finalizada'
+      }));
+      await _localPreferences.saveUltimaActualizacion();
     } catch (e) {
-      emit(state.copyWith(info: '${state.info}\nError: $e'));
+      emit(state.copyWith(info: {
+        0: 'Última sincronización ${_localPreferences.getUltimaActualizacion().toString()}',
+        1: state.info[1],
+        2: state.info[2],
+        3: '${state.info}\nError: $e'
+      }));
     }
   }
 

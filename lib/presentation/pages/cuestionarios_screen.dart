@@ -37,128 +37,138 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cuestionarios'),
-      ),
-      drawer: UserDrawer(),
-      body: StreamBuilder<List<Cuestionario>>(
-        stream: RepositoryProvider.of<Database>(context)
-            .borradoresDao
-            .getCuestionarios(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            //throw snapshot.error;
-            return Text("error: ${snapshot.error}");
-          }
-          if (!snapshot.hasData) {
-            return const Align(
-              child: CircularProgressIndicator(),
-            );
-          }
-          final cuestionarios = snapshot.data;
+        appBar: AppBar(
+          title: const Text('Cuestionarios'),
+        ),
+        drawer: UserDrawer(),
+        body: StreamBuilder<List<Cuestionario>>(
+          stream: RepositoryProvider.of<Database>(context)
+              .borradoresDao
+              .getCuestionarios(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              //throw snapshot.error;
+              return Text("error: ${snapshot.error}");
+            }
+            if (!snapshot.hasData) {
+              return const Align(
+                child: CircularProgressIndicator(),
+              );
+            }
+            final cuestionarios = snapshot.data;
 
-          if (cuestionarios.isEmpty) {
-            return Center(
-                child: Text(
-              "No tiene cuestionarios por subir",
-              style: Theme.of(context).textTheme.headline5,
-            ));
-          }
+            if (cuestionarios.isEmpty) {
+              return Center(
+                  child: Text(
+                "No tiene cuestionarios por subir",
+                style: Theme.of(context).textTheme.headline5,
+              ));
+            }
 
-          return ListView.separated(
-            separatorBuilder: (BuildContext context, int index) =>
-                const Divider(),
-            itemCount: cuestionarios.length,
-            itemBuilder: (context, index) {
-              final cuestionario = cuestionarios[index];
-              return ListTile(
-                  tileColor: Theme.of(context).cardColor,
-                  title: Text(cuestionario.tipoDeInspeccion),
-                  subtitle: Text(cuestionario.esLocal
-                      ? 'Sin subir \nEstado: ${EnumToString.convertToString(cuestionario.estado)}'
-                      : 'Subido \nEstado: ${EnumToString.convertToString(cuestionario.estado)}'),
-                  leading: cuestionario.esLocal
-                      ? IconButton(
-                          icon: const Icon(Icons.cloud_upload),
-                          onPressed: () async {
-                            final estado = cuestionario.estado;
-                            if (estado == EstadoDeCuestionario.finalizada) {
-                              final res = await RepositoryProvider.of<
-                                      InspeccionesRepository>(context)
-                                  .subirCuestionario(cuestionario)
-                                  .then((res) => res.fold(
-                                      (fail) => fail.when(
-                                          noHayConexionAlServidor: () =>
-                                              "No hay conexion al servidor",
-                                          noHayInternet: () =>
-                                              "No hay internet",
-                                          serverError: (msg) =>
-                                              "Error inesperado: $msg"),
-                                      (u) =>
-                                          "El cuestionario ha sido enviado"));
-                              res == 'El cuestionario ha sido enviado'
-                                  ? mostrarMensaje(context, 'exito', res,
-                                      ocultar: false)
-                                  : Scaffold.of(context).showSnackBar(SnackBar(
-                                      content: Text(res),
-                                    ));
-                            } else {
-                              showDialog(
-                                context: context,
-                                builder: (_) => AlertDialog(
-                                  title: const Text('Advertencia'),
-                                  content: const Text(
-                                      "Aún no finalizado este cuestionario, no puede ser enviado"),
-                                  actions: [
-                                    FlatButton(
-                                      textColor: Colors.blue,
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text("Aceptar"),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
-                          })
-                      : const SizedBox.shrink(),
-                  trailing: cuestionario.esLocal
-                      ? IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () =>
-                              eliminarCuestionario(cuestionario, context),
-                        )
-                      : const Icon(Icons
-                          .cloud), //Los cuestionarios subidos ya no se pueden borrar
-                  onTap: () async {
-                    LoadingDialog.show(context);
-                    final cuestionarioDeModelo =
-                        await RepositoryProvider.of<Database>(context)
-                            .borradoresDao
-                            .cargarCuestionarioDeModelo(cuestionario);
-                    final bloquesBD =
-                        await RepositoryProvider.of<Database>(context)
-                            .creacionDao
-                            .cargarCuestionario(cuestionario.id);
-                    LoadingDialog.hide(context);
+            return ListView.separated(
+              separatorBuilder: (BuildContext context, int index) =>
+                  const Divider(),
+              itemCount: cuestionarios.length,
+              itemBuilder: (context, index) {
+                final cuestionario = cuestionarios[index];
+                return ListTile(
+                    tileColor: Theme.of(context).cardColor,
+                    title: Text(cuestionario.tipoDeInspeccion),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Código: ${cuestionario.id}'),
+                        Text(cuestionario.esLocal
+                            ? 'Sin subir \nEstado: ${EnumToString.convertToString(cuestionario.estado)}'
+                            : 'Subido \nEstado: ${EnumToString.convertToString(cuestionario.estado)}'),
+                      ],
+                    ),
+                    leading: cuestionario.esLocal
+                        ? IconButton(
+                            icon: const Icon(Icons.cloud_upload),
+                            onPressed: () async {
+                              final estado = cuestionario.estado;
+                              if (estado == EstadoDeCuestionario.finalizada) {
+                                final res = await RepositoryProvider.of<
+                                        InspeccionesRepository>(context)
+                                    .subirCuestionario(cuestionario)
+                                    .then((res) => res.fold(
+                                        (fail) => fail.when(
+                                            noHayConexionAlServidor: () =>
+                                                "No hay conexion al servidor",
+                                            noHayInternet: () =>
+                                                "No hay internet",
+                                            serverError: (msg) =>
+                                                "Error inesperado: $msg"),
+                                        (u) =>
+                                            "El cuestionario ha sido enviado"));
+                                res == 'El cuestionario ha sido enviado'
+                                    ? mostrarMensaje(context, 'exito', res,
+                                        ocultar: false)
+                                    : Scaffold.of(context)
+                                        .showSnackBar(SnackBar(
+                                        content: Text(res),
+                                      ));
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: const Text('Advertencia'),
+                                    content: const Text(
+                                        "Aún no ha finalizado este cuestionario, no puede ser enviado."),
+                                    actions: [
+                                      FlatButton(
+                                        textColor: Colors.blue,
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text("Aceptar"),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                            })
+                        : const SizedBox.shrink(),
+                    trailing: cuestionario.esLocal
+                        ? IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () =>
+                                eliminarCuestionario(cuestionario, context),
+                          )
+                        :  Icon(Icons
+                            .cloud, color: Theme.of(context).accentColor), //Los cuestionarios subidos ya no se pueden borrar
+                    onTap: () async {
+                      LoadingDialog.show(context);
+                      final cuestionarioDeModelo =
+                          await RepositoryProvider.of<Database>(context)
+                              .borradoresDao
+                              .cargarCuestionarioDeModelo(cuestionario);
+                      final bloquesBD =
+                          await RepositoryProvider.of<Database>(context)
+                              .creacionDao
+                              .cargarCuestionario(cuestionario.id);
+                      LoadingDialog.hide(context);
 
-                    ExtendedNavigator.of(context).push(
-                      Routes.creacionFormPage,
-                      arguments: CreacionFormPageArguments(
-                        cuestionario: cuestionario,
-                        cuestionarioDeModelo: cuestionarioDeModelo,
-                        bloques: bloquesBD,
-                      ),
+                      ExtendedNavigator.of(context).push(
+                        Routes.creacionFormPage,
+                        arguments: CreacionFormPageArguments(
+                          cuestionario: cuestionario,
+                          cuestionarioDeModelo: cuestionarioDeModelo,
+                          bloques: bloquesBD,
+                        ),
+                      );
+                    } /* => {cargarCreacionPage(cuestionario, context)}, */
                     );
-                  } /* => {cargarCreacionPage(cuestionario, context)}, */
-                  );
-            },
-          );
-        },
-      ),
-      floatingActionButton: const FloatingActionButtonCreacionCuestionario(),
-    );
+              },
+            );
+          },
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: const Padding(
+          padding:  EdgeInsets.all(8.0),
+          child: FloatingActionButtonCreacionCuestionario(),
+        ));
   }
 
   void eliminarCuestionario(Cuestionario cuestionario, BuildContext context) {

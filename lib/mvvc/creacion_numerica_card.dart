@@ -35,28 +35,8 @@ class TipoPreguntaCard extends StatelessWidget {
           maxLines: 50,
         ),
         const SizedBox(height: 10),
-        ValueListenableBuilder<List<Sistema>>(
-          valueListenable: viewModel.sistemas,
-          builder: (context, value, child) {
-            return ReactiveDropdownField<Sistema>(
-              formControl: formGroup.control('sistema') as FormControl,
-              validationMessages: (control) =>
-                  {'required': 'Seleccione un sistema'},
-              items: value
-                  .map((e) => DropdownMenuItem<Sistema>(
-                        value: e,
-                        child: Text(e.nombre),
-                      ))
-                  .toList(),
-              decoration: const InputDecoration(
-                labelText: 'Sistema',
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 10),
         ValueListenableBuilder<List<SubSistema>>(
-            valueListenable: formGroup.subSistemas,
+            valueListenable: viewModel.subSistemas,
             builder: (context, value, child) {
               return ReactiveDropdownField<SubSistema>(
                 formControl: formGroup.control('subSistema') as FormControl,
@@ -77,10 +57,12 @@ class TipoPreguntaCard extends StatelessWidget {
         ReactiveDropdownField<String>(
           formControl: formGroup.control('posicion') as FormControl,
           items: [
-            "No aplica",
-            "Adelante",
-            "Atras"
-          ] //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+              "No aplica",
+              "Adelante",
+              "Atrás",
+              'Izquierda',
+              'Derecha'
+            ] 
               .map((e) => DropdownMenuItem<String>(
                     value: e,
                     child: Text(e),
@@ -94,7 +76,7 @@ class TipoPreguntaCard extends StatelessWidget {
           decoration: const InputDecoration(
               labelText: 'Criticidad de la pregunta', filled: false),
           child: ReactiveSlider(
-            //TODO: consultar de nuevo como se manejara la criticad
+           
 
             formControl: formGroup.control('criticidad') as FormControl<double>,
             max: 4,

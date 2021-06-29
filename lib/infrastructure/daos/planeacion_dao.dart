@@ -37,7 +37,7 @@ class PlaneacionDao extends DatabaseAccessor<Database>
             groupBy(l, (e) => e['tipo']).entries.map(
               (entry) async {
                 return GrupoXTipoInspeccion(
-                    tipoInspeccion: (entry.key as TiposDeInspeccione),
+                    tipoInspeccion: entry.key as TiposDeInspeccione,
                     grupos: entry.value
                         .map((item) => item['grupos'] as GruposInspecciones)
                         .toList());

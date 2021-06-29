@@ -13,7 +13,6 @@ part 'borradores_dao.g.dart';
   OpcionesDeRespuesta,
   Inspecciones,
   Respuestas,
-  RespuestasXOpcionesDeRespuesta,
   Contratistas,
   Sistemas,
   SubSistemas,
@@ -24,20 +23,38 @@ class BorradoresDao extends DatabaseAccessor<Database>
   // of this object.
   BorradoresDao(Database db) : super(db);
 
+  Future<int> getTotalRespuesta(int id) async {
+    final hola = await customSelect(
+      '''
+      SELECT DISTINCT respuestas.pregunta_id  FROM respuestas
+      WHERE respuestas.inspeccion_id = $id 
+      ;''',
+    ).map((row) => Respuesta.fromData(row.data, db)).get();
+    return hola.length;
+  }
+
   Stream<List<Borrador>> borradores() {
     final query = select(inspecciones).join([
       innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
     ]);
 
     return query
-        .map((row) =>
-            Borrador(row.readTable(activos), row.readTable(inspecciones), null))
+        .map((row) => Borrador(row.readTable(activos),
+            row.readTable(inspecciones), null, null, null))
         .watch()
-        .asyncMap<List<Borrador>>((l) async => Future.wait<Borrador>(l.map(
-              (b) async => b.copyWith(
-                cuestionario: await db.getCuestionario(b.inspeccion),
-              ),
-            )));
+        .asyncMap<List<Borrador>>(
+          (l) async => Future.wait<Borrador>(
+            l.map(
+              (b) async {
+                final cuestionario = await db.getCuestionario(b.inspeccion);
+                return b.copyWith(
+                    cuestionario: cuestionario,
+                    avance: await getTotalRespuesta(b.inspeccion.id),
+                    total: await db.getTotalPreguntas(cuestionario.id));
+              },
+            ),
+          ),
+        );
   }
 
   Future eliminarBorrador(Borrador borrador) async {
@@ -47,9 +64,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
   }
 
   Stream<List<Cuestionario>> getCuestionarios() =>
-     select(cuestionarios).watch();
-
-      
+      select(cuestionarios).watch();
 
   Future eliminarCuestionario(Cuestionario cuestionario) async {
     await (delete(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
@@ -69,8 +84,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
             [row.readTable(cuestionarioDeModelos), row.readTable(contratistas)])
         .get();
 
-    
-    if(res.isEmpty) return null;
+    if (res.isEmpty) return null;
 
     return CuestionarioConContratista(
         res.map((cu) => cu[0] as CuestionarioDeModelo).toList(),

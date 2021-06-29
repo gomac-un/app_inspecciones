@@ -6,62 +6,129 @@ import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_validators.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+FormArray _cargarBloques(
+    Cuestionario cuestionario, List<IBloqueOrdenable> bloquesBD) {
+  if (cuestionario != null) {
+    //ordenamiento y creacion de los controles dependiendo del tipo de elemento
+    final bloques = FormArray(
+      (bloquesBD
+            ..sort(
+              (a, b) => a.nOrden.compareTo(b.bloque.nOrden),
+            ))
+          .map<AbstractControl>((e) {
+        if (e is BloqueConTitulo) return CreadorTituloFormGroup(d: e.titulo);
+        /*   if (e is BloqueConCondicional) {
+          return CreadorPreguntaFormGroup(defaultValue: e.pregunta);
+        } */
+        if (e is BloqueConPreguntaSimple) {
+          return CreadorPreguntaFormGroup(defaultValue: e.pregunta);
+        }
+        if (e is BloqueConCuadricula) {
+          return CreadorPreguntaCuadriculaFormGroup(
+              preguntasDeCuadricula: e.preguntas,
+              cuadricula: e.cuadricula,
+              preguntas: e.preguntasRespondidas);
+        }
+        if (e is BloqueConPreguntaNumerica) {
+          return CreadorPreguntaNumericaFormGroup(defaultValue: e.pregunta);
+        }
+        throw Exception("Tipo de bloque no reconocido");
+      }).toList(),
+    );
+
+    return bloques;
+  } else {
+    final bloques = FormArray([CreadorTituloFormGroup()]);
+    return bloques;
+  }
+}
+
 class CreacionFormViewModel extends FormGroup {
   final _db = getIt<Database>();
-  Cuestionario cuestionario;
-  final List<IBloqueOrdenable> bloquesBD;
   final sistemas = ValueNotifier<List<Sistema>>([]);
   final tiposDeInspeccion = ValueNotifier<List<String>>([]);
   final modelos = ValueNotifier<List<String>>([]);
   final contratistas = ValueNotifier<List<Contratista>>([]);
-  /* final totalBloques = ValueNotifier<List<int>>([]); */
-  final CuestionarioConContratista cuestionarioDeModelo;
   final estado = ValueNotifier(EstadoDeCuestionario.borrador);
-
+  final ValueNotifier<List<SubSistema>> subSistemas;
+  Cuestionario cuestionario;
+  final CuestionarioConContratista cuestionarioDeModelo;
+  final List<IBloqueOrdenable> bloquesBD;
   Copiable bloqueCopiado;
 
-  CreacionFormViewModel(this.cuestionario, this.cuestionarioDeModelo,
-      {this.bloquesBD = const []})
-      : super(
-          {
-            'tipoDeInspeccion': FormControl<String>(
-                value: cuestionario?.tipoDeInspeccion ?? '',
-                validators: [Validators.required]),
-            'nuevoTipoDeInspeccion': FormControl<String>(value: ""),
-            'contratista': FormControl<Contratista>(
-                value: cuestionarioDeModelo?.contratista,
-                validators: [Validators.required]),
-            'periodicidad': FormControl<double>(
-                value: cuestionarioDeModelo
-                        ?.cuestionarioDeModelo?.first?.periodicidad
-                        ?.toDouble() ??
-                    0,
-                validators: [Validators.required]),
-            'modelos': FormControl<List<String>>(
-                value: cuestionarioDeModelo?.cuestionarioDeModelo
-                        ?.map((e) => e.modelo)
-                        ?.toList() ??
-                    []),
-            'bloques': _cargarBloques(cuestionario, bloquesBD),
-            //agrega un titulo inicial
-          },
-          validators: [nuevoTipoDeInspeccion],
-          asyncValidators: [cuestionariosExistentes],
-        ) {
-    cargarDatos();
+  factory CreacionFormViewModel({
+    CuestionarioConContratista cuestionarioDeModelo,
+    Cuestionario cuestionario,
+    List<IBloqueOrdenable> bloquesBD,
+  }) {
+    final modelo = cuestionarioDeModelo;
+    final cuesti = cuestionario;
+    final bloques = bloquesBD;
+    final sistema = fb.control<Sistema>(null, [Validators.required]);
+    final subSistemas = ValueNotifier<List<SubSistema>>([]);
+
+    sistema.valueChanges.asBroadcastStream().listen((sistema) async {
+      subSistemas.value =
+          await getIt<Database>().creacionDao.getSubSistemas(sistema);
+    });
+
+    final Map<String, AbstractControl<dynamic>> controles = {
+      'tipoDeInspeccion': FormControl<String>(
+          value: cuestionario?.tipoDeInspeccion ?? '',
+          validators: [Validators.required]),
+      'sistema': sistema,
+      'nuevoTipoDeInspeccion': FormControl<String>(value: ""),
+      'contratista': FormControl<Contratista>(
+          value: cuestionarioDeModelo?.contratista,
+          validators: [Validators.required]),
+      'periodicidad': FormControl<double>(
+          value: cuestionarioDeModelo?.cuestionarioDeModelo?.first?.periodicidad
+                  ?.toDouble() ??
+              0,
+          validators: [Validators.required]),
+      'modelos': FormControl<List<String>>(
+          value: cuestionarioDeModelo?.cuestionarioDeModelo
+                  ?.map((e) => e.modelo)
+                  ?.toList() ??
+              [],validators: [Validators.minLength(1)]),
+      'bloques': _cargarBloques(cuestionario, bloquesBD),
+      //agrega un titulo inicial
+    };
+
+    return CreacionFormViewModel._(
+        controles, subSistemas, modelo, cuesti, bloques);
   }
 
+  //constructor que le envia los controles a la clase padre
+  CreacionFormViewModel._(
+      Map<String, AbstractControl<dynamic>> controles,
+      this.subSistemas,
+      this.cuestionarioDeModelo,
+      this.cuestionario,
+      this.bloquesBD)
+      : super(
+          controles,
+          asyncValidators: [cuestionariosExistentes],
+          validators: [nuevoTipoDeInspeccion],
+        ) {
+    cargarDatos();
+    // Machetazo que puede dar resultados inesperados si se utiliza el
+    // constructor en codigo sincrono ya que no se está esperando a que termine esta funcion asincrona
+  }
   Future cargarDatos() async {
     tiposDeInspeccion.value = await _db.creacionDao.getTiposDeInspecciones();
-    tiposDeInspeccion.value.add("otra");
+    tiposDeInspeccion.value.add("Otra");
 
     modelos.value = await _db.creacionDao.getModelos();
-    modelos.value.add("todos");
+    modelos.value.add("Todos");
 
     contratistas.value = await _db.creacionDao.getContratistas();
     sistemas.value = await _db.creacionDao.getSistemas();
 
     estado.value = cuestionario?.estado ?? EstadoDeCuestionario.borrador;
+
+    controls['sistema'].value =
+        await getIt<Database>().getSistemaPorId(cuestionario?.sistemaId);
 
     /* if (cuestionario != null) {
       bloquesBD.forEach(
@@ -76,7 +143,6 @@ class CreacionFormViewModel extends FormGroup {
     } */
   }
 
-  /// Metodo que funciona sorprendentemente bien con los nulos y los casos extremos
   void agregarBloqueDespuesDe(
       {AbstractControl bloque, AbstractControl despuesDe}) {
     final bloques = control("bloques") as FormArray;
@@ -88,26 +154,14 @@ class CreacionFormViewModel extends FormGroup {
     } */
   }
 
-  /* void borrarBloque(AbstractControl e) {
-    //TODO hacerle dispose si se requiere
+  void borrarBloque(AbstractControl e) {
+    // En este momento se hace, aún no sabemos si es necesario
     try {
-      final bloques = control("bloques") as FormArray;
-      final numeroABorrar = bloques.controls.indexOf(e) + 1;
-      bloques.remove(e);
-      totalBloques.value.remove(numeroABorrar
-          /* (bloques.controls.indexOf(e)+1).toString() */);
-      totalBloques.value.forEach((e) {
-        if (e > numeroABorrar) {
-          final x = e - 1;
-          totalBloques.value.remove(e);
-          totalBloques.value.add(x);
-        }
-      });
-      totalBloques.value.sort((a, b) => a.compareTo(b));
-      ; // ignore: empty_catches
-      /* numerosAModificar.map((e) => totalBloques.value.add(e-1)); */
+      (control("bloques") as FormArray).remove(e);
+      e.dispose();
+      // ignore: empty_catches
     } on FormControlNotFoundException {}
-  } */
+  }
 
   /// Cierra todos los streams para evitar fugas de memoria, se suele llamar desde el provider
   @override
@@ -116,7 +170,8 @@ class CreacionFormViewModel extends FormGroup {
     modelos.dispose();
     contratistas.dispose();
     sistemas.dispose();
-    estado.dispose();/* 
+    estado.dispose();
+    /* 
     totalBloques.dispose(); */
     super.dispose();
   }
@@ -126,7 +181,7 @@ class CreacionFormViewModel extends FormGroup {
     final int cuestionarioId = cuestionario?.id;
     final int contratistaId = (control('contratista').value as Contratista)?.id;
 
-    final String tipoDeInspeccion = control("tipoDeInspeccion").value == "otra"
+    final String tipoDeInspeccion = control("tipoDeInspeccion").value == "Otra"
         ? control("nuevoTipoDeInspeccion").value as String
         : control("tipoDeInspeccion").value as String;
 
@@ -135,6 +190,7 @@ class CreacionFormViewModel extends FormGroup {
       esLocal: null,
       id: cuestionarioId,
       estado: estado,
+      sistemaId: (control('sistema').value as Sistema)?.id,
     );
 
     final List<CuestionarioDeModelo> nuevoscuestionariosDeModelos =
@@ -163,15 +219,13 @@ class CreacionFormViewModel extends FormGroup {
         ];
       }
       if (control is CreadorPreguntaFormGroup) {
-        final esCondicional = control.toDB().pregunta.esCondicional;
-        if (!esCondicional) {
-          return [
-            BloqueConPreguntaSimple(
-              bloque,
-              control.toDB(),
-            )
-          ];
-        } /* else {
+        return [
+          BloqueConPreguntaSimple(
+            bloque,
+            control.toDB(),
+          )
+        ];
+        /* else {
           return [
             BloqueConCondicional(
               bloque,
@@ -205,42 +259,5 @@ class CreacionFormViewModel extends FormGroup {
 
     await _db.creacionDao.guardarCuestionario(
         nuevoCuestionario, nuevoscuestionariosDeModelos, bloquesAGuardar, this);
-  }
-}
-
-FormArray _cargarBloques(
-    Cuestionario cuestionario, List<IBloqueOrdenable> bloquesBD) {
-  if (cuestionario != null) {
-    //ordenamiento y creacion de los controles dependiendo del tipo de elemento
-    final bloques = FormArray(
-      (bloquesBD
-            ..sort(
-              (a, b) => a.nOrden.compareTo(b.bloque.nOrden),
-            ))
-          .map<AbstractControl>((e) {
-        if (e is BloqueConTitulo) return CreadorTituloFormGroup(d: e.titulo);
-        if (e is BloqueConCondicional) {
-          return CreadorPreguntaFormGroup(defaultValue: e.pregunta);
-        }
-        if (e is BloqueConPreguntaSimple) {
-          return CreadorPreguntaFormGroup(defaultValue: e.pregunta);
-        }
-        if (e is BloqueConCuadricula) {
-          return CreadorPreguntaCuadriculaFormGroup(
-              preguntasDeCuadricula: e.preguntas,
-              cuadricula: e.cuadricula,
-              preguntas: e.preguntasRespondidas);
-        }
-        if (e is BloqueConPreguntaNumerica) {
-          return CreadorPreguntaNumericaFormGroup(defaultValue: e.pregunta);
-        }
-        throw Exception("Tipo de bloque no reconocido");
-      }).toList(),
-    );
-
-    return bloques;
-  } else {
-    final bloques = FormArray([CreadorTituloFormGroup()]);
-    return bloques;
   }
 }

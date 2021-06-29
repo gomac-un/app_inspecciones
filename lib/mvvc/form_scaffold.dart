@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
 class FormScaffold extends StatelessWidget {
+  
   final Widget body;
   final Widget title;
   final Widget floatingActionButton;
   final List<Widget> actions;
 
   const FormScaffold({
-    Key key,
     this.body,
     this.title,
     this.floatingActionButton,
     this.actions,
-  }) : super(key: key);
+  }) : super();
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class FormScaffold extends StatelessWidget {
         child: Scrollbar(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(8.0),
-            child: body,
+            child: Container(child: body),
           ),
         ),
       ),

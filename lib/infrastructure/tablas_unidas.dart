@@ -10,6 +10,22 @@ class PreguntaNumerica {
   PreguntaNumerica(this.pregunta, this.criticidades);
 }
 
+class GrupoXTipoInspeccion {
+  final TiposDeInspeccione tipoInspeccion;
+  final List<GruposInspecciones> grupos;
+  GrupoXTipoInspeccion({this.tipoInspeccion, this.grupos});
+
+  GrupoXTipoInspeccion copyWith({
+    TiposDeInspeccione tipoInspeccion,
+    List<GruposInspecciones> grupos,
+  }) {
+    return GrupoXTipoInspeccion(
+     tipoInspeccion: tipoInspeccion ?? this.tipoInspeccion,
+     grupos: grupos ?? this.grupos,
+    );
+  }
+}
+
 class CuestionarioConContratista {
   final List<CuestionarioDeModelo> cuestionarioDeModelo;
   final Contratista contratista;
@@ -32,7 +48,7 @@ class PreguntaConOpcionesDeRespuesta {
 // la clase RespuestaConOpcionesDeRespuesta2 en este momento maneja la dataclass en lugar del compnaion
 class RespuestaConOpcionesDeRespuesta {
   RespuestasCompanion respuesta;
-  List<OpcionDeRespuesta> opcionesDeRespuesta;
+  OpcionDeRespuesta opcionesDeRespuesta;
 
   RespuestaConOpcionesDeRespuesta(this.respuesta, this.opcionesDeRespuesta);
 }
@@ -53,7 +69,7 @@ class RespuestaConOpcionesDeRespuesta2 {
 
 class PreguntaConRespuestaConOpcionesDeRespuesta {
   final Pregunta pregunta;
-  RespuestaConOpcionesDeRespuesta respuesta;
+  List<RespuestaConOpcionesDeRespuesta> respuesta;
 
   PreguntaConRespuestaConOpcionesDeRespuesta(this.pregunta, this.respuesta);
 }
@@ -68,9 +84,8 @@ class CuadriculaDePreguntasConOpcionesDeRespuesta {
 
 class OpcionDeRespuestaConCondicional extends OpcionDeRespuesta {
   final OpcionDeRespuesta opcionRespuesta;
-  final PreguntasCondicionalData condiciones;
 
-  OpcionDeRespuestaConCondicional(this.opcionRespuesta, {this.condiciones});
+  OpcionDeRespuestaConCondicional(this.opcionRespuesta, );
 }
 
 class CuadriculaConPreguntasYConOpcionesDeRespuesta {
@@ -96,7 +111,7 @@ class BloqueConTitulo extends IBloqueOrdenable {
   BloqueConTitulo(Bloque bloque, this.titulo) : super(bloque);
 }
 
-class BloqueConCondicional extends IBloqueOrdenable {
+/* class BloqueConCondicional extends IBloqueOrdenable {
   final PreguntaConOpcionesDeRespuesta pregunta;
   final RespuestaConOpcionesDeRespuesta respuesta;
   final List<PreguntasCondicionalData> condiciones;
@@ -104,7 +119,7 @@ class BloqueConCondicional extends IBloqueOrdenable {
   BloqueConCondicional(Bloque bloque, this.pregunta, this.condiciones,
       {this.respuesta})
       : super(bloque);
-}
+} */
 
 class BloqueConPreguntaNumerica extends IBloqueOrdenable {
   final PreguntaNumerica pregunta;
@@ -115,7 +130,7 @@ class BloqueConPreguntaNumerica extends IBloqueOrdenable {
 
 class BloqueConPreguntaSimple extends IBloqueOrdenable {
   final PreguntaConOpcionesDeRespuesta pregunta;
-  final RespuestaConOpcionesDeRespuesta respuesta;
+  final List<RespuestaConOpcionesDeRespuesta> respuesta;
 
   BloqueConPreguntaSimple(Bloque bloque, this.pregunta, {this.respuesta})
       : super(bloque);
@@ -145,25 +160,38 @@ class Borrador {
   Activo activo;
   Inspeccion inspeccion;
   Cuestionario cuestionario;
+  int avance;
+  int total;
   Borrador(
     this.activo,
     this.inspeccion,
     this.cuestionario,
+    this.avance,
+    this.total,
   );
 
   Borrador copyWith({
     Activo activo,
     Inspeccion inspeccion,
     Cuestionario cuestionario,
+    int avance,
+    int total,
   }) {
     return Borrador(
-      activo ?? this.activo,
-      inspeccion ?? this.inspeccion,
-      cuestionario ?? this.cuestionario,
-    );
+        activo ?? this.activo,
+        inspeccion ?? this.inspeccion,
+        cuestionario ?? this.cuestionario,
+        avance ?? this.avance,
+        total ?? this.total);
   }
 
   @override
   String toString() =>
       'Borrador(activo: $activo, inspeccion: $inspeccion, cuestionario: $cuestionario)';
+}
+
+class Programacion {
+  ProgramacionSistemasCompanion programacion;
+  List<Sistema> sistemas;
+  Programacion({this.programacion, this.sistemas});
 }

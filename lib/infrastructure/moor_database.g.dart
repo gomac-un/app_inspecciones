@@ -567,11 +567,13 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
 class Cuestionario extends DataClass implements Insertable<Cuestionario> {
   final int id;
   final String tipoDeInspeccion;
+  final int sistemaId;
   final EstadoDeCuestionario estado;
   final bool esLocal;
   Cuestionario(
       {@required this.id,
       @required this.tipoDeInspeccion,
+      this.sistemaId,
       @required this.estado,
       @required this.esLocal});
   factory Cuestionario.fromData(Map<String, dynamic> data, GeneratedDatabase db,
@@ -584,6 +586,8 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       tipoDeInspeccion: stringType.mapFromDatabaseResponse(
           data['${effectivePrefix}tipo_de_inspeccion']),
+      sistemaId:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}sistema_id']),
       estado: $CuestionariosTable.$converter0.mapToDart(
           intType.mapFromDatabaseResponse(data['${effectivePrefix}estado'])),
       esLocal:
@@ -598,6 +602,9 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     }
     if (!nullToAbsent || tipoDeInspeccion != null) {
       map['tipo_de_inspeccion'] = Variable<String>(tipoDeInspeccion);
+    }
+    if (!nullToAbsent || sistemaId != null) {
+      map['sistema_id'] = Variable<int>(sistemaId);
     }
     if (!nullToAbsent || estado != null) {
       final converter = $CuestionariosTable.$converter0;
@@ -615,6 +622,9 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
       tipoDeInspeccion: tipoDeInspeccion == null && nullToAbsent
           ? const Value.absent()
           : Value(tipoDeInspeccion),
+      sistemaId: sistemaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sistemaId),
       estado:
           estado == null && nullToAbsent ? const Value.absent() : Value(estado),
       esLocal: esLocal == null && nullToAbsent
@@ -629,6 +639,7 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     return Cuestionario(
       id: serializer.fromJson<int>(json['id']),
       tipoDeInspeccion: serializer.fromJson<String>(json['tipoDeInspeccion']),
+      sistemaId: serializer.fromJson<int>(json['sistema']),
       estado: serializer.fromJson<EstadoDeCuestionario>(json['estado']),
       esLocal: serializer.fromJson<bool>(json['esLocal']),
     );
@@ -639,6 +650,7 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'tipoDeInspeccion': serializer.toJson<String>(tipoDeInspeccion),
+      'sistema': serializer.toJson<int>(sistemaId),
       'estado': serializer.toJson<EstadoDeCuestionario>(estado),
       'esLocal': serializer.toJson<bool>(esLocal),
     };
@@ -647,11 +659,13 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
   Cuestionario copyWith(
           {int id,
           String tipoDeInspeccion,
+          int sistemaId,
           EstadoDeCuestionario estado,
           bool esLocal}) =>
       Cuestionario(
         id: id ?? this.id,
         tipoDeInspeccion: tipoDeInspeccion ?? this.tipoDeInspeccion,
+        sistemaId: sistemaId ?? this.sistemaId,
         estado: estado ?? this.estado,
         esLocal: esLocal ?? this.esLocal,
       );
@@ -660,6 +674,7 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     return (StringBuffer('Cuestionario(')
           ..write('id: $id, ')
           ..write('tipoDeInspeccion: $tipoDeInspeccion, ')
+          ..write('sistemaId: $sistemaId, ')
           ..write('estado: $estado, ')
           ..write('esLocal: $esLocal')
           ..write(')'))
@@ -669,14 +684,17 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
   @override
   int get hashCode => $mrjf($mrjc(
       id.hashCode,
-      $mrjc(tipoDeInspeccion.hashCode,
-          $mrjc(estado.hashCode, esLocal.hashCode))));
+      $mrjc(
+          tipoDeInspeccion.hashCode,
+          $mrjc(
+              sistemaId.hashCode, $mrjc(estado.hashCode, esLocal.hashCode)))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is Cuestionario &&
           other.id == this.id &&
           other.tipoDeInspeccion == this.tipoDeInspeccion &&
+          other.sistemaId == this.sistemaId &&
           other.estado == this.estado &&
           other.esLocal == this.esLocal);
 }
@@ -684,17 +702,20 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
 class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
   final Value<int> id;
   final Value<String> tipoDeInspeccion;
+  final Value<int> sistemaId;
   final Value<EstadoDeCuestionario> estado;
   final Value<bool> esLocal;
   const CuestionariosCompanion({
     this.id = const Value.absent(),
     this.tipoDeInspeccion = const Value.absent(),
+    this.sistemaId = const Value.absent(),
     this.estado = const Value.absent(),
     this.esLocal = const Value.absent(),
   });
   CuestionariosCompanion.insert({
     this.id = const Value.absent(),
     @required String tipoDeInspeccion,
+    this.sistemaId = const Value.absent(),
     @required EstadoDeCuestionario estado,
     this.esLocal = const Value.absent(),
   })  : tipoDeInspeccion = Value(tipoDeInspeccion),
@@ -702,12 +723,14 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
   static Insertable<Cuestionario> custom({
     Expression<int> id,
     Expression<String> tipoDeInspeccion,
+    Expression<int> sistemaId,
     Expression<int> estado,
     Expression<bool> esLocal,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (tipoDeInspeccion != null) 'tipo_de_inspeccion': tipoDeInspeccion,
+      if (sistemaId != null) 'sistema_id': sistemaId,
       if (estado != null) 'estado': estado,
       if (esLocal != null) 'es_local': esLocal,
     });
@@ -716,11 +739,13 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
   CuestionariosCompanion copyWith(
       {Value<int> id,
       Value<String> tipoDeInspeccion,
+      Value<int> sistemaId,
       Value<EstadoDeCuestionario> estado,
       Value<bool> esLocal}) {
     return CuestionariosCompanion(
       id: id ?? this.id,
       tipoDeInspeccion: tipoDeInspeccion ?? this.tipoDeInspeccion,
+      sistemaId: sistemaId ?? this.sistemaId,
       estado: estado ?? this.estado,
       esLocal: esLocal ?? this.esLocal,
     );
@@ -734,6 +759,9 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
     }
     if (tipoDeInspeccion.present) {
       map['tipo_de_inspeccion'] = Variable<String>(tipoDeInspeccion.value);
+    }
+    if (sistemaId.present) {
+      map['sistema_id'] = Variable<int>(sistemaId.value);
     }
     if (estado.present) {
       final converter = $CuestionariosTable.$converter0;
@@ -750,6 +778,7 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
     return (StringBuffer('CuestionariosCompanion(')
           ..write('id: $id, ')
           ..write('tipoDeInspeccion: $tipoDeInspeccion, ')
+          ..write('sistemaId: $sistemaId, ')
           ..write('estado: $estado, ')
           ..write('esLocal: $esLocal')
           ..write(')'))
@@ -785,6 +814,15 @@ class $CuestionariosTable extends Cuestionarios
     );
   }
 
+  final VerificationMeta _sistemaIdMeta = const VerificationMeta('sistemaId');
+  GeneratedIntColumn _sistemaId;
+  @override
+  GeneratedIntColumn get sistemaId => _sistemaId ??= _constructSistemaId();
+  GeneratedIntColumn _constructSistemaId() {
+    return GeneratedIntColumn('sistema_id', $tableName, true,
+        $customConstraints: 'REFERENCES sistemas(id)');
+  }
+
   final VerificationMeta _estadoMeta = const VerificationMeta('estado');
   GeneratedIntColumn _estado;
   @override
@@ -807,7 +845,8 @@ class $CuestionariosTable extends Cuestionarios
   }
 
   @override
-  List<GeneratedColumn> get $columns => [id, tipoDeInspeccion, estado, esLocal];
+  List<GeneratedColumn> get $columns =>
+      [id, tipoDeInspeccion, sistemaId, estado, esLocal];
   @override
   $CuestionariosTable get asDslTable => this;
   @override
@@ -829,6 +868,10 @@ class $CuestionariosTable extends Cuestionarios
               data['tipo_de_inspeccion'], _tipoDeInspeccionMeta));
     } else if (isInserting) {
       context.missing(_tipoDeInspeccionMeta);
+    }
+    if (data.containsKey('sistema_id')) {
+      context.handle(_sistemaIdMeta,
+          sistemaId.isAcceptableOrUnknown(data['sistema_id'], _sistemaIdMeta));
     }
     context.handle(_estadoMeta, const VerificationResult.success());
     if (data.containsKey('es_local')) {
@@ -1718,7 +1761,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
   final KtList<String> fotosGuia;
   final bool esCondicional;
   final int bloqueId;
-  final int sistemaId;
   final int subSistemaId;
   final TipoDePregunta tipo;
   Pregunta(
@@ -1730,7 +1772,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       @required this.fotosGuia,
       @required this.esCondicional,
       @required this.bloqueId,
-      this.sistemaId,
       this.subSistemaId,
       @required this.tipo});
   factory Pregunta.fromData(Map<String, dynamic> data, GeneratedDatabase db,
@@ -1755,8 +1796,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           .mapFromDatabaseResponse(data['${effectivePrefix}es_condicional']),
       bloqueId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}bloque_id']),
-      sistemaId:
-          intType.mapFromDatabaseResponse(data['${effectivePrefix}sistema_id']),
       subSistemaId: intType
           .mapFromDatabaseResponse(data['${effectivePrefix}sub_sistema_id']),
       tipo: $PreguntasTable.$converter1.mapToDart(
@@ -1791,9 +1830,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
     if (!nullToAbsent || bloqueId != null) {
       map['bloque_id'] = Variable<int>(bloqueId);
     }
-    if (!nullToAbsent || sistemaId != null) {
-      map['sistema_id'] = Variable<int>(sistemaId);
-    }
     if (!nullToAbsent || subSistemaId != null) {
       map['sub_sistema_id'] = Variable<int>(subSistemaId);
     }
@@ -1827,9 +1863,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       bloqueId: bloqueId == null && nullToAbsent
           ? const Value.absent()
           : Value(bloqueId),
-      sistemaId: sistemaId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(sistemaId),
       subSistemaId: subSistemaId == null && nullToAbsent
           ? const Value.absent()
           : Value(subSistemaId),
@@ -1849,7 +1882,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       fotosGuia: serializer.fromJson<KtList<String>>(json['fotosGuia']),
       esCondicional: serializer.fromJson<bool>(json['esCondicional']),
       bloqueId: serializer.fromJson<int>(json['bloque']),
-      sistemaId: serializer.fromJson<int>(json['sistema']),
       subSistemaId: serializer.fromJson<int>(json['subSistema']),
       tipo: serializer.fromJson<TipoDePregunta>(json['tipo']),
     );
@@ -1866,7 +1898,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       'fotosGuia': serializer.toJson<KtList<String>>(fotosGuia),
       'esCondicional': serializer.toJson<bool>(esCondicional),
       'bloque': serializer.toJson<int>(bloqueId),
-      'sistema': serializer.toJson<int>(sistemaId),
       'subSistema': serializer.toJson<int>(subSistemaId),
       'tipo': serializer.toJson<TipoDePregunta>(tipo),
     };
@@ -1881,7 +1912,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           KtList<String> fotosGuia,
           bool esCondicional,
           int bloqueId,
-          int sistemaId,
           int subSistemaId,
           TipoDePregunta tipo}) =>
       Pregunta(
@@ -1893,7 +1923,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
         fotosGuia: fotosGuia ?? this.fotosGuia,
         esCondicional: esCondicional ?? this.esCondicional,
         bloqueId: bloqueId ?? this.bloqueId,
-        sistemaId: sistemaId ?? this.sistemaId,
         subSistemaId: subSistemaId ?? this.subSistemaId,
         tipo: tipo ?? this.tipo,
       );
@@ -1908,7 +1937,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           ..write('fotosGuia: $fotosGuia, ')
           ..write('esCondicional: $esCondicional, ')
           ..write('bloqueId: $bloqueId, ')
-          ..write('sistemaId: $sistemaId, ')
           ..write('subSistemaId: $subSistemaId, ')
           ..write('tipo: $tipo')
           ..write(')'))
@@ -1932,10 +1960,8 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
                               esCondicional.hashCode,
                               $mrjc(
                                   bloqueId.hashCode,
-                                  $mrjc(
-                                      sistemaId.hashCode,
-                                      $mrjc(subSistemaId.hashCode,
-                                          tipo.hashCode)))))))))));
+                                  $mrjc(subSistemaId.hashCode,
+                                      tipo.hashCode))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -1948,7 +1974,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           other.fotosGuia == this.fotosGuia &&
           other.esCondicional == this.esCondicional &&
           other.bloqueId == this.bloqueId &&
-          other.sistemaId == this.sistemaId &&
           other.subSistemaId == this.subSistemaId &&
           other.tipo == this.tipo);
 }
@@ -1962,7 +1987,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
   final Value<KtList<String>> fotosGuia;
   final Value<bool> esCondicional;
   final Value<int> bloqueId;
-  final Value<int> sistemaId;
   final Value<int> subSistemaId;
   final Value<TipoDePregunta> tipo;
   const PreguntasCompanion({
@@ -1974,7 +1998,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     this.fotosGuia = const Value.absent(),
     this.esCondicional = const Value.absent(),
     this.bloqueId = const Value.absent(),
-    this.sistemaId = const Value.absent(),
     this.subSistemaId = const Value.absent(),
     this.tipo = const Value.absent(),
   });
@@ -1987,7 +2010,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     this.fotosGuia = const Value.absent(),
     this.esCondicional = const Value.absent(),
     @required int bloqueId,
-    this.sistemaId = const Value.absent(),
     this.subSistemaId = const Value.absent(),
     @required TipoDePregunta tipo,
   })  : titulo = Value(titulo),
@@ -2004,7 +2026,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     Expression<String> fotosGuia,
     Expression<bool> esCondicional,
     Expression<int> bloqueId,
-    Expression<int> sistemaId,
     Expression<int> subSistemaId,
     Expression<int> tipo,
   }) {
@@ -2017,7 +2038,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       if (fotosGuia != null) 'fotos_guia': fotosGuia,
       if (esCondicional != null) 'es_condicional': esCondicional,
       if (bloqueId != null) 'bloque_id': bloqueId,
-      if (sistemaId != null) 'sistema_id': sistemaId,
       if (subSistemaId != null) 'sub_sistema_id': subSistemaId,
       if (tipo != null) 'tipo': tipo,
     });
@@ -2032,7 +2052,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       Value<KtList<String>> fotosGuia,
       Value<bool> esCondicional,
       Value<int> bloqueId,
-      Value<int> sistemaId,
       Value<int> subSistemaId,
       Value<TipoDePregunta> tipo}) {
     return PreguntasCompanion(
@@ -2044,7 +2063,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       fotosGuia: fotosGuia ?? this.fotosGuia,
       esCondicional: esCondicional ?? this.esCondicional,
       bloqueId: bloqueId ?? this.bloqueId,
-      sistemaId: sistemaId ?? this.sistemaId,
       subSistemaId: subSistemaId ?? this.subSistemaId,
       tipo: tipo ?? this.tipo,
     );
@@ -2078,9 +2096,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     if (bloqueId.present) {
       map['bloque_id'] = Variable<int>(bloqueId.value);
     }
-    if (sistemaId.present) {
-      map['sistema_id'] = Variable<int>(sistemaId.value);
-    }
     if (subSistemaId.present) {
       map['sub_sistema_id'] = Variable<int>(subSistemaId.value);
     }
@@ -2102,7 +2117,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
           ..write('fotosGuia: $fotosGuia, ')
           ..write('esCondicional: $esCondicional, ')
           ..write('bloqueId: $bloqueId, ')
-          ..write('sistemaId: $sistemaId, ')
           ..write('subSistemaId: $subSistemaId, ')
           ..write('tipo: $tipo')
           ..write(')'))
@@ -2194,15 +2208,6 @@ class $PreguntasTable extends Preguntas
         $customConstraints: 'REFERENCES bloques(id) ON DELETE CASCADE');
   }
 
-  final VerificationMeta _sistemaIdMeta = const VerificationMeta('sistemaId');
-  GeneratedIntColumn _sistemaId;
-  @override
-  GeneratedIntColumn get sistemaId => _sistemaId ??= _constructSistemaId();
-  GeneratedIntColumn _constructSistemaId() {
-    return GeneratedIntColumn('sistema_id', $tableName, true,
-        $customConstraints: 'REFERENCES sistemas(id)');
-  }
-
   final VerificationMeta _subSistemaIdMeta =
       const VerificationMeta('subSistemaId');
   GeneratedIntColumn _subSistemaId;
@@ -2236,7 +2241,6 @@ class $PreguntasTable extends Preguntas
         fotosGuia,
         esCondicional,
         bloqueId,
-        sistemaId,
         subSistemaId,
         tipo
       ];
@@ -2293,10 +2297,6 @@ class $PreguntasTable extends Preguntas
     } else if (isInserting) {
       context.missing(_bloqueIdMeta);
     }
-    if (data.containsKey('sistema_id')) {
-      context.handle(_sistemaIdMeta,
-          sistemaId.isAcceptableOrUnknown(data['sistema_id'], _sistemaIdMeta));
-    }
     if (data.containsKey('sub_sistema_id')) {
       context.handle(
           _subSistemaIdMeta,
@@ -2331,12 +2331,14 @@ class OpcionDeRespuesta extends DataClass
   final int id;
   final int preguntaId;
   final int cuadriculaId;
+  final bool calificable;
   final String texto;
   final int criticidad;
   OpcionDeRespuesta(
       {@required this.id,
       this.preguntaId,
       this.cuadriculaId,
+      @required this.calificable,
       @required this.texto,
       @required this.criticidad});
   factory OpcionDeRespuesta.fromData(
@@ -2344,6 +2346,7 @@ class OpcionDeRespuesta extends DataClass
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
+    final boolType = db.typeSystem.forDartType<bool>();
     final stringType = db.typeSystem.forDartType<String>();
     return OpcionDeRespuesta(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -2351,6 +2354,8 @@ class OpcionDeRespuesta extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}pregunta_id']),
       cuadriculaId: intType
           .mapFromDatabaseResponse(data['${effectivePrefix}cuadricula_id']),
+      calificable: boolType
+          .mapFromDatabaseResponse(data['${effectivePrefix}calificable']),
       texto:
           stringType.mapFromDatabaseResponse(data['${effectivePrefix}texto']),
       criticidad:
@@ -2368,6 +2373,9 @@ class OpcionDeRespuesta extends DataClass
     }
     if (!nullToAbsent || cuadriculaId != null) {
       map['cuadricula_id'] = Variable<int>(cuadriculaId);
+    }
+    if (!nullToAbsent || calificable != null) {
+      map['calificable'] = Variable<bool>(calificable);
     }
     if (!nullToAbsent || texto != null) {
       map['texto'] = Variable<String>(texto);
@@ -2387,6 +2395,9 @@ class OpcionDeRespuesta extends DataClass
       cuadriculaId: cuadriculaId == null && nullToAbsent
           ? const Value.absent()
           : Value(cuadriculaId),
+      calificable: calificable == null && nullToAbsent
+          ? const Value.absent()
+          : Value(calificable),
       texto:
           texto == null && nullToAbsent ? const Value.absent() : Value(texto),
       criticidad: criticidad == null && nullToAbsent
@@ -2402,6 +2413,7 @@ class OpcionDeRespuesta extends DataClass
       id: serializer.fromJson<int>(json['id']),
       preguntaId: serializer.fromJson<int>(json['pregunta']),
       cuadriculaId: serializer.fromJson<int>(json['cuadricula']),
+      calificable: serializer.fromJson<bool>(json['calificable']),
       texto: serializer.fromJson<String>(json['texto']),
       criticidad: serializer.fromJson<int>(json['criticidad']),
     );
@@ -2413,6 +2425,7 @@ class OpcionDeRespuesta extends DataClass
       'id': serializer.toJson<int>(id),
       'pregunta': serializer.toJson<int>(preguntaId),
       'cuadricula': serializer.toJson<int>(cuadriculaId),
+      'calificable': serializer.toJson<bool>(calificable),
       'texto': serializer.toJson<String>(texto),
       'criticidad': serializer.toJson<int>(criticidad),
     };
@@ -2422,12 +2435,14 @@ class OpcionDeRespuesta extends DataClass
           {int id,
           int preguntaId,
           int cuadriculaId,
+          bool calificable,
           String texto,
           int criticidad}) =>
       OpcionDeRespuesta(
         id: id ?? this.id,
         preguntaId: preguntaId ?? this.preguntaId,
         cuadriculaId: cuadriculaId ?? this.cuadriculaId,
+        calificable: calificable ?? this.calificable,
         texto: texto ?? this.texto,
         criticidad: criticidad ?? this.criticidad,
       );
@@ -2437,6 +2452,7 @@ class OpcionDeRespuesta extends DataClass
           ..write('id: $id, ')
           ..write('preguntaId: $preguntaId, ')
           ..write('cuadriculaId: $cuadriculaId, ')
+          ..write('calificable: $calificable, ')
           ..write('texto: $texto, ')
           ..write('criticidad: $criticidad')
           ..write(')'))
@@ -2448,8 +2464,10 @@ class OpcionDeRespuesta extends DataClass
       id.hashCode,
       $mrjc(
           preguntaId.hashCode,
-          $mrjc(cuadriculaId.hashCode,
-              $mrjc(texto.hashCode, criticidad.hashCode)))));
+          $mrjc(
+              cuadriculaId.hashCode,
+              $mrjc(calificable.hashCode,
+                  $mrjc(texto.hashCode, criticidad.hashCode))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -2457,6 +2475,7 @@ class OpcionDeRespuesta extends DataClass
           other.id == this.id &&
           other.preguntaId == this.preguntaId &&
           other.cuadriculaId == this.cuadriculaId &&
+          other.calificable == this.calificable &&
           other.texto == this.texto &&
           other.criticidad == this.criticidad);
 }
@@ -2465,12 +2484,14 @@ class OpcionesDeRespuestaCompanion extends UpdateCompanion<OpcionDeRespuesta> {
   final Value<int> id;
   final Value<int> preguntaId;
   final Value<int> cuadriculaId;
+  final Value<bool> calificable;
   final Value<String> texto;
   final Value<int> criticidad;
   const OpcionesDeRespuestaCompanion({
     this.id = const Value.absent(),
     this.preguntaId = const Value.absent(),
     this.cuadriculaId = const Value.absent(),
+    this.calificable = const Value.absent(),
     this.texto = const Value.absent(),
     this.criticidad = const Value.absent(),
   });
@@ -2478,6 +2499,7 @@ class OpcionesDeRespuestaCompanion extends UpdateCompanion<OpcionDeRespuesta> {
     this.id = const Value.absent(),
     this.preguntaId = const Value.absent(),
     this.cuadriculaId = const Value.absent(),
+    this.calificable = const Value.absent(),
     @required String texto,
     @required int criticidad,
   })  : texto = Value(texto),
@@ -2486,6 +2508,7 @@ class OpcionesDeRespuestaCompanion extends UpdateCompanion<OpcionDeRespuesta> {
     Expression<int> id,
     Expression<int> preguntaId,
     Expression<int> cuadriculaId,
+    Expression<bool> calificable,
     Expression<String> texto,
     Expression<int> criticidad,
   }) {
@@ -2493,6 +2516,7 @@ class OpcionesDeRespuestaCompanion extends UpdateCompanion<OpcionDeRespuesta> {
       if (id != null) 'id': id,
       if (preguntaId != null) 'pregunta_id': preguntaId,
       if (cuadriculaId != null) 'cuadricula_id': cuadriculaId,
+      if (calificable != null) 'calificable': calificable,
       if (texto != null) 'texto': texto,
       if (criticidad != null) 'criticidad': criticidad,
     });
@@ -2502,12 +2526,14 @@ class OpcionesDeRespuestaCompanion extends UpdateCompanion<OpcionDeRespuesta> {
       {Value<int> id,
       Value<int> preguntaId,
       Value<int> cuadriculaId,
+      Value<bool> calificable,
       Value<String> texto,
       Value<int> criticidad}) {
     return OpcionesDeRespuestaCompanion(
       id: id ?? this.id,
       preguntaId: preguntaId ?? this.preguntaId,
       cuadriculaId: cuadriculaId ?? this.cuadriculaId,
+      calificable: calificable ?? this.calificable,
       texto: texto ?? this.texto,
       criticidad: criticidad ?? this.criticidad,
     );
@@ -2525,6 +2551,9 @@ class OpcionesDeRespuestaCompanion extends UpdateCompanion<OpcionDeRespuesta> {
     if (cuadriculaId.present) {
       map['cuadricula_id'] = Variable<int>(cuadriculaId.value);
     }
+    if (calificable.present) {
+      map['calificable'] = Variable<bool>(calificable.value);
+    }
     if (texto.present) {
       map['texto'] = Variable<String>(texto.value);
     }
@@ -2540,6 +2569,7 @@ class OpcionesDeRespuestaCompanion extends UpdateCompanion<OpcionDeRespuesta> {
           ..write('id: $id, ')
           ..write('preguntaId: $preguntaId, ')
           ..write('cuadriculaId: $cuadriculaId, ')
+          ..write('calificable: $calificable, ')
           ..write('texto: $texto, ')
           ..write('criticidad: $criticidad')
           ..write(')'))
@@ -2582,6 +2612,17 @@ class $OpcionesDeRespuestaTable extends OpcionesDeRespuesta
             'REFERENCES cuadriculas_de_preguntas(id) ON DELETE CASCADE');
   }
 
+  final VerificationMeta _calificableMeta =
+      const VerificationMeta('calificable');
+  GeneratedBoolColumn _calificable;
+  @override
+  GeneratedBoolColumn get calificable =>
+      _calificable ??= _constructCalificable();
+  GeneratedBoolColumn _constructCalificable() {
+    return GeneratedBoolColumn('calificable', $tableName, false,
+        defaultValue: const Constant(false));
+  }
+
   final VerificationMeta _textoMeta = const VerificationMeta('texto');
   GeneratedTextColumn _texto;
   @override
@@ -2605,7 +2646,7 @@ class $OpcionesDeRespuestaTable extends OpcionesDeRespuesta
 
   @override
   List<GeneratedColumn> get $columns =>
-      [id, preguntaId, cuadriculaId, texto, criticidad];
+      [id, preguntaId, cuadriculaId, calificable, texto, criticidad];
   @override
   $OpcionesDeRespuestaTable get asDslTable => this;
   @override
@@ -2631,6 +2672,12 @@ class $OpcionesDeRespuestaTable extends OpcionesDeRespuesta
           _cuadriculaIdMeta,
           cuadriculaId.isAcceptableOrUnknown(
               data['cuadricula_id'], _cuadriculaIdMeta));
+    }
+    if (data.containsKey('calificable')) {
+      context.handle(
+          _calificableMeta,
+          calificable.isAcceptableOrUnknown(
+              data['calificable'], _calificableMeta));
     }
     if (data.containsKey('texto')) {
       context.handle(
@@ -2673,6 +2720,7 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
   final DateTime momentoEnvio;
   final int cuestionarioId;
   final int activoId;
+  final bool esNueva;
   Inspeccion(
       {@required this.id,
       @required this.estado,
@@ -2682,12 +2730,14 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       this.momentoBorradorGuardado,
       this.momentoEnvio,
       @required this.cuestionarioId,
-      @required this.activoId});
+      @required this.activoId,
+      @required this.esNueva});
   factory Inspeccion.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
+    final boolType = db.typeSystem.forDartType<bool>();
     return Inspeccion(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       estado: $InspeccionesTable.$converter0.mapToDart(
@@ -2706,6 +2756,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
           .mapFromDatabaseResponse(data['${effectivePrefix}cuestionario_id']),
       activoId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}activo_id']),
+      esNueva:
+          boolType.mapFromDatabaseResponse(data['${effectivePrefix}es_nueva']),
     );
   }
   @override
@@ -2740,6 +2792,9 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
     if (!nullToAbsent || activoId != null) {
       map['activo_id'] = Variable<int>(activoId);
     }
+    if (!nullToAbsent || esNueva != null) {
+      map['es_nueva'] = Variable<bool>(esNueva);
+    }
     return map;
   }
 
@@ -2769,6 +2824,9 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       activoId: activoId == null && nullToAbsent
           ? const Value.absent()
           : Value(activoId),
+      esNueva: esNueva == null && nullToAbsent
+          ? const Value.absent()
+          : Value(esNueva),
     );
   }
 
@@ -2787,6 +2845,7 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       momentoEnvio: serializer.fromJson<DateTime>(json['momentoEnvio']),
       cuestionarioId: serializer.fromJson<int>(json['cuestionario']),
       activoId: serializer.fromJson<int>(json['activo']),
+      esNueva: serializer.fromJson<bool>(json['esNueva']),
     );
   }
   @override
@@ -2803,6 +2862,7 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       'momentoEnvio': serializer.toJson<DateTime>(momentoEnvio),
       'cuestionario': serializer.toJson<int>(cuestionarioId),
       'activo': serializer.toJson<int>(activoId),
+      'esNueva': serializer.toJson<bool>(esNueva),
     };
   }
 
@@ -2815,7 +2875,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
           DateTime momentoBorradorGuardado,
           DateTime momentoEnvio,
           int cuestionarioId,
-          int activoId}) =>
+          int activoId,
+          bool esNueva}) =>
       Inspeccion(
         id: id ?? this.id,
         estado: estado ?? this.estado,
@@ -2827,6 +2888,7 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
         momentoEnvio: momentoEnvio ?? this.momentoEnvio,
         cuestionarioId: cuestionarioId ?? this.cuestionarioId,
         activoId: activoId ?? this.activoId,
+        esNueva: esNueva ?? this.esNueva,
       );
   @override
   String toString() {
@@ -2839,7 +2901,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
           ..write('momentoBorradorGuardado: $momentoBorradorGuardado, ')
           ..write('momentoEnvio: $momentoEnvio, ')
           ..write('cuestionarioId: $cuestionarioId, ')
-          ..write('activoId: $activoId')
+          ..write('activoId: $activoId, ')
+          ..write('esNueva: $esNueva')
           ..write(')'))
         .toString();
   }
@@ -2859,8 +2922,10 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
                           momentoBorradorGuardado.hashCode,
                           $mrjc(
                               momentoEnvio.hashCode,
-                              $mrjc(cuestionarioId.hashCode,
-                                  activoId.hashCode)))))))));
+                              $mrjc(
+                                  cuestionarioId.hashCode,
+                                  $mrjc(activoId.hashCode,
+                                      esNueva.hashCode))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -2873,7 +2938,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
           other.momentoBorradorGuardado == this.momentoBorradorGuardado &&
           other.momentoEnvio == this.momentoEnvio &&
           other.cuestionarioId == this.cuestionarioId &&
-          other.activoId == this.activoId);
+          other.activoId == this.activoId &&
+          other.esNueva == this.esNueva);
 }
 
 class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
@@ -2886,6 +2952,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
   final Value<DateTime> momentoEnvio;
   final Value<int> cuestionarioId;
   final Value<int> activoId;
+  final Value<bool> esNueva;
   const InspeccionesCompanion({
     this.id = const Value.absent(),
     this.estado = const Value.absent(),
@@ -2896,6 +2963,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     this.momentoEnvio = const Value.absent(),
     this.cuestionarioId = const Value.absent(),
     this.activoId = const Value.absent(),
+    this.esNueva = const Value.absent(),
   });
   InspeccionesCompanion.insert({
     this.id = const Value.absent(),
@@ -2907,6 +2975,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     this.momentoEnvio = const Value.absent(),
     @required int cuestionarioId,
     @required int activoId,
+    this.esNueva = const Value.absent(),
   })  : estado = Value(estado),
         criticidadTotal = Value(criticidadTotal),
         criticidadReparacion = Value(criticidadReparacion),
@@ -2922,6 +2991,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     Expression<DateTime> momentoEnvio,
     Expression<int> cuestionarioId,
     Expression<int> activoId,
+    Expression<bool> esNueva,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2935,6 +3005,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
       if (momentoEnvio != null) 'momento_envio': momentoEnvio,
       if (cuestionarioId != null) 'cuestionario_id': cuestionarioId,
       if (activoId != null) 'activo_id': activoId,
+      if (esNueva != null) 'es_nueva': esNueva,
     });
   }
 
@@ -2947,7 +3018,8 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
       Value<DateTime> momentoBorradorGuardado,
       Value<DateTime> momentoEnvio,
       Value<int> cuestionarioId,
-      Value<int> activoId}) {
+      Value<int> activoId,
+      Value<bool> esNueva}) {
     return InspeccionesCompanion(
       id: id ?? this.id,
       estado: estado ?? this.estado,
@@ -2959,6 +3031,7 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
       momentoEnvio: momentoEnvio ?? this.momentoEnvio,
       cuestionarioId: cuestionarioId ?? this.cuestionarioId,
       activoId: activoId ?? this.activoId,
+      esNueva: esNueva ?? this.esNueva,
     );
   }
 
@@ -2994,6 +3067,9 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
     if (activoId.present) {
       map['activo_id'] = Variable<int>(activoId.value);
     }
+    if (esNueva.present) {
+      map['es_nueva'] = Variable<bool>(esNueva.value);
+    }
     return map;
   }
 
@@ -3008,7 +3084,8 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
           ..write('momentoBorradorGuardado: $momentoBorradorGuardado, ')
           ..write('momentoEnvio: $momentoEnvio, ')
           ..write('cuestionarioId: $cuestionarioId, ')
-          ..write('activoId: $activoId')
+          ..write('activoId: $activoId, ')
+          ..write('esNueva: $esNueva')
           ..write(')'))
         .toString();
   }
@@ -3133,6 +3210,18 @@ class $InspeccionesTable extends Inspecciones
         $customConstraints: 'REFERENCES activos(id) ON DELETE NO ACTION');
   }
 
+  final VerificationMeta _esNuevaMeta = const VerificationMeta('esNueva');
+  GeneratedBoolColumn _esNueva;
+  @override
+  GeneratedBoolColumn get esNueva => _esNueva ??= _constructEsNueva();
+  GeneratedBoolColumn _constructEsNueva() {
+    return GeneratedBoolColumn(
+      'es_nueva',
+      $tableName,
+      false,
+    )..clientDefault = () => true;
+  }
+
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -3143,7 +3232,8 @@ class $InspeccionesTable extends Inspecciones
         momentoBorradorGuardado,
         momentoEnvio,
         cuestionarioId,
-        activoId
+        activoId,
+        esNueva
       ];
   @override
   $InspeccionesTable get asDslTable => this;
@@ -3208,6 +3298,10 @@ class $InspeccionesTable extends Inspecciones
     } else if (isInserting) {
       context.missing(_activoIdMeta);
     }
+    if (data.containsKey('es_nueva')) {
+      context.handle(_esNuevaMeta,
+          esNueva.isAcceptableOrUnknown(data['es_nueva'], _esNuevaMeta));
+    }
     return context;
   }
 
@@ -3236,9 +3330,11 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
   final bool reparado;
   final double valor;
   final String observacionReparacion;
+  final int calificacion;
   final DateTime momentoRespuesta;
   final int inspeccionId;
   final int preguntaId;
+  final int opcionDeRespuestaId;
   Respuesta(
       {@required this.id,
       @required this.fotosBase,
@@ -3247,9 +3343,11 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       @required this.reparado,
       this.valor,
       @required this.observacionReparacion,
+      this.calificacion,
       this.momentoRespuesta,
       @required this.inspeccionId,
-      @required this.preguntaId});
+      @required this.preguntaId,
+      this.opcionDeRespuestaId});
   factory Respuesta.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -3272,12 +3370,16 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
           doubleType.mapFromDatabaseResponse(data['${effectivePrefix}valor']),
       observacionReparacion: stringType.mapFromDatabaseResponse(
           data['${effectivePrefix}observacion_reparacion']),
+      calificacion: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}calificacion']),
       momentoRespuesta: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}momento_respuesta']),
       inspeccionId: intType
           .mapFromDatabaseResponse(data['${effectivePrefix}inspeccion_id']),
       preguntaId: intType
           .mapFromDatabaseResponse(data['${effectivePrefix}pregunta_id']),
+      opcionDeRespuestaId: intType.mapFromDatabaseResponse(
+          data['${effectivePrefix}opcion_de_respuesta_id']),
     );
   }
   @override
@@ -3307,6 +3409,9 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
     if (!nullToAbsent || observacionReparacion != null) {
       map['observacion_reparacion'] = Variable<String>(observacionReparacion);
     }
+    if (!nullToAbsent || calificacion != null) {
+      map['calificacion'] = Variable<int>(calificacion);
+    }
     if (!nullToAbsent || momentoRespuesta != null) {
       map['momento_respuesta'] = Variable<DateTime>(momentoRespuesta);
     }
@@ -3315,6 +3420,9 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
     }
     if (!nullToAbsent || preguntaId != null) {
       map['pregunta_id'] = Variable<int>(preguntaId);
+    }
+    if (!nullToAbsent || opcionDeRespuestaId != null) {
+      map['opcion_de_respuesta_id'] = Variable<int>(opcionDeRespuestaId);
     }
     return map;
   }
@@ -3339,6 +3447,9 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       observacionReparacion: observacionReparacion == null && nullToAbsent
           ? const Value.absent()
           : Value(observacionReparacion),
+      calificacion: calificacion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(calificacion),
       momentoRespuesta: momentoRespuesta == null && nullToAbsent
           ? const Value.absent()
           : Value(momentoRespuesta),
@@ -3348,6 +3459,9 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       preguntaId: preguntaId == null && nullToAbsent
           ? const Value.absent()
           : Value(preguntaId),
+      opcionDeRespuestaId: opcionDeRespuestaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(opcionDeRespuestaId),
     );
   }
 
@@ -3364,9 +3478,11 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       valor: serializer.fromJson<double>(json['valor']),
       observacionReparacion:
           serializer.fromJson<String>(json['observacionReparacion']),
+      calificacion: serializer.fromJson<int>(json['calificacion']),
       momentoRespuesta: serializer.fromJson<DateTime>(json['momentoRespuesta']),
       inspeccionId: serializer.fromJson<int>(json['inspeccion']),
       preguntaId: serializer.fromJson<int>(json['pregunta']),
+      opcionDeRespuestaId: serializer.fromJson<int>(json['opcionDeRespuesta']),
     );
   }
   @override
@@ -3380,9 +3496,11 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
       'reparado': serializer.toJson<bool>(reparado),
       'valor': serializer.toJson<double>(valor),
       'observacionReparacion': serializer.toJson<String>(observacionReparacion),
+      'calificacion': serializer.toJson<int>(calificacion),
       'momentoRespuesta': serializer.toJson<DateTime>(momentoRespuesta),
       'inspeccion': serializer.toJson<int>(inspeccionId),
       'pregunta': serializer.toJson<int>(preguntaId),
+      'opcionDeRespuesta': serializer.toJson<int>(opcionDeRespuestaId),
     };
   }
 
@@ -3394,9 +3512,11 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
           bool reparado,
           double valor,
           String observacionReparacion,
+          int calificacion,
           DateTime momentoRespuesta,
           int inspeccionId,
-          int preguntaId}) =>
+          int preguntaId,
+          int opcionDeRespuestaId}) =>
       Respuesta(
         id: id ?? this.id,
         fotosBase: fotosBase ?? this.fotosBase,
@@ -3406,9 +3526,11 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
         valor: valor ?? this.valor,
         observacionReparacion:
             observacionReparacion ?? this.observacionReparacion,
+        calificacion: calificacion ?? this.calificacion,
         momentoRespuesta: momentoRespuesta ?? this.momentoRespuesta,
         inspeccionId: inspeccionId ?? this.inspeccionId,
         preguntaId: preguntaId ?? this.preguntaId,
+        opcionDeRespuestaId: opcionDeRespuestaId ?? this.opcionDeRespuestaId,
       );
   @override
   String toString() {
@@ -3420,9 +3542,11 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
           ..write('reparado: $reparado, ')
           ..write('valor: $valor, ')
           ..write('observacionReparacion: $observacionReparacion, ')
+          ..write('calificacion: $calificacion, ')
           ..write('momentoRespuesta: $momentoRespuesta, ')
           ..write('inspeccionId: $inspeccionId, ')
-          ..write('preguntaId: $preguntaId')
+          ..write('preguntaId: $preguntaId, ')
+          ..write('opcionDeRespuestaId: $opcionDeRespuestaId')
           ..write(')'))
         .toString();
   }
@@ -3443,9 +3567,15 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
                           $mrjc(
                               observacionReparacion.hashCode,
                               $mrjc(
-                                  momentoRespuesta.hashCode,
-                                  $mrjc(inspeccionId.hashCode,
-                                      preguntaId.hashCode))))))))));
+                                  calificacion.hashCode,
+                                  $mrjc(
+                                      momentoRespuesta.hashCode,
+                                      $mrjc(
+                                          inspeccionId.hashCode,
+                                          $mrjc(
+                                              preguntaId.hashCode,
+                                              opcionDeRespuestaId
+                                                  .hashCode))))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -3457,9 +3587,11 @@ class Respuesta extends DataClass implements Insertable<Respuesta> {
           other.reparado == this.reparado &&
           other.valor == this.valor &&
           other.observacionReparacion == this.observacionReparacion &&
+          other.calificacion == this.calificacion &&
           other.momentoRespuesta == this.momentoRespuesta &&
           other.inspeccionId == this.inspeccionId &&
-          other.preguntaId == this.preguntaId);
+          other.preguntaId == this.preguntaId &&
+          other.opcionDeRespuestaId == this.opcionDeRespuestaId);
 }
 
 class RespuestasCompanion extends UpdateCompanion<Respuesta> {
@@ -3470,9 +3602,11 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
   final Value<bool> reparado;
   final Value<double> valor;
   final Value<String> observacionReparacion;
+  final Value<int> calificacion;
   final Value<DateTime> momentoRespuesta;
   final Value<int> inspeccionId;
   final Value<int> preguntaId;
+  final Value<int> opcionDeRespuestaId;
   const RespuestasCompanion({
     this.id = const Value.absent(),
     this.fotosBase = const Value.absent(),
@@ -3481,9 +3615,11 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
     this.reparado = const Value.absent(),
     this.valor = const Value.absent(),
     this.observacionReparacion = const Value.absent(),
+    this.calificacion = const Value.absent(),
     this.momentoRespuesta = const Value.absent(),
     this.inspeccionId = const Value.absent(),
     this.preguntaId = const Value.absent(),
+    this.opcionDeRespuestaId = const Value.absent(),
   });
   RespuestasCompanion.insert({
     this.id = const Value.absent(),
@@ -3493,9 +3629,11 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
     this.reparado = const Value.absent(),
     this.valor = const Value.absent(),
     this.observacionReparacion = const Value.absent(),
+    this.calificacion = const Value.absent(),
     this.momentoRespuesta = const Value.absent(),
     @required int inspeccionId,
     @required int preguntaId,
+    this.opcionDeRespuestaId = const Value.absent(),
   })  : inspeccionId = Value(inspeccionId),
         preguntaId = Value(preguntaId);
   static Insertable<Respuesta> custom({
@@ -3506,9 +3644,11 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
     Expression<bool> reparado,
     Expression<double> valor,
     Expression<String> observacionReparacion,
+    Expression<int> calificacion,
     Expression<DateTime> momentoRespuesta,
     Expression<int> inspeccionId,
     Expression<int> preguntaId,
+    Expression<int> opcionDeRespuestaId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3519,9 +3659,12 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
       if (valor != null) 'valor': valor,
       if (observacionReparacion != null)
         'observacion_reparacion': observacionReparacion,
+      if (calificacion != null) 'calificacion': calificacion,
       if (momentoRespuesta != null) 'momento_respuesta': momentoRespuesta,
       if (inspeccionId != null) 'inspeccion_id': inspeccionId,
       if (preguntaId != null) 'pregunta_id': preguntaId,
+      if (opcionDeRespuestaId != null)
+        'opcion_de_respuesta_id': opcionDeRespuestaId,
     });
   }
 
@@ -3533,9 +3676,11 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
       Value<bool> reparado,
       Value<double> valor,
       Value<String> observacionReparacion,
+      Value<int> calificacion,
       Value<DateTime> momentoRespuesta,
       Value<int> inspeccionId,
-      Value<int> preguntaId}) {
+      Value<int> preguntaId,
+      Value<int> opcionDeRespuestaId}) {
     return RespuestasCompanion(
       id: id ?? this.id,
       fotosBase: fotosBase ?? this.fotosBase,
@@ -3545,9 +3690,11 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
       valor: valor ?? this.valor,
       observacionReparacion:
           observacionReparacion ?? this.observacionReparacion,
+      calificacion: calificacion ?? this.calificacion,
       momentoRespuesta: momentoRespuesta ?? this.momentoRespuesta,
       inspeccionId: inspeccionId ?? this.inspeccionId,
       preguntaId: preguntaId ?? this.preguntaId,
+      opcionDeRespuestaId: opcionDeRespuestaId ?? this.opcionDeRespuestaId,
     );
   }
 
@@ -3579,6 +3726,9 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
       map['observacion_reparacion'] =
           Variable<String>(observacionReparacion.value);
     }
+    if (calificacion.present) {
+      map['calificacion'] = Variable<int>(calificacion.value);
+    }
     if (momentoRespuesta.present) {
       map['momento_respuesta'] = Variable<DateTime>(momentoRespuesta.value);
     }
@@ -3587,6 +3737,9 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
     }
     if (preguntaId.present) {
       map['pregunta_id'] = Variable<int>(preguntaId.value);
+    }
+    if (opcionDeRespuestaId.present) {
+      map['opcion_de_respuesta_id'] = Variable<int>(opcionDeRespuestaId.value);
     }
     return map;
   }
@@ -3601,9 +3754,11 @@ class RespuestasCompanion extends UpdateCompanion<Respuesta> {
           ..write('reparado: $reparado, ')
           ..write('valor: $valor, ')
           ..write('observacionReparacion: $observacionReparacion, ')
+          ..write('calificacion: $calificacion, ')
           ..write('momentoRespuesta: $momentoRespuesta, ')
           ..write('inspeccionId: $inspeccionId, ')
-          ..write('preguntaId: $preguntaId')
+          ..write('preguntaId: $preguntaId, ')
+          ..write('opcionDeRespuestaId: $opcionDeRespuestaId')
           ..write(')'))
         .toString();
   }
@@ -3686,6 +3841,20 @@ class $RespuestasTable extends Respuestas
         defaultValue: const Constant(""));
   }
 
+  final VerificationMeta _calificacionMeta =
+      const VerificationMeta('calificacion');
+  GeneratedIntColumn _calificacion;
+  @override
+  GeneratedIntColumn get calificacion =>
+      _calificacion ??= _constructCalificacion();
+  GeneratedIntColumn _constructCalificacion() {
+    return GeneratedIntColumn(
+      'calificacion',
+      $tableName,
+      true,
+    );
+  }
+
   final VerificationMeta _momentoRespuestaMeta =
       const VerificationMeta('momentoRespuesta');
   GeneratedDateTimeColumn _momentoRespuesta;
@@ -3720,6 +3889,18 @@ class $RespuestasTable extends Respuestas
         $customConstraints: 'REFERENCES preguntas(id) ON DELETE CASCADE');
   }
 
+  final VerificationMeta _opcionDeRespuestaIdMeta =
+      const VerificationMeta('opcionDeRespuestaId');
+  GeneratedIntColumn _opcionDeRespuestaId;
+  @override
+  GeneratedIntColumn get opcionDeRespuestaId =>
+      _opcionDeRespuestaId ??= _constructOpcionDeRespuestaId();
+  GeneratedIntColumn _constructOpcionDeRespuestaId() {
+    return GeneratedIntColumn('opcion_de_respuesta_id', $tableName, true,
+        $customConstraints:
+            'REFERENCES opciones_de_respuesta(id) ON DELETE CASCADE');
+  }
+
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -3729,9 +3910,11 @@ class $RespuestasTable extends Respuestas
         reparado,
         valor,
         observacionReparacion,
+        calificacion,
         momentoRespuesta,
         inspeccionId,
-        preguntaId
+        preguntaId,
+        opcionDeRespuestaId
       ];
   @override
   $RespuestasTable get asDslTable => this;
@@ -3769,6 +3952,12 @@ class $RespuestasTable extends Respuestas
           observacionReparacion.isAcceptableOrUnknown(
               data['observacion_reparacion'], _observacionReparacionMeta));
     }
+    if (data.containsKey('calificacion')) {
+      context.handle(
+          _calificacionMeta,
+          calificacion.isAcceptableOrUnknown(
+              data['calificacion'], _calificacionMeta));
+    }
     if (data.containsKey('momento_respuesta')) {
       context.handle(
           _momentoRespuestaMeta,
@@ -3791,6 +3980,12 @@ class $RespuestasTable extends Respuestas
     } else if (isInserting) {
       context.missing(_preguntaIdMeta);
     }
+    if (data.containsKey('opcion_de_respuesta_id')) {
+      context.handle(
+          _opcionDeRespuestaIdMeta,
+          opcionDeRespuestaId.isAcceptableOrUnknown(
+              data['opcion_de_respuesta_id'], _opcionDeRespuestaIdMeta));
+    }
     return context;
   }
 
@@ -3811,259 +4006,6 @@ class $RespuestasTable extends Respuestas
       const ListInColumnConverter();
   static TypeConverter<KtList<String>, String> $converter1 =
       const ListInColumnConverter();
-}
-
-class RespuestasXOpcionesDeRespuestaData extends DataClass
-    implements Insertable<RespuestasXOpcionesDeRespuestaData> {
-  final int id;
-  final int respuestaId;
-  final int opcionDeRespuestaId;
-  RespuestasXOpcionesDeRespuestaData(
-      {@required this.id,
-      @required this.respuestaId,
-      @required this.opcionDeRespuestaId});
-  factory RespuestasXOpcionesDeRespuestaData.fromData(
-      Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
-    final effectivePrefix = prefix ?? '';
-    final intType = db.typeSystem.forDartType<int>();
-    return RespuestasXOpcionesDeRespuestaData(
-      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
-      respuestaId: intType
-          .mapFromDatabaseResponse(data['${effectivePrefix}respuesta_id']),
-      opcionDeRespuestaId: intType.mapFromDatabaseResponse(
-          data['${effectivePrefix}opcion_de_respuesta_id']),
-    );
-  }
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (!nullToAbsent || id != null) {
-      map['id'] = Variable<int>(id);
-    }
-    if (!nullToAbsent || respuestaId != null) {
-      map['respuesta_id'] = Variable<int>(respuestaId);
-    }
-    if (!nullToAbsent || opcionDeRespuestaId != null) {
-      map['opcion_de_respuesta_id'] = Variable<int>(opcionDeRespuestaId);
-    }
-    return map;
-  }
-
-  RespuestasXOpcionesDeRespuestaCompanion toCompanion(bool nullToAbsent) {
-    return RespuestasXOpcionesDeRespuestaCompanion(
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      respuestaId: respuestaId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(respuestaId),
-      opcionDeRespuestaId: opcionDeRespuestaId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(opcionDeRespuestaId),
-    );
-  }
-
-  factory RespuestasXOpcionesDeRespuestaData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
-    return RespuestasXOpcionesDeRespuestaData(
-      id: serializer.fromJson<int>(json['id']),
-      respuestaId: serializer.fromJson<int>(json['respuesta']),
-      opcionDeRespuestaId: serializer.fromJson<int>(json['opcionDeRespuesta']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'respuesta': serializer.toJson<int>(respuestaId),
-      'opcionDeRespuesta': serializer.toJson<int>(opcionDeRespuestaId),
-    };
-  }
-
-  RespuestasXOpcionesDeRespuestaData copyWith(
-          {int id, int respuestaId, int opcionDeRespuestaId}) =>
-      RespuestasXOpcionesDeRespuestaData(
-        id: id ?? this.id,
-        respuestaId: respuestaId ?? this.respuestaId,
-        opcionDeRespuestaId: opcionDeRespuestaId ?? this.opcionDeRespuestaId,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('RespuestasXOpcionesDeRespuestaData(')
-          ..write('id: $id, ')
-          ..write('respuestaId: $respuestaId, ')
-          ..write('opcionDeRespuestaId: $opcionDeRespuestaId')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => $mrjf($mrjc(
-      id.hashCode, $mrjc(respuestaId.hashCode, opcionDeRespuestaId.hashCode)));
-  @override
-  bool operator ==(dynamic other) =>
-      identical(this, other) ||
-      (other is RespuestasXOpcionesDeRespuestaData &&
-          other.id == this.id &&
-          other.respuestaId == this.respuestaId &&
-          other.opcionDeRespuestaId == this.opcionDeRespuestaId);
-}
-
-class RespuestasXOpcionesDeRespuestaCompanion
-    extends UpdateCompanion<RespuestasXOpcionesDeRespuestaData> {
-  final Value<int> id;
-  final Value<int> respuestaId;
-  final Value<int> opcionDeRespuestaId;
-  const RespuestasXOpcionesDeRespuestaCompanion({
-    this.id = const Value.absent(),
-    this.respuestaId = const Value.absent(),
-    this.opcionDeRespuestaId = const Value.absent(),
-  });
-  RespuestasXOpcionesDeRespuestaCompanion.insert({
-    this.id = const Value.absent(),
-    @required int respuestaId,
-    @required int opcionDeRespuestaId,
-  })  : respuestaId = Value(respuestaId),
-        opcionDeRespuestaId = Value(opcionDeRespuestaId);
-  static Insertable<RespuestasXOpcionesDeRespuestaData> custom({
-    Expression<int> id,
-    Expression<int> respuestaId,
-    Expression<int> opcionDeRespuestaId,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (respuestaId != null) 'respuesta_id': respuestaId,
-      if (opcionDeRespuestaId != null)
-        'opcion_de_respuesta_id': opcionDeRespuestaId,
-    });
-  }
-
-  RespuestasXOpcionesDeRespuestaCompanion copyWith(
-      {Value<int> id, Value<int> respuestaId, Value<int> opcionDeRespuestaId}) {
-    return RespuestasXOpcionesDeRespuestaCompanion(
-      id: id ?? this.id,
-      respuestaId: respuestaId ?? this.respuestaId,
-      opcionDeRespuestaId: opcionDeRespuestaId ?? this.opcionDeRespuestaId,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (respuestaId.present) {
-      map['respuesta_id'] = Variable<int>(respuestaId.value);
-    }
-    if (opcionDeRespuestaId.present) {
-      map['opcion_de_respuesta_id'] = Variable<int>(opcionDeRespuestaId.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('RespuestasXOpcionesDeRespuestaCompanion(')
-          ..write('id: $id, ')
-          ..write('respuestaId: $respuestaId, ')
-          ..write('opcionDeRespuestaId: $opcionDeRespuestaId')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $RespuestasXOpcionesDeRespuestaTable
-    extends RespuestasXOpcionesDeRespuesta
-    with
-        TableInfo<$RespuestasXOpcionesDeRespuestaTable,
-            RespuestasXOpcionesDeRespuestaData> {
-  final GeneratedDatabase _db;
-  final String _alias;
-  $RespuestasXOpcionesDeRespuestaTable(this._db, [this._alias]);
-  final VerificationMeta _idMeta = const VerificationMeta('id');
-  GeneratedIntColumn _id;
-  @override
-  GeneratedIntColumn get id => _id ??= _constructId();
-  GeneratedIntColumn _constructId() {
-    return GeneratedIntColumn('id', $tableName, false,
-        hasAutoIncrement: true, declaredAsPrimaryKey: true);
-  }
-
-  final VerificationMeta _respuestaIdMeta =
-      const VerificationMeta('respuestaId');
-  GeneratedIntColumn _respuestaId;
-  @override
-  GeneratedIntColumn get respuestaId =>
-      _respuestaId ??= _constructRespuestaId();
-  GeneratedIntColumn _constructRespuestaId() {
-    return GeneratedIntColumn('respuesta_id', $tableName, false,
-        $customConstraints: 'REFERENCES respuestas(id) ON DELETE CASCADE');
-  }
-
-  final VerificationMeta _opcionDeRespuestaIdMeta =
-      const VerificationMeta('opcionDeRespuestaId');
-  GeneratedIntColumn _opcionDeRespuestaId;
-  @override
-  GeneratedIntColumn get opcionDeRespuestaId =>
-      _opcionDeRespuestaId ??= _constructOpcionDeRespuestaId();
-  GeneratedIntColumn _constructOpcionDeRespuestaId() {
-    return GeneratedIntColumn('opcion_de_respuesta_id', $tableName, false,
-        $customConstraints:
-            'REFERENCES opciones_de_respuesta(id) ON DELETE CASCADE');
-  }
-
-  @override
-  List<GeneratedColumn> get $columns => [id, respuestaId, opcionDeRespuestaId];
-  @override
-  $RespuestasXOpcionesDeRespuestaTable get asDslTable => this;
-  @override
-  String get $tableName => _alias ?? 'respuestas_x_opciones_de_respuesta';
-  @override
-  final String actualTableName = 'respuestas_x_opciones_de_respuesta';
-  @override
-  VerificationContext validateIntegrity(
-      Insertable<RespuestasXOpcionesDeRespuestaData> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
-    }
-    if (data.containsKey('respuesta_id')) {
-      context.handle(
-          _respuestaIdMeta,
-          respuestaId.isAcceptableOrUnknown(
-              data['respuesta_id'], _respuestaIdMeta));
-    } else if (isInserting) {
-      context.missing(_respuestaIdMeta);
-    }
-    if (data.containsKey('opcion_de_respuesta_id')) {
-      context.handle(
-          _opcionDeRespuestaIdMeta,
-          opcionDeRespuestaId.isAcceptableOrUnknown(
-              data['opcion_de_respuesta_id'], _opcionDeRespuestaIdMeta));
-    } else if (isInserting) {
-      context.missing(_opcionDeRespuestaIdMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  RespuestasXOpcionesDeRespuestaData map(Map<String, dynamic> data,
-      {String tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
-    return RespuestasXOpcionesDeRespuestaData.fromData(data, _db,
-        prefix: effectivePrefix);
-  }
-
-  @override
-  $RespuestasXOpcionesDeRespuestaTable createAlias(String alias) {
-    return $RespuestasXOpcionesDeRespuestaTable(_db, alias);
-  }
 }
 
 class Contratista extends DataClass implements Insertable<Contratista> {
@@ -5040,31 +4982,41 @@ class $CriticidadesNumericasTable extends CriticidadesNumericas
   }
 }
 
-class PreguntasCondicionalData extends DataClass
-    implements Insertable<PreguntasCondicionalData> {
+class GruposInspecciones extends DataClass
+    implements Insertable<GruposInspecciones> {
   final int id;
-  final int preguntaId;
-  final int seccion;
-  final String opcionDeRespuesta;
-  PreguntasCondicionalData(
+  final int nGrupo;
+  final DateTime inicio;
+  final DateTime fin;
+  final int totalGrupos;
+  final int tipoInspeccion;
+  final int anio;
+  GruposInspecciones(
       {@required this.id,
-      @required this.preguntaId,
-      @required this.seccion,
-      @required this.opcionDeRespuesta});
-  factory PreguntasCondicionalData.fromData(
+      @required this.nGrupo,
+      @required this.inicio,
+      @required this.fin,
+      @required this.totalGrupos,
+      @required this.tipoInspeccion,
+      @required this.anio});
+  factory GruposInspecciones.fromData(
       Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
-    final stringType = db.typeSystem.forDartType<String>();
-    return PreguntasCondicionalData(
+    final dateTimeType = db.typeSystem.forDartType<DateTime>();
+    return GruposInspecciones(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
-      preguntaId: intType
-          .mapFromDatabaseResponse(data['${effectivePrefix}pregunta_id']),
-      seccion:
-          intType.mapFromDatabaseResponse(data['${effectivePrefix}seccion']),
-      opcionDeRespuesta: stringType.mapFromDatabaseResponse(
-          data['${effectivePrefix}opcion_de_respuesta']),
+      nGrupo:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}n_grupo']),
+      inicio: dateTimeType
+          .mapFromDatabaseResponse(data['${effectivePrefix}inicio']),
+      fin: dateTimeType.mapFromDatabaseResponse(data['${effectivePrefix}fin']),
+      totalGrupos: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}total_grupos']),
+      tipoInspeccion: intType
+          .mapFromDatabaseResponse(data['${effectivePrefix}tipo_inspeccion']),
+      anio: intType.mapFromDatabaseResponse(data['${effectivePrefix}anio']),
     );
   }
   @override
@@ -5073,41 +5025,56 @@ class PreguntasCondicionalData extends DataClass
     if (!nullToAbsent || id != null) {
       map['id'] = Variable<int>(id);
     }
-    if (!nullToAbsent || preguntaId != null) {
-      map['pregunta_id'] = Variable<int>(preguntaId);
+    if (!nullToAbsent || nGrupo != null) {
+      map['n_grupo'] = Variable<int>(nGrupo);
     }
-    if (!nullToAbsent || seccion != null) {
-      map['seccion'] = Variable<int>(seccion);
+    if (!nullToAbsent || inicio != null) {
+      map['inicio'] = Variable<DateTime>(inicio);
     }
-    if (!nullToAbsent || opcionDeRespuesta != null) {
-      map['opcion_de_respuesta'] = Variable<String>(opcionDeRespuesta);
+    if (!nullToAbsent || fin != null) {
+      map['fin'] = Variable<DateTime>(fin);
+    }
+    if (!nullToAbsent || totalGrupos != null) {
+      map['total_grupos'] = Variable<int>(totalGrupos);
+    }
+    if (!nullToAbsent || tipoInspeccion != null) {
+      map['tipo_inspeccion'] = Variable<int>(tipoInspeccion);
+    }
+    if (!nullToAbsent || anio != null) {
+      map['anio'] = Variable<int>(anio);
     }
     return map;
   }
 
-  PreguntasCondicionalCompanion toCompanion(bool nullToAbsent) {
-    return PreguntasCondicionalCompanion(
+  GruposInspeccionessCompanion toCompanion(bool nullToAbsent) {
+    return GruposInspeccionessCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      preguntaId: preguntaId == null && nullToAbsent
+      nGrupo:
+          nGrupo == null && nullToAbsent ? const Value.absent() : Value(nGrupo),
+      inicio:
+          inicio == null && nullToAbsent ? const Value.absent() : Value(inicio),
+      fin: fin == null && nullToAbsent ? const Value.absent() : Value(fin),
+      totalGrupos: totalGrupos == null && nullToAbsent
           ? const Value.absent()
-          : Value(preguntaId),
-      seccion: seccion == null && nullToAbsent
+          : Value(totalGrupos),
+      tipoInspeccion: tipoInspeccion == null && nullToAbsent
           ? const Value.absent()
-          : Value(seccion),
-      opcionDeRespuesta: opcionDeRespuesta == null && nullToAbsent
-          ? const Value.absent()
-          : Value(opcionDeRespuesta),
+          : Value(tipoInspeccion),
+      anio: anio == null && nullToAbsent ? const Value.absent() : Value(anio),
     );
   }
 
-  factory PreguntasCondicionalData.fromJson(Map<String, dynamic> json,
+  factory GruposInspecciones.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
-    return PreguntasCondicionalData(
+    return GruposInspecciones(
       id: serializer.fromJson<int>(json['id']),
-      preguntaId: serializer.fromJson<int>(json['pregunta']),
-      seccion: serializer.fromJson<int>(json['seccion']),
-      opcionDeRespuesta: serializer.fromJson<String>(json['opcionDeRespuesta']),
+      nGrupo: serializer.fromJson<int>(json['nGrupo']),
+      inicio: serializer.fromJson<DateTime>(json['inicio']),
+      fin: serializer.fromJson<DateTime>(json['fin']),
+      totalGrupos: serializer.fromJson<int>(json['totalGrupos']),
+      tipoInspeccion: serializer.fromJson<int>(json['tipoInspeccion']),
+      anio: serializer.fromJson<int>(json['anio']),
     );
   }
   @override
@@ -5115,27 +5082,42 @@ class PreguntasCondicionalData extends DataClass
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'pregunta': serializer.toJson<int>(preguntaId),
-      'seccion': serializer.toJson<int>(seccion),
-      'opcionDeRespuesta': serializer.toJson<String>(opcionDeRespuesta),
+      'nGrupo': serializer.toJson<int>(nGrupo),
+      'inicio': serializer.toJson<DateTime>(inicio),
+      'fin': serializer.toJson<DateTime>(fin),
+      'totalGrupos': serializer.toJson<int>(totalGrupos),
+      'tipoInspeccion': serializer.toJson<int>(tipoInspeccion),
+      'anio': serializer.toJson<int>(anio),
     };
   }
 
-  PreguntasCondicionalData copyWith(
-          {int id, int preguntaId, int seccion, String opcionDeRespuesta}) =>
-      PreguntasCondicionalData(
+  GruposInspecciones copyWith(
+          {int id,
+          int nGrupo,
+          DateTime inicio,
+          DateTime fin,
+          int totalGrupos,
+          int tipoInspeccion,
+          int anio}) =>
+      GruposInspecciones(
         id: id ?? this.id,
-        preguntaId: preguntaId ?? this.preguntaId,
-        seccion: seccion ?? this.seccion,
-        opcionDeRespuesta: opcionDeRespuesta ?? this.opcionDeRespuesta,
+        nGrupo: nGrupo ?? this.nGrupo,
+        inicio: inicio ?? this.inicio,
+        fin: fin ?? this.fin,
+        totalGrupos: totalGrupos ?? this.totalGrupos,
+        tipoInspeccion: tipoInspeccion ?? this.tipoInspeccion,
+        anio: anio ?? this.anio,
       );
   @override
   String toString() {
-    return (StringBuffer('PreguntasCondicionalData(')
+    return (StringBuffer('GruposInspecciones(')
           ..write('id: $id, ')
-          ..write('preguntaId: $preguntaId, ')
-          ..write('seccion: $seccion, ')
-          ..write('opcionDeRespuesta: $opcionDeRespuesta')
+          ..write('nGrupo: $nGrupo, ')
+          ..write('inicio: $inicio, ')
+          ..write('fin: $fin, ')
+          ..write('totalGrupos: $totalGrupos, ')
+          ..write('tipoInspeccion: $tipoInspeccion, ')
+          ..write('anio: $anio')
           ..write(')'))
         .toString();
   }
@@ -5143,62 +5125,93 @@ class PreguntasCondicionalData extends DataClass
   @override
   int get hashCode => $mrjf($mrjc(
       id.hashCode,
-      $mrjc(preguntaId.hashCode,
-          $mrjc(seccion.hashCode, opcionDeRespuesta.hashCode))));
+      $mrjc(
+          nGrupo.hashCode,
+          $mrjc(
+              inicio.hashCode,
+              $mrjc(
+                  fin.hashCode,
+                  $mrjc(totalGrupos.hashCode,
+                      $mrjc(tipoInspeccion.hashCode, anio.hashCode)))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
-      (other is PreguntasCondicionalData &&
+      (other is GruposInspecciones &&
           other.id == this.id &&
-          other.preguntaId == this.preguntaId &&
-          other.seccion == this.seccion &&
-          other.opcionDeRespuesta == this.opcionDeRespuesta);
+          other.nGrupo == this.nGrupo &&
+          other.inicio == this.inicio &&
+          other.fin == this.fin &&
+          other.totalGrupos == this.totalGrupos &&
+          other.tipoInspeccion == this.tipoInspeccion &&
+          other.anio == this.anio);
 }
 
-class PreguntasCondicionalCompanion
-    extends UpdateCompanion<PreguntasCondicionalData> {
+class GruposInspeccionessCompanion extends UpdateCompanion<GruposInspecciones> {
   final Value<int> id;
-  final Value<int> preguntaId;
-  final Value<int> seccion;
-  final Value<String> opcionDeRespuesta;
-  const PreguntasCondicionalCompanion({
+  final Value<int> nGrupo;
+  final Value<DateTime> inicio;
+  final Value<DateTime> fin;
+  final Value<int> totalGrupos;
+  final Value<int> tipoInspeccion;
+  final Value<int> anio;
+  const GruposInspeccionessCompanion({
     this.id = const Value.absent(),
-    this.preguntaId = const Value.absent(),
-    this.seccion = const Value.absent(),
-    this.opcionDeRespuesta = const Value.absent(),
+    this.nGrupo = const Value.absent(),
+    this.inicio = const Value.absent(),
+    this.fin = const Value.absent(),
+    this.totalGrupos = const Value.absent(),
+    this.tipoInspeccion = const Value.absent(),
+    this.anio = const Value.absent(),
   });
-  PreguntasCondicionalCompanion.insert({
+  GruposInspeccionessCompanion.insert({
     this.id = const Value.absent(),
-    @required int preguntaId,
-    @required int seccion,
-    @required String opcionDeRespuesta,
-  })  : preguntaId = Value(preguntaId),
-        seccion = Value(seccion),
-        opcionDeRespuesta = Value(opcionDeRespuesta);
-  static Insertable<PreguntasCondicionalData> custom({
+    @required int nGrupo,
+    @required DateTime inicio,
+    @required DateTime fin,
+    @required int totalGrupos,
+    @required int tipoInspeccion,
+    this.anio = const Value.absent(),
+  })  : nGrupo = Value(nGrupo),
+        inicio = Value(inicio),
+        fin = Value(fin),
+        totalGrupos = Value(totalGrupos),
+        tipoInspeccion = Value(tipoInspeccion);
+  static Insertable<GruposInspecciones> custom({
     Expression<int> id,
-    Expression<int> preguntaId,
-    Expression<int> seccion,
-    Expression<String> opcionDeRespuesta,
+    Expression<int> nGrupo,
+    Expression<DateTime> inicio,
+    Expression<DateTime> fin,
+    Expression<int> totalGrupos,
+    Expression<int> tipoInspeccion,
+    Expression<int> anio,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (preguntaId != null) 'pregunta_id': preguntaId,
-      if (seccion != null) 'seccion': seccion,
-      if (opcionDeRespuesta != null) 'opcion_de_respuesta': opcionDeRespuesta,
+      if (nGrupo != null) 'n_grupo': nGrupo,
+      if (inicio != null) 'inicio': inicio,
+      if (fin != null) 'fin': fin,
+      if (totalGrupos != null) 'total_grupos': totalGrupos,
+      if (tipoInspeccion != null) 'tipo_inspeccion': tipoInspeccion,
+      if (anio != null) 'anio': anio,
     });
   }
 
-  PreguntasCondicionalCompanion copyWith(
+  GruposInspeccionessCompanion copyWith(
       {Value<int> id,
-      Value<int> preguntaId,
-      Value<int> seccion,
-      Value<String> opcionDeRespuesta}) {
-    return PreguntasCondicionalCompanion(
+      Value<int> nGrupo,
+      Value<DateTime> inicio,
+      Value<DateTime> fin,
+      Value<int> totalGrupos,
+      Value<int> tipoInspeccion,
+      Value<int> anio}) {
+    return GruposInspeccionessCompanion(
       id: id ?? this.id,
-      preguntaId: preguntaId ?? this.preguntaId,
-      seccion: seccion ?? this.seccion,
-      opcionDeRespuesta: opcionDeRespuesta ?? this.opcionDeRespuesta,
+      nGrupo: nGrupo ?? this.nGrupo,
+      inicio: inicio ?? this.inicio,
+      fin: fin ?? this.fin,
+      totalGrupos: totalGrupos ?? this.totalGrupos,
+      tipoInspeccion: tipoInspeccion ?? this.tipoInspeccion,
+      anio: anio ?? this.anio,
     );
   }
 
@@ -5208,35 +5221,47 @@ class PreguntasCondicionalCompanion
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (preguntaId.present) {
-      map['pregunta_id'] = Variable<int>(preguntaId.value);
+    if (nGrupo.present) {
+      map['n_grupo'] = Variable<int>(nGrupo.value);
     }
-    if (seccion.present) {
-      map['seccion'] = Variable<int>(seccion.value);
+    if (inicio.present) {
+      map['inicio'] = Variable<DateTime>(inicio.value);
     }
-    if (opcionDeRespuesta.present) {
-      map['opcion_de_respuesta'] = Variable<String>(opcionDeRespuesta.value);
+    if (fin.present) {
+      map['fin'] = Variable<DateTime>(fin.value);
+    }
+    if (totalGrupos.present) {
+      map['total_grupos'] = Variable<int>(totalGrupos.value);
+    }
+    if (tipoInspeccion.present) {
+      map['tipo_inspeccion'] = Variable<int>(tipoInspeccion.value);
+    }
+    if (anio.present) {
+      map['anio'] = Variable<int>(anio.value);
     }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('PreguntasCondicionalCompanion(')
+    return (StringBuffer('GruposInspeccionessCompanion(')
           ..write('id: $id, ')
-          ..write('preguntaId: $preguntaId, ')
-          ..write('seccion: $seccion, ')
-          ..write('opcionDeRespuesta: $opcionDeRespuesta')
+          ..write('nGrupo: $nGrupo, ')
+          ..write('inicio: $inicio, ')
+          ..write('fin: $fin, ')
+          ..write('totalGrupos: $totalGrupos, ')
+          ..write('tipoInspeccion: $tipoInspeccion, ')
+          ..write('anio: $anio')
           ..write(')'))
         .toString();
   }
 }
 
-class $PreguntasCondicionalTable extends PreguntasCondicional
-    with TableInfo<$PreguntasCondicionalTable, PreguntasCondicionalData> {
+class $GruposInspeccionessTable extends GruposInspeccioness
+    with TableInfo<$GruposInspeccionessTable, GruposInspecciones> {
   final GeneratedDatabase _db;
   final String _alias;
-  $PreguntasCondicionalTable(this._db, [this._alias]);
+  $GruposInspeccionessTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   GeneratedIntColumn _id;
   @override
@@ -5246,77 +5271,134 @@ class $PreguntasCondicionalTable extends PreguntasCondicional
         hasAutoIncrement: true, declaredAsPrimaryKey: true);
   }
 
-  final VerificationMeta _preguntaIdMeta = const VerificationMeta('preguntaId');
-  GeneratedIntColumn _preguntaId;
+  final VerificationMeta _nGrupoMeta = const VerificationMeta('nGrupo');
+  GeneratedIntColumn _nGrupo;
   @override
-  GeneratedIntColumn get preguntaId => _preguntaId ??= _constructPreguntaId();
-  GeneratedIntColumn _constructPreguntaId() {
-    return GeneratedIntColumn('pregunta_id', $tableName, false,
-        $customConstraints: 'REFERENCES preguntas(id) ON DELETE CASCADE');
-  }
-
-  final VerificationMeta _seccionMeta = const VerificationMeta('seccion');
-  GeneratedIntColumn _seccion;
-  @override
-  GeneratedIntColumn get seccion => _seccion ??= _constructSeccion();
-  GeneratedIntColumn _constructSeccion() {
+  GeneratedIntColumn get nGrupo => _nGrupo ??= _constructNGrupo();
+  GeneratedIntColumn _constructNGrupo() {
     return GeneratedIntColumn(
-      'seccion',
+      'n_grupo',
       $tableName,
       false,
     );
   }
 
-  final VerificationMeta _opcionDeRespuestaMeta =
-      const VerificationMeta('opcionDeRespuesta');
-  GeneratedTextColumn _opcionDeRespuesta;
+  final VerificationMeta _inicioMeta = const VerificationMeta('inicio');
+  GeneratedDateTimeColumn _inicio;
   @override
-  GeneratedTextColumn get opcionDeRespuesta =>
-      _opcionDeRespuesta ??= _constructOpcionDeRespuesta();
-  GeneratedTextColumn _constructOpcionDeRespuesta() {
-    return GeneratedTextColumn('opcion_de_respuesta', $tableName, false,
-        minTextLength: 1, maxTextLength: 100);
+  GeneratedDateTimeColumn get inicio => _inicio ??= _constructInicio();
+  GeneratedDateTimeColumn _constructInicio() {
+    return GeneratedDateTimeColumn(
+      'inicio',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _finMeta = const VerificationMeta('fin');
+  GeneratedDateTimeColumn _fin;
+  @override
+  GeneratedDateTimeColumn get fin => _fin ??= _constructFin();
+  GeneratedDateTimeColumn _constructFin() {
+    return GeneratedDateTimeColumn(
+      'fin',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _totalGruposMeta =
+      const VerificationMeta('totalGrupos');
+  GeneratedIntColumn _totalGrupos;
+  @override
+  GeneratedIntColumn get totalGrupos =>
+      _totalGrupos ??= _constructTotalGrupos();
+  GeneratedIntColumn _constructTotalGrupos() {
+    return GeneratedIntColumn(
+      'total_grupos',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _tipoInspeccionMeta =
+      const VerificationMeta('tipoInspeccion');
+  GeneratedIntColumn _tipoInspeccion;
+  @override
+  GeneratedIntColumn get tipoInspeccion =>
+      _tipoInspeccion ??= _constructTipoInspeccion();
+  GeneratedIntColumn _constructTipoInspeccion() {
+    return GeneratedIntColumn('tipo_inspeccion', $tableName, false,
+        $customConstraints:
+            'REFERENCES tipos_de_inspecciones(id) ON DELETE CASCADE');
+  }
+
+  final VerificationMeta _anioMeta = const VerificationMeta('anio');
+  GeneratedIntColumn _anio;
+  @override
+  GeneratedIntColumn get anio => _anio ??= _constructAnio();
+  GeneratedIntColumn _constructAnio() {
+    return GeneratedIntColumn(
+      'anio',
+      $tableName,
+      false,
+    )..clientDefault = () => inicio.year as int;
   }
 
   @override
   List<GeneratedColumn> get $columns =>
-      [id, preguntaId, seccion, opcionDeRespuesta];
+      [id, nGrupo, inicio, fin, totalGrupos, tipoInspeccion, anio];
   @override
-  $PreguntasCondicionalTable get asDslTable => this;
+  $GruposInspeccionessTable get asDslTable => this;
   @override
-  String get $tableName => _alias ?? 'preguntas_condicional';
+  String get $tableName => _alias ?? 'grupos_inspeccioness';
   @override
-  final String actualTableName = 'preguntas_condicional';
+  final String actualTableName = 'grupos_inspeccioness';
   @override
-  VerificationContext validateIntegrity(
-      Insertable<PreguntasCondicionalData> instance,
+  VerificationContext validateIntegrity(Insertable<GruposInspecciones> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
     }
-    if (data.containsKey('pregunta_id')) {
-      context.handle(
-          _preguntaIdMeta,
-          preguntaId.isAcceptableOrUnknown(
-              data['pregunta_id'], _preguntaIdMeta));
+    if (data.containsKey('n_grupo')) {
+      context.handle(_nGrupoMeta,
+          nGrupo.isAcceptableOrUnknown(data['n_grupo'], _nGrupoMeta));
     } else if (isInserting) {
-      context.missing(_preguntaIdMeta);
+      context.missing(_nGrupoMeta);
     }
-    if (data.containsKey('seccion')) {
-      context.handle(_seccionMeta,
-          seccion.isAcceptableOrUnknown(data['seccion'], _seccionMeta));
+    if (data.containsKey('inicio')) {
+      context.handle(_inicioMeta,
+          inicio.isAcceptableOrUnknown(data['inicio'], _inicioMeta));
     } else if (isInserting) {
-      context.missing(_seccionMeta);
+      context.missing(_inicioMeta);
     }
-    if (data.containsKey('opcion_de_respuesta')) {
+    if (data.containsKey('fin')) {
       context.handle(
-          _opcionDeRespuestaMeta,
-          opcionDeRespuesta.isAcceptableOrUnknown(
-              data['opcion_de_respuesta'], _opcionDeRespuestaMeta));
+          _finMeta, fin.isAcceptableOrUnknown(data['fin'], _finMeta));
     } else if (isInserting) {
-      context.missing(_opcionDeRespuestaMeta);
+      context.missing(_finMeta);
+    }
+    if (data.containsKey('total_grupos')) {
+      context.handle(
+          _totalGruposMeta,
+          totalGrupos.isAcceptableOrUnknown(
+              data['total_grupos'], _totalGruposMeta));
+    } else if (isInserting) {
+      context.missing(_totalGruposMeta);
+    }
+    if (data.containsKey('tipo_inspeccion')) {
+      context.handle(
+          _tipoInspeccionMeta,
+          tipoInspeccion.isAcceptableOrUnknown(
+              data['tipo_inspeccion'], _tipoInspeccionMeta));
+    } else if (isInserting) {
+      context.missing(_tipoInspeccionMeta);
+    }
+    if (data.containsKey('anio')) {
+      context.handle(
+          _anioMeta, anio.isAcceptableOrUnknown(data['anio'], _anioMeta));
     }
     return context;
   }
@@ -5324,16 +5406,792 @@ class $PreguntasCondicionalTable extends PreguntasCondicional
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  PreguntasCondicionalData map(Map<String, dynamic> data,
+  GruposInspecciones map(Map<String, dynamic> data, {String tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
+    return GruposInspecciones.fromData(data, _db, prefix: effectivePrefix);
+  }
+
+  @override
+  $GruposInspeccionessTable createAlias(String alias) {
+    return $GruposInspeccionessTable(_db, alias);
+  }
+}
+
+class ProgramacionSistema extends DataClass
+    implements Insertable<ProgramacionSistema> {
+  final int id;
+  final int activoId;
+  final int grupoId;
+  final int mes;
+  final EstadoProgramacion estado;
+  ProgramacionSistema(
+      {@required this.id,
+      @required this.activoId,
+      @required this.grupoId,
+      @required this.mes,
+      @required this.estado});
+  factory ProgramacionSistema.fromData(
+      Map<String, dynamic> data, GeneratedDatabase db,
+      {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    final intType = db.typeSystem.forDartType<int>();
+    return ProgramacionSistema(
+      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      activoId:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}activo_id']),
+      grupoId:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}grupo_id']),
+      mes: intType.mapFromDatabaseResponse(data['${effectivePrefix}mes']),
+      estado: $ProgramacionSistemasTable.$converter0.mapToDart(
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}estado'])),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || activoId != null) {
+      map['activo_id'] = Variable<int>(activoId);
+    }
+    if (!nullToAbsent || grupoId != null) {
+      map['grupo_id'] = Variable<int>(grupoId);
+    }
+    if (!nullToAbsent || mes != null) {
+      map['mes'] = Variable<int>(mes);
+    }
+    if (!nullToAbsent || estado != null) {
+      final converter = $ProgramacionSistemasTable.$converter0;
+      map['estado'] = Variable<int>(converter.mapToSql(estado));
+    }
+    return map;
+  }
+
+  ProgramacionSistemasCompanion toCompanion(bool nullToAbsent) {
+    return ProgramacionSistemasCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      activoId: activoId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(activoId),
+      grupoId: grupoId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(grupoId),
+      mes: mes == null && nullToAbsent ? const Value.absent() : Value(mes),
+      estado:
+          estado == null && nullToAbsent ? const Value.absent() : Value(estado),
+    );
+  }
+
+  factory ProgramacionSistema.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return ProgramacionSistema(
+      id: serializer.fromJson<int>(json['id']),
+      activoId: serializer.fromJson<int>(json['activoId']),
+      grupoId: serializer.fromJson<int>(json['grupoId']),
+      mes: serializer.fromJson<int>(json['mes']),
+      estado: serializer.fromJson<EstadoProgramacion>(json['estado']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'activoId': serializer.toJson<int>(activoId),
+      'grupoId': serializer.toJson<int>(grupoId),
+      'mes': serializer.toJson<int>(mes),
+      'estado': serializer.toJson<EstadoProgramacion>(estado),
+    };
+  }
+
+  ProgramacionSistema copyWith(
+          {int id,
+          int activoId,
+          int grupoId,
+          int mes,
+          EstadoProgramacion estado}) =>
+      ProgramacionSistema(
+        id: id ?? this.id,
+        activoId: activoId ?? this.activoId,
+        grupoId: grupoId ?? this.grupoId,
+        mes: mes ?? this.mes,
+        estado: estado ?? this.estado,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('ProgramacionSistema(')
+          ..write('id: $id, ')
+          ..write('activoId: $activoId, ')
+          ..write('grupoId: $grupoId, ')
+          ..write('mes: $mes, ')
+          ..write('estado: $estado')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(
+      id.hashCode,
+      $mrjc(activoId.hashCode,
+          $mrjc(grupoId.hashCode, $mrjc(mes.hashCode, estado.hashCode)))));
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) ||
+      (other is ProgramacionSistema &&
+          other.id == this.id &&
+          other.activoId == this.activoId &&
+          other.grupoId == this.grupoId &&
+          other.mes == this.mes &&
+          other.estado == this.estado);
+}
+
+class ProgramacionSistemasCompanion
+    extends UpdateCompanion<ProgramacionSistema> {
+  final Value<int> id;
+  final Value<int> activoId;
+  final Value<int> grupoId;
+  final Value<int> mes;
+  final Value<EstadoProgramacion> estado;
+  const ProgramacionSistemasCompanion({
+    this.id = const Value.absent(),
+    this.activoId = const Value.absent(),
+    this.grupoId = const Value.absent(),
+    this.mes = const Value.absent(),
+    this.estado = const Value.absent(),
+  });
+  ProgramacionSistemasCompanion.insert({
+    this.id = const Value.absent(),
+    @required int activoId,
+    @required int grupoId,
+    @required int mes,
+    @required EstadoProgramacion estado,
+  })  : activoId = Value(activoId),
+        grupoId = Value(grupoId),
+        mes = Value(mes),
+        estado = Value(estado);
+  static Insertable<ProgramacionSistema> custom({
+    Expression<int> id,
+    Expression<int> activoId,
+    Expression<int> grupoId,
+    Expression<int> mes,
+    Expression<int> estado,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (activoId != null) 'activo_id': activoId,
+      if (grupoId != null) 'grupo_id': grupoId,
+      if (mes != null) 'mes': mes,
+      if (estado != null) 'estado': estado,
+    });
+  }
+
+  ProgramacionSistemasCompanion copyWith(
+      {Value<int> id,
+      Value<int> activoId,
+      Value<int> grupoId,
+      Value<int> mes,
+      Value<EstadoProgramacion> estado}) {
+    return ProgramacionSistemasCompanion(
+      id: id ?? this.id,
+      activoId: activoId ?? this.activoId,
+      grupoId: grupoId ?? this.grupoId,
+      mes: mes ?? this.mes,
+      estado: estado ?? this.estado,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (activoId.present) {
+      map['activo_id'] = Variable<int>(activoId.value);
+    }
+    if (grupoId.present) {
+      map['grupo_id'] = Variable<int>(grupoId.value);
+    }
+    if (mes.present) {
+      map['mes'] = Variable<int>(mes.value);
+    }
+    if (estado.present) {
+      final converter = $ProgramacionSistemasTable.$converter0;
+      map['estado'] = Variable<int>(converter.mapToSql(estado.value));
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProgramacionSistemasCompanion(')
+          ..write('id: $id, ')
+          ..write('activoId: $activoId, ')
+          ..write('grupoId: $grupoId, ')
+          ..write('mes: $mes, ')
+          ..write('estado: $estado')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ProgramacionSistemasTable extends ProgramacionSistemas
+    with TableInfo<$ProgramacionSistemasTable, ProgramacionSistema> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $ProgramacionSistemasTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedIntColumn _id;
+  @override
+  GeneratedIntColumn get id => _id ??= _constructId();
+  GeneratedIntColumn _constructId() {
+    return GeneratedIntColumn('id', $tableName, false,
+        hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _activoIdMeta = const VerificationMeta('activoId');
+  GeneratedIntColumn _activoId;
+  @override
+  GeneratedIntColumn get activoId => _activoId ??= _constructActivoId();
+  GeneratedIntColumn _constructActivoId() {
+    return GeneratedIntColumn('activo_id', $tableName, false,
+        $customConstraints: 'REFERENCES activos(id) ON DELETE CASCADE');
+  }
+
+  final VerificationMeta _grupoIdMeta = const VerificationMeta('grupoId');
+  GeneratedIntColumn _grupoId;
+  @override
+  GeneratedIntColumn get grupoId => _grupoId ??= _constructGrupoId();
+  GeneratedIntColumn _constructGrupoId() {
+    return GeneratedIntColumn('grupo_id', $tableName, false,
+        $customConstraints:
+            'REFERENCES grupos_inspeccioness(id) ON DELETE CASCADE');
+  }
+
+  final VerificationMeta _mesMeta = const VerificationMeta('mes');
+  GeneratedIntColumn _mes;
+  @override
+  GeneratedIntColumn get mes => _mes ??= _constructMes();
+  GeneratedIntColumn _constructMes() {
+    return GeneratedIntColumn(
+      'mes',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _estadoMeta = const VerificationMeta('estado');
+  GeneratedIntColumn _estado;
+  @override
+  GeneratedIntColumn get estado => _estado ??= _constructEstado();
+  GeneratedIntColumn _constructEstado() {
+    return GeneratedIntColumn(
+      'estado',
+      $tableName,
+      false,
+    );
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, activoId, grupoId, mes, estado];
+  @override
+  $ProgramacionSistemasTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'programacion_sistemas';
+  @override
+  final String actualTableName = 'programacion_sistemas';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<ProgramacionSistema> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    }
+    if (data.containsKey('activo_id')) {
+      context.handle(_activoIdMeta,
+          activoId.isAcceptableOrUnknown(data['activo_id'], _activoIdMeta));
+    } else if (isInserting) {
+      context.missing(_activoIdMeta);
+    }
+    if (data.containsKey('grupo_id')) {
+      context.handle(_grupoIdMeta,
+          grupoId.isAcceptableOrUnknown(data['grupo_id'], _grupoIdMeta));
+    } else if (isInserting) {
+      context.missing(_grupoIdMeta);
+    }
+    if (data.containsKey('mes')) {
+      context.handle(
+          _mesMeta, mes.isAcceptableOrUnknown(data['mes'], _mesMeta));
+    } else if (isInserting) {
+      context.missing(_mesMeta);
+    }
+    context.handle(_estadoMeta, const VerificationResult.success());
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ProgramacionSistema map(Map<String, dynamic> data, {String tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
+    return ProgramacionSistema.fromData(data, _db, prefix: effectivePrefix);
+  }
+
+  @override
+  $ProgramacionSistemasTable createAlias(String alias) {
+    return $ProgramacionSistemasTable(_db, alias);
+  }
+
+  static TypeConverter<EstadoProgramacion, int> $converter0 =
+      const EnumIndexConverter<EstadoProgramacion>(EstadoProgramacion.values);
+}
+
+class ProgramacionSistemasXActivoData extends DataClass
+    implements Insertable<ProgramacionSistemasXActivoData> {
+  final int id;
+  final int programacionSistemaId;
+  final int sistemaId;
+  ProgramacionSistemasXActivoData(
+      {@required this.id,
+      @required this.programacionSistemaId,
+      @required this.sistemaId});
+  factory ProgramacionSistemasXActivoData.fromData(
+      Map<String, dynamic> data, GeneratedDatabase db,
+      {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    final intType = db.typeSystem.forDartType<int>();
+    return ProgramacionSistemasXActivoData(
+      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      programacionSistemaId: intType.mapFromDatabaseResponse(
+          data['${effectivePrefix}programacion_sistema_id']),
+      sistemaId:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}sistema_id']),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || programacionSistemaId != null) {
+      map['programacion_sistema_id'] = Variable<int>(programacionSistemaId);
+    }
+    if (!nullToAbsent || sistemaId != null) {
+      map['sistema_id'] = Variable<int>(sistemaId);
+    }
+    return map;
+  }
+
+  ProgramacionSistemasXActivoCompanion toCompanion(bool nullToAbsent) {
+    return ProgramacionSistemasXActivoCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      programacionSistemaId: programacionSistemaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(programacionSistemaId),
+      sistemaId: sistemaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sistemaId),
+    );
+  }
+
+  factory ProgramacionSistemasXActivoData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return ProgramacionSistemasXActivoData(
+      id: serializer.fromJson<int>(json['id']),
+      programacionSistemaId:
+          serializer.fromJson<int>(json['programacionSistemaId']),
+      sistemaId: serializer.fromJson<int>(json['sistema']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'programacionSistemaId': serializer.toJson<int>(programacionSistemaId),
+      'sistema': serializer.toJson<int>(sistemaId),
+    };
+  }
+
+  ProgramacionSistemasXActivoData copyWith(
+          {int id, int programacionSistemaId, int sistemaId}) =>
+      ProgramacionSistemasXActivoData(
+        id: id ?? this.id,
+        programacionSistemaId:
+            programacionSistemaId ?? this.programacionSistemaId,
+        sistemaId: sistemaId ?? this.sistemaId,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('ProgramacionSistemasXActivoData(')
+          ..write('id: $id, ')
+          ..write('programacionSistemaId: $programacionSistemaId, ')
+          ..write('sistemaId: $sistemaId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(
+      id.hashCode, $mrjc(programacionSistemaId.hashCode, sistemaId.hashCode)));
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) ||
+      (other is ProgramacionSistemasXActivoData &&
+          other.id == this.id &&
+          other.programacionSistemaId == this.programacionSistemaId &&
+          other.sistemaId == this.sistemaId);
+}
+
+class ProgramacionSistemasXActivoCompanion
+    extends UpdateCompanion<ProgramacionSistemasXActivoData> {
+  final Value<int> id;
+  final Value<int> programacionSistemaId;
+  final Value<int> sistemaId;
+  const ProgramacionSistemasXActivoCompanion({
+    this.id = const Value.absent(),
+    this.programacionSistemaId = const Value.absent(),
+    this.sistemaId = const Value.absent(),
+  });
+  ProgramacionSistemasXActivoCompanion.insert({
+    this.id = const Value.absent(),
+    @required int programacionSistemaId,
+    @required int sistemaId,
+  })  : programacionSistemaId = Value(programacionSistemaId),
+        sistemaId = Value(sistemaId);
+  static Insertable<ProgramacionSistemasXActivoData> custom({
+    Expression<int> id,
+    Expression<int> programacionSistemaId,
+    Expression<int> sistemaId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (programacionSistemaId != null)
+        'programacion_sistema_id': programacionSistemaId,
+      if (sistemaId != null) 'sistema_id': sistemaId,
+    });
+  }
+
+  ProgramacionSistemasXActivoCompanion copyWith(
+      {Value<int> id, Value<int> programacionSistemaId, Value<int> sistemaId}) {
+    return ProgramacionSistemasXActivoCompanion(
+      id: id ?? this.id,
+      programacionSistemaId:
+          programacionSistemaId ?? this.programacionSistemaId,
+      sistemaId: sistemaId ?? this.sistemaId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (programacionSistemaId.present) {
+      map['programacion_sistema_id'] =
+          Variable<int>(programacionSistemaId.value);
+    }
+    if (sistemaId.present) {
+      map['sistema_id'] = Variable<int>(sistemaId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProgramacionSistemasXActivoCompanion(')
+          ..write('id: $id, ')
+          ..write('programacionSistemaId: $programacionSistemaId, ')
+          ..write('sistemaId: $sistemaId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ProgramacionSistemasXActivoTable extends ProgramacionSistemasXActivo
+    with
+        TableInfo<$ProgramacionSistemasXActivoTable,
+            ProgramacionSistemasXActivoData> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $ProgramacionSistemasXActivoTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedIntColumn _id;
+  @override
+  GeneratedIntColumn get id => _id ??= _constructId();
+  GeneratedIntColumn _constructId() {
+    return GeneratedIntColumn('id', $tableName, false,
+        hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _programacionSistemaIdMeta =
+      const VerificationMeta('programacionSistemaId');
+  GeneratedIntColumn _programacionSistemaId;
+  @override
+  GeneratedIntColumn get programacionSistemaId =>
+      _programacionSistemaId ??= _constructProgramacionSistemaId();
+  GeneratedIntColumn _constructProgramacionSistemaId() {
+    return GeneratedIntColumn('programacion_sistema_id', $tableName, false,
+        $customConstraints:
+            'REFERENCES programacion_sistemas(id) ON DELETE CASCADE');
+  }
+
+  final VerificationMeta _sistemaIdMeta = const VerificationMeta('sistemaId');
+  GeneratedIntColumn _sistemaId;
+  @override
+  GeneratedIntColumn get sistemaId => _sistemaId ??= _constructSistemaId();
+  GeneratedIntColumn _constructSistemaId() {
+    return GeneratedIntColumn('sistema_id', $tableName, false,
+        $customConstraints: 'REFERENCES sistemas(id) ON DELETE CASCADE');
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, programacionSistemaId, sistemaId];
+  @override
+  $ProgramacionSistemasXActivoTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'programacion_sistemas_x_activo';
+  @override
+  final String actualTableName = 'programacion_sistemas_x_activo';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<ProgramacionSistemasXActivoData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    }
+    if (data.containsKey('programacion_sistema_id')) {
+      context.handle(
+          _programacionSistemaIdMeta,
+          programacionSistemaId.isAcceptableOrUnknown(
+              data['programacion_sistema_id'], _programacionSistemaIdMeta));
+    } else if (isInserting) {
+      context.missing(_programacionSistemaIdMeta);
+    }
+    if (data.containsKey('sistema_id')) {
+      context.handle(_sistemaIdMeta,
+          sistemaId.isAcceptableOrUnknown(data['sistema_id'], _sistemaIdMeta));
+    } else if (isInserting) {
+      context.missing(_sistemaIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ProgramacionSistemasXActivoData map(Map<String, dynamic> data,
       {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
-    return PreguntasCondicionalData.fromData(data, _db,
+    return ProgramacionSistemasXActivoData.fromData(data, _db,
         prefix: effectivePrefix);
   }
 
   @override
-  $PreguntasCondicionalTable createAlias(String alias) {
-    return $PreguntasCondicionalTable(_db, alias);
+  $ProgramacionSistemasXActivoTable createAlias(String alias) {
+    return $ProgramacionSistemasXActivoTable(_db, alias);
+  }
+}
+
+class TiposDeInspeccione extends DataClass
+    implements Insertable<TiposDeInspeccione> {
+  final int id;
+  final String tipo;
+  TiposDeInspeccione({@required this.id, @required this.tipo});
+  factory TiposDeInspeccione.fromData(
+      Map<String, dynamic> data, GeneratedDatabase db,
+      {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    final intType = db.typeSystem.forDartType<int>();
+    final stringType = db.typeSystem.forDartType<String>();
+    return TiposDeInspeccione(
+      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      tipo: stringType.mapFromDatabaseResponse(data['${effectivePrefix}tipo']),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || tipo != null) {
+      map['tipo'] = Variable<String>(tipo);
+    }
+    return map;
+  }
+
+  TiposDeInspeccionesCompanion toCompanion(bool nullToAbsent) {
+    return TiposDeInspeccionesCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      tipo: tipo == null && nullToAbsent ? const Value.absent() : Value(tipo),
+    );
+  }
+
+  factory TiposDeInspeccione.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return TiposDeInspeccione(
+      id: serializer.fromJson<int>(json['id']),
+      tipo: serializer.fromJson<String>(json['tipo']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'tipo': serializer.toJson<String>(tipo),
+    };
+  }
+
+  TiposDeInspeccione copyWith({int id, String tipo}) => TiposDeInspeccione(
+        id: id ?? this.id,
+        tipo: tipo ?? this.tipo,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('TiposDeInspeccione(')
+          ..write('id: $id, ')
+          ..write('tipo: $tipo')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(id.hashCode, tipo.hashCode));
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) ||
+      (other is TiposDeInspeccione &&
+          other.id == this.id &&
+          other.tipo == this.tipo);
+}
+
+class TiposDeInspeccionesCompanion extends UpdateCompanion<TiposDeInspeccione> {
+  final Value<int> id;
+  final Value<String> tipo;
+  const TiposDeInspeccionesCompanion({
+    this.id = const Value.absent(),
+    this.tipo = const Value.absent(),
+  });
+  TiposDeInspeccionesCompanion.insert({
+    this.id = const Value.absent(),
+    @required String tipo,
+  }) : tipo = Value(tipo);
+  static Insertable<TiposDeInspeccione> custom({
+    Expression<int> id,
+    Expression<String> tipo,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (tipo != null) 'tipo': tipo,
+    });
+  }
+
+  TiposDeInspeccionesCompanion copyWith({Value<int> id, Value<String> tipo}) {
+    return TiposDeInspeccionesCompanion(
+      id: id ?? this.id,
+      tipo: tipo ?? this.tipo,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (tipo.present) {
+      map['tipo'] = Variable<String>(tipo.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TiposDeInspeccionesCompanion(')
+          ..write('id: $id, ')
+          ..write('tipo: $tipo')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TiposDeInspeccionesTable extends TiposDeInspecciones
+    with TableInfo<$TiposDeInspeccionesTable, TiposDeInspeccione> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $TiposDeInspeccionesTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedIntColumn _id;
+  @override
+  GeneratedIntColumn get id => _id ??= _constructId();
+  GeneratedIntColumn _constructId() {
+    return GeneratedIntColumn(
+      'id',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _tipoMeta = const VerificationMeta('tipo');
+  GeneratedTextColumn _tipo;
+  @override
+  GeneratedTextColumn get tipo => _tipo ??= _constructTipo();
+  GeneratedTextColumn _constructTipo() {
+    return GeneratedTextColumn(
+      'tipo',
+      $tableName,
+      false,
+    );
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, tipo];
+  @override
+  $TiposDeInspeccionesTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'tipos_de_inspecciones';
+  @override
+  final String actualTableName = 'tipos_de_inspecciones';
+  @override
+  VerificationContext validateIntegrity(Insertable<TiposDeInspeccione> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    }
+    if (data.containsKey('tipo')) {
+      context.handle(
+          _tipoMeta, tipo.isAcceptableOrUnknown(data['tipo'], _tipoMeta));
+    } else if (isInserting) {
+      context.missing(_tipoMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TiposDeInspeccione map(Map<String, dynamic> data, {String tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
+    return TiposDeInspeccione.fromData(data, _db, prefix: effectivePrefix);
+  }
+
+  @override
+  $TiposDeInspeccionesTable createAlias(String alias) {
+    return $TiposDeInspeccionesTable(_db, alias);
   }
 }
 
@@ -5364,10 +6222,6 @@ abstract class _$Database extends GeneratedDatabase {
       _inspecciones ??= $InspeccionesTable(this);
   $RespuestasTable _respuestas;
   $RespuestasTable get respuestas => _respuestas ??= $RespuestasTable(this);
-  $RespuestasXOpcionesDeRespuestaTable _respuestasXOpcionesDeRespuesta;
-  $RespuestasXOpcionesDeRespuestaTable get respuestasXOpcionesDeRespuesta =>
-      _respuestasXOpcionesDeRespuesta ??=
-          $RespuestasXOpcionesDeRespuestaTable(this);
   $ContratistasTable _contratistas;
   $ContratistasTable get contratistas =>
       _contratistas ??= $ContratistasTable(this);
@@ -5378,9 +6232,18 @@ abstract class _$Database extends GeneratedDatabase {
   $CriticidadesNumericasTable _criticidadesNumericas;
   $CriticidadesNumericasTable get criticidadesNumericas =>
       _criticidadesNumericas ??= $CriticidadesNumericasTable(this);
-  $PreguntasCondicionalTable _preguntasCondicional;
-  $PreguntasCondicionalTable get preguntasCondicional =>
-      _preguntasCondicional ??= $PreguntasCondicionalTable(this);
+  $GruposInspeccionessTable _gruposInspeccioness;
+  $GruposInspeccionessTable get gruposInspeccioness =>
+      _gruposInspeccioness ??= $GruposInspeccionessTable(this);
+  $ProgramacionSistemasTable _programacionSistemas;
+  $ProgramacionSistemasTable get programacionSistemas =>
+      _programacionSistemas ??= $ProgramacionSistemasTable(this);
+  $ProgramacionSistemasXActivoTable _programacionSistemasXActivo;
+  $ProgramacionSistemasXActivoTable get programacionSistemasXActivo =>
+      _programacionSistemasXActivo ??= $ProgramacionSistemasXActivoTable(this);
+  $TiposDeInspeccionesTable _tiposDeInspecciones;
+  $TiposDeInspeccionesTable get tiposDeInspecciones =>
+      _tiposDeInspecciones ??= $TiposDeInspeccionesTable(this);
   LlenadoDao _llenadoDao;
   LlenadoDao get llenadoDao => _llenadoDao ??= LlenadoDao(this as Database);
   CreacionDao _creacionDao;
@@ -5388,6 +6251,9 @@ abstract class _$Database extends GeneratedDatabase {
   BorradoresDao _borradoresDao;
   BorradoresDao get borradoresDao =>
       _borradoresDao ??= BorradoresDao(this as Database);
+  PlaneacionDao _planeacionDao;
+  PlaneacionDao get planeacionDao =>
+      _planeacionDao ??= PlaneacionDao(this as Database);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
@@ -5402,11 +6268,13 @@ abstract class _$Database extends GeneratedDatabase {
         opcionesDeRespuesta,
         inspecciones,
         respuestas,
-        respuestasXOpcionesDeRespuesta,
         contratistas,
         sistemas,
         subSistemas,
         criticidadesNumericas,
-        preguntasCondicional
+        gruposInspeccioness,
+        programacionSistemas,
+        programacionSistemasXActivo,
+        tiposDeInspecciones
       ];
 }

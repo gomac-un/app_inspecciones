@@ -37,12 +37,14 @@ class ReactiveMultiSelectDialogField<V> extends ReactiveFormField<List<V>> {
                     onConfirm: (values) {
                       field.didChange(values);
                     },
+                    
                     chipDisplay: MultiSelectChipDisplay<V>(
                       items: items,
-                      chipColor:
-                          const Color.fromRGBO(229, 236, 233, 1),
-                      textStyle: const TextStyle(color:  Colors.black,
-                          fontSize: 16, fontWeight: FontWeight.w600),
+                      chipColor: const Color.fromRGBO(229, 236, 233, 1),
+                      textStyle: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600),
                       //TODO: https://github.com/joanpablo/reactive_forms/issues/64
                       // por ahora solo hay ediciones de una via
                       /*onTap: (dynamic value) {

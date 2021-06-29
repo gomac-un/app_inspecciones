@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart';
 
 //! No importar nada de flutter aca, solo de package:pdf
-/* TODO: resumen al final de la inspeccion
+/*resumen al final de la inspeccion
 
 criticidad de la inspeccion suma
 

@@ -1,14 +1,9 @@
-import 'dart:io';
-
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:kt_dart/kt.dart';
-import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:moor/moor.dart';
-import 'package:reactive_forms/reactive_forms.dart';
 
 part 'creacion_dao.g.dart';
 
@@ -23,12 +18,10 @@ part 'creacion_dao.g.dart';
   OpcionesDeRespuesta,
   Inspecciones,
   Respuestas,
-  RespuestasXOpcionesDeRespuesta,
   Contratistas,
   Sistemas,
   SubSistemas,
   CriticidadesNumericas,
-  PreguntasCondicional,
 ])
 class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   // this constructor is required so that the main database can create an instance
@@ -196,7 +189,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     );
   }
 
-  Future<List<BloqueConCondicional>> getPreguntasCondicionales(
+ /*  Future<List<BloqueConCondicional>> getPreguntasCondicionales(
       int cuestionarioId) async {
     final opcionesPregunta = alias(opcionesDeRespuesta, 'op');
 
@@ -243,37 +236,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     ); //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
     return x;
   }
-
-  Future<List<PreguntasCondicionalData>> getCondiciones(
-      int cuestionarioId) async {
-    final query = select(preguntas).join([
-      innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
-      leftOuterJoin(preguntasCondicional,
-          preguntasCondicional.preguntaId.equalsExp(preguntas.id)),
-    ])
-      ..where(bloques.cuestionarioId.equals(cuestionarioId) &
-          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)) &
-          preguntas.esCondicional.equals(true));
-
-    final res = await query
-        .map((row) => {
-              'pregunta': row.readTable(preguntas),
-              'condiciones': row.readTable(preguntasCondicional),
-            })
-        .get();
-
-    final List<PreguntasCondicionalData> condiciones = [];
-    Future.wait(
-      groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
-        entry.value
-            .map((e) =>
-                condiciones.add(e['condiciones'] as PreguntasCondicionalData))
-            .toList();
-      }),
-    );
-
-    return condiciones;
-  }
+ */
+ 
 
   Future<List<BloqueConCuadricula>> getCuadriculasSinPreguntas(
       int cuestionarioId) async {
@@ -368,8 +332,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
 
     final List<BloqueConTitulo> titulos = await getTitulos(cuestionarioId);
 
-    final List<BloqueConCondicional> preguntasCondicionales =
-        await getPreguntasCondicionales(cuestionarioId);
+   /*  final List<BloqueConCondicional> preguntasCondicionales =
+        await getPreguntasCondicionales(cuestionarioId); */
 
     final List<BloqueConPreguntaSimple> preguntasSimples =
         await getPreguntasSimples(cuestionarioId);
@@ -389,7 +353,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
       ...preguntasSimples,
       ...cuadriculas,
       ...numerica,
-      ...preguntasCondicionales
+/*       ...preguntasCondicionales */
     ];
   }
 
@@ -405,8 +369,10 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     await (update(cuestionarios)..where((i) => i.id.equals(cuestionario.id)))
         .write(
       CuestionariosCompanion(
-          tipoDeInspeccion: Value(cuestionario.tipoDeInspeccion),
-          estado: Value(cuestionario.estado)),
+        tipoDeInspeccion: Value(cuestionario.tipoDeInspeccion),
+        estado: Value(cuestionario.estado),
+        sistemaId: Value(cuestionario.sistemaId),
+      ),
     );
 
     /* cuestionariosDeModelo.map((e) async => {
@@ -419,9 +385,12 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   Future<Cuestionario> crearCuestionarioToSave(
       Cuestionario cuestionario) async {
     final int cid = await into(cuestionarios).insert(
-        CuestionariosCompanion.insert(
-            tipoDeInspeccion: cuestionario.tipoDeInspeccion,
-            estado: cuestionario.estado));
+      CuestionariosCompanion.insert(
+        tipoDeInspeccion: cuestionario.tipoDeInspeccion,
+        estado: cuestionario.estado,
+        sistemaId: Value(cuestionario.sistemaId),
+      ),
+    );
     return (select(cuestionarios)..where((i) => i.id.equals(cid))).getSingle();
   }
 
@@ -522,7 +491,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                       rxor.preguntaId.equals(preguntaId)))
                 .go();
           }
-
+/* 
           if (e is BloqueConCondicional) {
             final fotosGuiaProcesadas = await FotosManager.organizarFotos(
               e.pregunta.pregunta.fotosGuia,
@@ -581,7 +550,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                       con.id.isNotIn(condicionesId) &
                       con.preguntaId.equals(preguntaId)))
                 .go();
-          }
+          } */
           if (e is BloqueConCuadricula) {
             final cuadricula =
                 e.cuadricula.cuadricula.toCompanion(true).copyWith(
@@ -600,8 +569,9 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
             await Future.forEach<PreguntaConOpcionesDeRespuesta>(e?.preguntas,
                 (or) async {
               //Mover las fotos a una carpeta unica para cada inspeccion
-              final pregunta = or.pregunta.toCompanion(true).copyWith(
-                  bloqueId: Value(bloqueId));
+              final pregunta = or.pregunta
+                  .toCompanion(true)
+                  .copyWith(bloqueId: Value(bloqueId));
               int preguntaId;
               if (pregunta.id.present) {
                 await into(preguntas).insertOnConflictUpdate(pregunta);

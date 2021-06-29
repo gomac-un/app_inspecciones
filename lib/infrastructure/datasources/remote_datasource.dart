@@ -2,14 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-
-import 'package:dartz/dartz.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
 import 'package:inspecciones/application/auth/usuario.dart';
-import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:path/path.dart' as path;
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
@@ -22,7 +18,7 @@ abstract class InspeccionesRemoteDataSource {
   Future<Map<String, dynamic>> putRecurso(
       String recursoEndpoint, Map<String, dynamic> data);
   Future<Map<String, dynamic>> getPermisos(
-       Map<String, dynamic> data, String token);
+      Map<String, dynamic> data, String token);
   Future subirFotos(
       Iterable<File> fotos, String iddocumento, String tipodocumento);
   void descargaFlutterDownloader(
@@ -31,7 +27,8 @@ abstract class InspeccionesRemoteDataSource {
 
 @LazySingleton(as: InspeccionesRemoteDataSource)
 class DjangoJsonAPI implements InspeccionesRemoteDataSource {
-  static const _server = 'http://10.0.2.2:8000'/* http://pruebainsgomac.duckdns.org:8000' */;
+  static const _server =  'https://gomac.medellin.unal.edu.co' ;/* 'https://gomac.medellin.unal.edu.co' ; */
+      /* http://pruebainsgomac.duckdns.org:8000' */
   //static const _server = 'http://10.0.2.2:8000';
   //TODO: opcion para modificar el servidor desde la app
   static const _apiBase = '/inspecciones/api/v1';
@@ -58,18 +55,23 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
         )
         .timeout(_timeLimit);
     print("res: ${response.statusCode}\n${response.body}");
-    
+
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final res = json.decode(response.body) as Map<String, dynamic>;
-      return res;
-    } else if (response.statusCode == 400) {
-      throw CredencialesException(jsonDecode(response.body) as Map<String, dynamic>);
+      return json.decode(response.body) as Map<String, dynamic>;
+    } else if (response.statusCode == 401 ||
+        response.statusCode == 403 ||
+        response.statusCode == 400) {
+      throw CredencialesException(
+          jsonDecode(response.body) as Map<String, dynamic>);
+    } else if (response.statusCode == 404) {
+      throw PageNotFoundException();
     } else {
-      //TODO: mirar los tipos de errores que pueden venir de la api
+      //TODO: mirar los tipos de errores que pueden venir de la api. Hasta el momento se han manejado
+      //los del lado cliente 401, 403 y 404. Los de tipo servidor se manejan en uno solo
+      // que es cuando se lanza el serverError
       log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
-
   }
 
   @override
@@ -83,13 +85,16 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
       },
     ).timeout(_timeLimit);
     print("res: ${response.statusCode}\n${response.body}");
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body) as Map<String, dynamic>;
-    } else if (response.statusCode == 400) {
+    } else if (response.statusCode == 401 || response.statusCode == 403) {
       throw CredencialesException(
           jsonDecode(response.body) as Map<String, dynamic>);
+    } else if (response.statusCode == 404) {
+      throw PageNotFoundException();
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
+      log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
   }
@@ -102,13 +107,13 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     final url = _server + _apiBase + recursoEndpoint;
     print("req: $url\n${jsonEncode(data)}");
     http.Response response;
-    
-      final hayInternet = await _hayInternet();
+
+    final hayInternet = await _hayInternet();
 
     if (!hayInternet) {
       throw InternetException();
     }
-     response = await http
+    response = await http
         .post(
           url,
           headers: <String, String>{
@@ -121,8 +126,11 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     print("res: ${response.statusCode}\n${response.body}");
     if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body) as Map<String, dynamic>;
-    } else if (response.statusCode == 400) {
-      throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
+    } else if (response.statusCode == 401 || response.statusCode == 403) {
+      throw CredencialesException(
+          jsonDecode(response.body) as Map<String, dynamic>);
+    } else if (response.statusCode == 404) {
+      throw PageNotFoundException();
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
       log(response.body);
@@ -145,43 +153,50 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
         )
         .timeout(_timeLimit);
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body) as Map<String, dynamic>;
-    } else if (response.statusCode == 400) {
+    } else if (response.statusCode == 401 || response.statusCode == 403) {
       throw CredencialesException(
           jsonDecode(response.body) as Map<String, dynamic>);
+    } else if (response.statusCode == 404) {
+      throw PageNotFoundException();
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
+      log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
   }
 
-  Future<Map<String, dynamic>> getPermisos(Map<String, dynamic> user, String tokenUsuario) async {
-    const url = _server + _apiBase + '/groups/';
+  @override
+  Future<Map<String, dynamic>> getPermisos(
+      Map<String, dynamic> user, String tokenUsuario) async {
+    const url = '$_server$_apiBase/groups/';
     print("req: $url\n${jsonEncode(user)}");
     final http.Response response = await http
         .post(
           url,
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
-            if (tokenUsuario != null) HttpHeaders.authorizationHeader: "Token $tokenUsuario"
+            if (tokenUsuario != null)
+              HttpHeaders.authorizationHeader: "Token $tokenUsuario"
           },
           body: jsonEncode(user),
         )
         .timeout(_timeLimit);
     print("res: ${response.statusCode}\n${response.body}");
-    
+
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final res = json.decode(response.body) as Map<String, dynamic>;
-      return res;
-    } else if (response.statusCode == 400) {
-      throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
+      return json.decode(response.body) as Map<String, dynamic>;
+    } else if (response.statusCode == 401 || response.statusCode == 403) {
+      throw CredencialesException(
+          jsonDecode(response.body) as Map<String, dynamic>);
+    } else if (response.statusCode == 404) {
+      throw PageNotFoundException();
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
       log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
-
   }
 
   @override

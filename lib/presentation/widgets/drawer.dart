@@ -1,19 +1,52 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:moor_db_viewer/moor_db_viewer.dart';
 import 'package:provider/provider.dart';
 import 'package:inspecciones/router.gr.dart';
+import 'package:inspecciones/mvvc/planeacion_sistemas_page.dart';
 
 class UserDrawer extends StatelessWidget {
   //TODO: si se genera este mismo drawer en varias paginas se puede crear un stack indeseado, una solucion seria que la instancia del drawer fuera unica en toda la app
   @override
   Widget build(BuildContext context) {
     final authBloc = Provider.of<AuthBloc>(context);
-
     final authState = authBloc.state;
+    /* final media = MediaQuery.of(context).size;
+    final orientacion = MediaQuery.of(context).orientation;
+    
+    double porIconSize = 0.025;
+    const porcTextSize = 0.018;
+    double porcHeight = 0.20;
+    double porcRolSize = 0.02;
+    double porcNombre = 0.015;
+    if (media.width < 600 || media.height < 600) {
+      porcHeight = 0.30;
+      porcRolSize = 0.025;
+      porcNombre = 0.02;
+      porIconSize = 0.03;
+    }
+    // Tamaños para los casos en los que el dipositivo es una tablet o un celular con más de 600 px de ancho
+    final iconSize = orientacion == Orientation.portrait
+        ? media.height * porIconSize
+        : media.width * porIconSize;
+    final textSize = orientacion == Orientation.portrait
+        ? media.height * porcTextSize
+        : media.width * porcTextSize;
+    final height = orientacion == Orientation.portrait
+        ? media.height * porcHeight
+        : media.width * porcHeight - 2;
+    final rolSize = orientacion == Orientation.portrait
+        ? media.height * porcRolSize
+        : media.width * porcRolSize;
+    final nombre = orientacion == Orientation.portrait
+        ? media.height * porcNombre
+        : media.width * porcNombre;
+    // Se modifican los valores para cuando es un dispositivo más pequeño */
+
     bool esAdmin = false;
 
     if (authState is Authenticated) {
@@ -25,25 +58,41 @@ class UserDrawer extends StatelessWidget {
           child: Column(
             children: <Widget>[
               Expanded(
-                flex: 5,
+                flex: 2,
                 child: ListView(
                   children: <Widget>[
                     Container(
                       color: Theme.of(context).primaryColor,
-                      height: 200,
+                      /*   height: height, */
                       child: Padding(
                         padding: const EdgeInsets.only(top: 30.0),
                         child: UserAccountsDrawerHeader(
                           accountName: Text(
                             esAdmin ? "Administrador" : "Inspector",
-                            style: const TextStyle(fontSize: 15),
+                            /* style: TextStyle(
+                              fontSize: rolSize,
+                            ), */
                           ),
-                          accountEmail: Text(authState.usuario.documento),
+                          accountEmail: Text(
+                            authState.usuario.documento,
+                            /* style: TextStyle(
+                              fontSize: nombre,
+                            ), */
+                          ),
                           currentAccountPicture: CircleAvatar(
-                            backgroundColor: Theme.of(context).primaryColorLight,
-                            child: Text(
-                              authState.usuario.documento[0],
-                              style:  TextStyle(fontSize: 50, color: Theme.of(context).accentColor),
+                            backgroundColor:
+                                Theme.of(context).primaryColorLight,
+                            child: Center(
+                              child: Text(
+                                authState.usuario.documento[0],
+                                style: TextStyle(
+                                  fontSize: 30,
+                                    /*  fontSize:
+                                        orientacion == Orientation.portrait
+                                            ? media.height * 0.05
+                                            : media.width * 0.05, */
+                                    color: Theme.of(context).accentColor),
+                              ),
                             ),
                           ),
                         ),
@@ -71,49 +120,77 @@ class Opciones extends StatelessWidget {
   const Opciones({Key key, this.esAdmin}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    /* final media = MediaQuery.of(context).size;
+    final orientacion = MediaQuery.of(context).orientation;
+    double iconSize = orientacion == Orientation.portrait
+        ? media.height * 0.025
+        : media.width * 0.025;
+    final textSize = orientacion == Orientation.portrait
+        ? media.height * 0.018
+        : media.width * 0.018;
+    if (media.width < 600 || media.height < 600) {
+      iconSize = orientacion == Orientation.portrait
+          ? media.height * 0.03
+          : media.width * 0.03;
+    } */
     if (esAdmin) {
       return Column(
         children: <Widget>[
+          /* Card(
+            child: ExpansionTile(
+              childrenPadding: const EdgeInsets.only(left: 50),
+              tilePadding: EdgeInsets.zero,
+              title: ListTile(
+                selectedTileColor: Theme.of(context).accentColor,
+                title: const Text(
+                  'Planeación', /* style: TextStyle(fontSize: textSize) */
+                ),
+                leading: const Icon(
+                  Icons.assignment,
+                  color: Colors.black, /* size: iconSize */
+                ),
+              ),
+              children: <Widget>[
+                Planificacion(/* conSize: iconSize, textSize: textSize */),
+              ],
+            ),
+          ), */
           Card(
             child: ListTile(
                 focusColor: Colors.yellow,
                 selectedTileColor: Theme.of(context).accentColor,
                 title: const Text(
-                    'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
-                    style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
+                  'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
+                  /* style: TextStyle(
+                    /* color: Colors.white ,*/ fontSize: textSize,
+                  ), */
+                ),
                 leading: const Icon(
-                  Icons.list_alt,
-                  color: Colors.black, /* color: Colors.white, */
+                  Icons.app_registration,
+                  color: Colors.black,
+                  /* size: iconSize, */ /* color: Colors.white, */
                 ),
                 onTap: () => {
                       ExtendedNavigator.of(context).pop(),
                       ExtendedNavigator.of(context)
-                          .replace(Routes.cuestionariosPage),
+                          .push(Routes.cuestionariosPage),
                     }),
           ),
-          Card(
-            child: ListTile(
-              selectedTileColor: Theme.of(context).accentColor,
-              title: const Text(
-                  'Borradores', //TODO: mostrar el numero de  inspecciones creadas pendientes por subir
-                  style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
-              leading: const Icon(
-                Icons.list,
-                color: Colors.black, /* color: Colors.white, */
+          Borradores(
+              /* iconSize: iconSize,
+            textSize: textSize, */
               ),
-              onTap: () =>
-                  ExtendedNavigator.of(context).replace(Routes.borradoresPage),
-            ),
-          ),
           const SizedBox(height: 5.0),
-          LimpiezaBase(),
+         /*  LimpiezaBase(), */
           const SizedBox(height: 5.0),
           SincronizarConGomac(),
           const SizedBox(height: 5.0),
           Card(
             child: ListTile(
               title: const Text('Ver base de datos',
-                  style: TextStyle(color: Colors.black, fontSize: 15)),
+                  style: TextStyle(
+                    color: Colors.black,
+                  )),
               leading: const Icon(
                 Icons.storage,
                 color: Colors.black,
@@ -136,21 +213,8 @@ class Opciones extends StatelessWidget {
     } else {
       return Column(
         children: [
-          Card(
-            child: ListTile(
-              selectedTileColor: Theme.of(context).accentColor,
-              title: const Text(
-                  'Borradores', //TODO: mostrar el numero de  inspecciones creadas pendientes por subir
-                  style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
-              leading: const Icon(
-                Icons.list,
-                color: Colors.black, /* color: Colors.white, */
-              ),
-              onTap: () =>
-                  ExtendedNavigator.of(context).replace(Routes.borradoresPage),
-            ),
-          ),
-          LimpiezaBase(),
+          Borradores(),
+          /* LimpiezaBase(), */
           SincronizarConGomac(),
         ],
       );
@@ -158,7 +222,36 @@ class Opciones extends StatelessWidget {
   }
 }
 
+class Borradores extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        selectedTileColor: Theme.of(context).accentColor,
+        title: const Text(
+          'Inspecciones', //TODO: mostrar el numero de  inspecciones creadas pendientes por subir
+          /* style: TextStyle(/* color: Colors.white ,*/ fontSize: textSize) */
+        ),
+        leading: const Icon(
+          Icons.list_alt,
+          color: Colors.black,
+          /* size: iconSize, */ /* color: Colors.white, */
+        ),
+        onTap: () => {
+          ExtendedNavigator.of(context).pop(),
+          ExtendedNavigator.of(context).push(Routes.borradoresPage),
+        },
+      ),
+    );
+  }
+}
+
 class LogOut extends StatelessWidget {
+  final double textSize;
+  final double iconSize;
+
+  const LogOut({Key key, this.textSize, this.iconSize}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final authBloc = Provider.of<AuthBloc>(context);
@@ -169,10 +262,46 @@ class LogOut extends StatelessWidget {
         /* 
                     alignment: FractionalOffset.bottomCenter, */
         child: ListTile(
-            title: const Text('Cerrar Sesión'),
-            leading: const Icon(Icons.exit_to_app, color: Colors.black),
+            title: Text(
+              'Cerrar Sesión',
+              style: TextStyle(fontSize: textSize),
+            ),
+            leading:
+                Icon(Icons.exit_to_app, color: Colors.black, size: iconSize),
             onTap: () => authBloc.add(const AuthEvent.loggingOut())),
       ),
+    );
+  }
+}
+
+class Planificacion extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          selectedTileColor: Theme.of(context).accentColor,
+          title: const Text('Grupos', style: TextStyle(fontSize: 13)),
+          onTap: () async {
+            await ExtendedNavigator.of(context).push(
+              Routes.gruposScreen,
+            );
+            ExtendedNavigator.of(context).pop();
+          },
+        ),
+       /*  ListTile(
+          selectedTileColor: Theme.of(context).accentColor,
+          title: const Text('Sistemas', style: TextStyle(fontSize: 13)),
+          onTap: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => SistemaPage(),
+              ),
+            );
+          },
+        ), */
+      ],
     );
   }
 }
@@ -183,11 +312,13 @@ class SincronizarConGomac extends StatelessWidget {
     return Card(
       child: ListTile(
         selectedTileColor: Theme.of(context).accentColor,
-        title: const Text('Sincronizar con GOMAC',
-            style: TextStyle(/* color: Colors.white ,*/ fontSize: 15)),
+        title: const Text(
+          'Sincronizar con GOMAC',
+        ),
         leading: const Icon(
           Icons.sync,
-          color: Colors.black, /* color: Colors.white, */
+          color: Colors.black,
+          /* color: Colors.white, */
         ),
         onTap: () async {
           await ExtendedNavigator.of(context).pushSincronizacionPage();
@@ -260,7 +391,6 @@ class LimpiezaBase extends StatelessWidget {
       child: ListTile(
         title: const Text(
           'Limpiar datos de la app',
-          style: TextStyle(/* color: Colors.white, */ fontSize: 15),
         ),
         leading: const Icon(
           Icons.cleaning_services,

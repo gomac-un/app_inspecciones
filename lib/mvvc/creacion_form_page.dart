@@ -25,7 +25,8 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
         create: (ctx) => CreacionFormViewModel(
-            cuestionario, cuestionarioDeModelo,
+            cuestionario: cuestionario,
+            cuestionarioDeModelo: cuestionarioDeModelo,
             bloquesBD: bloques),
         dispose: (context, CreacionFormViewModel value) => value.dispose(),
         child: this,
@@ -47,10 +48,10 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                 : 'Visualización cuestionario'),
             // ignore: prefer_const_literals_to_create_immutables
             actions: [
-              /* if (estado == EstadoDeCuestionario.borrador) */
-              BotonGuardarBorrador(
-                estado: estado,
-              ),
+              if (estado == EstadoDeCuestionario.borrador)
+                BotonGuardarBorrador(
+                  estado: estado,
+                ),
             ],
             body: Column(
               children: [
@@ -81,7 +82,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                       ReactiveValueListenableBuilder<String>(
                           formControlName: "tipoDeInspeccion",
                           builder: (context, value, child) {
-                            if (value.value == "otra") {
+                            if (value.value == "Otra") {
                               return ReactiveTextField(
                                 formControlName: "nuevoTipoDeInspeccion",
                                 validationMessages: (control) =>
@@ -113,9 +114,32 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                                   ValidationMessage.minLength:
                                       'Seleccione al menos un modelo',
                                   'yaExiste':
-                                      'El modelo ${control.getError('yaExiste')} ya tiene asociado un cuestionario de este tipo',
+                                      'Ya existe un cuestionario de este tipo para este modelo'
                                 });
                       }),
+                ),
+                PreguntaCard(
+                  titulo: 'Sistema',
+                  child: ValueListenableBuilder<List<Sistema>>(
+                    valueListenable: formGroup.sistemas,
+                    builder: (context, value, child) {
+                      return ReactiveDropdownField<Sistema>(
+                        formControl:
+                            formGroup.control('sistema') as FormControl,
+                        validationMessages: (control) =>
+                            {'required': 'Seleccione el sistema'},
+                        items: value
+                            .map((e) => DropdownMenuItem<Sistema>(
+                                  value: e,
+                                  child: Text(e.nombre),
+                                ))
+                            .toList(),
+                        decoration: const InputDecoration(
+                          labelText: 'Sistema',
+                        ),
+                      );
+                    },
+                  ),
                 ),
                 PreguntaCard(
                   titulo: 'Contratista',
@@ -191,7 +215,6 @@ class BotonGuardarBorrador extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<CreacionFormViewModel>(context);
-    final form = ReactiveForm.of(context);
     return IconButton(
       icon: const Icon(Icons.archive),
       //label: 'Guardar borrador',
@@ -204,16 +227,27 @@ class BotonGuardarBorrador extends StatelessWidget {
                 .isEmpty) {
           Scaffold.of(context).showSnackBar(const SnackBar(
               content: Text(
-                  "Seleccione el tipo de inspección o elija por lo menos un modelo antes de guardar el cuestionario")));
-        } else if (!form.valid) {
-          form.markAllAsTouched();
-          mostrarErrores(context, form);
+                  "Seleccione el tipo de inspección y elija por lo menos un modelo antes de guardar el cuestionario")));
         } else {
           /* LoadingDialog.show(context); */
           await viewModel.guardarCuestionarioEnLocal(estado);
           /* LoadingDialog.hide(context); */
-          Scaffold.of(context)
-              .showSnackBar(const SnackBar(content: Text("Guardado exitoso")));
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                content: const Text("Guardado exitoso"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Aceptar'),
+                  )
+                ],
+              );
+            },
+          );
         }
       },
     );

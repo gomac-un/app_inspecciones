@@ -46,7 +46,7 @@ Map<String, dynamic> nuevoTipoDeInspeccion(AbstractControl<dynamic> control) {
 
   final error = {ValidationMessage.required: true};
 
-  if (tipoDeInspeccion.value == 'otra' &&
+  if (tipoDeInspeccion.value == 'Otra' &&
       nuevoTipoDeinspeccion.value.trim().isEmpty) {
     nuevoTipoDeinspeccion.setErrors(error);
     //nuevoTipoDeinspeccion.markAsTouched();

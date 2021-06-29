@@ -20,8 +20,6 @@ mixin _$BorradoresDaoMixin on DatabaseAccessor<Database> {
       attachedDatabase.opcionesDeRespuesta;
   $InspeccionesTable get inspecciones => attachedDatabase.inspecciones;
   $RespuestasTable get respuestas => attachedDatabase.respuestas;
-  $RespuestasXOpcionesDeRespuestaTable get respuestasXOpcionesDeRespuesta =>
-      attachedDatabase.respuestasXOpcionesDeRespuesta;
   $ContratistasTable get contratistas => attachedDatabase.contratistas;
   $SistemasTable get sistemas => attachedDatabase.sistemas;
   $SubSistemasTable get subSistemas => attachedDatabase.subSistemas;

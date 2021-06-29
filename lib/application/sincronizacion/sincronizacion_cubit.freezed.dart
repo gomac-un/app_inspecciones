@@ -168,11 +168,13 @@ class _$SincronizacionStateTearOff {
   const _$SincronizacionStateTearOff();
 
 // ignore: unused_element
-  _SincronizacionState call({bool cargado = false, Task task, String info}) {
+  _SincronizacionState call(
+      {bool cargado = false, Task task, Map<int, String> info, int paso}) {
     return _SincronizacionState(
       cargado: cargado,
       task: task,
       info: info,
+      paso: paso,
     );
   }
 }
@@ -185,7 +187,8 @@ const $SincronizacionState = _$SincronizacionStateTearOff();
 mixin _$SincronizacionState {
   bool get cargado;
   Task get task;
-  String get info;
+  Map<int, String> get info;
+  int get paso;
 
   @JsonKey(ignore: true)
   $SincronizacionStateCopyWith<SincronizacionState> get copyWith;
@@ -196,7 +199,7 @@ abstract class $SincronizacionStateCopyWith<$Res> {
   factory $SincronizacionStateCopyWith(
           SincronizacionState value, $Res Function(SincronizacionState) then) =
       _$SincronizacionStateCopyWithImpl<$Res>;
-  $Res call({bool cargado, Task task, String info});
+  $Res call({bool cargado, Task task, Map<int, String> info, int paso});
 
   $TaskCopyWith<$Res> get task;
 }
@@ -215,11 +218,13 @@ class _$SincronizacionStateCopyWithImpl<$Res>
     Object cargado = freezed,
     Object task = freezed,
     Object info = freezed,
+    Object paso = freezed,
   }) {
     return _then(_value.copyWith(
       cargado: cargado == freezed ? _value.cargado : cargado as bool,
       task: task == freezed ? _value.task : task as Task,
-      info: info == freezed ? _value.info : info as String,
+      info: info == freezed ? _value.info : info as Map<int, String>,
+      paso: paso == freezed ? _value.paso : paso as int,
     ));
   }
 
@@ -241,7 +246,7 @@ abstract class _$SincronizacionStateCopyWith<$Res>
           $Res Function(_SincronizacionState) then) =
       __$SincronizacionStateCopyWithImpl<$Res>;
   @override
-  $Res call({bool cargado, Task task, String info});
+  $Res call({bool cargado, Task task, Map<int, String> info, int paso});
 
   @override
   $TaskCopyWith<$Res> get task;
@@ -263,11 +268,13 @@ class __$SincronizacionStateCopyWithImpl<$Res>
     Object cargado = freezed,
     Object task = freezed,
     Object info = freezed,
+    Object paso = freezed,
   }) {
     return _then(_SincronizacionState(
       cargado: cargado == freezed ? _value.cargado : cargado as bool,
       task: task == freezed ? _value.task : task as Task,
-      info: info == freezed ? _value.info : info as String,
+      info: info == freezed ? _value.info : info as Map<int, String>,
+      paso: paso == freezed ? _value.paso : paso as int,
     ));
   }
 }
@@ -276,7 +283,8 @@ class __$SincronizacionStateCopyWithImpl<$Res>
 class _$_SincronizacionState
     with DiagnosticableTreeMixin
     implements _SincronizacionState {
-  _$_SincronizacionState({this.cargado = false, this.task, this.info})
+  _$_SincronizacionState(
+      {this.cargado = false, this.task, this.info, this.paso})
       : assert(cargado != null);
 
   @JsonKey(defaultValue: false)
@@ -285,11 +293,13 @@ class _$_SincronizacionState
   @override
   final Task task;
   @override
-  final String info;
+  final Map<int, String> info;
+  @override
+  final int paso;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'SincronizacionState(cargado: $cargado, task: $task, info: $info)';
+    return 'SincronizacionState(cargado: $cargado, task: $task, info: $info, paso: $paso)';
   }
 
   @override
@@ -299,7 +309,8 @@ class _$_SincronizacionState
       ..add(DiagnosticsProperty('type', 'SincronizacionState'))
       ..add(DiagnosticsProperty('cargado', cargado))
       ..add(DiagnosticsProperty('task', task))
-      ..add(DiagnosticsProperty('info', info));
+      ..add(DiagnosticsProperty('info', info))
+      ..add(DiagnosticsProperty('paso', paso));
   }
 
   @override
@@ -312,7 +323,9 @@ class _$_SincronizacionState
             (identical(other.task, task) ||
                 const DeepCollectionEquality().equals(other.task, task)) &&
             (identical(other.info, info) ||
-                const DeepCollectionEquality().equals(other.info, info)));
+                const DeepCollectionEquality().equals(other.info, info)) &&
+            (identical(other.paso, paso) ||
+                const DeepCollectionEquality().equals(other.paso, paso)));
   }
 
   @override
@@ -320,7 +333,8 @@ class _$_SincronizacionState
       runtimeType.hashCode ^
       const DeepCollectionEquality().hash(cargado) ^
       const DeepCollectionEquality().hash(task) ^
-      const DeepCollectionEquality().hash(info);
+      const DeepCollectionEquality().hash(info) ^
+      const DeepCollectionEquality().hash(paso);
 
   @JsonKey(ignore: true)
   @override
@@ -330,15 +344,20 @@ class _$_SincronizacionState
 }
 
 abstract class _SincronizacionState implements SincronizacionState {
-  factory _SincronizacionState({bool cargado, Task task, String info}) =
-      _$_SincronizacionState;
+  factory _SincronizacionState(
+      {bool cargado,
+      Task task,
+      Map<int, String> info,
+      int paso}) = _$_SincronizacionState;
 
   @override
   bool get cargado;
   @override
   Task get task;
   @override
-  String get info;
+  Map<int, String> get info;
+  @override
+  int get paso;
   @override
   @JsonKey(ignore: true)
   _$SincronizacionStateCopyWith<_SincronizacionState> get copyWith;

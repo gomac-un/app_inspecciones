@@ -9,8 +9,9 @@ class CredencialesException {
 
   CredencialesException(this.respuesta);
 }
+class GroupNotFound implements Exception {}
+class PageNotFoundException implements Exception {}
 
-class InternetException {
-}
+class InternetException {}
 
 class CacheException implements Exception {}

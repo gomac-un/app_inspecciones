@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:inspecciones/mvvc/creacion_validators.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
@@ -34,7 +35,7 @@ void mostrarMensaje(BuildContext context, String tipo, String mensaje,
     buttons: [
       DialogButton(
         onPressed: () => {
-          Navigator.pop(context),
+          Navigator.of(context).pop(),
           if (ocultar == true) ExtendedNavigator.of(context).pop()
         },
         color: Theme.of(context).accentColor,
@@ -110,49 +111,51 @@ void mostrarErrores(BuildContext context, AbstractControl<dynamic> form) {
 String obtenerErrores(AbstractControl<dynamic> form) {
   String texto = '';
   String textoApoyo = '';
-  form.errors.forEach((key, value) => {
-        if ((value as Map<String, dynamic>).length > 1)
-          {
-            textoApoyo =
-                '- $key:     ${obtenertextoValores(value as Map<String, dynamic>)} ',
-            texto = '$texto \n$textoApoyo',
-          }
-        else
-          {
-            textoApoyo = '- $key:\n    $value ',
-            texto = '$texto \n$textoApoyo',
-          }
-      });
-  texto = texto.replaceAll('{', '');
-  texto = texto.replaceAll('}', '');
-  return texto;
-}
+  final errorSistema = form.errors['sistema'] != null
+      ? 'Elija el sistema del cuestionario'
+      : null;
+  final errorContratista =
+      form.errors['contratista'] != null ? 'Seleccione el contratista' : null;
+  final errorTipo = form.errors['tipoDeInspeccion'] != null ||
+          form.errors['nuevoTipoDeInspeccion'] != null
+      ? 'Seleccione el tipo de inspección'
+      : null;
+  final errorModelo = form.errors['modelos'];
 
-String obtenertextoValores(Map<String, dynamic> value) {
-  String texto = '';
-  String textoApoyo = '';
-  value.forEach((key, value) => {
-        if ((value as Map<String, dynamic>).isNotEmpty)
-          {
-            textoApoyo =
-                '    - $key: ${obtenertextoValores2(value as Map<String, dynamic>)} ',
-            texto = '$texto \n$textoApoyo',
-          }
-        else
-          {
-            textoApoyo = '   $key: $value ',
-            texto = '$texto \n $textoApoyo',
-          }
-      });
-  return texto;
-}
-
-String obtenertextoValores2(Map<String, dynamic> value) {
-  String texto = '';
-  String textoApoyo = '';
-  value.forEach((key, value) => {
-        textoApoyo = '        $key: $value ',
-        texto = '$texto \n $textoApoyo',
-      });
+  texto = errorTipo != null ? '- $errorTipo' : '';
+  if (errorModelo != null) {
+    final x = errorModelo['minLength'];
+    if (x != null) {
+      texto = texto.isNotEmpty
+          ? '$texto \n- Elija por lo menos un modelo'
+          : '$texto- Elija por lo menos un modelo';
+    } else if (errorModelo['yaExiste'] != null) {
+      texto = texto.isNotEmpty
+          ? '$texto \n- Ya existe un cuestionario de este tipo para alguno de los modelos'
+          : '$texto- Ya existe un cuestionario de este tipo para alguno de los modelos';
+    }
+  }
+  if (errorSistema != null) {
+    texto = texto.isNotEmpty
+        ? '$texto \n- ${errorSistema ?? ''}'
+        : '$texto- ${errorSistema ?? ''}';
+  }
+  if (errorContratista != null) {
+    texto = texto.isNotEmpty
+        ? '$texto \n- ${errorContratista ?? ''}'
+        : '$texto- ${errorContratista ?? ''}';
+  }
+  final erroresBloques = form.errors['bloques'];
+  if (erroresBloques != null) {
+    if (texto.isNotEmpty) {
+      texto = '$texto \n- Los siguientes bloques presentan algún error';
+    } else {
+      texto = '- Los siguientes bloques tienen algún error';
+    }
+  }
+  erroresBloques?.forEach((key, value) {
+    textoApoyo = '    - Bloque ${int.parse(key as String) + 1}';
+    texto = '$texto \n$textoApoyo';
+  });
   return texto;
 }

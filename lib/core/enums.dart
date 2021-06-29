@@ -10,11 +10,17 @@ enum TipoDePregunta {
 
 enum EstadoDeInspeccion {
   borrador,
-  reparacion,
+  enReparacion,
   finalizada,
 }
 
 enum EstadoDeCuestionario {
   borrador,
   finalizada,
+}
+
+enum EstadoProgramacion {
+  asignado,
+  noAsignado,
+  noAplica,
 }

@@ -17,6 +17,8 @@ Future main() async {
   await FlutterDownloader.initialize();
   runApp(
     MaterialApp(
+      theme: customTheme,
+      home: const SizedBox(),
       builder: ExtendedNavigator.builder(
         observers: [ClearFocusOnPop()],
         navigatorKey: navigatorKey,
@@ -32,7 +34,7 @@ Future main() async {
             }
           },
           child: Theme(
-            data: customTheme, 
+            data: customTheme,
             child: BlocProvider(
               create: (context) =>
                   getIt<AuthBloc>()..add(const AuthEvent.startingApp()),
@@ -49,6 +51,9 @@ Future main() async {
 }
 
 final customTheme = ThemeData(
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(backgroundColor: const Color.fromRGBO(237, 181, 34, 1),),
+  ),
   //brightness: Brightness.dark,
   primaryColorLight: const Color.fromRGBO(229, 236, 233, 1),
   brightness: Brightness.light,
@@ -63,6 +68,9 @@ final customTheme = ThemeData(
     fillColor: Colors.grey.withOpacity(.3),
     filled: true,
   ),
+  textTheme: const TextTheme(
+      headline1: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold,letterSpacing: 1.25)
+     ),
 );
 
 class ClearFocusOnPop extends NavigatorObserver {

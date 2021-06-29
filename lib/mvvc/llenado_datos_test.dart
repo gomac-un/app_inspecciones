@@ -77,17 +77,17 @@ final bloquesDeEjemplo = FormArray([
             tipo: TipoDePregunta.parteDeCuadriculaUnica,
             titulo: "pregunta de una fila de la tabla",
           ),
-          RespuestaConOpcionesDeRespuesta(
+         [ RespuestaConOpcionesDeRespuesta(
             RespuestasCompanion.insert(inspeccionId: null, preguntaId: null),
-            [
+            
               OpcionDeRespuesta(
                 id: 3,
                 cuadriculaId: 2,
                 texto: "texto de una columna de la tabla",
                 criticidad: 2,
               ),
-            ],
-          ),
+            
+          ),]
         ),
         PreguntaConRespuestaConOpcionesDeRespuesta(
             Pregunta(
@@ -101,6 +101,6 @@ final bloquesDeEjemplo = FormArray([
               tipo: TipoDePregunta.parteDeCuadriculaUnica,
               titulo: "pregunta2 de una fila de la tabla",
             ),
-            RespuestaConOpcionesDeRespuesta(null, null)),
+            [RespuestaConOpcionesDeRespuesta(null, null)]),
       ]),
 ]);

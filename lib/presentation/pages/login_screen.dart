@@ -22,42 +22,104 @@ class LoginScreen extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget build(BuildContext context) {
     final form = Provider.of<LoginControl>(context);
-    return FormScaffold(
-      title: const Text('Ingreso'),
-      body: ReactiveForm(
-          formGroup: form,
-          child: PreguntaCard(
-            child: Column(
-              children: [
-                Image.asset(
-                  "assets/images/logo-gomac-texto.png",
+    return OrientationBuilder(
+      builder: (BuildContext context, Orientation orientation) {
+        final queryData = MediaQuery.of(context);
+        final ancho = queryData.size.width;
+        double textSize = orientation == Orientation.portrait
+            ? ancho * 0.04
+            : queryData.size.height * 0.04;
+        if (ancho < 600 || queryData.size.height < 600) {
+          textSize = orientation == Orientation.portrait
+              ? ancho * 0.05
+              : queryData.size.height * 0.05;
+        }
+        return FormScaffold(
+          title: Text(
+            'Ingreso',
+            style: TextStyle(fontSize: textSize - 5),
+          ),
+          body: ReactiveForm(
+              formGroup: form,
+              child: PreguntaCard(
+                child: Column(
+                  children: [
+                    Image.asset(
+                      "assets/images/logo-gomac-texto.png",
+                      width: orientation == Orientation.portrait
+                          ? ancho * 0.8
+                          : ancho * 0.4,
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                          right: ancho * 0.05, left: ancho * 0.05),
+                      child: ReactiveTextField(
+                        textInputAction: TextInputAction.next,
+                        validationMessages: (control) =>
+                            {'required': 'Ingrese el usuario'},
+                        formControlName: 'usuario',
+                        style: TextStyle(fontSize: textSize.toDouble()),
+                        decoration: InputDecoration(
+                          labelText: 'Usuario',
+                          labelStyle:
+                              TextStyle(fontSize: textSize.toDouble() - 5),
+                          fillColor: Colors.transparent,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: EdgeInsets.only(
+                          right: ancho * 0.05, left: ancho * 0.05),
+                      child: ReactiveTextField(
+                        textInputAction: TextInputAction.done,
+                        validationMessages: (control) =>
+                            {'required': 'Ingrese la contraseña'},
+                        style: TextStyle(fontSize: textSize.toDouble()),
+                        formControlName: 'password',
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: 'Contraseña',
+                          labelStyle:
+                              TextStyle(fontSize: textSize.toDouble() - 5),
+                          fillColor: Colors.transparent,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    ReactiveFormConsumer(
+                      builder: (context, _, child) {
+                        return ButtonTheme(
+                          buttonColor: Theme.of(context).accentColor,
+                          minWidth: ancho * 0.15,
+                          height: orientation == Orientation.portrait
+                              ? ancho * 0.1
+                              : queryData.size.height * 0.1,
+                          child: OutlineButton(
+                            borderSide: BorderSide(
+                              color: Theme.of(context).accentColor,
+                            ),
+                            onPressed:
+                                form.valid ? () => form.submit(context) : null,
+                            child: Text('Entrar',
+                                style: TextStyle(fontSize: textSize - 5)),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                  ],
                 ),
-                ReactiveTextField(
-                  formControlName: 'usuario',
-                  decoration: const InputDecoration(
-                    labelText: 'Usuario',
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ReactiveTextField(
-                  formControlName: 'password',
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Contraseña',
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ReactiveFormConsumer(
-                  builder: (context, _, child) {
-                    return OutlineButton(
-                      onPressed: form.valid ? () => form.submit(context) : null,
-                      child: const Text('Entrar'),
-                    );
-                  },
-                ),
-              ],
-            ),
-          )),
+              )),
+        );
+      },
     );
   }
 }
@@ -145,7 +207,7 @@ class LoginControl extends FormGroup {
           ),
           FlatButton(
               onPressed: () {
-                if (userRepository.localPreferences.getAppId() != null) {
+                if (userRepository?.localPreferences?.getAppId() != null) {
                   authBloc.add(
                     AuthEvent.loggingIn(
                       usuario: Usuario(
@@ -153,6 +215,20 @@ class LoginControl extends FormGroup {
                         password: login.password,
                         esAdmin: login.esdAdmin,
                       ),
+                    ),
+                  );
+                } else if (userRepository == null) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      content: const Text(
+                          'No se pudo ingresar, por favor informe al encargado'),
+                      actions: [
+                        FlatButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text("Aceptar"),
+                        ),
+                      ],
                     ),
                   );
                 } else {
@@ -171,7 +247,7 @@ class LoginControl extends FormGroup {
                   );
                 }
               },
-              child: const Text("continuar"))
+              child: const Text("Continuar"))
         ],
       ),
     );

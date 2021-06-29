@@ -29,6 +29,16 @@ class _$ApiFailureTearOff {
       msg,
     );
   }
+
+// ignore: unused_element
+  CredencialesError credencialesException() {
+    return const CredencialesError();
+  }
+
+// ignore: unused_element
+  PageNotFoundError pageNotFound() {
+    return const PageNotFoundError();
+  }
 }
 
 /// @nodoc
@@ -42,12 +52,16 @@ mixin _$ApiFailure {
     @required TResult noHayInternet(),
     @required TResult noHayConexionAlServidor(),
     @required TResult serverError(String msg),
+    @required TResult credencialesException(),
+    @required TResult pageNotFound(),
   });
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult noHayInternet(),
     TResult noHayConexionAlServidor(),
     TResult serverError(String msg),
+    TResult credencialesException(),
+    TResult pageNotFound(),
     @required TResult orElse(),
   });
   @optionalTypeArgs
@@ -55,12 +69,16 @@ mixin _$ApiFailure {
     @required TResult noHayInternet(NoHayInternet value),
     @required TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
     @required TResult serverError(ServerError value),
+    @required TResult credencialesException(CredencialesError value),
+    @required TResult pageNotFound(PageNotFoundError value),
   });
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object>({
     TResult noHayInternet(NoHayInternet value),
     TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
     TResult serverError(ServerError value),
+    TResult credencialesException(CredencialesError value),
+    TResult pageNotFound(PageNotFoundError value),
     @required TResult orElse(),
   });
 }
@@ -122,10 +140,14 @@ class _$NoHayInternet implements NoHayInternet {
     @required TResult noHayInternet(),
     @required TResult noHayConexionAlServidor(),
     @required TResult serverError(String msg),
+    @required TResult credencialesException(),
+    @required TResult pageNotFound(),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
     assert(serverError != null);
+    assert(credencialesException != null);
+    assert(pageNotFound != null);
     return noHayInternet();
   }
 
@@ -135,6 +157,8 @@ class _$NoHayInternet implements NoHayInternet {
     TResult noHayInternet(),
     TResult noHayConexionAlServidor(),
     TResult serverError(String msg),
+    TResult credencialesException(),
+    TResult pageNotFound(),
     @required TResult orElse(),
   }) {
     assert(orElse != null);
@@ -150,10 +174,14 @@ class _$NoHayInternet implements NoHayInternet {
     @required TResult noHayInternet(NoHayInternet value),
     @required TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
     @required TResult serverError(ServerError value),
+    @required TResult credencialesException(CredencialesError value),
+    @required TResult pageNotFound(PageNotFoundError value),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
     assert(serverError != null);
+    assert(credencialesException != null);
+    assert(pageNotFound != null);
     return noHayInternet(this);
   }
 
@@ -163,6 +191,8 @@ class _$NoHayInternet implements NoHayInternet {
     TResult noHayInternet(NoHayInternet value),
     TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
     TResult serverError(ServerError value),
+    TResult credencialesException(CredencialesError value),
+    TResult pageNotFound(PageNotFoundError value),
     @required TResult orElse(),
   }) {
     assert(orElse != null);
@@ -219,10 +249,14 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
     @required TResult noHayInternet(),
     @required TResult noHayConexionAlServidor(),
     @required TResult serverError(String msg),
+    @required TResult credencialesException(),
+    @required TResult pageNotFound(),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
     assert(serverError != null);
+    assert(credencialesException != null);
+    assert(pageNotFound != null);
     return noHayConexionAlServidor();
   }
 
@@ -232,6 +266,8 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
     TResult noHayInternet(),
     TResult noHayConexionAlServidor(),
     TResult serverError(String msg),
+    TResult credencialesException(),
+    TResult pageNotFound(),
     @required TResult orElse(),
   }) {
     assert(orElse != null);
@@ -247,10 +283,14 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
     @required TResult noHayInternet(NoHayInternet value),
     @required TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
     @required TResult serverError(ServerError value),
+    @required TResult credencialesException(CredencialesError value),
+    @required TResult pageNotFound(PageNotFoundError value),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
     assert(serverError != null);
+    assert(credencialesException != null);
+    assert(pageNotFound != null);
     return noHayConexionAlServidor(this);
   }
 
@@ -260,6 +300,8 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
     TResult noHayInternet(NoHayInternet value),
     TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
     TResult serverError(ServerError value),
+    TResult credencialesException(CredencialesError value),
+    TResult pageNotFound(PageNotFoundError value),
     @required TResult orElse(),
   }) {
     assert(orElse != null);
@@ -337,10 +379,14 @@ class _$ServerError implements ServerError {
     @required TResult noHayInternet(),
     @required TResult noHayConexionAlServidor(),
     @required TResult serverError(String msg),
+    @required TResult credencialesException(),
+    @required TResult pageNotFound(),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
     assert(serverError != null);
+    assert(credencialesException != null);
+    assert(pageNotFound != null);
     return serverError(msg);
   }
 
@@ -350,6 +396,8 @@ class _$ServerError implements ServerError {
     TResult noHayInternet(),
     TResult noHayConexionAlServidor(),
     TResult serverError(String msg),
+    TResult credencialesException(),
+    TResult pageNotFound(),
     @required TResult orElse(),
   }) {
     assert(orElse != null);
@@ -365,10 +413,14 @@ class _$ServerError implements ServerError {
     @required TResult noHayInternet(NoHayInternet value),
     @required TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
     @required TResult serverError(ServerError value),
+    @required TResult credencialesException(CredencialesError value),
+    @required TResult pageNotFound(PageNotFoundError value),
   }) {
     assert(noHayInternet != null);
     assert(noHayConexionAlServidor != null);
     assert(serverError != null);
+    assert(credencialesException != null);
+    assert(pageNotFound != null);
     return serverError(this);
   }
 
@@ -378,6 +430,8 @@ class _$ServerError implements ServerError {
     TResult noHayInternet(NoHayInternet value),
     TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
     TResult serverError(ServerError value),
+    TResult credencialesException(CredencialesError value),
+    TResult pageNotFound(PageNotFoundError value),
     @required TResult orElse(),
   }) {
     assert(orElse != null);
@@ -394,4 +448,222 @@ abstract class ServerError implements ApiFailure {
   String get msg;
   @JsonKey(ignore: true)
   $ServerErrorCopyWith<ServerError> get copyWith;
+}
+
+/// @nodoc
+abstract class $CredencialesErrorCopyWith<$Res> {
+  factory $CredencialesErrorCopyWith(
+          CredencialesError value, $Res Function(CredencialesError) then) =
+      _$CredencialesErrorCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class _$CredencialesErrorCopyWithImpl<$Res>
+    extends _$ApiFailureCopyWithImpl<$Res>
+    implements $CredencialesErrorCopyWith<$Res> {
+  _$CredencialesErrorCopyWithImpl(
+      CredencialesError _value, $Res Function(CredencialesError) _then)
+      : super(_value, (v) => _then(v as CredencialesError));
+
+  @override
+  CredencialesError get _value => super._value as CredencialesError;
+}
+
+/// @nodoc
+class _$CredencialesError implements CredencialesError {
+  const _$CredencialesError();
+
+  @override
+  String toString() {
+    return 'ApiFailure.credencialesException()';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) || (other is CredencialesError);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object>({
+    @required TResult noHayInternet(),
+    @required TResult noHayConexionAlServidor(),
+    @required TResult serverError(String msg),
+    @required TResult credencialesException(),
+    @required TResult pageNotFound(),
+  }) {
+    assert(noHayInternet != null);
+    assert(noHayConexionAlServidor != null);
+    assert(serverError != null);
+    assert(credencialesException != null);
+    assert(pageNotFound != null);
+    return credencialesException();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object>({
+    TResult noHayInternet(),
+    TResult noHayConexionAlServidor(),
+    TResult serverError(String msg),
+    TResult credencialesException(),
+    TResult pageNotFound(),
+    @required TResult orElse(),
+  }) {
+    assert(orElse != null);
+    if (credencialesException != null) {
+      return credencialesException();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object>({
+    @required TResult noHayInternet(NoHayInternet value),
+    @required TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    @required TResult serverError(ServerError value),
+    @required TResult credencialesException(CredencialesError value),
+    @required TResult pageNotFound(PageNotFoundError value),
+  }) {
+    assert(noHayInternet != null);
+    assert(noHayConexionAlServidor != null);
+    assert(serverError != null);
+    assert(credencialesException != null);
+    assert(pageNotFound != null);
+    return credencialesException(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object>({
+    TResult noHayInternet(NoHayInternet value),
+    TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    TResult serverError(ServerError value),
+    TResult credencialesException(CredencialesError value),
+    TResult pageNotFound(PageNotFoundError value),
+    @required TResult orElse(),
+  }) {
+    assert(orElse != null);
+    if (credencialesException != null) {
+      return credencialesException(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class CredencialesError implements ApiFailure {
+  const factory CredencialesError() = _$CredencialesError;
+}
+
+/// @nodoc
+abstract class $PageNotFoundErrorCopyWith<$Res> {
+  factory $PageNotFoundErrorCopyWith(
+          PageNotFoundError value, $Res Function(PageNotFoundError) then) =
+      _$PageNotFoundErrorCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class _$PageNotFoundErrorCopyWithImpl<$Res>
+    extends _$ApiFailureCopyWithImpl<$Res>
+    implements $PageNotFoundErrorCopyWith<$Res> {
+  _$PageNotFoundErrorCopyWithImpl(
+      PageNotFoundError _value, $Res Function(PageNotFoundError) _then)
+      : super(_value, (v) => _then(v as PageNotFoundError));
+
+  @override
+  PageNotFoundError get _value => super._value as PageNotFoundError;
+}
+
+/// @nodoc
+class _$PageNotFoundError implements PageNotFoundError {
+  const _$PageNotFoundError();
+
+  @override
+  String toString() {
+    return 'ApiFailure.pageNotFound()';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) || (other is PageNotFoundError);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object>({
+    @required TResult noHayInternet(),
+    @required TResult noHayConexionAlServidor(),
+    @required TResult serverError(String msg),
+    @required TResult credencialesException(),
+    @required TResult pageNotFound(),
+  }) {
+    assert(noHayInternet != null);
+    assert(noHayConexionAlServidor != null);
+    assert(serverError != null);
+    assert(credencialesException != null);
+    assert(pageNotFound != null);
+    return pageNotFound();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object>({
+    TResult noHayInternet(),
+    TResult noHayConexionAlServidor(),
+    TResult serverError(String msg),
+    TResult credencialesException(),
+    TResult pageNotFound(),
+    @required TResult orElse(),
+  }) {
+    assert(orElse != null);
+    if (pageNotFound != null) {
+      return pageNotFound();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object>({
+    @required TResult noHayInternet(NoHayInternet value),
+    @required TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    @required TResult serverError(ServerError value),
+    @required TResult credencialesException(CredencialesError value),
+    @required TResult pageNotFound(PageNotFoundError value),
+  }) {
+    assert(noHayInternet != null);
+    assert(noHayConexionAlServidor != null);
+    assert(serverError != null);
+    assert(credencialesException != null);
+    assert(pageNotFound != null);
+    return pageNotFound(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object>({
+    TResult noHayInternet(NoHayInternet value),
+    TResult noHayConexionAlServidor(NoHayConexionAlServidor value),
+    TResult serverError(ServerError value),
+    TResult credencialesException(CredencialesError value),
+    TResult pageNotFound(PageNotFoundError value),
+    @required TResult orElse(),
+  }) {
+    assert(orElse != null);
+    if (pageNotFound != null) {
+      return pageNotFound(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class PageNotFoundError implements ApiFailure {
+  const factory PageNotFoundError() = _$PageNotFoundError;
 }

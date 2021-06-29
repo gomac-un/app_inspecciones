@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:dartz/dartz.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/core/enums.dart';
@@ -12,6 +12,7 @@ import 'package:inspecciones/mvvc/creacion_numerica_card.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:simple_tooltip/simple_tooltip.dart';
 
 //TODO: Unificar las cosas en común de los dos tipos de pregunta: las de seleccion y la numéricas.
 class CreadorTituloCard extends StatelessWidget {
@@ -37,7 +38,7 @@ class CreadorTituloCard extends StatelessWidget {
               validationMessages: (control) =>
                   {'required': 'El titulo no debe ser vacío'},
               decoration: const InputDecoration(
-                labelText: 'Titulo',
+                labelText: 'Titulo de sección',
               ),
             ),
             const SizedBox(height: 10),
@@ -124,28 +125,8 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             maxLines: 50,
           ),
           const SizedBox(height: 10),
-          ValueListenableBuilder<List<Sistema>>(
-            valueListenable: viewModel.sistemas,
-            builder: (context, value, child) {
-              return ReactiveDropdownField<Sistema>(
-                formControl: formGroup.control('sistema') as FormControl,
-                validationMessages: (control) =>
-                    {'required': 'Seleccione el sistema'},
-                items: value
-                    .map((e) => DropdownMenuItem<Sistema>(
-                          value: e,
-                          child: Text(e.nombre),
-                        ))
-                    .toList(),
-                decoration: const InputDecoration(
-                  labelText: 'Sistema',
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
           ValueListenableBuilder<List<SubSistema>>(
-              valueListenable: formGroup.subSistemas,
+              valueListenable: viewModel.subSistemas,
               builder: (context, value, child) {
                 return ReactiveDropdownField<SubSistema>(
                   formControl: formGroup.control('subSistema') as FormControl,
@@ -168,7 +149,9 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             items: [
               "No aplica",
               "Adelante",
-              "Atrás"
+              "Atrás",
+              'Izquierda',
+              'Derecha'
             ] //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
@@ -183,8 +166,6 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             decoration: const InputDecoration(
                 labelText: 'Criticidad de la pregunta', filled: false),
             child: ReactiveSlider(
-              //TODO: consultar de nuevo como se manejara la criticad
-
               formControl:
                   formGroup.control('criticidad') as FormControl<double>,
               max: 4,
@@ -269,6 +250,7 @@ class WidgetRespuestas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mostrarToolTip = ValueNotifier<bool>(false);
     return ReactiveValueListenableBuilder(
         formControl: (formGroup as FormGroup).control('respuestas'),
         builder: (context, control, child) {
@@ -278,25 +260,65 @@ class WidgetRespuestas extends StatelessWidget {
                 'Respuestas',
                 style: Theme.of(context).textTheme.headline6,
               ),
-              if (control.invalid)
-                Text(
-                  control.errors.entries.first.key,
-                  style: const TextStyle(color: Colors.red),
+              if (control.invalid &&
+                  control.errors.entries.first.key == 'minLength')
+                const Text(
+                  'Agregue una opción de respuesta',
+                  style: TextStyle(color: Colors.red),
                 ),
               const SizedBox(height: 10),
               if ((control as FormArray).controls.isNotEmpty)
-                ListView.builder(
+                ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: (control as FormArray).controls.length,
                   itemBuilder: (context, i) {
                     final element = (control as FormArray).controls[i]
-                        as CreadorRespuestaFormGroup;
-                    element.control('seccion').removeError('required');
-                    //Las keys sirven para que flutter maneje correctamente los widgets de la lista
+                        as CreadorRespuestaFormGroup; //Las keys sirven para que flutter maneje correctamente los widgets de la lista
                     return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       key: ValueKey(element),
                       children: [
+                        Row(
+                          children: [
+                            ValueListenableBuilder<bool>(
+                              builder:
+                                  (BuildContext context, value, Widget child) {
+                                return SimpleTooltip(
+                                  show: value,
+                                  tooltipDirection: TooltipDirection.right,
+                                  content: Text(
+                                    "Seleccione si el inspector puede asignar una criticidad propia al elegir esta respuesta",
+                                    style:
+                                        Theme.of(context).textTheme.subtitle2,
+                                  ),
+                                  ballonPadding: const EdgeInsets.all(2),
+                                  borderColor: Theme.of(context).primaryColor,
+                                  borderWidth: 0,
+                                  child: IconButton(
+                                      iconSize: 20,
+                                      icon: const Icon(
+                                        Icons.info,
+                                      ),
+                                      onPressed: () =>
+                                          mostrarToolTip.value == true
+                                              ? mostrarToolTip.value = false
+                                              : mostrarToolTip.value = true),
+                                );
+                              },
+                              valueListenable: mostrarToolTip,
+                            ),
+                            Flexible(
+                              child: ReactiveCheckboxListTile(
+                                formControl: element.control('calificable')
+                                    as FormControl,
+                                title: const Text('Calificable'),
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                              ),
+                            ),
+                          ],
+                        ),
                         Row(
                           children: [
                             Expanded(
@@ -329,6 +351,9 @@ class WidgetRespuestas extends StatelessWidget {
                       ],
                     );
                   },
+                  separatorBuilder: (BuildContext context, int index) {
+                    return const Divider();
+                  },
                 ),
               OutlineButton(
                 onPressed: () {
@@ -348,7 +373,7 @@ class WidgetRespuestas extends StatelessWidget {
         });
   }
 }
-
+/* 
 class WidgetRespuestaCondicional extends StatelessWidget {
   const WidgetRespuestaCondicional({
     Key key,
@@ -424,7 +449,7 @@ class WidgetRespuestaCondicional extends StatelessWidget {
                             activeColor: Colors.red,
                           ),
 
-                          /* //TODO: Que cuando se elimine el bloque el valor por defecto vuelva a null, así no se envía el valor de un bloque que no existe
+                          /* 
                           ValueListenableBuilder<List<int>>(
                               valueListenable: viewModel.totalBloques,
                               builder: (context, value, child) {
@@ -466,7 +491,7 @@ class WidgetRespuestaCondicional extends StatelessWidget {
           );
         });
   }
-}
+} */
 
 class BotonesDeBloque extends StatelessWidget {
   final int nro;
@@ -477,12 +502,11 @@ class BotonesDeBloque extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      //TODO: estilizar mejor estos iconos
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
-          icon: const Icon(Icons.add_circle_outline),
-          tooltip: 'agregar pregunta',
+          icon: const Icon(Icons.add_circle),
+          tooltip: 'Pregunta de selección',
           onPressed: () => agregarBloque(context, CreadorPreguntaFormGroup()),
         ),
         IconButton(
@@ -492,16 +516,17 @@ class BotonesDeBloque extends StatelessWidget {
               agregarBloque(context, CreadorPreguntaNumericaFormGroup()),
         ),
         IconButton(
-          icon: const Icon(Icons.format_size),
-          tooltip: 'agregar titulo',
-          onPressed: () => agregarBloque(context, CreadorTituloFormGroup()),
-        ),
-        IconButton(
           icon: const Icon(Icons.view_module),
-          tooltip: 'agregar cuadricula',
+          tooltip: 'Agregar cuadricula',
           onPressed: () =>
               agregarBloque(context, CreadorPreguntaCuadriculaFormGroup()),
         ),
+        IconButton(
+          icon: const Icon(Icons.format_size),
+          tooltip: 'Agregar titulo',
+          onPressed: () => agregarBloque(context, CreadorTituloFormGroup()),
+        ),
+        
         PopupMenuButton<int>(
           padding: const EdgeInsets.all(2.0),
           itemBuilder: (context) => [
@@ -511,7 +536,7 @@ class BotonesDeBloque extends StatelessWidget {
                 /* 
                 leading: const Icon(Icons.copy), */
                 title: Text('Bloque número ${nro + 1}',
-                    style:  const TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                     )),
                 selected: true,
@@ -612,7 +637,9 @@ class BotonesDeBloque extends StatelessWidget {
         animation: animation,
       ),
     );
-    /* viewModel.borrarBloque(formGroup); */
+    print('aqui');
+    viewModel.borrarBloque(formGroup);
+    print('terminó');
   }
 
   void agregarBloque(BuildContext context, AbstractControl nuevo) {

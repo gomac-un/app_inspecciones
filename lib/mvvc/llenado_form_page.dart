@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
-import 'package:inspecciones/mvvc/form_scaffold.dart';
 import 'package:inspecciones/mvvc/llenado_cards.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
 import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
@@ -41,195 +40,206 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
       child: ValueListenableBuilder<EstadoDeInspeccion>(
           valueListenable: viewModel.estado,
           builder: (context, estado, child) {
-            return FormScaffold(
-              title: Text(estado == EstadoDeInspeccion.reparacion
-                  ? 'Reparación de problemas'
-                  : 'Llenado de inspeccion'),
-              actions: [
-                if (estado == EstadoDeInspeccion.borrador ||
-                    estado == EstadoDeInspeccion.reparacion)
-                  BotonGuardarBorrador(
-                    estado: estado,
-                  )
-                else
-                  const SizedBox.shrink(),
-              ],
-              body: Column(
-                children: [
-                  ValueListenableBuilder<bool>(
-                      valueListenable: viewModel.cargada,
-                      builder: (context, cargada, child) {
-                        if (!cargada) return const CircularProgressIndicator();
-                        return ValueListenableBuilder<bool>(
-                            valueListenable: viewModel.esCondicional,
-                            builder: (context, esCondicional, child) {
-                              bool readOnly = false;
-                              /* if (esCondicional) {
-                                return InspeccionCondicional(estado: estado);
-                              } */
-                              return ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: viewModel.bloques.controls.length,
-                                  itemBuilder: (context, i) {
-                                    if (estado ==
-                                        EstadoDeInspeccion.finalizada) {
-                                      readOnly = true;
-                                    }
-                                    final element = viewModel.bloques
-                                        .controls[i] as BloqueDeFormulario;
-                                    if (estado ==
-                                            EstadoDeInspeccion.reparacion &&
-                                        element.criticidad == 0) {
-                                      return const SizedBox
-                                          .shrink(); //Esconde los que tienen criticidad 0 si la inspeccion esta en reparacion
-                                    }
-                                    if (element is TituloFormGroup) {
-                                      return TituloCard(formGroup: element);
-                                    }
-                                    if (element
-                                        is RespuestaSeleccionSimpleFormGroup) {
-                                      return SeleccionSimpleCard(
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(estado == EstadoDeInspeccion.enReparacion
+                    ? 'Reparación de problemas'
+                    : 'Llenado de inspeccion'),
+                /* actions: [
+                    if (estado == EstadoDeInspeccion.borrador ||
+                        estado == EstadoDeInspeccion.enReparacion)
+                      BotonesGuardado(
+                        estado: estado,
+                        activo: activo,
+                        cuestionarioId: cuestionarioId,
+                      )
+                    else
+                      const SizedBox.shrink(),
+                  ], */
+              ),
+              body: SafeArea(
+                child: ValueListenableBuilder<bool>(
+                    valueListenable: viewModel.cargada,
+                    builder: (context, cargada, child) {
+                      final readOnly = viewModel.esNueva.value;
+                      String titulo;
+
+                      if (estado == EstadoDeInspeccion.borrador ||
+                          estado == EstadoDeInspeccion.enReparacion) {
+                        titulo = 'Calificación parcial\nantes de la reparación';
+                      } else {
+                        titulo = 'Calificación total\n antes de la reparación';
+                      }
+                      String titulo1;
+                      if (estado == EstadoDeInspeccion.borrador ||
+                          estado == EstadoDeInspeccion.enReparacion) {
+                        titulo1 = 'Calificación parcial\ndespués de reparación';
+                      } else {
+                        titulo1 = 'Calificación total\ndespués de reparación';
+                      }
+                      if (!cargada) {
+                        return const CircularProgressIndicator();
+                      }
+                      final controller = PageController();
+                      final bloques = estado == EstadoDeInspeccion.borrador ||
+                              estado == EstadoDeInspeccion.finalizada
+                          ? viewModel.bloques.controls
+                          : viewModel.bloques.controls
+                              .where((blo) =>
+                                  (blo as BloqueDeFormulario).criticidad > 0 ||
+                                  blo is TituloFormGroup)
+                              .toList();
+                      final criticidadTotal = viewModel.bloques.controls
+                          .fold<int>(
+                              0,
+                              (p, c) =>
+                                  p + (c as BloqueDeFormulario).criticidad);
+                      final criticidadReparacion = viewModel.bloques.controls
+                          .fold<int>(
+                              0,
+                              (p, c) =>
+                                  p +
+                                  (c as BloqueDeFormulario)
+                                      .criticidadReparacion);
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: PageView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            controller: controller,
+                            itemCount: bloques.length,
+                            itemBuilder: (context, i) {
+                              final element = bloques[i] as BloqueDeFormulario;
+                              if (element is TituloFormGroup) {
+                                return Center(
+                                  child: Column(
+                                    children: [
+                                      TituloCard(formGroup: element),
+                                      const SizedBox(
+                                        height: 20,
+                                      ),
+                                      BotonesComunes(
+                                        estado: estado,
+                                        esTitulo: true,
+                                        criticidadTotal: criticidadTotal,
+                                        titulo: titulo,
+                                        criticidadReparacion:
+                                            criticidadReparacion,
+                                        titulo1: titulo1,
+                                        controller: controller,
+                                        i: i,
+                                      )
+                                    ],
+                                  ),
+                                );
+                              }
+                              if (element
+                                  is RespuestaSeleccionSimpleFormGroup) {
+                                return SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: LinearProgressIndicator(
+                                          value: (i + 1) / bloques.length,
+                                          minHeight: 5,
+                                        ),
+                                      ),
+                                      SeleccionSimpleCard(
                                         formGroup: element,
                                         readOnly: readOnly,
-                                      );
-                                    }
-                                    if (element
-                                        is RespuestaCuadriculaFormArray) {
-                                      return CuadriculaCard(
+                                      ),
+                                      const SizedBox(
+                                        height: 20,
+                                      ),
+                                      BotonesComunes(
+                                        estado: estado,
+                                        esTitulo: false,
+                                        criticidadTotal: criticidadTotal,
+                                        titulo: titulo,
+                                        criticidadReparacion:
+                                            criticidadReparacion,
+                                        titulo1: titulo1,
+                                        controller: controller,
+                                        i: i,
+                                      )
+                                    ],
+                                  ),
+                                );
+                              }
+                              if (element is RespuestaCuadriculaFormArray) {
+                                return SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: LinearProgressIndicator(
+                                          value: (i + 1) / bloques.length,
+                                          minHeight: 5,
+                                        ),
+                                      ),
+                                      CuadriculaCard(
                                         formArray: element,
                                         readOnly: readOnly,
-                                      );
-                                    }
-                                    if (element is RespuestaNumericaFormGroup) {
-                                      return NumericaCard(
+                                      ),
+                                      const SizedBox(
+                                        height: 20,
+                                      ),
+                                      BotonesComunes(
+                                        estado: estado,
+                                        esTitulo: false,
+                                        criticidadTotal: criticidadTotal,
+                                        titulo: titulo,
+                                        criticidadReparacion:
+                                            criticidadReparacion,
+                                        titulo1: titulo1,
+                                        controller: controller,
+                                        i: i,
+                                      )
+                                    ],
+                                  ),
+                                );
+                              }
+                              if (element is RespuestaNumericaFormGroup) {
+                                return SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: LinearProgressIndicator(
+                                          value: (i + 1) / bloques.length,
+                                          minHeight: 5,
+                                        ),
+                                      ),
+                                      NumericaCard(
                                         formGroup: element,
                                         readOnly: readOnly,
-                                      );
-                                    }
-                                    return Text(
-                                        "error: el bloque $i no tiene una card que lo renderice");
-                                  });
-                            });
-                      }),
-                  const SizedBox(height: 20),
-                  ValueListenableBuilder<bool>(
-                      valueListenable: viewModel.cargada,
-                      builder: (context, cargada, child) {
-                        if (!cargada) return const CircularProgressIndicator();
-                        final criticidadTotal = viewModel.bloques.controls
-                            .fold<int>(
-                                0,
-                                (p, c) =>
-                                    p + (c as BloqueDeFormulario).criticidad);
-                        final criticidadReparacion = viewModel.bloques.controls
-                            .fold<int>(
-                                0,
-                                (p, c) =>
-                                    p +
-                                    (c as BloqueDeFormulario)
-                                        .criticidadReparacion);
-                        String titulo;
-                        if (estado == EstadoDeInspeccion.borrador ||
-                            estado == EstadoDeInspeccion.reparacion) {
-                          titulo =
-                              'Calificación parcial\nantes de la reparación';
-                        } else {
-                          titulo =
-                              'Calificación total\n antes de la reparación';
-                        }
-                        String titulo1;
-                        if (estado == EstadoDeInspeccion.borrador ||
-                            estado == EstadoDeInspeccion.reparacion) {
-                          titulo1 =
-                              'Calificación parcial\ndespués de reparación';
-                        } else {
-                          titulo1 = 'Calificación total\ndespués de reparación';
-                        }
-                        return Row(
-                          children: [
-                            Expanded(child: Container()),
-                            Expanded(
-                              flex: 4,
-                              child: Column(
-                                children: [
-                                  PreguntaCard(
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Text(
-                                          titulo,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .headline6,
-                                        ),
-                                        if (criticidadTotal > 0)
-                                          const Icon(
-                                            Icons.warning_amber_rounded,
-                                            color: Colors.red,
-                                            size: 25, /* color: Colors.white, */
-                                          )
-                                        else
-                                          Icon(
-                                            Icons.remove_red_eye,
-                                            color: Colors.green[
-                                                200], /* color: Colors.white, */
-                                          ),
-                                        Text(
-                                          ' ${criticidadTotal.toString()}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyText1,
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                      const SizedBox(
+                                        height: 20,
+                                      ),
+                                      BotonesComunes(
+                                        estado: estado,
+                                        esTitulo: false,
+                                        criticidadTotal: criticidadTotal,
+                                        titulo: titulo,
+                                        criticidadReparacion:
+                                            criticidadReparacion,
+                                        titulo1: titulo1,
+                                        controller: controller,
+                                        i: i,
+                                      )
+                                    ],
                                   ),
-                                  PreguntaCard(
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Text(
-                                          titulo1,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .headline6,
-                                        ),
-                                        if (criticidadTotal > 0)
-                                          const Icon(
-                                            Icons.warning_amber_rounded,
-                                            color: Colors.red,
-                                            size: 25, /* color: Colors.white, */
-                                          )
-                                        else
-                                          Icon(
-                                            Icons.remove_red_eye,
-                                            color: Colors.green[
-                                                200], /* color: Colors.white, */
-                                          ),
-                                        Text(
-                                          ' ${criticidadReparacion.toString()}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyText1,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        );
-                        /*  }
-                        return const SizedBox(
-                          height: 1,
-                        ); */
-                      }),
-                  const SizedBox(height: 60),
-                ],
+                                );
+                              }
+                              return Text(
+                                  "error: el bloque $i no tiene una card que lo renderice");
+                            }),
+                      );
+                    }),
               ),
+              floatingActionButtonLocation:
+                  FloatingActionButtonLocation.centerDocked,
               floatingActionButton: BotonesGuardado(
                 estado: estado,
                 activo: activo,
@@ -241,34 +251,148 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   }
 }
 
-class BotonGuardarBorrador extends StatelessWidget {
-  const BotonGuardarBorrador({
+class BotonesComunes extends StatelessWidget {
+  final String titulo;
+  final EstadoDeInspeccion estado;
+  final int criticidadTotal;
+
+  final String titulo1;
+
+  final int criticidadReparacion;
+  final int i;
+  final PageController controller;
+
+  final bool esTitulo;
+
+  const BotonesComunes({
     Key key,
+    @required this.titulo,
+    @required this.criticidadTotal,
+    @required this.titulo1,
+    @required this.criticidadReparacion,
+    @required this.i,
+    @required this.controller,
+    @required this.esTitulo,
     @required this.estado,
   }) : super(key: key);
-
-  final EstadoDeInspeccion estado;
 
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
-    return IconButton(
-      icon: const Icon(Icons.archive),
-      //label: 'Guardar borrador',
-      onPressed: () async {
-        final criticidadTotal = viewModel.bloques.controls
-            .fold<int>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
-        final criticidadReparacion = viewModel.bloques.controls.fold<int>(
-            0, (p, c) => p + (c as BloqueDeFormulario).criticidadReparacion);
-        LoadingDialog.show(context);
-        await viewModel.guardarInspeccionEnLocal(
-            estado: estado,
-            criticidadTotal: criticidadTotal,
-            criticidadReparacion: criticidadReparacion);
-        LoadingDialog.hide(context);
-        Scaffold.of(context)
-            .showSnackBar(const SnackBar(content: Text("Guardado exitoso")));
-      },
+    final esTitul = esTitulo ?? false;
+    final bloques = viewModel.estado.value == EstadoDeInspeccion.borrador ||
+            viewModel.estado.value == EstadoDeInspeccion.finalizada
+        ? viewModel.bloques.controls
+        : viewModel.bloques.controls
+            .where((blo) =>
+                (blo as BloqueDeFormulario).criticidad > 0 ||
+                blo is TituloFormGroup)
+            .toList();
+    return Row(
+      children: [
+        Expanded(child: Container()),
+        Expanded(
+          flex: 4,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (i != 0)
+                    FloatingActionButton(
+                      heroTag: 'atras',
+                      onPressed: () {
+                        controller.animateToPage(
+                          i - 1,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.linear,
+                        );
+                      },
+                      child: const Icon(Icons.navigate_before),
+                    ),
+                  const SizedBox(
+                    width: 15.0,
+                  ),
+                  if (i != bloques.length - 1)
+                    FloatingActionButton(
+                      heroTag: 'adelante',
+                      onPressed: () {
+                        controller.animateToPage(
+                          i + 1,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.linear,
+                        );
+                      },
+                      child: const Icon(Icons.navigate_next),
+                    ),
+                ],
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              if (!esTitulo ?? false)
+                PreguntaCard(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Text(
+                        titulo,
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
+                      if (criticidadTotal > 0)
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.red,
+                          size: 25, /* color: Colors.white, */
+                        )
+                      else
+                        Icon(
+                          Icons.remove_red_eye,
+                          color: Colors.green[200], /* color: Colors.white, */
+                        ),
+                      Text(
+                        ' ${criticidadTotal.toString()}',
+                        style: Theme.of(context).textTheme.bodyText1,
+                      ),
+                    ],
+                  ),
+                ),
+              if (!esTitulo &&
+                  [EstadoDeInspeccion.enReparacion, EstadoDeInspeccion.finalizada]
+                      .contains(estado))
+                PreguntaCard(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Text(
+                        titulo1,
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
+                      if (criticidadTotal > 0)
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.red,
+                          size: 25, /* color: Colors.white, */
+                        )
+                      else
+                        Icon(
+                          Icons.remove_red_eye,
+                          color: Colors.green[200], /* color: Colors.white, */
+                        ),
+                      Text(
+                        ' ${criticidadReparacion.toString()}',
+                        style: Theme.of(context).textTheme.bodyText1,
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(
+                height: 120,
+              )
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -288,38 +412,134 @@ class BotonesGuardado extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final form = ReactiveForm.of(context);
+    final viewModel = Provider.of<LlenadoFormViewModel>(context);
+    final borradorKey = GlobalKey();
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          ActionButton(
-            iconData: Icons.done_all_outlined,
-            label: estado == EstadoDeInspeccion.finalizada
-                ? 'Aceptar'
-                : 'Finalizar',
-            onPressed: !form.valid
-                ? () {
-                    if (estado == EstadoDeInspeccion.borrador) {
-                      form.markAllAsTouched();
-
-                      mostrarErrores(context, form);
-                    } else if (estado == EstadoDeInspeccion.reparacion) {
-                      form.markAllAsTouched();
-                      if (form.errors.isEmpty) {
-                        finalizarInspeccion(context, estado);
-                      } else {
-                        mostrarErrores(context, form);
-                      }
-                    }
-                  }
-                : () {
-                    finalizarInspeccion(context, estado);
+          if ([EstadoDeInspeccion.borrador, EstadoDeInspeccion.enReparacion]
+              .contains(estado))
+            ActionButton(
+              key: borradorKey,
+              iconData: Icons.archive,
+              label: 'Guardar',
+              onPressed: () async {
+                final criticidadTotal = viewModel.bloques.controls.fold<int>(
+                    0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+                final criticidadReparacion = viewModel.bloques.controls
+                    .fold<int>(
+                        0,
+                        (p, c) =>
+                            p + (c as BloqueDeFormulario).criticidadReparacion);
+                LoadingDialog.show(context);
+                await viewModel.guardarInspeccionEnLocal(
+                    estado: estado,
+                    criticidadTotal: criticidadTotal,
+                    criticidadReparacion: criticidadReparacion);
+                LoadingDialog.hide(context);
+                viewModel.fueGuardado.value = true;
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      content: const Text("Guardado exitoso"),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Aceptar'),
+                        )
+                      ],
+                    );
                   },
+                );
+                /* Scaffold.of(context).showSnackBar(
+                    const SnackBar(content: Text("Guardado exitoso"))); */
+              },
+            ),
+          ValueListenableBuilder<bool>(
+            builder: (BuildContext context, value, Widget child) {
+              if(value){
+                return FloatingActionButton.extended(
+                heroTag: null,
+                icon: const Icon(Icons.done_all_outlined),
+                label: Text(estado == EstadoDeInspeccion.finalizada
+                    ? 'Aceptar'
+                    : 'Finalizar'),
+                onPressed: !form.valid
+                    ? () {
+                        final snackBar = SnackBar(
+                          content: const Text('La inspección tiene errores'),
+                          action: SnackBarAction(
+                            label: 'Ver errores',
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Aceptar',
+                                          style:
+                                              TextStyle(color: Colors.black)),
+                                    ),
+                                  ],
+                                  title: const Text("Errores:"),
+                                  content: Text(
+                                      /*JsonEncoder.withIndent('  ')
+                                          .convert(json.encode(form.errors)),*/
+                                      /* form.errors.values.toString(), */
+                                      _obtenerErrores(form, estado: estado)),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                        if (estado == EstadoDeInspeccion.borrador) {
+                          form.markAllAsTouched();
+                          Scaffold.of(context).showSnackBar(snackBar);
+                        } else if (estado == EstadoDeInspeccion.enReparacion) {
+                          form.markAllAsTouched();
+                          if (form.errors.isEmpty && form.valid) {
+                            finalizarInspeccion(context, estado);
+                          } else {
+                            Scaffold.of(context).showSnackBar(snackBar);
+                            /*   mostrarErrores(context, form, estado: estado); */
+                          }
+                        }
+                      }
+                    : () {
+                        finalizarInspeccion(context, estado);
+                      },
+              );
+              }
+              return const SizedBox.shrink();
+              
+            },
+            valueListenable: viewModel.fueGuardado,
           ),
         ],
       ),
     );
+  }
+
+  String _obtenerErrores(AbstractControl<dynamic> form,
+      {EstadoDeInspeccion estado}) {
+    String texto = '';
+    String textoApoyo = '';
+    final errores = form.errors['bloques'];
+    errores.forEach((key, value) {
+      textoApoyo = estado == EstadoDeInspeccion.enReparacion
+          ? '- Pregunta $key: asegúrese de haber incluido observaciones y fotos de la reparación.'
+          : '- Pregunta $key: asegúrese de responder la pregunta y tomar las fotos base.';
+      texto = '$texto \n$textoApoyo';
+    });
+    return texto;
   }
 
   Future<void> finalizarInspeccion(
@@ -350,7 +570,7 @@ class BotonesGuardado extends StatelessWidget {
     );
     // show the dialog
 
-    if (estado == EstadoDeInspeccion.reparacion) {
+    if (estado == EstadoDeInspeccion.enReparacion) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -385,10 +605,10 @@ class BotonesGuardado extends StatelessWidget {
         final criticidadReparacion = viewModel.bloques.controls.fold<int>(
             0, (p, c) => p + (c as BloqueDeFormulario).criticidadReparacion);
         if (criticidadTotal > 0) {
-          viewModel.estado.value = EstadoDeInspeccion.reparacion;
+          viewModel.estado.value = EstadoDeInspeccion.enReparacion;
           LoadingDialog.show(context);
           await viewModel.guardarInspeccionEnLocal(
-              estado: EstadoDeInspeccion.reparacion,
+              estado: EstadoDeInspeccion.enReparacion,
               criticidadTotal: criticidadTotal,
               criticidadReparacion: criticidadReparacion);
           LoadingDialog.hide(context);
@@ -405,7 +625,7 @@ class BotonesGuardado extends StatelessWidget {
               'Ha finalizado la inspección, no debe hacer reparaciones');
         }
         break;
-      case EstadoDeInspeccion.reparacion:
+      case EstadoDeInspeccion.enReparacion:
         mostrarMensaje(context, 'Inspección finalizada');
         break;
       default:
@@ -477,12 +697,13 @@ class ErroresDialog extends StatelessWidget {
   const ErroresDialog({Key key, this.form}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    print(form.errors['bloques']);
     return AlertDialog(
       title: const Text("Errores: "),
       content: Text(
         /*JsonEncoder.withIndent('  ')
         .convert(json.encode(form.errors)),*/
-        form.errors.toString(), //TODO: darle un formato adecuado
+        form.errors['bloques'].toString(), //TODO: darle un formato adecuado
       ),
     );
   }
@@ -493,7 +714,7 @@ class AlertReparacion extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text("Inicio reparacion"),
-      content: const Text("Por favor realize las reparaciones necesarias"),
+      content: const Text("Por favor realice las reparaciones necesarias"),
       actions: [
         TextButton(
             onPressed: ExtendedNavigator.of(context).pop,
@@ -525,7 +746,7 @@ class AlertReparacion extends StatelessWidget {
                 readOnly = true;
               }
               final element = listaAMostrar[i] as BloqueDeFormulario;
-              if (estado == EstadoDeInspeccion.reparacion &&
+              if (estado == EstadoDeInspeccion.enReparacion &&
                   element.criticidad == 0) {
                 return const SizedBox
                     .shrink(); //Esconde los que tienen criticidad 0 si la inspeccion esta en reparacion

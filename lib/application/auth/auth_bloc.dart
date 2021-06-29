@@ -44,7 +44,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final appId = await getIt<UserRepository>()
             .getAppId(); 
         if (appId == null) {
-          throw Exception("no se puede ingresar sin internet por primera vez");
+          throw Exception("No se puede ingresar sin internet por primera vez");
         }
         await userRepository.saveLocalUser(user: usuario);
         yield AuthState.authenticated(usuario: usuario);

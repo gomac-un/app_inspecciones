@@ -14,6 +14,7 @@ import 'mvvc/creacion_form_page.dart';
 import 'mvvc/llenado_form_page.dart';
 import 'presentation/pages/borradores_screen.dart';
 import 'presentation/pages/cuestionarios_screen.dart';
+import 'presentation/pages/grupos_screen.dart';
 import 'presentation/pages/login_screen.dart';
 import 'presentation/pages/sincronizacion_screen.dart';
 import 'presentation/pages/splash_screen.dart';
@@ -26,6 +27,7 @@ class Routes {
   static const String llenadoFormPage = '/llenado-form-page';
   static const String sincronizacionPage = '/sincronizacion-page';
   static const String cuestionariosPage = '/cuestionarios-page';
+  static const String gruposScreen = '/grupos-screen';
   static const all = <String>{
     splashPage,
     loginScreen,
@@ -34,6 +36,7 @@ class Routes {
     llenadoFormPage,
     sincronizacionPage,
     cuestionariosPage,
+    gruposScreen,
   };
 }
 
@@ -48,6 +51,7 @@ class AutoRouter extends RouterBase {
     RouteDef(Routes.llenadoFormPage, page: LlenadoFormPage),
     RouteDef(Routes.sincronizacionPage, page: SincronizacionPage),
     RouteDef(Routes.cuestionariosPage, page: CuestionariosPage),
+    RouteDef(Routes.gruposScreen, page: GruposScreen),
   ];
   @override
   Map<Type, AutoRouteFactory> get pagesMap => _pagesMap;
@@ -109,6 +113,12 @@ class AutoRouter extends RouterBase {
         settings: data,
       );
     },
+    GruposScreen: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => GruposScreen().wrappedRoute(context),
+        settings: data,
+      );
+    },
   };
 }
 
@@ -154,6 +164,8 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
 
   Future<dynamic> pushCuestionariosPage() =>
       push<dynamic>(Routes.cuestionariosPage);
+
+  Future<dynamic> pushGruposScreen() => push<dynamic>(Routes.gruposScreen);
 }
 
 /// ************************************************************************
