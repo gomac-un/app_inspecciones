@@ -77,7 +77,6 @@ class ActSistemasControl extends FormGroup {
       ),
     ];
     await bd.planeacionDao.saveProgramacionSistemas(listaAGuardar);
-    print('Hola');
   }
 }
 

@@ -27,7 +27,6 @@ class InspeccionesRepository {
       final endpoint = '/inspecciones/$id';
       final inspeccion = await _api.getRecurso(endpoint);
       await _db.guardarInspeccionBD(inspeccion);
-      print(inspeccion);
       return right(unit);
     } on TimeoutException {
       return const Left(ApiFailure.noHayConexionAlServidor());
@@ -44,6 +43,40 @@ class InspeccionesRepository {
     }
   }
 
+  // TODO: ELIMINAR ESTO
+  /* Future<Either<ApiFailure, Unit>> subirServer() async {
+    //TODO: mostrar el progreso en la ui
+   /*  final listaSist = await _db.getSistemas(); */
+    final listaSub = await _db.getSubsis();
+    /* final listaContr = await _db.getContra(); */
+    final json = {
+      /* 'sistema': listaSist,
+      'contratista': listaContr, */
+      'subsistemas': listaSub,
+    };
+    try {
+      /*final res = await _api.putRecurso('/inspecciones/${ins['id']}/', ins,
+          token: _token);*/
+      log(jsonEncode(json));
+
+      await _api.postRecurso('/server-app/', json);
+
+      return right(unit);
+    } on TimeoutException {
+      return const Left(ApiFailure.noHayConexionAlServidor());
+    } on CredencialesException {
+      return const Left(ApiFailure.credencialesException());
+    } on ServerException catch (e) {
+      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    } on InternetException {
+      return const Left(ApiFailure.noHayInternet());
+    } on PageNotFoundException {
+      return const Left(ApiFailure.pageNotFound());
+    } catch (e) {
+      return Left(ApiFailure.serverError(e.toString()));
+    }
+  } */
+
   Future<Either<ApiFailure, Unit>> subirInspeccion(
       Inspeccion inspeccion) async {
     //TODO: mostrar el progreso en la ui
@@ -53,8 +86,6 @@ class InspeccionesRepository {
           token: _token);*/
       ins.remove('esNueva');
       log(jsonEncode(ins));
-      print(ins);
-
       inspeccion.esNueva
           ? await _api.postRecurso('/inspecciones/', ins)
           : await _api.putRecurso('/inspecciones/${inspeccion.id}/', ins);

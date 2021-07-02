@@ -39,7 +39,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
+    /* final media = MediaQuery.of(context);
     double scaffoldTtitleSize = media.orientation == Orientation.portrait
         ? media.size.height * 0.02
         : media.size.width * 0.02;
@@ -47,208 +47,200 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
       scaffoldTtitleSize = media.orientation == Orientation.portrait
           ? media.size.height * 0.028
           : media.size.width * 0.028;
-    }
+    } */
     final db = RepositoryProvider.of<Database>(context);
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: media.orientation == Orientation.portrait
+        /* toolbarHeight: media.orientation == Orientation.portrait
             ? media.size.height * 0.07
-            : media.size.width * 0.07,
-        title: Text('Inspecciones',
-            style: TextStyle(
+            : media.size.width * 0.07, */
+        title: const Text(
+          'Inspecciones',
+          /* style: TextStyle(
               fontSize: scaffoldTtitleSize,
-            )),
+            ) */
+        ),
         actions: [
-          IconButton(
+          /* IconButton(
             onPressed: () {
               //TODO: implementar la subida de todas las inspecciones pendientes
               throw Exception();
             },
-            icon: Icon(
+            icon: const Icon(
               Icons.upload_file,
-              size: media.orientation == Orientation.portrait
+              /*  size: media.orientation == Orientation.portrait
                   ? media.size.height * 0.03
-                  : media.size.width * 0.03,
+                  : media.size.width * 0.03, */
             ),
             tooltip: "Subir inspecciones",
           ),
           const SizedBox(
             width: 5,
-          ),
+          ), */
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.asset(
               "assets/images/logo-gomac.png",
-              width: media.orientation == Orientation.portrait
+              /* width: media.orientation == Orientation.portrait
                   ? media.size.width * 0.06
-                  : media.size.height * 0.06,
+                  : media.size.height * 0.06, */
             ),
           ),
         ],
       ),
-      drawer: media.size.width <= 600 || media.size.height <= 600
+      drawer: UserDrawer(),
+      /* media.size.width <= 600 || media.size.height <= 600
           ? UserDrawer()
-          : null,
-      body: Row(
-        children: [
-          if (media.size.width > 600 && media.size.height > 600)
-            Expanded(child: UserDrawer())
-          else
-            Container(),
-          Flexible(
-            flex: 2,
-            child: Consumer<List<Borrador>>(
-              // Toco usar un proviedr porque estaba creando el stream en cada rebuild
-              //stream: Provider.of<Stream<List<Borrador>>>(context),
-              builder: (context, borradores, child) {
-                /*
+          : null, */
+      body: Consumer<List<Borrador>>(
+        // Toco usar un proviedr porque estaba creando el stream en cada rebuild
+        //stream: Provider.of<Stream<List<Borrador>>>(context),
+        builder: (context, borradores, child) {
+          /*
                 if (snapshot.hasError) {
                   //throw snapshot.error;
                   return Text("error: ${snapshot.error}");
                 }*/
-                if (borradores == null) {
-                  return const Align(
-                    child: CircularProgressIndicator(),
-                  );
-                }
+          if (borradores == null) {
+            return const Align(
+              child: CircularProgressIndicator(),
+            );
+          }
 
-                if (borradores.isEmpty) {
-                  return Center(
-                      child: Text(
-                    "No tiene borradores sin terminar",
-                    style: Theme.of(context).textTheme.headline5,
-                  ));
-                }
+          if (borradores.isEmpty) {
+            return Center(
+                child: Text(
+              "No tiene borradores sin terminar",
+              style: Theme.of(context).textTheme.headline5,
+            ));
+          }
 
-                return ListView.separated(
-                  separatorBuilder: (BuildContext context, int index) =>
-                      const Divider(),
-                  itemCount: borradores.length,
-                  itemBuilder: (context, index) {
-                    final borrador = borradores[index];
-                    final f = borrador.inspeccion.momentoBorradorGuardado;
-                    final criticidad = borrador.inspeccion.estado ==
-                            EstadoDeInspeccion.finalizada
-                        ? 'Criticidad total inicial: '
-                        : 'Criticidad parcial inicial: ';
+          return ListView.separated(
+            separatorBuilder: (BuildContext context, int index) =>
+                const Divider(),
+            itemCount: borradores.length,
+            itemBuilder: (context, index) {
+              final borrador = borradores[index];
+              final f = borrador.inspeccion.momentoBorradorGuardado;
+              final criticidad =
+                  borrador.inspeccion.estado == EstadoDeInspeccion.finalizada
+                      ? 'Criticidad total inicial: '
+                      : 'Criticidad parcial inicial: ';
 
-                    return ListTile(
-                      tileColor: Theme.of(context).cardColor,
-                      title: Text(
-                          "${borrador.activo.id} - ${borrador.activo.modelo} (${borrador.cuestionario.tipoDeInspeccion})",
-                          style: Theme.of(context).textTheme.subtitle1),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 2),
-                          Text(
-                            "Estado: ${EnumToString.convertToString(borrador.inspeccion.estado)}",
-                          ),
-                          Text(
-                            "Avance del cuestionario: ${((borrador.avance / borrador.total) * 100).round()}%",
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 15),
-                          ),
-                          Text(f == null
-                              ? ''
-                              : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute}"),
-                          Text(
-                            '$criticidad ${borrador.inspeccion.criticidadTotal}',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 15),
-                          ),
-                          Text(
-                            'Criticidad reparaciones pendientes: ${borrador.inspeccion.criticidadReparacion}',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 15),
-                          ),
-                        ],
-                      ),
-                      leading: [
-                        EstadoDeInspeccion.finalizada,
-                        EstadoDeInspeccion.enReparacion
-                      ].contains(borrador.inspeccion.estado)
-                          ? IconButton(
-                              icon: Icon(
-                                Icons.cloud_upload,
-                                color: Theme.of(context).accentColor,
-                              ),
-                              onPressed: () async {
-                                final res = await RepositoryProvider.of<
-                                        InspeccionesRepository>(context)
-                                    .subirInspeccion(borrador.inspeccion)
-                                    .then((res) => res.fold(
-                                            (fail) => fail
-                                                .when(
-                                                    pageNotFound: () =>
-                                                        'No se pudo encontrar la página, informe al encargado',
-                                                    noHayConexionAlServidor: () =>
-                                                        "No hay conexión al servidor",
-                                                    noHayInternet: () =>
-                                                        "No tiene conexión a internet",
-                                                    serverError: (msg) =>
-                                                        "Error interno: $msg",
-                                                    credencialesException: () =>
-                                                        'Error inesperado: intente inciar sesión nuevamente'),
-                                            (u) {
-                                          db.borradoresDao
-                                              .eliminarBorrador(borrador);
-                                          return "exito";
-                                        }));
-                                res == 'exito'
-                                    ? showDialog(
-                                        context: context,
-                                        barrierColor:  Theme.of(context)
-                                              .primaryColorLight,
-                                              barrierDismissible: false,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            contentTextStyle: Theme.of(context).textTheme.headline5,
-                                            title: const Icon(Icons.done_sharp, size: 100, color: Colors.green),
-                                            actions: [
-                                              Center(
-                                                child: RaisedButton(
-                                                  color: Theme.of(context).accentColor,
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: const Text('Aceptar'),
-                                                ),
-                                              )
-                                            ],
-                                            content: const Text(
-                                                'Inspección enviada correctamente', textAlign: TextAlign.center,),
-                                          );
-                                        },
-                                      )
-                                  
-                                    : Scaffold.of(context)
-                                        .showSnackBar(SnackBar(
-                                        content: Text(res),
-                                      ));
-                              })
-                          : const SizedBox(),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => eliminarBorrador(borrador, context),
-                      ),
-                      onTap: () => ExtendedNavigator.of(context).push(
-                        Routes.llenadoFormPage,
-                        arguments: LlenadoFormPageArguments(
-                          activo: borrador.activo.id,
-                          cuestionarioId: borrador.inspeccion.cuestionarioId,
+              return ListTile(
+                tileColor: Theme.of(context).cardColor,
+                title: Text(
+                    "${borrador.activo.id} - ${borrador.activo.modelo} (${borrador.cuestionario.tipoDeInspeccion})",
+                    style: Theme.of(context).textTheme.subtitle1),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 2),
+                    Text(
+                      "Estado: ${EnumToString.convertToString(borrador.inspeccion.estado, camelCase: true)}",
+                    ),
+                    Text(
+                      "Avance del cuestionario: ${((borrador.avance / borrador.total) * 100).round()}%",
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    Text(f == null
+                        ? ''
+                        : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute}"),
+                    Text(
+                      '$criticidad ${borrador.inspeccion.criticidadTotal}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    Text(
+                      'Criticidad reparaciones pendientes: ${borrador.inspeccion.criticidadReparacion}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ],
+                ),
+                leading: [
+                  EstadoDeInspeccion.finalizada,
+                  EstadoDeInspeccion.enReparacion
+                ].contains(borrador.inspeccion.estado)
+                    ? IconButton(
+                        icon: Icon(
+                          Icons.cloud_upload,
+                          color: Theme.of(context).accentColor,
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: const FloatingActionButtonInicioInspeccion(),
-    );
+                        onPressed: () async {
+                          final res = await RepositoryProvider.of<
+                                  InspeccionesRepository>(context)
+                              .subirInspeccion(borrador.inspeccion)
+                              .then((res) => res.fold(
+                                      (fail) => fail.when(
+                                          pageNotFound: () =>
+                                              'No se pudo encontrar la página, informe al encargado',
+                                          noHayConexionAlServidor: () =>
+                                              "No hay conexión al servidor",
+                                          noHayInternet: () =>
+                                              "No tiene conexión a internet",
+                                          serverError: (msg) =>
+                                              "Error interno: $msg",
+                                          credencialesException: () =>
+                                              'Error inesperado: intente inciar sesión nuevamente'),
+                                      (u) {
+                                    db.borradoresDao.eliminarBorrador(borrador);
+                                    return "exito";
+                                  }));
+                          res == 'exito'
+                              ? showDialog(
+                                  context: context,
+                                  barrierColor:
+                                      Theme.of(context).primaryColorLight,
+                                  barrierDismissible: false,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      contentTextStyle:
+                                          Theme.of(context).textTheme.headline5,
+                                      title: const Icon(Icons.done_sharp,
+                                          size: 100, color: Colors.green),
+                                      actions: [
+                                        Center(
+                                          child: RaisedButton(
+                                            color:
+                                                Theme.of(context).accentColor,
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text('Aceptar'),
+                                          ),
+                                        )
+                                      ],
+                                      content: const Text(
+                                        'Inspección enviada correctamente',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Scaffold.of(context).showSnackBar(SnackBar(
+                                  content: Text(res),
+                                ));
+                        })
+                    : const SizedBox(),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => eliminarBorrador(borrador, context),
+                ),
+                onTap: () => ExtendedNavigator.of(context).push(
+                  Routes.llenadoFormPage,
+                  arguments: LlenadoFormPageArguments(
+                    activo: borrador.activo.id,
+                    cuestionarioId: borrador.inspeccion.cuestionarioId,
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ), floatingActionButton: const FloatingActionButtonInicioInspeccion(),
+     );
   }
 
   void eliminarBorrador(Borrador borrador, BuildContext context) {

@@ -637,9 +637,7 @@ class BotonesDeBloque extends StatelessWidget {
         animation: animation,
       ),
     );
-    print('aqui');
     viewModel.borrarBloque(formGroup);
-    print('terminó');
   }
 
   void agregarBloque(BuildContext context, AbstractControl nuevo) {
