@@ -194,7 +194,6 @@ class GrupisControl extends FormGroup {
         control('fechaInicio').value as int >= 9) {
       anio2 = anio1 + 1;
     }
-    print(anio2);
     final fechaFin = DateTime(anio2, (control('fechaFin').value as int) + 1)
         .add(const Duration(days: -1));
     return grupo?.copyWith(

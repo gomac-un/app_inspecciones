@@ -47,12 +47,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                 ? 'Creación de cuestionario'
                 : 'Visualización cuestionario'),
             // ignore: prefer_const_literals_to_create_immutables
-            actions: [
-              if (estado == EstadoDeCuestionario.borrador)
-                BotonGuardarBorrador(
-                  estado: estado,
-                ),
-            ],
+
             body: Column(
               children: [
                 PreguntaCard(
@@ -264,16 +259,59 @@ class BotonFinalizar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final form = ReactiveForm.of(context);
+    final viewModel = Provider.of<CreacionFormViewModel>(context);
+    final borradorKey = GlobalKey();
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          ActionButton(
-            iconData: Icons.done_all_outlined,
-            label: estado == EstadoDeCuestionario.borrador
+          if (estado == EstadoDeCuestionario.borrador)
+            ActionButton(
+              key: borradorKey,
+              iconData: Icons.archive,
+              label: 'Guardar',
+              //label: 'Guardar borrador',
+              onPressed: () async {
+                if ((viewModel.control('modelos') as FormControl<List<String>>)
+                        .value
+                        .isEmpty ||
+                    (viewModel.control('tipoDeInspeccion')
+                            as FormControl<String>)
+                        .value
+                        .isEmpty) {
+                  Scaffold.of(context).showSnackBar(const SnackBar(
+                      content: Text(
+                          "Seleccione el tipo de inspección y elija por lo menos un modelo antes de guardar el cuestionario")));
+                } else {
+                  /* LoadingDialog.show(context); */
+                  await viewModel.guardarCuestionarioEnLocal(estado);
+                  /* LoadingDialog.hide(context); */
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        content: const Text("Guardado exitoso"),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Aceptar'),
+                          )
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          FloatingActionButton.extended(
+            heroTag: null,
+            icon: const Icon(Icons.done_all_outlined),
+            label: Text(estado == EstadoDeCuestionario.borrador
                 ? 'Finalizar'
-                : 'Aceptar',
+                : 'Aceptar'),
             onPressed: !form.valid
                 ? () {
                     if (estado == EstadoDeCuestionario.borrador) {

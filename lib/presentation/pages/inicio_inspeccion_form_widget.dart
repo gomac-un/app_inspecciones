@@ -175,7 +175,6 @@ class _BotonContinuarInspeccion extends StatelessWidget {
                           (u) async {
                         return "exito";
                       }));
-              print(res);
               if (res != 'exito') {
                 showDialog(
                   context: context,

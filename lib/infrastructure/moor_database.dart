@@ -183,6 +183,7 @@ class Database extends _$Database {
       (update(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
           .write(const CuestionariosCompanion(esLocal: Value(false)));
 
+
   Future<Map<String, dynamic>> getInspeccionConRespuestas(
       Inspeccion inspeccion) async {
     //get inspeccion
@@ -254,7 +255,6 @@ class Database extends _$Database {
   }
 
   Future instalarBD(Map<String, dynamic> json) async {
-    print(json);
     /*TODO: hacer este proceso sin repetir tanto codigo, por ejemplo usando una estructura asi:
     final tablasPorActualizar = [
       InstaladorHelper("Activo", Activo, activos),

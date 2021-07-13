@@ -27,7 +27,7 @@ abstract class InspeccionesRemoteDataSource {
 
 @LazySingleton(as: InspeccionesRemoteDataSource)
 class DjangoJsonAPI implements InspeccionesRemoteDataSource {
-  static const _server =  'https://gomac.medellin.unal.edu.co' ;/* 'https://gomac.medellin.unal.edu.co' ; */
+  static const _server =  'http://10.0.2.2:8000' ;/* 'https://gomac.medellin.unal.edu.co' ; */
       /* http://pruebainsgomac.duckdns.org:8000' */
   //static const _server = 'http://10.0.2.2:8000';
   //TODO: opcion para modificar el servidor desde la app
