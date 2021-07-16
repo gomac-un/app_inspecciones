@@ -181,7 +181,7 @@ class Opciones extends StatelessWidget {
             textSize: textSize, */
               ),
           const SizedBox(height: 5.0),
-         /*  LimpiezaBase(), */
+          /* LimpiezaBase(), */
           const SizedBox(height: 5.0),
           SincronizarConGomac(),
           const SizedBox(height: 5.0),

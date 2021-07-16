@@ -697,7 +697,6 @@ class ErroresDialog extends StatelessWidget {
   const ErroresDialog({Key key, this.form}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    print(form.errors['bloques']);
     return AlertDialog(
       title: const Text("Errores: "),
       content: Text(

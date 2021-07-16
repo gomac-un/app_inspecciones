@@ -217,8 +217,6 @@ class PlaneacionDao extends DatabaseAccessor<Database>
         (sis) => sis.nombre.isIn(listaSistemas),
       );
 
-    print(await querySistemas.get());
-
     return querySistemas.get();
   }
 

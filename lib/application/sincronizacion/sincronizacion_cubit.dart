@@ -105,7 +105,6 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     StreamSubscription<dynamic> streamSubs1;
     streamSubs1 = _portStream.listen((data) {
       final task = data as Task;
-      print(task.status);
       emit(state.copyWith(task: task));
       if (DownloadTaskStatus.complete == task.status) {
         emit(state.copyWith(
