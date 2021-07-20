@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import '../../infrastructure/moor_database.dart';
 
 //TODO: creacion de inpecciones con excel
+/// Pantalla que muestra la lista de cuestionarios subidos y en proceso.
 class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) {
@@ -42,6 +43,7 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
         ),
         drawer: UserDrawer(),
         body: StreamBuilder<List<Cuestionario>>(
+          /// Se reconstruye automaticamente con los cuestionarios que se van agregando.
           stream: RepositoryProvider.of<Database>(context)
               .borradoresDao
               .getCuestionarios(),
@@ -57,6 +59,7 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
             }
             final cuestionarios = snapshot.data;
 
+            /// no hay cuestionarios creados
             if (cuestionarios.isEmpty) {
               return Center(
                   child: Text(
@@ -83,11 +86,15 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
                             : 'Subido \nEstado: ${EnumToString.convertToString(cuestionario.estado)}'),
                       ],
                     ),
+
+                    /// Si no se ha subido apaarece la opción de subir.
                     leading: cuestionario.esLocal
                         ? IconButton(
                             icon: const Icon(Icons.cloud_upload),
                             onPressed: () async {
                               final estado = cuestionario.estado;
+
+                              /// Solo permite subirlo si está finalizado.
                               if (estado == EstadoDeCuestionario.finalizada) {
                                 final res = await RepositoryProvider.of<
                                         InspeccionesRepository>(context)
@@ -99,7 +106,11 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
                                             noHayInternet: () =>
                                                 "No hay internet",
                                             serverError: (msg) =>
-                                                "Error inesperado: $msg"),
+                                                "Error inesperado: $msg",
+                                            credencialesException: () =>
+                                                'Error, intente inciar sesión nuevamente',
+                                            pageNotFound: () =>
+                                                'No se pudo encontrar la página, informe al encargado'),
                                         (u) =>
                                             "El cuestionario ha sido enviado"));
                                 res == 'El cuestionario ha sido enviado'
@@ -136,10 +147,15 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
                             onPressed: () =>
                                 eliminarCuestionario(cuestionario, context),
                           )
-                        :  Icon(Icons
-                            .cloud, color: Theme.of(context).accentColor), //Los cuestionarios subidos ya no se pueden borrar
+                        : Icon(Icons.cloud,
+                            color: Theme.of(context).accentColor),
+
+                    /// Los cuestionarios subidos ya no se pueden borrar
                     onTap: () async {
                       LoadingDialog.show(context);
+                      // Se está haciendo esta consulta antes de cargar la pantalla de creacion
+                      // Cuando son muchos bloques, tarda demasiado en pasar a la próxima pantalla.
+                      //TODO: mirar como refactorizar esta parte.
                       final cuestionarioDeModelo =
                           await RepositoryProvider.of<Database>(context)
                               .borradoresDao
@@ -166,11 +182,12 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: const Padding(
-          padding:  EdgeInsets.all(8.0),
+          padding: EdgeInsets.all(8.0),
           child: FloatingActionButtonCreacionCuestionario(),
         ));
   }
 
+  /// Elimina [cuestionario] y todas sus preguntas
   void eliminarCuestionario(Cuestionario cuestionario, BuildContext context) {
     // set up the buttons
     final cancelButton = FlatButton(
@@ -209,6 +226,7 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
   }
 }
 
+/// Botón de creación de cuestionarios
 class FloatingActionButtonCreacionCuestionario extends StatelessWidget {
   const FloatingActionButtonCreacionCuestionario({
     Key key,

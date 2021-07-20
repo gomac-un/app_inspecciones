@@ -6,10 +6,16 @@ import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_validators.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+/// Carga los bloques del cuetionario
+///
+/// El flujo es: desde la Bd se devuelve [bloquesBD] al invocar ([CreacionDao.cargarCuestionario()]),
+/// luego se recorren y dependiendo del tipo especifico de IBloqueOrdenable que sea, se devuelve el control correspondiente
+/// para que [ControlWidget] en creacion_card.dart pueda devolver la card adecuada para cada tipo
 FormArray _cargarBloques(
     Cuestionario cuestionario, List<IBloqueOrdenable> bloquesBD) {
+  /// Si es un cuestionario que ya existía y se va a editar
   if (cuestionario != null) {
-    //ordenamiento y creacion de los controles dependiendo del tipo de elemento
+    ///Ordenamiento y creacion de los controles dependiendo del tipo de elemento
     final bloques = FormArray(
       (bloquesBD
             ..sort(
@@ -25,9 +31,9 @@ FormArray _cargarBloques(
         }
         if (e is BloqueConCuadricula) {
           return CreadorPreguntaCuadriculaFormGroup(
-              preguntasDeCuadricula: e.preguntas,
-              cuadricula: e.cuadricula,
-              preguntas: e.preguntasRespondidas);
+            preguntasDeCuadricula: e.preguntas,
+            cuadricula: e.cuadricula,
+          );
         }
         if (e is BloqueConPreguntaNumerica) {
           return CreadorPreguntaNumericaFormGroup(defaultValue: e.pregunta);
@@ -38,22 +44,32 @@ FormArray _cargarBloques(
 
     return bloques;
   } else {
+    /// Si se está creando el cuestionario, se agrega un titulo por defecto como bloque inicial
     final bloques = FormArray([CreadorTituloFormGroup()]);
     return bloques;
   }
 }
 
+/// FormGroup para los campos base de la creación de cuestionario
 class CreacionFormViewModel extends FormGroup {
   final _db = getIt<Database>();
+
+  /// Estos ValueNotifier comienzan vacíos y se llenan con la funcion [cargarDatos()]
   final sistemas = ValueNotifier<List<Sistema>>([]);
   final tiposDeInspeccion = ValueNotifier<List<String>>([]);
   final modelos = ValueNotifier<List<String>>([]);
   final contratistas = ValueNotifier<List<Contratista>>([]);
+
+  /// El estado inicial es borrador.
   final estado = ValueNotifier(EstadoDeCuestionario.borrador);
   final ValueNotifier<List<SubSistema>> subSistemas;
+
+  /// [cuestionario], [cuestionarioDeModelo] y [bloquesBD] No son null cuando es para edición.
   Cuestionario cuestionario;
   final CuestionarioConContratista cuestionarioDeModelo;
   final List<IBloqueOrdenable> bloquesBD;
+
+  /// Se modifica cuando se copia un bloque desde creacion_controls.dart
   Copiable bloqueCopiado;
 
   factory CreacionFormViewModel({
@@ -63,10 +79,17 @@ class CreacionFormViewModel extends FormGroup {
   }) {
     final modelo = cuestionarioDeModelo;
     final cuesti = cuestionario;
+
+    /// Estos bloques se envían cuando se hace clic en crear nuevo cuestionario
+    ///
+    /// La cosa es que eso ralentiza la UI, porque hacce la consulta de los bloques antes de cargar esta pagina,
+    /// pero se desarrolló asi, porque el metodo que los carga es Future, y no se puede asignar un tipo Future<FormArray> a los controles
+    /// //TODO: Mirar como solucionar esta parte
     final bloques = bloquesBD;
     final sistema = fb.control<Sistema>(null, [Validators.required]);
     final subSistemas = ValueNotifier<List<SubSistema>>([]);
 
+    /// Cuando cambia el valor de [sistema] se cargan los valores de [subSistemas]
     sistema.valueChanges.asBroadcastStream().listen((sistema) async {
       subSistemas.value =
           await getIt<Database>().creacionDao.getSubSistemas(sistema);
@@ -90,7 +113,10 @@ class CreacionFormViewModel extends FormGroup {
           value: cuestionarioDeModelo?.cuestionarioDeModelo
                   ?.map((e) => e.modelo)
                   ?.toList() ??
-              [],validators: [Validators.minLength(1)]),
+              [],
+          validators: [Validators.minLength(1)]),
+
+      /// FormArray con todos los bloques (preguntas,cuadriculas y titulos) que se agregan al cuestionario
       'bloques': _cargarBloques(cuestionario, bloquesBD),
       //agrega un titulo inicial
     };
@@ -116,17 +142,22 @@ class CreacionFormViewModel extends FormGroup {
     // constructor en codigo sincrono ya que no se está esperando a que termine esta funcion asincrona
   }
   Future cargarDatos() async {
+    /// Carga inspecciones existentes
     tiposDeInspeccion.value = await _db.creacionDao.getTiposDeInspecciones();
+
+    /// Sirve para actiar otro campo en el formulario, si se selecciona
     tiposDeInspeccion.value.add("Otra");
 
     modelos.value = await _db.creacionDao.getModelos();
+
+    /// El modelo especial 'Todos' aplica a cualquier modelo
     modelos.value.add("Todos");
 
     contratistas.value = await _db.creacionDao.getContratistas();
     sistemas.value = await _db.creacionDao.getSistemas();
 
+    /// Si cuestionario es nuevo, se le asigna borrador.
     estado.value = cuestionario?.estado ?? EstadoDeCuestionario.borrador;
-
     controls['sistema'].value =
         await getIt<Database>().getSistemaPorId(cuestionario?.sistemaId);
 
@@ -143,17 +174,14 @@ class CreacionFormViewModel extends FormGroup {
     } */
   }
 
+  /// Agrega un nuevo bloque despues de [despuesDe]
   void agregarBloqueDespuesDe(
       {AbstractControl bloque, AbstractControl despuesDe}) {
     final bloques = control("bloques") as FormArray;
     bloques.insert(bloques.controls.indexOf(despuesDe) + 1, bloque);
-    /* if (!totalBloques.value.contains(bloques.controls.indexOf(bloque) + 1)) {
-      totalBloques.value.add(bloques.controls.indexOf(bloque) + 1);
-    } else {
-      totalBloques.value.add((totalBloques.value.last) + 1);
-    } */
   }
 
+  /// Borra el bloque seleccionado
   void borrarBloque(AbstractControl e) {
     // En este momento se hace, aún no sabemos si es necesario
     try {
@@ -176,8 +204,11 @@ class CreacionFormViewModel extends FormGroup {
     super.dispose();
   }
 
+  /// Cuando se presiona guardar o finalizar cuestionario.
   Future guardarCuestionarioEnLocal(EstadoDeCuestionario estado) async {
     markAllAsTouched();
+
+    /// Queda null si es un cuestionario nuevo.
     final int cuestionarioId = cuestionario?.id;
     final int contratistaId = (control('contratista').value as Contratista)?.id;
 
@@ -203,9 +234,10 @@ class CreacionFormViewModel extends FormGroup {
                 id: null))
             .toList();
 
-    final x = (control('bloques') as FormArray).controls.asMap().entries;
+    final bloques = (control('bloques') as FormArray).controls.asMap().entries;
 
-    final bloquesAGuardar = x.expand<IBloqueOrdenable>((e) {
+    /// Procesamiento de todos los FormGroup en el FormArray 'bloques'.
+    final bloquesAGuardar = bloques.expand<IBloqueOrdenable>((e) {
       final i = e.key;
       final control = e.value;
       final bloque =
@@ -236,14 +268,15 @@ class CreacionFormViewModel extends FormGroup {
         } */
       }
       if (control is CreadorPreguntaCuadriculaFormGroup) {
+        final cuadriculaBd = control.toDB();
         return [
           BloqueConCuadricula(
               bloque,
               CuadriculaDePreguntasConOpcionesDeRespuesta(
-                control.toDB().cuadricula,
-                control.toDB().opcionesDeRespuesta,
+                cuadriculaBd.cuadricula,
+                cuadriculaBd.opcionesDeRespuesta,
               ),
-              preguntas: control.toDB().preguntas)
+              preguntas: cuadriculaBd.preguntas)
         ];
       }
       if (control is CreadorPreguntaNumericaFormGroup) {

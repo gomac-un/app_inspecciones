@@ -10,6 +10,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'image_source_sheet.dart';
 
 class FormBuilderImagePicker extends StatelessWidget {
+  /// Es el formArray pasado desde la creación o llenado de inspección
   final FormArray<File> formArray;
 
   final List<FormFieldValidator> validators;
@@ -78,6 +79,7 @@ class FormBuilderImagePicker extends StatelessWidget {
     this.bottomSheetPadding = const EdgeInsets.all(0),
   }) : super(key: key);
 
+  /// Muestra BottomSheet de selección de camara o galeria cuando se agrega foto a cuestionario o inspeccion
   void modal(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -155,6 +157,8 @@ class FormBuilderImagePicker extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 const SizedBox(height: 8),
+
+                /// Cuando no se ha agregado ninguna foto
                 if (formArray.controls.isEmpty)
                   GestureDetector(
                     onTap: () => modal(context),
@@ -165,6 +169,8 @@ class FormBuilderImagePicker extends StatelessWidget {
                   SizedBox(
                     height: imageHeight,
                     width: double.maxFinite,
+
+                    /// Si ya hay fotos se muestra la lista
                     child: ListView(
                       scrollDirection: Axis.horizontal,
                       children: [
@@ -191,6 +197,7 @@ class FormBuilderImagePicker extends StatelessWidget {
 
                                     GestureDetector(
                                   onTap: () {
+                                    /// Permite ver la foto [item] en pantalla completa
                                     Navigator.push(context,
                                         MaterialPageRoute(builder: (_) {
                                       return FotoFullScreen(

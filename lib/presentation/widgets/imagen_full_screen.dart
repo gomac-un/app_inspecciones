@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+/// Muestra [foto] en pantalla completa
 class FotoFullScreen extends StatelessWidget {
   final File foto;
   final int tag;

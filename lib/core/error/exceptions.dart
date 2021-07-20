@@ -1,3 +1,7 @@
+/// Definición de exceptions tenidas en cuenta para la app
+///
+/// Usadas principalmente en la comunicación con el server, al enviar inspecciones y cuestionarios.
+/// La clase [ServerException] maneja la mayoría de errores.
 class ServerException implements Exception {
   final Map<String, dynamic> respuesta;
 
@@ -9,7 +13,7 @@ class CredencialesException {
 
   CredencialesException(this.respuesta);
 }
-class GroupNotFound implements Exception {}
+
 class PageNotFoundException implements Exception {}
 
 class InternetException {}

@@ -1,12 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:inspecciones/application/sincronizacion/sincronizacion_cubit.dart';
-import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/widgets/drawer.dart';
 
+/// Pantalla que muestra el progreso de a descarga de datos de gomac
 class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) => BlocProvider(
@@ -19,7 +18,6 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
 
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<SincronizacionCubit>(context);
     /*  final media = MediaQuery.of(context); */
     return Scaffold(
       appBar: AppBar(
@@ -39,6 +37,7 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
                     : media.size.width * 0.02), */
         ),
         actions: [
+          /// Inicio de descarga de datos
           BotonDescarga(),
         ],
       ),
@@ -96,6 +95,8 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
                 ),
               ),
               const Divider(),
+
+              /// División de los pasos de la sincronización
               ValueListenableBuilder(
                 valueListenable: currentIndex,
                 builder: (BuildContext context, value, Widget child) {
@@ -156,6 +157,8 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
               const SizedBox(
                 height: 10,
               ),
+
+              /// Ultima sincronización.
               Text(
                 state.info[0], /* style: Theme.of(context).textTheme.overline */
               )
@@ -167,6 +170,7 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
   }
 }
 
+/// Inicio de descarga de datos mediante el [FlutterDownloader]
 class BotonDescarga extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -176,6 +180,7 @@ class BotonDescarga extends StatelessWidget {
                   ? Colors.black
                   : Colors.white,*/
       onPressed: () async {
+        /// Intento de hacer manejo de errores, pero aún no sé como hacerlo con [FlutterDownloader]
         final res = await bloc.descargarServer().then((res) => res.fold(
                 (fail) => fail.when(
                     pageNotFound: () =>

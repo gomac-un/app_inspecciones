@@ -1,12 +1,15 @@
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+/// FormGroup para la respuesta de preguntas multiples.
 class LlenadoOpcionFormGroup extends FormGroup {
+  /// Informacion de la respuesta.
   final RespuestasCompanion respuesta;
+
+  /// Opción elegida.
   final OpcionDeRespuesta opcion;
   factory LlenadoOpcionFormGroup(
       {RespuestasCompanion respuesta, OpcionDeRespuesta opcion}) {
@@ -45,6 +48,8 @@ class LlenadoOpcionFormGroup extends FormGroup {
   LlenadoOpcionFormGroup._(Map<String, AbstractControl<dynamic>> controles,
       this.respuesta, this.opcion)
       : super(controles);
+
+  /// Toma los valores introducidos en el formulario y devuelve [RespuestaConOpcionesDeRespuesta]
   RespuestaConOpcionesDeRespuesta toDB(DateTime momentoRespuesta) =>
       RespuestaConOpcionesDeRespuesta(
         respuesta?.copyWith(
@@ -72,6 +77,7 @@ class LlenadoOpcionFormGroup extends FormGroup {
 }
 
 //TODO: implementar estos controles como sealed classes
+/// FormGroup de respuestas de selección.
 class RespuestaSeleccionSimpleFormGroup extends FormGroup
     implements BloqueDeFormulario {
   final Bloque bloque;
@@ -92,9 +98,12 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
         resp.respuesta ??= crearRespuestaPorDefecto(pregunta.pregunta.id));
     FormControl respuestas;
     FormArray respuestaMultiple;
+
+    ///
     if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta ||
         pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaMultiple) {
-      final unaCosa = respuesta
+      /// Se busca entre las opciones de la [pregunta] cualquiera que sea igual a las opciones de [respuesta]
+      final opcionesElegidas = respuesta
           .where(
             (opcion) =>
                 pregunta.opcionesDeRespuesta
@@ -102,22 +111,30 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
                 false,
           )
           .toList();
+
+      /// Este es el FormControl usado en 'respuestas', para mostrar en los Chip de ReactiveDropDown
       respuestas = FormControl<List<OpcionDeRespuesta>>(
-        value: unaCosa.map((e) => e.opcionesDeRespuesta).toList(),
+        value: opcionesElegidas.map((e) => e.opcionesDeRespuesta).toList(),
         validators: [
+          ///TODO: mirar como hacer para que las cuadriculas multiples no permitan finalizar un cuestionario sin responderlas.
           if (!(pregunta.pregunta.tipo ==
               TipoDePregunta.parteDeCuadriculaMultiple))
             Validators.minLength(1)
         ],
       );
-      respuestaMultiple = fb.array<Map<String, dynamic>>(unaCosa
+
+      /// Este es un FormArray que se usa para permitir que cada opción elegida pueda ser un propio FormGroup
+      /// con sus respectivos controles.
+      respuestaMultiple = fb.array<Map<String, dynamic>>(opcionesElegidas
           .map((e) => LlenadoOpcionFormGroup(
               opcion: e.opcionesDeRespuesta, respuesta: e.respuesta))
           .toList());
     }
-
     if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta ||
         pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaUnica) {
+      /// Se busca la primera opcion de la [pregunta] que sea igual a [respuesta]
+      ///
+      /// [respuesta.first] porque al ser unica solo va a existir una opción.
       respuestas = FormControl<OpcionDeRespuesta>(
         value: pregunta.opcionesDeRespuesta.firstWhere(
           (e) => respuesta.first.opcionesDeRespuesta == e,
@@ -132,6 +149,10 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
       throw Exception("Este form group no puede manejar este tipo de pregunta");
     }
 
+    /// Escucha cambios en [respuestas].
+    ///
+    /// Es como que [respuestas] son las elegidas en el DropDown y [respuestaMultiple]
+    /// agrega controles para poder darle a cada uno observación y fotos.
     respuestas?.valueChanges?.asBroadcastStream()?.listen((resp) {
       if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta ||
           pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaMultiple) {
@@ -217,16 +238,21 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     }); //guarda el momento de la ultima edicion
   }
 
+  /// Devuelve la criticidad total de la pregunta sin reparación. criticidad pregunta * criticidad respuesta.
   @override
   int get criticidad {
     /*TODO: calcular la criticidad de las multiples con las reglas de
       * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
       * solo para la pantalla de arreglos
       */
+    /// Suma de la criticidad de las respuestas, incluye la dada por el creador del cuestionario
+    /// más la calificación del inspector.
     int sumres;
 
     switch (pregunta.pregunta.tipo) {
       case TipoDePregunta.multipleRespuesta:
+
+        /// Si han elegido alguna respuesta.
         if ((control('respuestas') as FormControl<List<OpcionDeRespuesta>>)
                 .value !=
             null) {
@@ -294,6 +320,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     return pregunta.pregunta.criticidad * sumres;
   }
 
+  /// Devuelve la criticidad después de la reparación. Si fue reparado es 0.
   @override
   int get criticidadReparacion {
     if (control('reparado').value as bool) {
@@ -325,7 +352,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     }
     return null;
   } */
-
+  /// Devuelve la lista de todas las respuestas seleccionadas.
   List<RespuestaConOpcionesDeRespuesta> toDB() {
     if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta ||
         pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaMultiple) {
@@ -370,6 +397,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
   }
 }
 
+/// Form Group llenado de preguntas numericas.
 class RespuestaNumericaFormGroup extends FormGroup
     implements BloqueDeFormulario {
   final Pregunta pregunta;
@@ -384,7 +412,7 @@ class RespuestaNumericaFormGroup extends FormGroup
     // entonces aca se asignan definen nuevo los valores por defecto que son usados
     // cuando se inicia una nueva inspeccion
 
-    if (respuesta.preguntaId == null) {
+    if (respuesta?.preguntaId == null) {
       respuesta = crearRespuestaPorDefecto(pregunta.id);
     }
 
@@ -426,12 +454,9 @@ class RespuestaNumericaFormGroup extends FormGroup
         DateTime.now()); //guarda el momento de la ultima edicion
   }
 
+  /// Devuelve la criticidad de la pregunta dependiendo del valor introducido en el TextField
   @override
   int get criticidad {
-    /*TODO: calcular la criticidad de las multiples con las reglas de
-      * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
-      * solo para la pantalla de arreglos
-      */
     final double respuesta = (control('valor') as FormControl<double>).value;
     final criRes = respuesta != null
         ? criticidades?.firstWhere(
@@ -444,11 +469,15 @@ class RespuestaNumericaFormGroup extends FormGroup
     return pregunta.criticidad * criRes.criticidad;
   }
 
+  /// Devuelve [RespuestaConOpcionesDeRespuesta]  porque así lo requiere el metodo [LlenadoFormViewModel.guardarInspeccionEnLocal()]
+  /// Pero en realidad no tiene Opciones de respuesta.
   RespuestaConOpcionesDeRespuesta toDB() {
     final OpcionDeRespuesta respuestas =
         control('respuesta').value as OpcionDeRespuesta;
     final double campo = value['valor'] as double;
     final momento = _momentoRespuesta ?? respuesta.momentoRespuesta.value;
+
+    /// Campo tenía que ser diferente de null porque aunque no se hubiese contestado,, se estaba guardando en la bd
     if (campo != null) {
       return RespuestaConOpcionesDeRespuesta(
         respuesta.copyWith(
@@ -472,6 +501,8 @@ class RespuestaNumericaFormGroup extends FormGroup
     }
   }
 
+  /// Devuelve criticidad despues de reparacion.
+  /// Es cero si fue reparado.
   @override
   int get criticidadReparacion {
     if (control('reparado').value as bool) {
@@ -482,6 +513,7 @@ class RespuestaNumericaFormGroup extends FormGroup
   }
 }
 
+/// FormGroup que maneja las preguntas de tipo cuadricula.
 class RespuestaCuadriculaFormArray extends FormArray
     implements BloqueDeFormulario {
   final CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula;
@@ -523,6 +555,8 @@ class RespuestaCuadriculaFormArray extends FormArray
     }).toList();
   }
 
+  /// Devuelve la criticidad de la cuadricula.
+  /// Es la suma de la criticidad de todas las preguntas.
   @override
   int get criticidad {
     /*TODO: calcular la criticidad de las multiples con las reglas de
@@ -575,6 +609,8 @@ class RespuestaCuadriculaFormArray extends FormArray
   }
 }
 
+/// FormGroup que maneja los titulos.
+/// La criticidad es 0
 class TituloFormGroup extends FormGroup implements BloqueDeFormulario {
   final Titulo titulo;
 

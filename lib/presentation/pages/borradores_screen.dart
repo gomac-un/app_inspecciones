@@ -15,6 +15,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 //TODO: creacion de inpecciones con excel
 //TODO: A futuro, Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
+/// Pantalla con lista de todas las inspecciones pendientes por subir.
 class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) {
@@ -63,16 +64,42 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
         actions: [
           /* IconButton(
             onPressed: () {
-              //TODO: implementar la subida de todas las inspecciones pendientes
-              throw Exception();
+              //TODO: implementar el historial
+              showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                        title: Text("Historial",
+                            style: TextStyle(
+                                color: Theme.of(context).accentColor)),
+                        content: SingleChildScrollView(
+                          child: Column(children: [
+                            for (var i = 0; i < 1000; i += 1) Text(i.toString())
+                          ]),
+                        ),
+                        actions: <Widget>[
+                          FlatButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('Borrar',
+                                style: TextStyle(
+                                    color: Theme.of(context).accentColor)),
+                          ),
+                          FlatButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('Cerrar',
+                                style: TextStyle(
+                                    color: Theme.of(context).accentColor)),
+                          ),
+                        ],
+                      ));
             },
             icon: const Icon(
-              Icons.upload_file,
-              /*  size: media.orientation == Orientation.portrait
-                  ? media.size.height * 0.03
-                  : media.size.width * 0.03, */
+              Icons.history,
             ),
-            tooltip: "Subir inspecciones",
+            tooltip: "Historial",
           ),
           const SizedBox(
             width: 5,
@@ -159,6 +186,8 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                     ),
                   ],
                 ),
+
+                /// Solo se puede subir al server si está finalizado o enReparacion
                 leading: [
                   EstadoDeInspeccion.finalizada,
                   EstadoDeInspeccion.enReparacion
@@ -239,10 +268,12 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
             },
           );
         },
-      ), floatingActionButton: const FloatingActionButtonInicioInspeccion(),
-     );
+      ),
+      floatingActionButton: const FloatingActionButtonInicioInspeccion(),
+    );
   }
 
+  ///Elimia [borrador].
   void eliminarBorrador(Borrador borrador, BuildContext context) {
     // set up the buttons
     final cancelButton = FlatButton(
@@ -281,6 +312,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
   }
 }
 
+/// Botón de creación de inspecciones
 class FloatingActionButtonInicioInspeccion extends StatelessWidget {
   const FloatingActionButtonInicioInspeccion({
     Key key,
@@ -309,175 +341,6 @@ class FloatingActionButtonInicioInspeccion extends StatelessWidget {
     );
     return FloatingActionButton.extended(
       onPressed: () async {
-        /* final res = RepositoryProvider.of<InspeccionesRepository>(context)
-            .getMostrarAlerta();
-        if (res == null) {
-          showGeneralDialog(
-            context: context,
-            barrierColor: Colors.black12.withOpacity(0.6), // Background color
-            barrierDismissible: false,
-            barrierLabel: 'Dialog',
-            transitionDuration: const Duration(
-                milliseconds:
-                    400), // How long it takes to popup dialog after button click
-            pageBuilder: (_, __, ___) {
-              // Makes widget fullscreen
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            width: media.width * 0.5,
-                            /* decoration: const BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    //                   <--- left side
-                                    color: Colors.white,
-                                    width: 3.0,
-                                  ),
-                                ),
-                              ), */
-                            child: Center(
-                                child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.circle,
-                                      size: 50,
-                                      color: Theme.of(context).accentColor,
-                                    ),
-                                    Icon(
-                                      Icons.add,
-                                      size: iconSize,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(
-                                  height: 5,
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Crear una inspección desde cero',
-                                    style:
-                                        Theme.of(context).textTheme.headline1,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Image.asset(
-                                    "assets/images/inicioInspeccion.png",
-                                    width: media.width * 0.4,
-                                  ),
-                                ),
-                              ],
-                            )),
-                          ),
-                        ),
-                        Expanded(
-                          child: SizedBox(
-                            width: media.width * 0.5,
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.circle,
-                                        size: 50,
-                                        color: Theme.of(context).accentColor,
-                                      ),
-                                      Icon(
-                                        Icons.edit,
-                                        size: iconSize,
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(
-                                    height: 5,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'Continuar una inspección que inició otro usuario ',
-                                      style:
-                                          Theme.of(context).textTheme.headline1,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 20,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Image.asset(
-                                      "assets/images/inicioInspeccion.png",
-                                      width: media.width * 0.4,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 100),
-                  Material(
-                    color: Colors.transparent,
-                    child: Row(mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                            border:
-                                Border.all(color: Colors.white, width: 2.5)),
-                        width: 16,
-                        height: 18,
-                        child: ReactiveCheckbox(
-                          checkColor: Colors.white,
-                          formControl:
-                              form.control('mostrar') as FormControl<bool>,
-                        ),
-                      ),
-                      const Text('No mostrar de nuevo',
-                          style: TextStyle(color: Colors.white, fontSize: 18)),
-                    ]),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    child: const Text('Aceptar'),
-                  ),
-                ],
-              );
-            },
-          ); */
-        /* showDialog(
-              context: context,
-              builder: (_) => AlertDialog(
-                    title: new Text("Material Dialog"),
-                    content: new Text("Hey! I'm Coflutter!"),
-                    actions: <Widget>[
-                      FlatButton(
-                        child: Text('Close me!'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      )
-                    ],
-                  )); */
         final repository =
             RepositoryProvider.of<InspeccionesRepository>(context);
         final res = await showDialog<LlenadoFormPageArguments>(

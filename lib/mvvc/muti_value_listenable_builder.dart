@@ -1,7 +1,7 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+/// Custom ValueListenable que se construye en base a dos valores.
 class MultiValueListenableBuilder<A, B> extends StatelessWidget {
   const MultiValueListenableBuilder(
     this.first,

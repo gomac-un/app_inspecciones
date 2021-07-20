@@ -15,6 +15,8 @@ import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:simple_tooltip/simple_tooltip.dart';
 
+/// Cuando se selecciona una respuesta a la que se le pueda asignar una gravedad propia
+/// Se muestra esta Card
 class CalificacionCard extends StatelessWidget {
   final bool controlRespuesta;
   final FormControl<double> controlCalificacion;
@@ -33,6 +35,7 @@ class CalificacionCard extends StatelessWidget {
           children: [
             ValueListenableBuilder<bool>(
               builder: (BuildContext context, value, Widget child) {
+                /// Se usa ToolTip para que las instrucciones no estén siempre ocupando tanto espacio en la pantalla
                 return SimpleTooltip(
                   show: value,
                   tooltipDirection: TooltipDirection.right,
@@ -72,6 +75,7 @@ class CalificacionCard extends StatelessWidget {
   }
 }
 
+/// Widget que reúne los Widgets comúnes a la respuesta de las preguntas
 class RespuestaBaseForm extends StatelessWidget {
   final FormControl<String> controlObservacion;
   final FormArray<File> fotosControl;
@@ -111,6 +115,7 @@ class RespuestaBaseForm extends StatelessWidget {
   }
 }
 
+/// Form que recoge los widgets necesarios para la reparación de las novedades
 class ReparacionForm extends StatelessWidget {
   final FormControl<bool> controlReparado;
   final FormControl<String> observacionControl;
@@ -136,6 +141,7 @@ class ReparacionForm extends StatelessWidget {
           formControl: controlReparado,
           builder: (context, AbstractControl<bool> control, child) {
             if (control.value) {
+              /// Si está reparado y no ha agregado observaciones y fotos.
               final observacion = observacionControl.value;
               if (observacion.length <= 1) {
                 observacionControl.setErrors({'required': true});
@@ -172,6 +178,7 @@ class ReparacionForm extends StatelessWidget {
                 ],
               );
             } else {
+              /// Si habían errores y se corrigieron se remueven para que permita la finalización
               observacionControl.removeError('required');
               fotosControl.removeError('required');
               return const SizedBox.shrink();
@@ -183,7 +190,9 @@ class ReparacionForm extends StatelessWidget {
   }
 }
 
+/// Card que devuelve los titulos de la inspección.
 class TituloCard extends StatelessWidget {
+  /// Datos
   final TituloFormGroup formGroup;
 
   const TituloCard({
@@ -220,7 +229,9 @@ class TituloCard extends StatelessWidget {
   }
 }
 
+/// Card para las preguntas numericas.
 class NumericaCard extends StatelessWidget {
+  /// Validación.
   final RespuestaNumericaFormGroup formGroup;
   final bool readOnly;
   const NumericaCard({Key key, this.formGroup, this.readOnly = false})
@@ -228,6 +239,9 @@ class NumericaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
+
+    /// Criticidad definida de la pregunta si es borrador, en otro caso, devuelve la
+    /// criticidad total de la pregunta (criticidad de la pregunta * criticidad de la respuesta)
     final criticidad = viewModel.estado.value == EstadoDeInspeccion.borrador
         ? formGroup.pregunta.criticidad
         : formGroup.criticidad;
@@ -255,9 +269,9 @@ class NumericaCard extends StatelessWidget {
                 {'required': 'El valor no puede estar vacio'},
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: "Escriba la respuesta",
+              helperText: 'Escriba la respuesta',
+              labelText: "Ejemplo: 45.76",
             ),
-            readOnly: false,
             enableInteractiveSelection: !readOnly,
             onTap: () => {
               if (readOnly == true)
@@ -288,7 +302,9 @@ class NumericaCard extends StatelessWidget {
   }
 }
 
+/// Card correspondiente a las preguntas de selección.
 class SeleccionSimpleCard extends StatelessWidget {
+  /// Validaciones.
   final RespuestaSeleccionSimpleFormGroup formGroup;
   final bool readOnly;
 
@@ -300,6 +316,9 @@ class SeleccionSimpleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
+
+    /// Criticidad definida de la pregunta si es borrador, en otro caso, devuelve la
+    /// criticidad total de la pregunta (criticidad de la pregunta * criticidad de la respuesta)
     final criticidad = viewModel.estado.value == EstadoDeInspeccion.borrador
         ? formGroup.pregunta.pregunta.criticidad
         : formGroup.criticidad;
@@ -314,6 +333,10 @@ class SeleccionSimpleCard extends StatelessWidget {
       estado: mensajeCriticidad,
       child: Builder(
         builder: (BuildContext context) {
+          /// El DropDown que se muestra es diferente dependiendo del tipo de pregunta.
+          ///
+          /// Para las de tipo unico, el control del formGroup es 'respuestas'.
+          /// Para las de tipo multiple, el control del formGroup es 'respMultiple'.
           if ([
             TipoDePregunta.unicaRespuesta,
             TipoDePregunta.parteDeCuadriculaUnica
@@ -383,6 +406,10 @@ class SeleccionSimpleCard extends StatelessWidget {
                   items: formGroup.pregunta.opcionesDeRespuesta
                       .map((e) => MultiSelectItem(e, e.texto))
                       .toList(),
+
+                  /// Se usa el control 'respuestas', solo para mostrarlos en los chips.
+                  /// De aquí en adelante, se usa respMultiple para poder manejar como
+                  /// respuestas independientes, con sus respectivas fotos y observaciones.
                   formControl: formGroup.control('respuestas')
                       as FormControl<List<OpcionDeRespuesta>>,
                   onTap: () => FocusScope.of(context).unfocus(),
@@ -395,6 +422,7 @@ class SeleccionSimpleCard extends StatelessWidget {
                       .control('observacionReparacion')
                       .removeError('required');
                   return Column(children: [
+                    /// Esta lista se va construyendo de acuerdo a las respuestas que se vayan seleccionando.
                     ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -471,7 +499,9 @@ class SeleccionSimpleCard extends StatelessWidget {
   }
 }
 
+/// Card que maneja las preguntas de tipo cuadricula.
 class CuadriculaCard extends StatelessWidget {
+  /// Validaciones.
   final RespuestaCuadriculaFormArray formArray;
   final bool readOnly;
 
@@ -586,6 +616,7 @@ class CuadriculaCard extends StatelessWidget {
   }
 }
 
+/// Muestra reactiveCheckBox o ReactiveRadio dependiendo de si es cuadricula con selección unica o multiple.
 class WidgetSeleccion extends StatefulWidget {
   final RespuestaSeleccionSimpleFormGroup pregunta;
   final OpcionDeRespuesta opcion;
@@ -593,61 +624,63 @@ class WidgetSeleccion extends StatefulWidget {
       : super(key: key);
 
   @override
-  _WidgetSeleccionState createState() =>
-      _WidgetSeleccionState(pregunta, opcion);
+  _WidgetSeleccionState createState() => _WidgetSeleccionState();
 }
 
 class _WidgetSeleccionState extends State<WidgetSeleccion> {
-  final RespuestaSeleccionSimpleFormGroup pregunta;
-  final OpcionDeRespuesta opcion;
   bool _isSelected = false;
 
-  _WidgetSeleccionState(this.pregunta, this.opcion);
   @override
   Widget build(BuildContext context) {
-    if (pregunta.pregunta.pregunta.tipo ==
+    if (widget.pregunta.pregunta.pregunta.tipo ==
         TipoDePregunta.parteDeCuadriculaMultiple) {
-      final control = (pregunta.control('respuestas')
+      final control = (widget.pregunta.control('respuestas')
               as FormControl<List<OpcionDeRespuesta>>)
           .value;
-      final controlito = pregunta.control('respMultiple') as FormArray;
-      _isSelected = control.contains(opcion);
+      final controlito = widget.pregunta.control('respMultiple') as FormArray;
+      _isSelected = control?.contains(widget.opcion) ?? false;
       return Checkbox(
         value: _isSelected,
         onChanged: (bool newValue) {
           setState(() {
             _isSelected = newValue;
           });
+
+          /// Cuando cambia el valor, si es una respuesta que no estaba seleccionada,
+          /// Se agrega al nuevo control para mostrar.
+          /// Ademas se agrega a los controles, para poder tener registro de los datos.
           if (newValue) {
-            if (!control.contains(opcion)) {
-              control.add(opcion);
+            if (!control?.contains(widget.opcion) ?? false) {
+              control.add(widget.opcion);
             }
             controlito.add(
               LlenadoOpcionFormGroup(
-                  opcion: opcion,
-                  respuesta: pregunta.respuesta
-                      ?.firstWhere((x) => x.opcionesDeRespuesta == opcion,
+                  opcion: widget.opcion,
+                  respuesta: widget.pregunta.respuesta
+                      ?.firstWhere(
+                          (x) => x.opcionesDeRespuesta == widget.opcion,
                           orElse: () => RespuestaConOpcionesDeRespuesta(
                               crearRespuestaPorDefecto(
-                                  pregunta.pregunta.pregunta.id),
+                                  widget.pregunta.pregunta.pregunta.id),
                               null))
                       ?.respuesta),
             );
           } else {
-            (pregunta.control('respuestas')
+            (widget.pregunta.control('respuestas')
                     as FormControl<List<OpcionDeRespuesta>>)
                 .value
-                .remove(opcion);
+                .remove(widget.opcion);
             controlito.clear();
             controlito.addAll(control
                 .map(
                   (e) => LlenadoOpcionFormGroup(
                       opcion: e,
-                      respuesta: pregunta.respuesta
-                          ?.firstWhere((x) => x.opcionesDeRespuesta == opcion,
+                      respuesta: widget.pregunta.respuesta
+                          ?.firstWhere(
+                              (x) => x.opcionesDeRespuesta == widget.opcion,
                               orElse: () => RespuestaConOpcionesDeRespuesta(
                                   crearRespuestaPorDefecto(
-                                      pregunta.pregunta.pregunta.id),
+                                      widget.pregunta.pregunta.pregunta.id),
                                   null))
                           ?.respuesta),
                 )
@@ -657,9 +690,9 @@ class _WidgetSeleccionState extends State<WidgetSeleccion> {
       );
     } else {
       return ReactiveRadio(
-        value: opcion,
-        formControl:
-            pregunta.control('respuestas') as FormControl<OpcionDeRespuesta>,
+        value: widget.opcion,
+        formControl: widget.pregunta.control('respuestas')
+            as FormControl<OpcionDeRespuesta>,
       );
     }
   }

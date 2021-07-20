@@ -12,6 +12,8 @@ import 'injection.dart';
 Future main() async {
   Provider.debugCheckInvalidValueType = null;
   WidgetsFlutterBinding.ensureInitialized();
+
+  /// Inicia getIt.
   await configureDependencies();
   final navigatorKey = GlobalKey<NavigatorState>();
   await FlutterDownloader.initialize();
@@ -50,9 +52,12 @@ Future main() async {
   );
 }
 
+/// Tema personalizado, donde se definen los estilos de la app
 final customTheme = ThemeData(
   outlinedButtonTheme: OutlinedButtonThemeData(
-    style: OutlinedButton.styleFrom(backgroundColor: const Color.fromRGBO(237, 181, 34, 1),),
+    style: OutlinedButton.styleFrom(
+      backgroundColor: const Color.fromRGBO(237, 181, 34, 1),
+    ),
   ),
   //brightness: Brightness.dark,
   primaryColorLight: const Color.fromRGBO(229, 236, 233, 1),
@@ -69,8 +74,11 @@ final customTheme = ThemeData(
     filled: true,
   ),
   textTheme: const TextTheme(
-      headline1: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold,letterSpacing: 1.25)
-     ),
+      headline1: TextStyle(
+          fontSize: 20,
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.25)),
 );
 
 class ClearFocusOnPop extends NavigatorObserver {

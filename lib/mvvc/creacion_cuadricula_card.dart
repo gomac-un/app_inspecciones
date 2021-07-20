@@ -10,13 +10,17 @@ import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 class CreadorCuadriculaCard extends StatelessWidget {
+  /// Validaciones
   final CreadorPreguntaCuadriculaFormGroup formGroup;
+
+  /// Numero de bloque
   final int nro;
 
   const CreadorCuadriculaCard({Key key, this.formGroup, this.nro})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
+    /// Formulario base
     final viewModel = Provider.of<CreacionFormViewModel>(context);
     return PreguntaCard(
       titulo: 'Pregunta tipo cuadricula',
@@ -53,18 +57,16 @@ class CreadorCuadriculaCard extends StatelessWidget {
                   decoration: const InputDecoration(
                     labelText: 'Subsistema',
                   ),
+                  onTap: () {
+                    FocusScope.of(context)
+                        .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+                  },
                 );
               }),
           const SizedBox(height: 10),
           ReactiveDropdownField<String>(
             formControl: formGroup.control('posicion') as FormControl,
-            items:  [
-              "No aplica",
-              "Adelante",
-              "Atrás",
-              'Izquierda',
-              'Derecha'
-            ] 
+            items: ["No aplica", "Adelante", "Atrás", 'Izquierda', 'Derecha']
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),
@@ -73,6 +75,10 @@ class CreadorCuadriculaCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Posicion',
             ),
+            onTap: () {
+              FocusScope.of(context)
+                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+            },
           ),
           const SizedBox(height: 10),
           ReactiveDropdownField<TipoDePregunta>(
@@ -92,6 +98,10 @@ class CreadorCuadriculaCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Tipo de pregunta',
             ),
+            onTap: () {
+              FocusScope.of(context)
+                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+            },
           ),
           const SizedBox(height: 10),
           WidgetPreguntas(formGroup: formGroup),
@@ -103,17 +113,22 @@ class CreadorCuadriculaCard extends StatelessWidget {
   }
 }
 
+/// Widget usado para añadir las preguntas de cuadricula
 class WidgetPreguntas extends StatelessWidget {
   const WidgetPreguntas({
     Key key,
     @required this.formGroup,
   }) : super(key: key);
 
+  /// Validaciones
   final CreadorPreguntaCuadriculaFormGroup formGroup;
 
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context).size;
+
+    /// Como las preguntas se van añadiendo dinámicamente, este  ReactiveValueListenableBuilder escucha, por decirlo asi,
+    /// el length del control 'preguntas' [formControl], así cada que se va añadiendo una opción, se muestra el nuevo widget en la UI
     return ReactiveValueListenableBuilder(
         formControl: formGroup.control('preguntas'),
         builder: (context, control, child) {
@@ -207,6 +222,9 @@ class WidgetPreguntas extends StatelessWidget {
                     );
                   },
                 ),
+
+              /// Se muestra este botón por defecto, al presionarlo se añade un nuevo control al FormArray [formGroup.control('preguntas')]
+              /// Y así se va actualizando la lista
               OutlineButton(
                 onPressed: formGroup.agregarPregunta,
                 child: Row(
@@ -222,4 +240,3 @@ class WidgetPreguntas extends StatelessWidget {
         });
   }
 }
-

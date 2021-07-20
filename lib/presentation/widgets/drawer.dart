@@ -1,13 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:moor_db_viewer/moor_db_viewer.dart';
 import 'package:provider/provider.dart';
 import 'package:inspecciones/router.gr.dart';
-import 'package:inspecciones/mvvc/planeacion_sistemas_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UserDrawer extends StatelessWidget {
   //TODO: si se genera este mismo drawer en varias paginas se puede crear un stack indeseado, una solucion seria que la instancia del drawer fuera unica en toda la app
@@ -15,6 +14,7 @@ class UserDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final authBloc = Provider.of<AuthBloc>(context);
     final authState = authBloc.state;
+
     /* final media = MediaQuery.of(context).size;
     final orientacion = MediaQuery.of(context).orientation;
     
@@ -49,6 +49,9 @@ class UserDrawer extends StatelessWidget {
 
     bool esAdmin = false;
 
+    /// El usuario puede acceder desde el login aun cuando no tenga internet.
+    /// En ese caso, [esAdmin] es false.
+    /// Si tiene internet, [esAdmin] se obtiene desde la Api
     if (authState is Authenticated) {
       if ((authBloc.state as Authenticated).usuario.esAdmin != null) {
         esAdmin = (authBloc.state as Authenticated).usuario.esAdmin;
@@ -57,6 +60,7 @@ class UserDrawer extends StatelessWidget {
         child: Drawer(
           child: Column(
             children: <Widget>[
+              /// Información del usuario
               Expanded(
                 flex: 2,
                 child: ListView(
@@ -74,6 +78,7 @@ class UserDrawer extends StatelessWidget {
                             ), */
                           ),
                           accountEmail: Text(
+                            /// Nombre de usuario
                             authState.usuario.documento,
                             /* style: TextStyle(
                               fontSize: nombre,
@@ -86,7 +91,7 @@ class UserDrawer extends StatelessWidget {
                               child: Text(
                                 authState.usuario.documento[0],
                                 style: TextStyle(
-                                  fontSize: 30,
+                                    fontSize: 30,
                                     /*  fontSize:
                                         orientacion == Orientation.portrait
                                             ? media.height * 0.05
@@ -98,12 +103,15 @@ class UserDrawer extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 5.0),
+
+                    /// La app muestra diferentes funcionalidades deendiendo de si [esAdmin]
                     Opciones(esAdmin: esAdmin),
                   ],
                 ),
               ),
-              LogOut(),
+
+              /// Comun
+              Gomac(),
             ],
           ),
         ),
@@ -114,6 +122,7 @@ class UserDrawer extends StatelessWidget {
   }
 }
 
+/// Widget que divide las funcionalidades para administradores e inspectores
 class Opciones extends StatelessWidget {
   final bool esAdmin;
 
@@ -133,6 +142,7 @@ class Opciones extends StatelessWidget {
           ? media.height * 0.03
           : media.width * 0.03;
     } */
+    /// Si [esAdmin] muestra pagina de creación de cuestionarios y ver bases de datos
     if (esAdmin) {
       return Column(
         children: <Widget>[
@@ -180,11 +190,8 @@ class Opciones extends StatelessWidget {
               /* iconSize: iconSize,
             textSize: textSize, */
               ),
-          const SizedBox(height: 5.0),
           /* LimpiezaBase(), */
-          const SizedBox(height: 5.0),
           SincronizarConGomac(),
-          const SizedBox(height: 5.0),
           Card(
             child: ListTile(
               title: const Text('Ver base de datos',
@@ -207,7 +214,7 @@ class Opciones extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(height: 5.0),
+          LogOut(),
         ],
       );
     } else {
@@ -216,12 +223,14 @@ class Opciones extends StatelessWidget {
           Borradores(),
           /* LimpiezaBase(), */
           SincronizarConGomac(),
+          LogOut(),
         ],
       );
     }
   }
 }
 
+/// Lleva a lista de inspecciones pendientes
 class Borradores extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -246,30 +255,66 @@ class Borradores extends StatelessWidget {
   }
 }
 
-class LogOut extends StatelessWidget {
-  final double textSize;
-  final double iconSize;
-
-  const LogOut({Key key, this.textSize, this.iconSize}) : super(key: key);
-
+/// Abre el sitio web de Gomac
+class Gomac extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final authBloc = Provider.of<AuthBloc>(context);
+    const _url = 'https://gomac.medellin.unal.edu.co';
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
-      child: Container(
+      child: SizedBox(
         width: double.infinity,
         /* 
                     alignment: FractionalOffset.bottomCenter, */
         child: ListTile(
-            title: Text(
-              'Cerrar Sesión',
-              style: TextStyle(fontSize: textSize),
+          title: const Text(
+            'Ir a Gomac',
+          ),
+          leading: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.asset(
+              "assets/images/logo-gomac.png",
+              /* width: media.orientation == Orientation.portrait
+                  ? media.size.width * 0.06
+                  : media.size.height * 0.06, */
             ),
-            leading:
-                Icon(Icons.exit_to_app, color: Colors.black, size: iconSize),
-            onTap: () => authBloc.add(const AuthEvent.loggingOut())),
+          ),
+          onTap: () async => await canLaunch(_url)
+              ? await launch(_url)
+              : {
+                  Navigator.of(context).pop(),
+                  Scaffold.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                          'No se puede abrir el sitio, verifique su conexión'),
+                    ),
+                  ),
+                },
+        ),
       ),
+    );
+  }
+}
+
+/// Cierra sesión al lanzar evento [AuthEvent.loggingOut()]
+class LogOut extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final authBloc = Provider.of<AuthBloc>(context);
+
+    return Card(
+      /* 
+                    alignment: FractionalOffset.bottomCenter, */
+      child: ListTile(
+          selectedTileColor: Theme.of(context).accentColor,
+          title: const Text(
+            'Cerrar Sesión',
+          ),
+          leading: const Icon(
+            Icons.exit_to_app,
+            color: Colors.black,
+          ),
+          onTap: () => authBloc.add(const AuthEvent.loggingOut())),
     );
   }
 }
@@ -289,7 +334,7 @@ class Planificacion extends StatelessWidget {
             ExtendedNavigator.of(context).pop();
           },
         ),
-       /*  ListTile(
+        /*  ListTile(
           selectedTileColor: Theme.of(context).accentColor,
           title: const Text('Sistemas', style: TextStyle(fontSize: 13)),
           onTap: () async {
@@ -306,6 +351,7 @@ class Planificacion extends StatelessWidget {
   }
 }
 
+/// Lleva a pagina de sincronizacion para descargar los datos del server
 class SincronizarConGomac extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -329,6 +375,7 @@ class SincronizarConGomac extends StatelessWidget {
   }
 }
 
+/// Limpia todos los datos de la bd.
 class LimpiezaBase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

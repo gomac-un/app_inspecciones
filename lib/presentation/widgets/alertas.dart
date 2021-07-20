@@ -1,10 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:inspecciones/mvvc/creacion_validators.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
+/// Alerta que permite dar estilos personalizados. Se usa a la hora de
+/// creación y envío de cuestionarios
 void mostrarMensaje(BuildContext context, String tipo, String mensaje,
     {bool ocultar = true}) {
   Alert(
@@ -49,6 +50,7 @@ void mostrarMensaje(BuildContext context, String tipo, String mensaje,
   ).show();
 }
 
+/// Usada para mostrar los errores de la creación de cuestionarios.
 void mostrarErrores(BuildContext context, AbstractControl<dynamic> form) {
   Alert(
     context: context,
@@ -108,6 +110,8 @@ void mostrarErrores(BuildContext context, AbstractControl<dynamic> form) {
   ).show();
 }
 
+/// Un machetazo para mostrar un poquito más lindos los errores del cuestionario.
+/// Si se cambia nombre de un error, probablemente no se vaya a mostrar aquí
 String obtenerErrores(AbstractControl<dynamic> form) {
   String texto = '';
   String textoApoyo = '';
