@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+/// BottomSheet de selección de camara o galeria cuando se agrega foto a cuestionario o inspeccion
 class ImageSourceBottomSheet extends StatelessWidget {
   /// Optional maximum height of image
   final double maxHeight;
