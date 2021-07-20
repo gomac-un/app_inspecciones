@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// Widget usado como Scaffold de los formularios en creación y llenado de inspección
 class FormScaffold extends StatelessWidget {
-  
   final Widget body;
   final Widget title;
   final Widget floatingActionButton;

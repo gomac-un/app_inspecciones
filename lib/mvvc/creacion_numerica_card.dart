@@ -7,7 +7,11 @@ import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+/// Intento de unificar los campos de las preguntas numericas y de selección.
+///
+/// En este momento usado para la pregunta numerica.
 class TipoPreguntaCard extends StatelessWidget {
+  /// Validaciones.
   final CreadorPreguntaNumericaFormGroup formGroup;
 
   const TipoPreguntaCard({Key key, this.formGroup}) : super(key: key);
@@ -51,18 +55,16 @@ class TipoPreguntaCard extends StatelessWidget {
                 decoration: const InputDecoration(
                   labelText: 'Subsistema',
                 ),
+                onTap: () {
+                  FocusScope.of(context)
+                      .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+                },
               );
             }),
         const SizedBox(height: 10),
         ReactiveDropdownField<String>(
           formControl: formGroup.control('posicion') as FormControl,
-          items: [
-              "No aplica",
-              "Adelante",
-              "Atrás",
-              'Izquierda',
-              'Derecha'
-            ] 
+          items: ["No aplica", "Adelante", "Atrás", 'Izquierda', 'Derecha']
               .map((e) => DropdownMenuItem<String>(
                     value: e,
                     child: Text(e),
@@ -71,13 +73,15 @@ class TipoPreguntaCard extends StatelessWidget {
           decoration: const InputDecoration(
             labelText: 'Posicion',
           ),
+          onTap: () {
+            FocusScope.of(context)
+                .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+          },
         ),
         InputDecorator(
           decoration: const InputDecoration(
               labelText: 'Criticidad de la pregunta', filled: false),
           child: ReactiveSlider(
-           
-
             formControl: formGroup.control('criticidad') as FormControl<double>,
             max: 4,
             divisions: 4,
@@ -96,6 +100,7 @@ class TipoPreguntaCard extends StatelessWidget {
   }
 }
 
+/// Widget usado para añadir rangos de criticidad a las preguntas numericas
 class CriticidadCard extends StatelessWidget {
   const CriticidadCard({
     Key key,
@@ -106,6 +111,8 @@ class CriticidadCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /// Como los rangos se van añadiendo dinámicamente, este  ReactiveValueListenableBuilder escucha, por decirlo asi,
+    /// el length del 'criticidadRespuesta' respuestas [formControl], así cada que se va añadiendo una criticidad, se muestra el nuevo widget en la UI
     return ReactiveValueListenableBuilder(
         formControl: (formGroup as FormGroup).control('criticidadRespuesta'),
         builder: (context, control, child) {

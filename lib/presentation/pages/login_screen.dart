@@ -12,6 +12,7 @@ import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+/// Pantalla de inicio de sesión.
 class LoginScreen extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
@@ -22,6 +23,8 @@ class LoginScreen extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget build(BuildContext context) {
     final form = Provider.of<LoginControl>(context);
+
+    /// Se usa OrientationBuilder para adecuar la imagen del logo a los diferentes tamaños de pantalla
     return OrientationBuilder(
       builder: (BuildContext context, Orientation orientation) {
         final queryData = MediaQuery.of(context);
@@ -92,6 +95,8 @@ class LoginScreen extends StatelessWidget implements AutoRouteWrapper {
                     const SizedBox(
                       height: 15,
                     ),
+
+                    /// Activa el botón de iniciar sesión solo cuando se hayan llenado los dos campos.
                     ReactiveFormConsumer(
                       builder: (context, _, child) {
                         return ButtonTheme(
@@ -124,6 +129,7 @@ class LoginScreen extends StatelessWidget implements AutoRouteWrapper {
   }
 }
 
+/// Validaciones para el login
 @injectable
 class LoginControl extends FormGroup {
   final UserRepository userRepository;
@@ -135,12 +141,14 @@ class LoginControl extends FormGroup {
         });
 
   Future submit(BuildContext context) async {
+    /// [authBloc] maneja el estado del login.
     final authBloc = Provider.of<AuthBloc>(context, listen: false);
     final login = UserLogin(
       username: value['usuario'] as String,
       password: value['password'] as String,
     );
 
+    /// Se realiza el proceso de autenticación, y se procesa de acuerdo al estado que lance [autenticate]
     LoadingDialog.show(context);
     final autenticate = await userRepository.authenticateUser(userLogin: login);
     LoadingDialog.hide(context);
@@ -192,6 +200,8 @@ class LoginControl extends FormGroup {
     );
   }
 
+  /// Cuando ocurre un problema en la autenticación, el usuario puede ingresar como inspector y llenar inspecciones.
+  /// Esta alerta Le informa al usuario
   Future problemaDialog(
       BuildContext context, AuthBloc authBloc, UserLogin login,
       {@required String razon, UserRepository userRepository}) {
@@ -213,7 +223,7 @@ class LoginControl extends FormGroup {
                       usuario: Usuario(
                         documento: login.username,
                         password: login.password,
-                        esAdmin: login.esdAdmin,
+                        esAdmin: login.esdAdmin ?? false,
                       ),
                     ),
                   );

@@ -1,5 +1,8 @@
 part of 'moor_database.dart';
 
+/// Definición de todas las tablas usadas en la Bd
+///
+
 class Activos extends Table {
   IntColumn get id => integer()();
 
@@ -54,17 +57,18 @@ class Cuestionarios extends Table {
 
   IntColumn get estado => intEnum<EstadoDeCuestionario>()();
 
-  // campo usado solo en la app para identificar los cuestionarios nuevos que deben ser enviados al server
+  /// Campo usado solo en la app para identificar los cuestionarios nuevos que deben ser enviados al server.
   BoolColumn get esLocal => boolean().withDefault(const Constant(true))();
   // List<Inspecciones>
   // List<Bloques>
   //List<CuestionariosDeModelos>
 }
 
-//Tabla para asignar cuestionarios a modelos y a contratistas
+///Tabla para asignar cuestionarios a modelos y a contratistas.
 class CuestionarioDeModelos extends Table {
   IntColumn get id => integer().autoIncrement()();
-  //El modelo especial "todos" aplica para todos los vehiculos
+
+  ///El modelo especial "Todos" aplica para todos los vehiculos.
   TextColumn get modelo => text()();
 
   IntColumn get periodicidad => integer()();
@@ -79,9 +83,12 @@ class CuestionarioDeModelos extends Table {
       .customConstraint('REFERENCES contratistas(id) ON DELETE SET NULL')();
 }
 
+/// Usada para poder organizar cada pregunta y titulo de los cuestionarios.
+
 class Bloques extends Table {
   IntColumn get id => integer().autoIncrement()();
 
+  /// Indica la posición en el cuestionario iniciando desde 0
   IntColumn get nOrden => integer()();
 
   @JsonKey('cuestionario')
@@ -95,10 +102,10 @@ class Bloques extends Table {
 
 }
 
-//Las consultas deben involucrar de manera independiente
-//tablas de titulos y preguntas de tipo simple y de tipo cuadricula.
-//los formularios deben tratar cada uno de estos casos y ordenarlos
-//con el nOrden que tienen los bloques correspondientes.
+///Las consultas deben involucrar de manera independiente
+///tablas de titulos y preguntas de tipo simple y de tipo cuadricula.
+///los formularios deben tratar cada uno de estos casos y ordenarlos
+///con el nOrden que tienen los bloques correspondientes.
 
 class Titulos extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -107,6 +114,7 @@ class Titulos extends Table {
 
   TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
 
+  /// Este campo no es usado actualmente para los titulos
   TextColumn get fotos => text()
       .map(const ListInColumnConverter())
       .withDefault(const Constant("[]"))();
@@ -116,8 +124,8 @@ class Titulos extends Table {
       integer().customConstraint('REFERENCES bloques(id) ON DELETE CASCADE')();
 }
 
-//Tabla para agrupar las preguntas de tipo cuadricula
-//para acceder se debe hacer join con el bloque en comun con las preguntas
+///Tabla para agrupar las preguntas de tipo cuadricula
+///para acceder se debe hacer join con el bloque en comun con las preguntas
 @DataClassName('CuadriculaDePreguntas')
 class CuadriculasDePreguntas extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -134,12 +142,12 @@ class CuadriculasDePreguntas extends Table {
 
 }
 
-//Las preguntas de tipo seleccion unica o multiple pueden ser reunidas
-//directamente con el bloque
-//Las preguntas de tipo cuadricula deben ser
+///Las preguntas de tipo seleccion unica o multiple pueden ser reunidas
+///directamente con el bloque
+///Las preguntas de tipo cuadricula deben ser
 //TODO: agrupadas por el bloque
-// a este bloque del grupo se le asocia tambien el CuadriculasDePreguntas que
-//tiene (por medio de join) las opciones de respuesta para el grupo de preguntas
+/// a este bloque del grupo se le asocia tambien el CuadriculasDePreguntas que
+///tiene (por medio de join) las opciones de respuesta para el grupo de preguntas
 
 class Preguntas extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -150,12 +158,15 @@ class Preguntas extends Table {
 
   IntColumn get criticidad => integer()();
 
+  /// Atributo usado para información al inspector. Indica a que posición del vehiculo hace referencia la pregunta.
   TextColumn get posicion => text().nullable().withLength(min: 0, max: 50)();
 
   TextColumn get fotosGuia => text()
       .map(const ListInColumnConverter())
       .withDefault(const Constant("[]"))();
 
+  /// Campo usado paraa preguntas que actian otras dependiendo de laa respuesta.
+  //TODO: implementar
   BoolColumn get esCondicional =>
       boolean().withDefault(const Constant(false))();
 
@@ -176,7 +187,7 @@ class Preguntas extends Table {
 class OpcionesDeRespuesta extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  //uno de estos 2 debe ser no nulo
+  ///uno de estos 2 debe ser no nulo.
   @JsonKey('pregunta')
   IntColumn get preguntaId => integer()
       .nullable()
@@ -185,6 +196,7 @@ class OpcionesDeRespuesta extends Table {
   IntColumn get cuadriculaId => integer().nullable().customConstraint(
       'REFERENCES cuadriculas_de_preguntas(id) ON DELETE CASCADE')();
 
+  /// Si el inspector puede asignar un nivel de gravedad a la respuesta
   BoolColumn get calificable => boolean().withDefault(const Constant(false))();
   //.customConstraint('REFERENCES cuadriculas_de_preguntas(id) ')();
 
@@ -195,7 +207,7 @@ class OpcionesDeRespuesta extends Table {
 
 @DataClassName('Inspeccion')
 class Inspecciones extends Table {
-  // este id tiene el formato: yymmddhhmm(activoId) ver [Database.generarId()]
+  /// Este id tiene el formato: yymmddhhmm(activoId) ver [Database.generarId()]
   IntColumn get id => integer()();
 
   IntColumn get estado => intEnum<EstadoDeInspeccion>()();
@@ -203,11 +215,15 @@ class Inspecciones extends Table {
   IntColumn get criticidadTotal => integer()();
 
   IntColumn get criticidadReparacion => integer()();
-
+/// Cuando se inicia la inspeccion
   DateTimeColumn get momentoInicio => dateTime().nullable()();
-
+  /// Se actualiza cada que se presiona guardar en el llenado
   DateTimeColumn get momentoBorradorGuardado => dateTime().nullable()();
 
+  /// Se marca solo cuando se presiona finalizar y el estado de la inspeccion es reparacion
+  DateTimeColumn get momentoFinalizacion => dateTime().nullable()();
+  //TODO: Verificar  como es que funcionan estas fechas.
+  /// Nulo hasta que se envia la inspección al server
   DateTimeColumn get momentoEnvio => dateTime().nullable()();
 
   @JsonKey('cuestionario')
@@ -218,13 +234,15 @@ class Inspecciones extends Table {
   IntColumn get activoId => integer()
       .customConstraint('REFERENCES activos(id) ON DELETE NO ACTION')();
 
-  // Esta columna es usada en la app para saber si es creada por el usuario o la descargó del servidor
+  /// Esta columna es usada en la app para saber si es creada por el usuario o la descargó del servidor
   BoolColumn get esNueva => boolean().clientDefault(() => true)();
 
   @override
   Set<Column> get primaryKey => {id};
 }
 
+/// Rangos de criticidad para las preguntas numericas del tipo [[valorMinimo],[valorMaximo])
+/// Si la respuesta está en ese rango, su criticidad será igual a [criticidad]
 class CriticidadesNumericas extends Table {
   IntColumn get id => integer().autoIncrement()();
   RealColumn get valorMinimo => real()();
@@ -288,13 +306,16 @@ class Respuestas extends Table {
 
   BoolColumn get reparado => boolean().withDefault(const Constant(false))();
 
+  /// Solo usado si la pregunta es de tipo numérica
   RealColumn get valor => real().nullable()();
 
   TextColumn get observacionReparacion =>
       text().withDefault(const Constant(""))();
 
+  /// Solo usado en caso de que la pregunta sea calificable
   IntColumn get calificacion => integer().nullable()();
 
+  /// Momento de la ultima edición de la respuesta
   DateTimeColumn get momentoRespuesta => dateTime().nullable()();
 
   @JsonKey('inspeccion')
@@ -306,6 +327,8 @@ class Respuestas extends Table {
       .customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
 
   //TODO: verificar que el par inpeccionId-preguntaId sea unico
+  /// En este caso no sé que puede pasar si no es único, para el caso de las multiples se
+  /// está dando el caso sin generar problema hasta ahora
   @JsonKey('opcionDeRespuesta')
   IntColumn get opcionDeRespuestaId => integer()
       .customConstraint(

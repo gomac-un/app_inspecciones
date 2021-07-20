@@ -9,6 +9,9 @@ import 'package:inspecciones/presentation/pages/splash_screen.dart';
 
 import 'presentation/pages/grupos_screen.dart';
 
+/// Definición de todas las rutas de la app.
+///
+/// Al añadir una nueva ruta se debe correr en consola el comando 'flutter pub run build_runner build --delete-conflicting-outputs'
 @MaterialAutoRouter(
   generateNavigationHelperExtension: true,
   routes: <AutoRoute>[
@@ -24,4 +27,3 @@ import 'presentation/pages/grupos_screen.dart';
   ],
 )
 class $AutoRouter {}
-

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+/// Dropdown usado en todos los campos de selección  multiple de la app
 class ReactiveMultiSelectDialogField<V> extends ReactiveFormField<List<V>> {
   final List<MultiSelectItem<V>> items;
   final Text buttonText;
@@ -37,7 +38,6 @@ class ReactiveMultiSelectDialogField<V> extends ReactiveFormField<List<V>> {
                     onConfirm: (values) {
                       field.didChange(values);
                     },
-                    
                     chipDisplay: MultiSelectChipDisplay<V>(
                       items: items,
                       chipColor: const Color.fromRGBO(229, 236, 233, 1),

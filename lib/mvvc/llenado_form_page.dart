@@ -7,13 +7,13 @@ import 'package:inspecciones/mvvc/llenado_cards.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
 import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
-import 'package:inspecciones/presentation/widgets/alertas.dart';
 import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
+/// Pantalla que se muestra al iniciar una nueva inspección.
 class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   final int activo;
   final int cuestionarioId;
@@ -64,6 +64,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                       final readOnly = viewModel.esNueva.value;
                       String titulo;
 
+                      /// Texto que aparece en [BotonesComunes]
                       if (estado == EstadoDeInspeccion.borrador ||
                           estado == EstadoDeInspeccion.enReparacion) {
                         titulo = 'Calificación parcial\nantes de la reparación';
@@ -84,16 +85,22 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                       final bloques = estado == EstadoDeInspeccion.borrador ||
                               estado == EstadoDeInspeccion.finalizada
                           ? viewModel.bloques.controls
+
+                          /// Si está en reparación muestra solo aquellas preguntas con criticidad > 0.
                           : viewModel.bloques.controls
                               .where((blo) =>
                                   (blo as BloqueDeFormulario).criticidad > 0 ||
                                   blo is TituloFormGroup)
                               .toList();
+
+                      /// Suma la criticidad de todas las preguntas y respuestas.
                       final criticidadTotal = viewModel.bloques.controls
                           .fold<int>(
                               0,
                               (p, c) =>
                                   p + (c as BloqueDeFormulario).criticidad);
+
+                      /// Suma la criticidad de las preguntas despues de la reparación.
                       final criticidadReparacion = viewModel.bloques.controls
                           .fold<int>(
                               0,
@@ -109,6 +116,9 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                             itemCount: bloques.length,
                             itemBuilder: (context, i) {
                               final element = bloques[i] as BloqueDeFormulario;
+
+                              /// Procesamiento de cada bloque.
+                              /// Devuelve la card correspondiente a cada FormGroup.
                               if (element is TituloFormGroup) {
                                 return Center(
                                   child: Column(
@@ -118,6 +128,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                                         height: 20,
                                       ),
                                       BotonesComunes(
+                                        totalBloques: bloques.length,
                                         estado: estado,
                                         esTitulo: true,
                                         criticidadTotal: criticidadTotal,
@@ -152,6 +163,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                                         height: 20,
                                       ),
                                       BotonesComunes(
+                                        totalBloques: bloques.length,
                                         estado: estado,
                                         esTitulo: false,
                                         criticidadTotal: criticidadTotal,
@@ -185,6 +197,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                                         height: 20,
                                       ),
                                       BotonesComunes(
+                                        totalBloques: bloques.length,
                                         estado: estado,
                                         esTitulo: false,
                                         criticidadTotal: criticidadTotal,
@@ -218,6 +231,7 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                                         height: 20,
                                       ),
                                       BotonesComunes(
+                                        totalBloques: bloques.length,
                                         estado: estado,
                                         esTitulo: false,
                                         criticidadTotal: criticidadTotal,
@@ -251,11 +265,14 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   }
 }
 
+/// Muestra los botones que son comunes a todas las preguntas.
+///
+/// El botón de atrás y adelante y  las Card de criticidades total y reparación.
 class BotonesComunes extends StatelessWidget {
   final String titulo;
   final EstadoDeInspeccion estado;
   final int criticidadTotal;
-
+  final int totalBloques;
   final String titulo1;
 
   final int criticidadReparacion;
@@ -274,20 +291,13 @@ class BotonesComunes extends StatelessWidget {
     @required this.controller,
     @required this.esTitulo,
     @required this.estado,
+    @required this.totalBloques,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
-    final esTitul = esTitulo ?? false;
-    final bloques = viewModel.estado.value == EstadoDeInspeccion.borrador ||
-            viewModel.estado.value == EstadoDeInspeccion.finalizada
-        ? viewModel.bloques.controls
-        : viewModel.bloques.controls
-            .where((blo) =>
-                (blo as BloqueDeFormulario).criticidad > 0 ||
-                blo is TituloFormGroup)
-            .toList();
+
     return Row(
       children: [
         Expanded(child: Container()),
@@ -298,6 +308,7 @@ class BotonesComunes extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  /// Si es la primer pregunta no se puede ir hacia atrás.
                   if (i != 0)
                     FloatingActionButton(
                       heroTag: 'atras',
@@ -313,7 +324,9 @@ class BotonesComunes extends StatelessWidget {
                   const SizedBox(
                     width: 15.0,
                   ),
-                  if (i != bloques.length - 1)
+
+                  ///Si es la ultima pregunta no se puede ir hacia adelante
+                  if (i != totalBloques - 1)
                     FloatingActionButton(
                       heroTag: 'adelante',
                       onPressed: () {
@@ -330,6 +343,8 @@ class BotonesComunes extends StatelessWidget {
               const SizedBox(
                 height: 20,
               ),
+
+              /// No muestra las card de criticidad si es un titulo.
               if (!esTitulo ?? false)
                 PreguntaCard(
                   child: Row(
@@ -357,9 +372,13 @@ class BotonesComunes extends StatelessWidget {
                     ],
                   ),
                 ),
+
+              /// Solo muestra la card de criticidad de reparación si el estado es reparación o finalizada.
               if (!esTitulo &&
-                  [EstadoDeInspeccion.enReparacion, EstadoDeInspeccion.finalizada]
-                      .contains(estado))
+                  [
+                    EstadoDeInspeccion.enReparacion,
+                    EstadoDeInspeccion.finalizada
+                  ].contains(estado))
                 PreguntaCard(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -397,6 +416,7 @@ class BotonesComunes extends StatelessWidget {
   }
 }
 
+/// Muestra el botón de finalizar y guardar borrador.
 class BotonesGuardado extends StatelessWidget {
   final int activo;
   final int cuestionarioId;
@@ -419,6 +439,7 @@ class BotonesGuardado extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
+          /// Solo se puede guardar si no se ha finalizado la inspección.
           if ([EstadoDeInspeccion.borrador, EstadoDeInspeccion.enReparacion]
               .contains(estado))
             ActionButton(
@@ -426,19 +447,27 @@ class BotonesGuardado extends StatelessWidget {
               iconData: Icons.archive,
               label: 'Guardar',
               onPressed: () async {
+                /// Suma criticidad de todas las preguntas y sus respuestas
                 final criticidadTotal = viewModel.bloques.controls.fold<int>(
                     0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+
+                /// Suma criticidad de todas las preguntas despues de la reparación.
                 final criticidadReparacion = viewModel.bloques.controls
                     .fold<int>(
                         0,
                         (p, c) =>
                             p + (c as BloqueDeFormulario).criticidadReparacion);
                 LoadingDialog.show(context);
+
+                /// Guarda la inspección
                 await viewModel.guardarInspeccionEnLocal(
                     estado: estado,
                     criticidadTotal: criticidadTotal,
                     criticidadReparacion: criticidadReparacion);
                 LoadingDialog.hide(context);
+
+                /// El botón finalizar por defecto está escondido, solo cuando fueGuardado = True,
+                /// se muestra.
                 viewModel.fueGuardado.value = true;
                 showDialog(
                   context: context,
@@ -462,64 +491,69 @@ class BotonesGuardado extends StatelessWidget {
             ),
           ValueListenableBuilder<bool>(
             builder: (BuildContext context, value, Widget child) {
-              if(value){
+              if (value) {
                 return FloatingActionButton.extended(
-                heroTag: null,
-                icon: const Icon(Icons.done_all_outlined),
-                label: Text(estado == EstadoDeInspeccion.finalizada
-                    ? 'Aceptar'
-                    : 'Finalizar'),
-                onPressed: !form.valid
-                    ? () {
-                        final snackBar = SnackBar(
-                          content: const Text('La inspección tiene errores'),
-                          action: SnackBarAction(
-                            label: 'Ver errores',
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text('Aceptar',
-                                          style:
-                                              TextStyle(color: Colors.black)),
-                                    ),
-                                  ],
-                                  title: const Text("Errores:"),
-                                  content: Text(
-                                      /*JsonEncoder.withIndent('  ')
+                  heroTag: null,
+                  icon: const Icon(Icons.done_all_outlined),
+                  label: Text(estado == EstadoDeInspeccion.finalizada
+                      ? 'Aceptar'
+                      : 'Finalizar'),
+                  onPressed: !form.valid
+                      ? () {
+                          /// Si no se han llenado todos los campos y agregado fotos se muestran los errores.
+                          final snackBar = SnackBar(
+                            content: const Text('La inspección tiene errores'),
+                            action: SnackBarAction(
+                              label: 'Ver errores',
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('Aceptar',
+                                            style:
+                                                TextStyle(color: Colors.black)),
+                                      ),
+                                    ],
+                                    title: const Text("Errores:"),
+                                    content: Text(
+                                        /*JsonEncoder.withIndent('  ')
                                           .convert(json.encode(form.errors)),*/
-                                      /* form.errors.values.toString(), */
-                                      _obtenerErrores(form, estado: estado)),
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                        if (estado == EstadoDeInspeccion.borrador) {
-                          form.markAllAsTouched();
-                          Scaffold.of(context).showSnackBar(snackBar);
-                        } else if (estado == EstadoDeInspeccion.enReparacion) {
-                          form.markAllAsTouched();
-                          if (form.errors.isEmpty && form.valid) {
-                            finalizarInspeccion(context, estado);
-                          } else {
+                                        /* form.errors.values.toString(), */
+                                        _obtenerErrores(form, estado: estado)),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                          if (estado == EstadoDeInspeccion.borrador) {
+                            /// Si es borrador, no se puede finalizar con errores, así que se muestra snackbar
+                            /// para que se puedan ver los errores.
+                            form.markAllAsTouched();
                             Scaffold.of(context).showSnackBar(snackBar);
-                            /*   mostrarErrores(context, form, estado: estado); */
+                          } else if (estado ==
+                              EstadoDeInspeccion.enReparacion) {
+                            form.markAllAsTouched();
+                            if (form.errors.isEmpty && form.valid) {
+                              /* !form.valid no estaba funcionando (Se marca invalido cuando no lo está), así que toca hacer está validación extra */
+                              /// que permite finalizar la inspección
+                              finalizarInspeccion(context, estado);
+                            } else {
+                              Scaffold.of(context).showSnackBar(snackBar);
+                              /*   mostrarErrores(context, form, estado: estado); */
+                            }
                           }
                         }
-                      }
-                    : () {
-                        finalizarInspeccion(context, estado);
-                      },
-              );
+                      : () {
+                          finalizarInspeccion(context, estado);
+                        },
+                );
               }
               return const SizedBox.shrink();
-              
             },
             valueListenable: viewModel.fueGuardado,
           ),
@@ -528,6 +562,8 @@ class BotonesGuardado extends StatelessWidget {
     );
   }
 
+  /// Intento de mostrar organizadamente los errores.
+  /// Si la estructura de [LlenadoFormViewModel] cambia, se debe adecuar.
   String _obtenerErrores(AbstractControl<dynamic> form,
       {EstadoDeInspeccion estado}) {
     String texto = '';
@@ -542,6 +578,7 @@ class BotonesGuardado extends StatelessWidget {
     return texto;
   }
 
+  /// Muestra alerta de que no se puede editar más una inspección cuando se haya dado por finalizada.
   Future<void> finalizarInspeccion(
       BuildContext context, EstadoDeInspeccion estadoIns) async {
     final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
@@ -554,6 +591,7 @@ class BotonesGuardado extends StatelessWidget {
       onPressed: () async {
         Navigator.of(context).pop();
 
+        /// Metodo que se llama independientemente de si es borrador o reparacion
         await guardarParaReparacion(context, estado);
       },
       child: const Text("Aceptar"),
@@ -569,7 +607,7 @@ class BotonesGuardado extends StatelessWidget {
       ],
     );
     // show the dialog
-
+    /// Si ya se reparó, se puede finalizar
     if (estado == EstadoDeInspeccion.enReparacion) {
       showDialog(
         context: context,
@@ -580,6 +618,8 @@ class BotonesGuardado extends StatelessWidget {
     } else if (estado == EstadoDeInspeccion.borrador) {
       final criticidadTotal = viewModel.bloques.controls
           .fold<int>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+
+      /// Si es borrador, pero no presentó ninguna novedad, puede finalizar
       if (criticidadTotal <= 0) {
         showDialog(
           context: context,
@@ -588,6 +628,7 @@ class BotonesGuardado extends StatelessWidget {
           },
         );
       } else {
+        /// Si no se cumple ningun caso, pasa a pantalla de reparaciones
         await guardarParaReparacion(context, estado);
       }
     } else {
@@ -595,6 +636,7 @@ class BotonesGuardado extends StatelessWidget {
     }
   }
 
+  /// Cuando el formulario no tiene ningun error
   Future guardarParaReparacion(
       BuildContext context, EstadoDeInspeccion estadoIns) async {
     final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
@@ -605,6 +647,7 @@ class BotonesGuardado extends StatelessWidget {
         final criticidadReparacion = viewModel.bloques.controls.fold<int>(
             0, (p, c) => p + (c as BloqueDeFormulario).criticidadReparacion);
         if (criticidadTotal > 0) {
+          /// Si no tiene que pasar a pantalla de reparaciones, solamente se guarda y cambia de estado a reparación.
           viewModel.estado.value = EstadoDeInspeccion.enReparacion;
           LoadingDialog.show(context);
           await viewModel.guardarInspeccionEnLocal(
@@ -612,11 +655,14 @@ class BotonesGuardado extends StatelessWidget {
               criticidadTotal: criticidadTotal,
               criticidadReparacion: criticidadReparacion);
           LoadingDialog.hide(context);
+
+          /// Muestra el aviso de inicio de reparaciones.
           await showDialog(
             context: context,
             builder: (context) => AlertReparacion(),
           );
-          //machetazo para recargar el formulario con los datos insertados en la DB
+
+          ///Machetazo para recargar el formulario con los datos insertados en la DB
           ExtendedNavigator.of(context).popAndPush(Routes.llenadoFormPage,
               arguments: LlenadoFormPageArguments(
                   activo: activo, cuestionarioId: cuestionarioId));
@@ -632,6 +678,7 @@ class BotonesGuardado extends StatelessWidget {
     }
   }
 
+  /// Finaliza completamente la inspección.
   Future guardarYSalir(BuildContext context) async {
     final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
     final criticidadTotal = viewModel.bloques.controls
@@ -649,6 +696,7 @@ class BotonesGuardado extends StatelessWidget {
     ExtendedNavigator.of(context).pop();
   }
 
+  /// Muestra mensaje de finalización.
   void mostrarMensaje(BuildContext context, String mensaje) {
     Alert(
       context: context,
@@ -678,6 +726,8 @@ class BotonesGuardado extends StatelessWidget {
       buttons: [
         DialogButton(
           onPressed: () async =>
+
+              /// Guarda la inspección con estado finalizado.
               {Navigator.pop(context), await guardarYSalir(context)},
           color: Theme.of(context).accentColor,
           radius: BorderRadius.circular(10.0),
@@ -722,68 +772,3 @@ class AlertReparacion extends StatelessWidget {
     );
   }
 }
-
-/* class InspeccionCondicional extends StatelessWidget {
-  final EstadoDeInspeccion estado;
-
-  const InspeccionCondicional({Key key, this.estado}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final viewModel = Provider.of<LlenadoFormViewModel>(context);
-    final listaAMostrar = viewModel.bloques1.value;
-    bool readOnly = false;
-    return ValueListenableBuilder<List<AbstractControl>>(
-      valueListenable: viewModel.bloques1,
-      builder: (BuildContext context, value, Widget child) {
-        return ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: viewModel.bloques1.value.length,
-            itemBuilder: (context, i) {
-              if (estado == EstadoDeInspeccion.finalizada) {
-                readOnly = true;
-              }
-              final element = listaAMostrar[i] as BloqueDeFormulario;
-              if (estado == EstadoDeInspeccion.enReparacion &&
-                  element.criticidad == 0) {
-                return const SizedBox
-                    .shrink(); //Esconde los que tienen criticidad 0 si la inspeccion esta en reparacion
-              }
-              if (element is TituloFormGroup) {
-                return TituloCard(formGroup: element);
-              }
-              if (element is RespuestaSeleccionSimpleFormGroup &&
-                  element.pregunta.pregunta.esCondicional != true) {
-                return SeleccionSimpleCard(
-                    formGroup: element, readOnly: readOnly);
-              }
-              if (element is RespuestaSeleccionSimpleFormGroup &&
-                  element.pregunta.pregunta.esCondicional == true) {
-                /* if(element.seccion != null){
-                borrarBloques(i,element.seccion, listaAMostrar);}
-              else{
-                agregar();
-              } */
-                return SeleccionSimpleCard(
-                  formGroup: element,
-                  readOnly: readOnly,
-                );
-              }
-              if (element is RespuestaCuadriculaFormArray) {
-                return CuadriculaCard(formArray: element);
-              }
-              if (element is RespuestaNumericaFormGroup) {
-                return NumericaCard(
-                  formGroup: element,
-                  readOnly: readOnly,
-                );
-              }
-              return Text(
-                  "error: el bloque $i no tiene una card que lo renderice");
-            });
-      },
-    );
-  }
-}
- */

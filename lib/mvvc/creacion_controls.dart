@@ -5,11 +5,17 @@ import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
+import 'package:inspecciones/mvvc/creacion_validators.dart';
 import 'package:kt_dart/kt.dart';
-
 import 'package:reactive_forms/reactive_forms.dart';
 
+/// Definición de todos los FormGroup de los bloques en la creación de cuetionarios
+
+/// Control para creación de titulos
 class CreadorTituloFormGroup extends FormGroup implements Copiable {
+  /// Cuando se añade el bloque, [d] es null porque aun no existe.
+  /// Cuando se va a editar, [d] es pasado directamente desde los BloquesBd de [CreacionFormViewModel]
+  /// Cuando se usa copiar, [d] se obtiene desde el método [toDataClass()]
   final Titulo d;
   CreadorTituloFormGroup({this.d})
       : super({
@@ -17,11 +23,13 @@ class CreadorTituloFormGroup extends FormGroup implements Copiable {
           'descripcion': fb.control<String>(d?.descripcion ?? "")
         });
 
+  /// Devuelve el formGroup, haciendo uso del metodo [toDataClass()]
   @override
   Future<CreadorTituloFormGroup> copiar() async {
     return CreadorTituloFormGroup(d: toDataclass());
   }
 
+  /// Devuelve una instancia de [Titulo] haciendo uso de los valores introducidos en el formulario.
   Titulo toDataclass() => Titulo(
         id: null,
         fotos: null,
@@ -30,6 +38,9 @@ class CreadorTituloFormGroup extends FormGroup implements Copiable {
         descripcion: value["descripcion"] as String ?? '',
       );
 
+  /// En caso de que ya exista [d], se actualiza con los nuevos valores introducidos en el formulario, (Como ya tiene id, se actualiza en la bd)
+  /// Si no se "crea" uno con el método [toDataClass()]
+  /// Este método es usado a la hora de guardar el cuestionario en la bd.
   Titulo toDB() {
     final titulo = d?.copyWith(
           titulo: value["titulo"] as String ?? ' ',
@@ -40,10 +51,15 @@ class CreadorTituloFormGroup extends FormGroup implements Copiable {
   }
 }
 
+///  Control encargado de manejar las preguntas de tipo selección
 class CreadorPreguntaFormGroup extends FormGroup
     implements ConRespuestas, Copiable {
-  final ValueNotifier<TipoDePregunta> tipoUnicaRespuesta;
+  /// Si se llama al agregar un nuevo bloque (desde [BotonesBloque]), [preguntaPorDefecto] es null,
+  /// Cuando se va a editar, [preguntaPorDefecto] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
+  /// Cuando se usa copiar, [preguntaPorDefecto] se obtiene desde el método [toDataClass()]
   final PreguntaConOpcionesDeRespuesta preguntaPorDefecto;
+
+  /// Diferencia las de selección y las que son de cuadricula
   final bool parteDeCuadricula;
 
   factory CreadorPreguntaFormGroup({
@@ -53,29 +69,32 @@ class CreadorPreguntaFormGroup extends FormGroup
   }) {
     final d = defaultValue;
     final c = parteDeCuadricula;
+
+    /// Si es de cuadricula, no se debe requerir que elija el tipo e pregunta
     final tipoDePregunta = fb.control<TipoDePregunta>(
         d?.pregunta?.tipo, [if (!parteDeCuadricula) Validators.required]);
-    final tipoUnicaRespuesta = ValueNotifier(d?.pregunta?.tipo);
+
+    /// Son las opciones de respuesta.
+    /// Si el bloque es nuevo, son null y se pasa un FormArray vacío.
+    /// Si es bloque copiado o viene de edición se pasa un FormArray con cada una de las opciones que ya existen para la pregutna
     final respuestas = fb.array<Map<String, dynamic>>(
-      d?.opcionesDeRespuestaConCondicional
+      d?.opcionesDeRespuesta
               ?.map((e) => CreadorRespuestaFormGroup(
                     defaultValue: e,
                   ))
               ?.toList() ??
           [],
+
+      /// Si es parte de cuadricula o numérica no tienen opciones de respuesta
       [if (!parteDeCuadricula && !esNumerica) Validators.minLength(1)],
     );
-
-    tipoDePregunta.valueChanges.asBroadcastStream().listen((tipo) {
-      tipoUnicaRespuesta.value = tipo;
-    });
 
     final Map<String, AbstractControl<dynamic>> controles = {
       'titulo':
           fb.control<String>(d?.pregunta?.titulo ?? "", [Validators.required]),
       'descripcion': fb.control<String>(d?.pregunta?.descripcion ?? ""),
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
-      'posicion': fb.control<String>(d?.pregunta?.posicion ?? "no aplica"),
+      'posicion': fb.control<String>(d?.pregunta?.posicion ?? "No aplica"),
       'criticidad':
           fb.control<double>(d?.pregunta?.criticidad?.toDouble() ?? 0),
       'fotosGuia': fb.array<File>(
@@ -86,16 +105,17 @@ class CreadorPreguntaFormGroup extends FormGroup
       'respuestas': respuestas,
     };
 
-    return CreadorPreguntaFormGroup._(controles, tipoUnicaRespuesta, d, c);
+    return CreadorPreguntaFormGroup._(controles, d, c);
   }
 
-  //constructor que le envia los controles a la clase padre
+  ///Constructor que le envia los controles a la clase padre
   CreadorPreguntaFormGroup._(Map<String, AbstractControl<dynamic>> controles,
-      this.tipoUnicaRespuesta, this.preguntaPorDefecto, this.parteDeCuadricula)
+      this.preguntaPorDefecto, this.parteDeCuadricula)
       : super(controles) {
     instanciarControls(preguntaPorDefecto);
-    // Machetazo que puede dar resultados inesperados si se utiliza el
-    // constructor en codigo sincrono ya que no se está esperando a que termine esta funcion asincrona
+
+    /// Machetazo que puede dar resultados inesperados si se utiliza el
+    /// constructor en codigo sincrono ya que no se está esperando a que termine esta funcion asincrona
   }
 
   /// debido a que las instancias de sistema y subsistema se deben obtener desde la bd,
@@ -117,11 +137,13 @@ class CreadorPreguntaFormGroup extends FormGroup
         await getIt<Database>().getSubSistemaPorId(d?.pregunta?.subSistemaId);
   }
 
+  /// Devuelve el FormGroup con los datos introducidos hasta el momento, haciendo uso del metodo [toDataClass()]
   @override
   Future<CreadorPreguntaFormGroup> copiar() async {
     return CreadorPreguntaFormGroup(defaultValue: toDataclass());
   }
 
+  /// Devuelve una instancia de [PreguntaConOpcionesDeRespuesta] haciendo uso de los valores introducidos en el formulario.
   PreguntaConOpcionesDeRespuesta toDataclass() {
     return PreguntaConOpcionesDeRespuesta(
       Pregunta(
@@ -140,6 +162,8 @@ class CreadorPreguntaFormGroup extends FormGroup
         tipo: value['tipoDePregunta'] as TipoDePregunta,
         esCondicional: value['condicional'] as bool,
       ),
+
+      /// Opciones de respuesta
       (control('respuestas') as FormArray).controls.map((e) {
         final formGroup = e as CreadorRespuestaFormGroup;
         /* if (value['condicional'] as bool) {
@@ -147,30 +171,14 @@ class CreadorPreguntaFormGroup extends FormGroup
           return OpcionDeRespuestaConCondicional(x.opcionRespuesta,
               condiciones: x.condiciones);
         } */
-        return OpcionDeRespuestaConCondicional(formGroup.toDataClass());
-      }).toList(),
-      opcionesDeRespuestaConCondicional:
-          (control('respuestas') as FormArray).controls.map((e) {
-        final formGroup = e as CreadorRespuestaFormGroup;
-        /* if (value['condicional'] as bool) {
-          final x = formGroup.toDataClassCondicional();
-          return OpcionDeRespuestaConCondicional(x.opcionRespuesta,
-              condiciones: x.condiciones);
-        } */
-        return OpcionDeRespuestaConCondicional(formGroup.toDataClass());
+        return formGroup.toDataClass();
       }).toList(),
     );
   }
 
-  /* List<PreguntasCondicionalData> condicionesToDB() {
-    final y = (control('respuestas') as FormArray).controls.map((e) {
-      final formGroup = e as CreadorRespuestaFormGroup;
-      final x = formGroup.toDBCondicional();
-      return x.condiciones;
-    }).toList();
-    return y;
-  } */
-
+  /// En caso de que ya exista [preguntaPorDefecto], se actualiza con los nuevos valores introducidos en el formulario, (Como ya tiene id, se actualiza en la bd)
+  /// Si no se "crea" uno con el método [toDataClass()]
+  /// Este método es usado a la hora de guardar el cuestionario en la bd.
   PreguntaConOpcionesDeRespuesta toDB() {
     final PreguntaConOpcionesDeRespuesta preguntas =
         PreguntaConOpcionesDeRespuesta(
@@ -194,26 +202,18 @@ class CreadorPreguntaFormGroup extends FormGroup
         final formGroup = e as CreadorRespuestaFormGroup;
         return formGroup.toDB();
       }).toList(),
-      opcionesDeRespuestaConCondicional:
-          (control('respuestas') as FormArray).controls.map((e) {
-        final formGroup = e as CreadorRespuestaFormGroup;
-        /* if (value['condicional'] as bool) {
-          final x = formGroup.toDBCondicional();
-          return OpcionDeRespuestaConCondicional(x.opcionRespuesta,
-              condiciones: x.condiciones);
-        } */
-        return OpcionDeRespuestaConCondicional(formGroup.toDB());
-      }).toList(),
     );
     return preguntas;
   }
 
+  /// Añade una opcion de respuesta a los controles
   @override
   void agregarRespuesta() => {
         (control('respuestas') as FormArray).add(CreadorRespuestaFormGroup(
             /* esCondicional: value['condicional'] as bool */)),
       };
 
+  /// Elimina de los controles, la opcion de respuesta [e]
   @override
   void borrarRespuesta(AbstractControl e) {
     try {
@@ -224,7 +224,12 @@ class CreadorPreguntaFormGroup extends FormGroup
   }
 }
 
+/// FormGroup que maneja la creación de rangoss de criticidad para preguntas numericas
 class CreadorCriticidadesNumericas extends FormGroup {
+  /// Si se llama al agregar criticidad (desde la cración de pregunta numerica), [defaultValue] es null,
+  /// Cuando se va a editar, [defaultValue] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
+  /// Cuando se usa copiar, [defaultValue] se obtiene desde el método [toDataClass()]
+
   final CriticidadesNumerica defaultValue;
   CreadorCriticidadesNumericas({
     CriticidadesNumerica d,
@@ -238,8 +243,13 @@ class CreadorCriticidadesNumericas extends FormGroup {
           ]),
           'criticidad': fb.control<double>(d?.criticidad?.toDouble() ?? 0)
         }, validators: [
-          _verificarRango('minimo', 'maximo'),
+          /// Que el valor mínimo sea menor que el introducido en máximo
+          //TODO: validación para que no se entrecrucen los rangos
+          verificarRango('minimo', 'maximo'),
         ]);
+
+  /// Devuelve una instancia de [CriticidadesNumerica] haciendo uso de los valores introducidos en el formulario.
+
   CriticidadesNumerica toDataClass() => CriticidadesNumerica(
         id: null,
         criticidad: (value['criticidad'] as double).round(),
@@ -247,6 +257,11 @@ class CreadorCriticidadesNumericas extends FormGroup {
         valorMinimo: value['minimo'] as double,
         preguntaId: null,
       );
+
+  /// En caso de que ya exista [defaultValue], se actualiza con los nuevos valores introducidos en el formulario, (Como ya tiene id, se actualiza en la bd)
+  /// Si no se "crea" uno con el método [toDataClass()]
+  /// Este método es usado a la hora de guardar el cuestionario en la bd.
+
   CriticidadesNumerica toDB() =>
       defaultValue?.copyWith(
         criticidad: (value['criticidad'] as double).round(),
@@ -256,50 +271,33 @@ class CreadorCriticidadesNumericas extends FormGroup {
       toDataClass();
 }
 
-ValidatorFunction _verificarRango(String controlMinimo, String controlMaximo) {
-  return (AbstractControl<dynamic> control) {
-    final form = control as FormGroup;
-
-    final valorMinimo = form.control(controlMinimo);
-    final valorMaximo = form.control(controlMaximo);
-    if (double.parse(valorMinimo.value.toString()) >=
-        double.parse(valorMaximo.value.toString())) {
-      valorMaximo.setErrors({'verificarRango': true});
-    } else {
-      valorMaximo.removeError('verificarRango');
-    }
-
-    return null;
-  };
-}
-
+/// FormGroup encargado de manejar la creación de opciones de respuesta en preguntas de selección o de cuadricula
 class CreadorRespuestaFormGroup extends FormGroup {
-  final OpcionDeRespuestaConCondicional respuesta;
+  /// Si se llama al agregar criticidad (desde la cración de pregunta numerica), [respuesta] es null,
+  /// Cuando se va a editar, [respuesta] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
+  /// Cuando se usa copiar, [respuesta] se obtiene desde el método [toDataClass()]
+  final OpcionDeRespuesta respuesta;
 
   factory CreadorRespuestaFormGroup({
-    OpcionDeRespuestaConCondicional defaultValue,
+    OpcionDeRespuesta defaultValue,
   }) {
     final d = defaultValue;
 
     final Map<String, AbstractControl<dynamic>> controles = {
-      'texto': fb.control<String>(
-          d?.opcionRespuesta?.texto ?? " ", [Validators.required]),
-      'criticidad':
-          fb.control<double>(d?.opcionRespuesta?.criticidad?.toDouble() ?? 0),
-      'calificable': fb.control<bool>(d?.opcionRespuesta?.calificable ?? false),
+      'texto': fb.control<String>(d?.texto ?? " ", [Validators.required]),
+      'criticidad': fb.control<double>(d?.criticidad?.toDouble() ?? 0),
+      'calificable': fb.control<bool>(d?.calificable ?? false),
     };
 
     return CreadorRespuestaFormGroup._(
       controles,
       d,
-      d: d,
     );
   }
 
   //constructor que le envia los controles a la clase padre
   CreadorRespuestaFormGroup._(
-      Map<String, AbstractControl<dynamic>> controles, this.respuesta,
-      {OpcionDeRespuesta d})
+      Map<String, AbstractControl<dynamic>> controles, this.respuesta)
       : super(controles);
 
   /* OpcionDeRespuesta toDataClass() => OpcionDeRespuesta(
@@ -307,6 +305,7 @@ class CreadorRespuestaFormGroup extends FormGroup {
         texto: value['texto'] as String,
         criticidad: (value['criticidad'] as double).round(),
       ); */
+  /// Devuelve una instancia de [OpcionDeRespuesta] haciendo uso de los valores introducidos en el formulario.
 
   OpcionDeRespuesta toDataClass() => OpcionDeRespuesta(
         id: null,
@@ -315,8 +314,11 @@ class CreadorRespuestaFormGroup extends FormGroup {
         calificable: value['calificable'] as bool,
       );
 
+  /// En caso de que ya exista [respuesta], se actualiza con los nuevos valores introducidos en el formulario,(Como ya tiene id, se actualiza en la bd)
+  /// Si no se "crea" uno con el método [toDataClass()]
+  /// Este método es usado a la hora de guardar el cuestionario en la bd.
   OpcionDeRespuesta toDB() =>
-      respuesta?.opcionRespuesta?.copyWith(
+      respuesta?.copyWith(
         texto: value['texto'] as String ?? ' ',
         criticidad: (value['criticidad'] as double).round(),
         calificable: value['calificable'] as bool,
@@ -352,22 +354,27 @@ class CreadorRespuestaFormGroup extends FormGroup {
       ); */
 }
 
+/// FormGroup que maneja  la creación de cuadriculas
 class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     implements ConRespuestas, Copiable {
   final ValueNotifier<List<SubSistema>> subSistemas;
+
+  /// Si se llama al agregar un nuevo bloque (desde [BotonesBloque]), [cuadricula] y [preguntasDeCuadricula] es null,
+  /// Cuando se va a editar, son pasadas directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
+  /// Cuando se usa copiar,  se obtienen desde el método [toDataClass()]
+
+  /// Info cuadricula y opciones de respuesta
   final CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula;
-  final List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntas;
+
+  /// Filas de la cuadricula
   final List<PreguntaConOpcionesDeRespuesta> preguntasDeCuadricula;
   factory CreadorPreguntaCuadriculaFormGroup({
     CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula,
     List<PreguntaConOpcionesDeRespuesta> preguntasDeCuadricula,
-    List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntas,
   }) {
     final d = cuadricula;
-    final p = preguntas;
     final n = preguntasDeCuadricula;
     final subSistemas = ValueNotifier<List<SubSistema>>([]);
-
     final Map<String, AbstractControl<dynamic>> controles = {
       'titulo': fb.control<String>(d?.cuadricula?.titulo ?? " "),
       'descripcion': fb.control<String>(d?.cuadricula?.descripcion ?? ""),
@@ -387,26 +394,30 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
       ),
       'respuestas': fb.array<Map<String, dynamic>>(
         d?.opcionesDeRespuesta
-                ?.map((e) => CreadorRespuestaFormGroup(
-                    defaultValue: OpcionDeRespuestaConCondicional(e)))
+                ?.map((e) => CreadorRespuestaFormGroup(defaultValue: e))
                 ?.toList() ??
             [],
         [Validators.minLength(1)],
       ),
     };
 
-    return CreadorPreguntaCuadriculaFormGroup._(
-        controles, subSistemas, d, p, n);
+    return CreadorPreguntaCuadriculaFormGroup._(controles, subSistemas, d, n);
   }
   CreadorPreguntaCuadriculaFormGroup._(
     Map<String, AbstractControl<dynamic>> controles,
     this.subSistemas,
     this.cuadricula,
-    this.preguntas,
     this.preguntasDeCuadricula,
   ) : super(controles) {
     instanciarControls(preguntasDeCuadricula?.first);
   }
+
+  /// Los valores de subsistema, posicion y tipo de pregunta se instancian con el valor de la primera pregunta
+  // La cosa es que si se agrega una pregunta sin haber llenado esa info, va a generar un error al guardar
+  // porque a esa pregunta se le pasan los valores que haya llenado el usuario y estarán vacíos.
+  // También, si se llena la info de la cuadricula, pero no se agrega pregunta, al guardar, la info de
+  // subsistema, posicion y tipo de pregunta se pierden, ya que no existe ninguna pregunta que guarde la info en la BD
+  //TODO: arreglar esto
 
   Future<void> instanciarControls(PreguntaConOpcionesDeRespuesta d) async {
     // controls['sistema'].value =
@@ -431,6 +442,7 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     (control('preguntas') as FormArray).add(instancia);
   }
 
+  /// Elimina del control 'pregunta' una instancia
   void borrarPregunta(AbstractControl e) {
     try {
       (control('preguntas') as FormArray).remove(e);
@@ -438,11 +450,13 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     } on FormControlNotFoundException {}
   }
 
+  ///Sirve para agregar fila a la cuadricula
   @override
   void agregarRespuesta() {
     (control('respuestas') as FormArray).add(CreadorRespuestaFormGroup());
   }
 
+  /// Elimina una respuesta [e] de la cuadricula
   @override
   void borrarRespuesta(AbstractControl e) {
     try {
@@ -457,12 +471,14 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     subSistemas.dispose();
   }
 
+  /// Devuelve un FormGroup con todos los datos introducidos actualmente en el actual.
   @override
   Future<CreadorPreguntaCuadriculaFormGroup> copiar() async {
+    final cuadricula = toDataclass();
     final instancia = CreadorPreguntaCuadriculaFormGroup(
-      preguntasDeCuadricula: toDataclass().preguntas,
+      preguntasDeCuadricula: cuadricula.preguntas,
       cuadricula: CuadriculaDePreguntasConOpcionesDeRespuesta(
-          toDataclass().cuadricula, toDataclass().opcionesDeRespuesta),
+          cuadricula.cuadricula, cuadricula.opcionesDeRespuesta),
     );
     await Future.delayed(const Duration(
         seconds:
@@ -473,6 +489,9 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     return instancia;
   }
 
+  /// Devuelve una instancia de [CuadriculaConPreguntasYConOpcionesDeRespuesta] haciendo uso de los
+  /// valores introducidos en el formulario.
+  /// Usado cuando se llama [copiar()] o cuando el bloque es nuevo y se va a guardar (no tiene id, entonces crea un nuevo registo en la bd)
   CuadriculaConPreguntasYConOpcionesDeRespuesta toDataclass() =>
       CuadriculaConPreguntasYConOpcionesDeRespuesta(
         CuadriculaDePreguntas(
@@ -493,6 +512,9 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
         List<OpcionDeRespuesta>*/
       );
 
+  /// En caso de que ya exista [cuadricula], se actualiza con los nuevos valores introducidos en el formulario, (Como ya tiene id, se actualiza en la bd)
+  /// Si no se "crea" uno con el método [toDataClass()]
+  /// Este método es usado a la hora de guardar el cuestionario en la bd.
   CuadriculaConPreguntasYConOpcionesDeRespuesta toDB() =>
       CuadriculaConPreguntasYConOpcionesDeRespuesta(
         cuadricula?.cuadricula?.copyWith(
@@ -513,8 +535,13 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
       );
 }
 
+/// FormGroup encargado de manejar la creación de preguntas numéricas
 class CreadorPreguntaNumericaFormGroup extends FormGroup
     implements Copiable, Numerica {
+  /// Si se llama al agregar un nuevo bloque (desde [BotonesBloque]), [preguntaPorDefecto] es null,
+  /// Cuando se va a editar, [preguntaPorDefecto] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
+  /// Cuando se usa copiar, [preguntaPorDefecto] se obtiene desde el método [toDataClass()]
+
   final PreguntaNumerica preguntaPordefecto;
   factory CreadorPreguntaNumericaFormGroup({
     PreguntaNumerica defaultValue,
@@ -531,6 +558,8 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
           fb.control<double>(d?.pregunta?.criticidad?.toDouble() ?? 0),
       'fotosGuia': fb.array<File>(
           d?.pregunta?.fotosGuia?.iter?.map((e) => File(e))?.toList() ?? []),
+
+      ///Rangos de criticidad
       'criticidadRespuesta': fb.array<Map<String, dynamic>>(
         d?.criticidades
                 ?.map((e) => CreadorCriticidadesNumericas(
@@ -553,6 +582,7 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
     // constructor en codigo sincrono ya que no se está esperando a que termine esta funcion asincrona
   }
 
+  /// Consulta el subsistema de [d] en la bd por el id
   Future<void> instanciarControls(PreguntaNumerica d) async {
     // controls['sistema'].value =
     //     await getIt<Database>().getSistemaPorId(d?.pregunta?.sistemaId);
@@ -560,10 +590,14 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
         await getIt<Database>().getSubSistemaPorId(d?.pregunta?.subSistemaId);
   }
 
+  /// Devuelve el FormGroup con los datos introducidos hasta el momento, haciendo uso del metodo [toDataClass()]
   @override
   Future<CreadorPreguntaNumericaFormGroup> copiar() async {
     return CreadorPreguntaNumericaFormGroup(defaultValue: toDataclass());
   }
+
+  /// Devuelve una instancia de [PreguntaNumerica] haciendo uso de los valores introducidos en el formulario.
+  /// Como no tiene id, al guardar se reconoce como un registro nuevo en la bd
 
   PreguntaNumerica toDataclass() => PreguntaNumerica(
         Pregunta(
@@ -589,6 +623,9 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
         }).toList(),
       );
 
+  /// En caso de que ya exista [preguntaPorDefecto], se actualiza con los nuevos valores introducidos en el formulario,
+  ///  (Como ya existe un id, en la bd se reconoce como un registro existente y se actualiza)
+  /// Si no se "crea" uno con el método [toDataClass()]
   PreguntaNumerica toDB() => PreguntaNumerica(
         preguntaPordefecto?.pregunta?.copyWith(
               titulo: value['titulo'] as String ?? '  ',
@@ -611,12 +648,14 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
             toDataclass().criticidades,
       );
 
+  /// Agrega control a 'criticidadRespuesta' para añadir un rango de criticidad a la pregunta numerica
   @override
   void agregarCriticidad() {
     (control('criticidadRespuesta') as FormArray)
         .add(CreadorCriticidadesNumericas());
   }
 
+  /// Elimina Control de 'criticidadRespuesta'
   @override
   void borrarCriticidad(AbstractControl e) {
     /* try { */
@@ -638,6 +677,7 @@ class CreadorSubPreguntaCuadriculaFormGroup extends FormGroup {
         });
 }
 */
+/// Usada por las preguntas de seleción y de cuadricula
 abstract class ConRespuestas {
   void agregarRespuesta();
   void borrarRespuesta(AbstractControl e);
@@ -648,6 +688,7 @@ abstract class Numerica {
   void borrarCriticidad(AbstractControl e);
 }
 
+/// Usada por todos los bloques.
 abstract class Copiable {
   Future<AbstractControl> copiar();
 }

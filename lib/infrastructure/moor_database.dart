@@ -22,8 +22,10 @@ part 'moor_database.g.dart';
 part 'tablas.dart';
 part 'tablas_unidas.dart';
 
+///  Métodos de Database e inicialización de la DB
 @UseMoor(
   tables: [
+    /// Tablas necesarias para el CRUD
     Activos,
     CuestionarioDeModelos,
     Cuestionarios,
@@ -80,6 +82,7 @@ class Database extends _$Database {
     );
   }
 
+  /// Elimina todos los datos de la BD
   Future limpiezaBD() async {
     final m = createMigrator();
     await customStatement('PRAGMA foreign_keys = OFF');
@@ -96,8 +99,10 @@ class Database extends _$Database {
     //await batch(initialize(this));
   }
 
+  /// Obtiene el [cuestionario] completo con sus bloques para subir al server
   Future<Map<String, dynamic>> getCuestionarioCompleto(
       Cuestionario cuestionario) async {
+    /// Modelos a los que aplica
     final modelosCuest = await (select(cuestionarioDeModelos)
           ..where((cm) => cm.cuestionarioId.equals(cuestionario.id)))
         .get();
@@ -111,7 +116,11 @@ class Database extends _$Database {
         .get();
 
     final bloquesExtJson = await Future.wait(bloquesCuest.map((b) async {
-      //a cada bloque buscarle los titulos, las cuadriculas y las preguntas, TERRIBLE
+      ///A cada bloque buscarle los titulos, las cuadriculas y las preguntas, TERRIBLE
+      ///
+      /// La cosa es que no pueden haber preguntas, cuadricula y titulos para un mismo bloque al tiempo, entonces
+      /// no tiene sentido hacer la consulta de los 3 cuando se sabe que va a existir solo uno. Hay que reestructurarlo
+      //TODO: ¿No se puede más bien buscar cada pregunta, titulo y cuadricula del cuestionario y procesarla?
       final tituloBloque = await (select(titulos)
             ..where((t) => t.bloqueId.equals(b.id)))
           .getSingle();
@@ -126,23 +135,27 @@ class Database extends _$Database {
             ..where((p) => p.bloqueId.equals(b.id)))
           .get();
 
-      //extender las cuadriculas y las preguntas con sus respectivas opciones
+      /// En caso de que sea un bloque de cuadricula extender las cuadriculas y las preguntas con sus respectivas opciones
       if (cuadriculaBloque != null) {
         opcionesDeLaCuadricula = await (select(opcionesDeRespuesta)
               ..where((op) => op.cuadriculaId.equals(cuadriculaBloque.id)))
             .get();
       }
 
+      /// En caso de que sea un bloque de pregunta
       final preguntasConOpciones =
           await Future.wait(preguntasBloque?.map((p) async {
         final opcionesDeLaPregunta = await (select(opcionesDeRespuesta)
               ..where((op) => op.preguntaId.equals(p.id)))
             .get();
+
+        /// En caso de que sea numérica.
         final criticidadPregunta = await (select(criticidadesNumericas)
               ..where((cri) => cri.preguntaId.equals(p.id)))
             .get();
 
         //enviar solo el basename al server
+        /// Se usa [CustomSerializer] para que no genere error por las fotos y las fechas.
         final pregunta =
             p.copyWith(fotosGuia: p.fotosGuia.map((f) => path.basename(f)));
         final preguntaJson =
@@ -173,21 +186,38 @@ class Database extends _$Database {
     cuestionarioJson['modelos'] =
         modelosCuest.map((cm) => cm.toJson()).toList();
     cuestionarioJson['bloques'] = bloquesExtJson;
+
+    /// El Json final es de la forma {infoCues______
+    /// modelos:[modelosCuest],
+    /// bloques:[bloquesExtJson]}
     return cuestionarioJson;
   }
 
+  /// Devuelve inspección con id = [id] cuando se descargó del server y se va a llenar desde la app
   Future<Inspeccion> getInspeccionParaTerminar(int id) =>
       (select(inspecciones)..where((ins) => ins.id.equals(id))).getSingle();
 
+  /// marca [cuestionario.esLocal] = false cuando [cuestionario] es subido al server
   Future marcarCuestionarioSubido(Cuestionario cuestionario) =>
       (update(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
           .write(const CuestionariosCompanion(esLocal: Value(false)));
 
-
+  /// Devuelve json con [inspeccion] y sus respectivas respuestas
   Future<Map<String, dynamic>> getInspeccionConRespuestas(
       Inspeccion inspeccion) async {
-    //get inspeccion
-    final jsonIns = inspeccion.toJson(serializer: const CustomSerializer());
+    /// Se está actualizando en la bd porque para el historial, la inspeccion no se va a borrar del cel
+    ///  y se necesita el momento de envio como constancia //TODO: implementar historial
+    await (update(inspecciones)..where((i) => i.id.equals(inspeccion.id)))
+        .write(
+      InspeccionesCompanion(
+        momentoEnvio: Value(DateTime.now()),
+      ),
+    );
+
+    ///Se usa [copyWith] porque el cambio que se hizo en las lineas anteriores no se ve reflejado en inspecciones
+    final jsonIns = inspeccion
+        .copyWith(momentoEnvio: DateTime.now())
+        .toJson(serializer: const CustomSerializer());
     //get respuestas
     final queryRes = select(respuestas).join([
       leftOuterJoin(opcionesDeRespuesta,
@@ -218,15 +248,16 @@ class Database extends _$Database {
     return jsonIns;
   }
 
-  // Método usado para cuando se descarga una inspección desde el servidor se guarde en la bd y se pueda seguir el curso normal
+  /// Método usado para cuando se descarga una inspección desde el servidor se guarde en la bd y se pueda seguir el curso normal
   Future guardarInspeccionBD(Map<String, dynamic> json) async {
     final respuestasParseadas = (json["respuestas"] as List).map((p) {
-      // se hace este proceso para agregarle el path completo a las fotos
       final respuesta = Respuesta.fromJson(
         p as Map<String, dynamic>,
         serializer: const CustomSerializer(),
       );
       return respuesta.copyWith(
+
+          /// se hace este proceso para agregarle el path completo a las fotos
           fotosBase: respuesta.fotosBase.map((e) =>
               FotosManager.convertirAUbicacionAbsoluta(
                   tipoDeDocumento: 'inspecciones',
@@ -238,6 +269,8 @@ class Database extends _$Database {
                   idDocumento: (json['id'] as int).toString(),
                   basename: e)));
     }).toList();
+
+    /// Así queda solo los campos de la inspección y se puede dar [inspeccionParseadas]
     json.remove('respuestas');
     final inspeccionParseadas = Inspeccion.fromJson(
       json,
@@ -254,6 +287,7 @@ class Database extends _$Database {
     await customStatement('PRAGMA foreign_keys = ON');
   }
 
+  /// Cuando se sincroniza con GOMAC, se insertan todos los datos a la bd.
   Future instalarBD(Map<String, dynamic> json) async {
     /*TODO: hacer este proceso sin repetir tanto codigo, por ejemplo usando una estructura asi:
     final tablasPorActualizar = [
@@ -335,6 +369,7 @@ class Database extends _$Database {
         .map((e) => CriticidadesNumerica.fromJson(e as Map<String, dynamic>))
         .toList();
 
+    /// Primero se eliminan todos los datos que hayan en las tablas que descarga el server y luego se inserta toda la info
     await customStatement('PRAGMA foreign_keys = OFF');
     await transaction(() async {
       final deletes = [
@@ -373,29 +408,37 @@ class Database extends _$Database {
   }
 
   //datos para la creacion de cuestionarios
+  /// El cuestionario trae el sistemaId [id], para poder mostrar el [Sistema] en el formulario de creación, se obtiene así
   Future<Sistema> getSistemaPorId(int id) async {
     if (id == null) return null;
     final query = select(sistemas)..where((s) => s.id.equals(id));
     return query.getSingle();
   }
 
+  /// Cada pregunta tiene el subsitemaId [id], para poder mostrar el [SubSistema] en el formulario de creación, se obtiene así
   Future<SubSistema> getSubSistemaPorId(int id) async {
     if (id == null) return null;
     final query = select(subSistemas)..where((s) => s.id.equals(id));
     return query.getSingle();
   }
 
+  /// Se usa en [BorradoresDao.borradores()]
+  ///
+  /// Al cargar todas las inspecciones, se consulta cual es el cuestionario asociado a [inspeccion]
   Future<Cuestionario> getCuestionario(Inspeccion inspeccion) {
     final query = select(cuestionarios)
       ..where((c) => c.id.equals(inspeccion.cuestionarioId));
     return query.getSingle();
   }
 
+  /// Devuelve la cantidad total de preguntas que tiene el cuestionario con id=[id]
   Future<int> getTotalPreguntas(int id) async {
     final bloq = await (select(bloques)
           ..where((b) => b.cuestionarioId.equals(id)))
         .get();
     final bloquesId = bloq.map((e) => e.id).toList();
+
+    /// Va a contar las preguntas cuyos bloques estan en [bloquesId] que son los bloques del cuestionario
     final count = countAll(filter: preguntas.bloqueId.isIn(bloquesId));
     final res = (selectOnly(preguntas)..addColumns([count]))
         .map((row) => row.read(count))
@@ -403,8 +446,8 @@ class Database extends _$Database {
     return res;
   }
 
-  // Esta funcion deberá exportar las inspecciones llenadas de manera
-  // local al servidor
+  /// Esta funcion deberá exportar TODAS las inspecciones llenadas de manera
+  /// local al servidor
   Future exportarInspeccion() async {
     // TODO: WIP
     // ignore: unused_local_variable
@@ -416,6 +459,8 @@ class Database extends _$Database {
   }
 }
 
+/// Serializer usado al invocar [.toJson()] o [fromJson()] que maneja los enum de tipoPregunta y estado de inspeccion y cuestionario.
+/// También maneja las fechas y las fotos.
 class CustomSerializer extends ValueSerializer {
   const CustomSerializer();
   static const tipoPreguntaConverter =

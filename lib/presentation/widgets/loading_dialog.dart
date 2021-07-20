@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Custom [CircularProgressIndicator].
 class LoadingDialog extends StatelessWidget {
   static void show(BuildContext context, {Key key}) => showDialog<void>(
         context: context,
