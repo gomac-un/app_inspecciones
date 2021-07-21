@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
 import 'package:inspecciones/injection.dart';
@@ -8,6 +7,7 @@ import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+/// Alerta que salta cuando se presiona el boton de iniciar inspeccion
 class InicioInspeccionForm extends StatelessWidget {
   final InspeccionesRepository repository;
   const InicioInspeccionForm(this.repository);
@@ -25,6 +25,8 @@ class InicioInspeccionForm extends StatelessWidget {
                 fb.control<Cuestionario>(null, [Validators.required]);
 
             return fb.group({
+              /// A medida que se escribe un activo diferente, se va consultando
+              /// que tipos de inspeccion le aplican.
               'activo': fb.control<String>('', [Validators.required])
                 ..valueChanges.listen((activo) async {
                   final activoParsed = int.parse(activo, onError: (_) => null);
@@ -51,49 +53,50 @@ class InicioInspeccionForm extends StatelessWidget {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                /// Crea una nueva inpección
+                ReactiveRadioListTile(
+                  value: false,
+                  formControlName: 'pendiente',
+                  title: const Text('Llenar una nueva inspección'),
+                ),
+
+                /// Activa TextField para que ponga el codigo de la inspeccion desde el server.
+                ReactiveRadioListTile(
+                  value: true,
+                  formControlName: 'pendiente',
+                  title: const Text(
+                      'Terminar inspección iniciada por otro usuario'),
+                ),
                 ReactiveValueListenableBuilder<bool>(
                   formControlName: 'pendiente',
                   builder: (BuildContext context, AbstractControl<bool> control,
                       Widget child) {
                     if (!control.value) {
-                      return ReactiveCheckboxListTile(
-                        controlAffinity: ListTileControlAffinity.leading,
-                        formControlName: 'nueva',
-                        title: const Text('Llenar una nueva inspección'),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-                ReactiveValueListenableBuilder<bool>(
-                    formControlName: 'nueva',
-                    builder: (context, value, child) {
-                      if (value.value) {
-                        return Column(children: [
-                          ReactiveTextField(
-                            formControlName: 'activo',
-                            keyboardType: TextInputType.number,
+                      return Column(children: [
+                        const SizedBox(height: 10),
+                        ReactiveTextField(
+                          formControlName: 'activo',
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Escriba el ID del vehiculo',
+                            prefixIcon: Icon(Icons.directions_car),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ValueListenableBuilder(
+                          valueListenable: tiposDeInspeccion,
+                          builder: (context, value, child) =>
+                              ReactiveDropdownField(
+                            formControlName: 'tipoDeInspeccion',
+                            items: tiposDeInspeccion.value
+                                .map((e) => DropdownMenuItem(
+                                    value: e, child: Text(e.tipoDeInspeccion)))
+                                .toList(),
                             decoration: const InputDecoration(
-                              labelText: 'Escriba el ID del vehiculo',
-                              prefixIcon: Icon(Icons.directions_car),
+                              labelText: 'Seleccione una opción',
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          ValueListenableBuilder(
-                            valueListenable: tiposDeInspeccion,
-                            builder: (context, value, child) =>
-                                ReactiveDropdownField(
-                              formControlName: 'tipoDeInspeccion',
-                              items: tiposDeInspeccion.value
-                                  .map((e) => DropdownMenuItem(
-                                      value: e,
-                                      child: Text(e.tipoDeInspeccion)))
-                                  .toList(),
-                              decoration: const InputDecoration(
-                                labelText: 'Seleccione una opción',
-                              ),
-                            ),
-                            /*
+                          /*
                       //TODO: mejorar la usabilidad usando este tipo de dropdown con busqueda
                       ReactiveDropdownSearch<CuestionarioDeModelo>(
                     formControlName: 'tipoDeInspeccion',
@@ -102,41 +105,28 @@ class InicioInspeccionForm extends StatelessWidget {
                     label: "Tipo de inspección",
                     hint: "Seleccione el tipo de inspección",
                   ),*/
-                          ),
-                          _BotonInicioInspeccion(),
-                        ]);
-                      }
-                      return ReactiveCheckboxListTile(
-                        controlAffinity: ListTileControlAffinity.leading,
-                        formControlName: 'pendiente',
-                        title: const Text(
-                            'Terminar inspección iniciada por otro usuario'),
-                      );
-                    }),
-                ReactiveValueListenableBuilder<bool>(
-                  formControlName: 'pendiente',
-                  builder: (BuildContext context, AbstractControl<bool> control,
-                      Widget child) {
-                    if (control.value) {
-                      return Column(
-                        children: [
-                          ReactiveTextField(
-                            formControlName: 'id',
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Escriba el codigo de la inspección',
-                              prefixIcon: Icon(Icons.directions_car),
-                            ),
-                          ),
-                          Builder(
-                            builder: (context) {
-                              return _BotonContinuarInspeccion(repository);
-                            },
-                          )
-                        ],
-                      );
+                        ),
+                        _BotonInicioInspeccion(),
+                      ]);
                     }
-                    return const SizedBox.shrink();
+                    return Column(
+                      children: [
+                        const SizedBox(height: 10),
+                        ReactiveTextField(
+                          formControlName: 'id',
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Escriba el codigo de la inspección',
+                            prefixIcon: Icon(Icons.directions_car),
+                          ),
+                        ),
+                        Builder(
+                          builder: (context) {
+                            return _BotonContinuarInspeccion(repository);
+                          },
+                        )
+                      ],
+                    );
                   },
                 ),
               ],
@@ -159,6 +149,7 @@ class _BotonContinuarInspeccion extends StatelessWidget {
     return RaisedButton(
       onPressed: form.control('id').value != null
           ? () async {
+              /// Se descarga inspección con id=[form.control('id').value ] desde el server
               final res = await repository
                   .getInspeccionServidor(
                       int.parse(form.control('id').value as String))
@@ -168,13 +159,16 @@ class _BotonContinuarInspeccion extends StatelessWidget {
                                   'No se pudo encontrar la inspección, asegúrese de escribir el código correctamente',
                               noHayConexionAlServidor: () =>
                                   "No hay conexión al servidor",
-                              noHayInternet: () => "No tiene conexión a internet",
+                              noHayInternet: () =>
+                                  "No tiene conexión a internet",
                               serverError: (msg) => "Error interno: $msg",
                               credencialesException: () =>
                                   'Error inesperado: intente inciar sesión nuevamente'),
                           (u) async {
                         return "exito";
                       }));
+
+              /// Si hay un error muestra alerta.
               if (res != 'exito') {
                 showDialog(
                   context: context,
@@ -191,8 +185,12 @@ class _BotonContinuarInspeccion extends StatelessWidget {
                   ),
                 );
               } else {
+                /// En caso de exito, se debe hacer esta consulta para obtener la insp
+                /// que se descargo desde la bd
                 final inspec = await repository.getInspeccionParaTerminar(
                     int.parse(form.control('id').value as String));
+
+                /// Se abre la pantalla de llenado de inspección normal
                 ExtendedNavigator.of(context).pop(
                   LlenadoFormPageArguments(
                       activo: inspec.activoId,
@@ -206,6 +204,7 @@ class _BotonContinuarInspeccion extends StatelessWidget {
   }
 }
 
+/// Este botón es para iniciar una inspección desde 0
 class _BotonInicioInspeccion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

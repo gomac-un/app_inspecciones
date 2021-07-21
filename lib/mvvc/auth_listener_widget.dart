@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/router.gr.dart';
 
-/// escucha eventos del authbloc y realiza la navegacion (login o pantalla de usuario)
-/// automaticamente
+/// Escucha eventos del authbloc y realiza la navegacion (login o pantalla de usuario)
+/// automaticamente.
 class AuthListener extends StatelessWidget {
   final Widget child;
   final GlobalKey<NavigatorState> navigatorKey;
@@ -18,6 +18,8 @@ class AuthListener extends StatelessWidget {
         final navState = navigatorKey.currentState;
         state.map(
             initial: (_) => navState.pushReplacementNamed(Routes.splashPage),
+
+            /// Si se desea cambiar la pantalla inicial que se ve al iniciar sesión, se debe reemplazar aquí
             authenticated: (_) =>
                 navState.pushReplacementNamed(Routes.borradoresPage),
             unauthenticated: (_) =>

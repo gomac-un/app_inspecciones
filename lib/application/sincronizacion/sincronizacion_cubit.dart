@@ -23,16 +23,25 @@ import 'package:path/path.dart' as path;
 part 'sincronizacion_state.dart';
 part 'sincronizacion_cubit.freezed.dart';
 
+/// Módulo injectable para la descarga de la bd de Gomac
+///
+/// La actualización de los estados se puede ver en la UI, en sincronizacion_screen.dart
 @injectable
 class SincronizacionCubit extends Cubit<SincronizacionState> {
   static const nombreJson = 'server.json';
+
+  /// Zip en el server con las fotos de los cuestionarios
   static const nombreZip = 'cuestionarios.zip';
   static const nombrePuerto = 'downloader_send_port';
   final _port = ReceivePort();
   Stream<dynamic> _portStream;
   final debug = true;
   final Database _db;
+
+  /// Datos guardados localmente en la aplicacion
   final ILocalPreferencesDataSource _localPreferences;
+
+  /// Consume la Api para inspecciones y cuestionarios
   final InspeccionesRepository _inspeccionesRepository;
 
   SincronizacionCubit(
@@ -41,6 +50,7 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     _portStream = _port.asBroadcastStream();
   }
 
+  /// Emite estado con fecha de la ultima descarga de datos realizada [ultimaAct]
   Future cargarUltimaActualizacion() async {
     final ultimaAct = _localPreferences.getUltimaActualizacion();
     emit(state.copyWith(
@@ -55,6 +65,7 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     ));
   }
 
+  /// Intento de hacer manejo de errores a la hora de descargar los datos del server
   Future<Either<ApiFailure, Unit>> descargarServer() async {
     try {
       await descargarServerConErrores();
@@ -100,8 +111,14 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     if (!hayInternet) {
       throw InternetException();
     }
+
+    /// Descarga de los datos del servidor (Sin fotos)
+    ///
+    /// Hace la petición al servidor, en caso de exito instala la bd localmente, en caso de error lanza el
+    /// mensaje 'Error de descarga'
     await _inspeccionesRepository.descargarCuestionarios(dir, nombreJson);
-    // Escucha de las actualizaciones que ofrece el downloader
+
+    /// Escucha de las actualizaciones que ofrece el downloader
     StreamSubscription<dynamic> streamSubs1;
     streamSubs1 = _portStream.listen((data) {
       final task = data as Task;
@@ -118,7 +135,6 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
         instalarBD();
         streamSubs1.cancel();
       }
-
       if ([
         DownloadTaskStatus.failed,
         DownloadTaskStatus.canceled,
@@ -134,6 +150,7 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     });
   }
 
+  /// Usa el Json descargado para insertar los datos en la BD local
   Future instalarBD() async {
     await Future.delayed(const Duration(seconds: 2));
     emit(state.copyWith(paso: 2, info: {
@@ -157,6 +174,7 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
       3: ''
     }));
 
+    ///Realiza la inserción de datos
     await _db.instalarBD(parsed);
 
     emit(state.copyWith(info: {
@@ -168,6 +186,7 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     descargarFotos();
   }
 
+  /// Descarga de [nombreZip] y lo descomprime
   Future descargarFotos() async {
     _bindBackgroundIsolate();
 
@@ -213,6 +232,8 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     });
   }
 
+  /// Descomprime el zip
+
   Future descomprimirZip() async {
     final dir = await _localPath;
     final zipFile = File(path.join(dir, nombreZip));
@@ -234,6 +255,8 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
         3: state.info[3],
         4: 'Sincronización finalizada'
       }));
+
+      /// En caso de éxito, guarda el momento actual como fecha de la ultima actualización
       await _localPreferences.saveUltimaActualizacion();
     } catch (e) {
       emit(state.copyWith(info: {
@@ -281,6 +304,7 @@ abstract class Task with _$Task {
   }) = _Task;
 }
 
+/// Estados de las tareas (o pasos) de la sincronización
 extension DownloadTaskStatusX on DownloadTaskStatus {
   String toText() {
     if (this == DownloadTaskStatus.undefined) return "undefined";

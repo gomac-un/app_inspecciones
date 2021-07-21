@@ -2,6 +2,7 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+/// Widget de selección con busqueda en proceso de terminar
 //TODO arreglar la reactividad
 class ReactiveDropdownSearch<V> extends ReactiveFormField<V> {
   final List<V> items;

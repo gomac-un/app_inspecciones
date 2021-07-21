@@ -14,14 +14,21 @@ import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+/// Pántalla de inicio de cuestionario.
+///
+/// Recolecta la informacion para [cuestionario] y [cuestionarioDeModelo].
 class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
   final Cuestionario cuestionario;
+
+  /// Modelos a los que aplica y el contratista
   final CuestionarioConContratista cuestionarioDeModelo;
   final List<IBloqueOrdenable> bloques;
   const CreacionFormPage(
       {Key key, this.cuestionario, this.cuestionarioDeModelo, this.bloques})
       : super(key: key);
 
+  /// Definición del provider, para poder acceder a [CreacionFormViewModel]
+  /// desde las rutas hijo (creacion_cards y creacion_controls)
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
         create: (ctx) => CreacionFormViewModel(
@@ -70,10 +77,16 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                             decoration: const InputDecoration(
                               labelText: 'Seleccione el tipo de inspeccion',
                             ),
+                            onTap: () {
+                              FocusScope.of(context)
+                                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+                            },
                           );
                         },
                       ),
                       const SizedBox(height: 10),
+
+                      /// En caso de que se seleccione 'Otra', se activa textfield para que escriba el tipo de inspeccion
                       ReactiveValueListenableBuilder<String>(
                           formControlName: "tipoDeInspeccion",
                           builder: (context, value, child) {
@@ -132,6 +145,10 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                         decoration: const InputDecoration(
                           labelText: 'Sistema',
                         ),
+                        onTap: () {
+                          FocusScope.of(context)
+                              .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+                        },
                       );
                     },
                   ),
@@ -172,6 +189,8 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                     labelBuilder: (v) => v.round().toString(),
                   ),
                 ),
+
+                /// Cuando se agrega un bloque, esta lista empieza a mostrarlos en la pantalla.
                 AnimatedList(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -190,7 +209,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                 const SizedBox(height: 60),
               ],
             ),
-            floatingActionButton: BotonFinalizar(
+            floatingActionButton: BotonesGuardado(
               estado: estado,
             ),
           );
@@ -200,57 +219,9 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
   }
 }
 
-class BotonGuardarBorrador extends StatelessWidget {
-  const BotonGuardarBorrador({
-    Key key,
-    @required this.estado,
-  }) : super(key: key);
-  final EstadoDeCuestionario estado;
-
-  @override
-  Widget build(BuildContext context) {
-    final viewModel = Provider.of<CreacionFormViewModel>(context);
-    return IconButton(
-      icon: const Icon(Icons.archive),
-      //label: 'Guardar borrador',
-      onPressed: () async {
-        if ((viewModel.control('modelos') as FormControl<List<String>>)
-                .value
-                .isEmpty ||
-            (viewModel.control('tipoDeInspeccion') as FormControl<String>)
-                .value
-                .isEmpty) {
-          Scaffold.of(context).showSnackBar(const SnackBar(
-              content: Text(
-                  "Seleccione el tipo de inspección y elija por lo menos un modelo antes de guardar el cuestionario")));
-        } else {
-          /* LoadingDialog.show(context); */
-          await viewModel.guardarCuestionarioEnLocal(estado);
-          /* LoadingDialog.hide(context); */
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                content: const Text("Guardado exitoso"),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Aceptar'),
-                  )
-                ],
-              );
-            },
-          );
-        }
-      },
-    );
-  }
-}
-
-class BotonFinalizar extends StatelessWidget {
-  const BotonFinalizar({
+/// Row con botón de guardar borrador y finalizar cuestionario
+class BotonesGuardado extends StatelessWidget {
+  const BotonesGuardado({
     Key key,
     @required this.estado,
   }) : super(key: key);
@@ -260,19 +231,23 @@ class BotonFinalizar extends StatelessWidget {
   Widget build(BuildContext context) {
     final form = ReactiveForm.of(context);
     final viewModel = Provider.of<CreacionFormViewModel>(context);
+
+    /// Como este Widget se está usando como FAB, se necesita esta key para diferenciar ambos.
+    /// Si no, genera un error porque dos widgets tienen la misma HeroTag
     final borradorKey = GlobalKey();
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
+          /// Solo aparece guardar cuando no se ha finalizado el cuestionario.
           if (estado == EstadoDeCuestionario.borrador)
             ActionButton(
               key: borradorKey,
               iconData: Icons.archive,
               label: 'Guardar',
-              //label: 'Guardar borrador',
               onPressed: () async {
+                /// Que haya seleccionado modelos y tipo de inspeccion
                 if ((viewModel.control('modelos') as FormControl<List<String>>)
                         .value
                         .isEmpty ||
@@ -284,9 +259,10 @@ class BotonFinalizar extends StatelessWidget {
                       content: Text(
                           "Seleccione el tipo de inspección y elija por lo menos un modelo antes de guardar el cuestionario")));
                 } else {
-                  /* LoadingDialog.show(context); */
+                  /// Muestra que errores hay
+                  form.markAllAsTouched();
                   await viewModel.guardarCuestionarioEnLocal(estado);
-                  /* LoadingDialog.hide(context); */
+                  //TODO: Mostrar tambien cuando hay un error.
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -311,14 +287,18 @@ class BotonFinalizar extends StatelessWidget {
             icon: const Icon(Icons.done_all_outlined),
             label: Text(estado == EstadoDeCuestionario.borrador
                 ? 'Finalizar'
+
+                /// Solo se puede finalizar una vez.
                 : 'Aceptar'),
             onPressed: !form.valid
                 ? () {
                     if (estado == EstadoDeCuestionario.borrador) {
                       form.markAllAsTouched();
 
+                      /// Si tiene errores y aunn no está finalizado
                       mostrarErrores(context, form);
                     } else {
+                      /// Cuando ya está finalizado y el label es 'Aceptar', no sé que tan necesaria sea esta parte
                       Navigator.of(context).pop();
                     }
                   }
@@ -331,6 +311,8 @@ class BotonFinalizar extends StatelessWidget {
     );
   }
 
+  /// Muestra alerta de finalización de cuestionario (error o éxito), o retrocede a la pantalla
+  /// principal si el cuestionario ya esta finalizado.
   void finalizarCuestionario(BuildContext context) {
     final viewModel =
         Provider.of<CreacionFormViewModel>(context, listen: false);
@@ -349,8 +331,6 @@ class BotonFinalizar extends StatelessWidget {
               .guardarCuestionarioEnLocal(EstadoDeCuestionario.finalizada);
           LoadingDialog.hide(context);
           mostrarMensaje(context, 'exito', 'Cuestionario creado exitosamente');
-        } else {
-          ExtendedNavigator.of(context).pop();
         }
       },
       child: const Text("Aceptar"),
@@ -365,7 +345,8 @@ class BotonFinalizar extends StatelessWidget {
         continueButton,
       ],
     );
-    // show the dialog
+
+    /// Se guarda si es borrador
     if (estado == EstadoDeCuestionario.borrador) {
       showDialog(
         context: context,
@@ -373,8 +354,12 @@ class BotonFinalizar extends StatelessWidget {
           return alert;
         },
       );
-    } else {
-      Navigator.of(context).pop();
+    }
+
+    /// Se retrocede hasta la principal de cuestionarios cuando ya esta finalizado
+    else {
+      Navigator.of(context)
+          .popUntil(ModalRoute.withName('/cuestionarios-page'));
     }
   }
 }

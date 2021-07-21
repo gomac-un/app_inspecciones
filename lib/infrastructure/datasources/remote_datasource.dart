@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 
+///Permite la comunicación de la app con el server (consume Api)
 abstract class InspeccionesRemoteDataSource {
   Future<Map<String, dynamic>> getToken(Map<String, dynamic> user);
   Future<Map<String, dynamic>> getRecurso(String recursoEndpoint);
@@ -27,10 +28,12 @@ abstract class InspeccionesRemoteDataSource {
 
 @LazySingleton(as: InspeccionesRemoteDataSource)
 class DjangoJsonAPI implements InspeccionesRemoteDataSource {
-  static const _server =  'http://10.0.2.2:8000' ;/* 'https://gomac.medellin.unal.edu.co' ; */
-      /* http://pruebainsgomac.duckdns.org:8000' */
+  /// Ruta base del serer.
+  static const _server =
+      'https://gomac.medellin.unal.edu.co'; /* 'https://gomac.medellin.unal.edu.co' ; */
+  /* http://pruebainsgomac.duckdns.org:8000' */
   //static const _server = 'http://10.0.2.2:8000';
-  //TODO: opcion para modificar el servidor desde la app
+  /// Ruta base de la apo
   static const _apiBase = '/inspecciones/api/v1';
   static const _timeLimit = Duration(seconds: 5); //TODO: ajustar el timelimit
   final Usuario _usuario;
@@ -41,6 +44,10 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   @factoryMethod
   DjangoJsonAPI.anon() : this(null);
 
+  /// Devuelve el token del usuario
+  ///
+  /// Con las credenciales ingresadas al momento de iniciar sesión, se hace la petición a la Api
+  /// para que devuelva el token de autenticación (https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication)
   @override
   Future<Map<String, dynamic>> getToken(Map<String, dynamic> user) async {
     const url = '$_server$_apiBase/api-token-auth/';
@@ -74,6 +81,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     }
   }
 
+  /// Realiza la petición  get a la api a la [url]
   @override
   Future<Map<String, dynamic>> getRecurso(String recursoEndpoint) async {
     final url = _server + _apiBase + recursoEndpoint;
@@ -101,6 +109,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
 
   Future<bool> _hayInternet() async => DataConnectionChecker().hasConnection;
 
+  /// Realiza la petición  post a la api a la [url], enviando como body [data]
   @override
   Future<Map<String, dynamic>> postRecurso(
       String recursoEndpoint, Map<String, dynamic> data) async {
@@ -138,6 +147,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     }
   }
 
+  /// Realiza la petición  put a la api a la [url] con body [data].
   @override
   Future<Map<String, dynamic>> putRecurso(
       String recursoEndpoint, Map<String, dynamic> data) async {
@@ -167,6 +177,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     }
   }
 
+  /// Devuelve json que permite saber si [user] es admin, es decir, si puede o no crear cuestionarios-
   @override
   Future<Map<String, dynamic>> getPermisos(
       Map<String, dynamic> user, String tokenUsuario) async {
@@ -199,6 +210,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     }
   }
 
+  /// Permite la subida de fotos de los cuestionarios o inspecciones al server
   @override
   Future subirFotos(
       Iterable<File> fotos, String idDocumento, String tipoDocumento) async {
@@ -235,6 +247,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     //<input type="file" id="files" name="file_fields" multiple>
   }
 
+  /// Descarga el [recurso] desde el server, es como un get sencillo, pero permite mostrar el progreso en la Ui (ver sincronizacion_cubit.dart)
   @override
   void descargaFlutterDownloader(
       String recurso, String savedir, String filename) {
