@@ -61,6 +61,9 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
             ) */
         ),
         actions: [
+          // ExtendedNavigator.of(context)
+          //     .push(Routes.llenadoFormPage, arguments: res)
+          IconButton(icon: Icon(Icons.history), onPressed: (){ ExtendedNavigator.of(context).push(Routes.historyInspeccionesPage);}),
           /* IconButton(
             onPressed: () {
               //TODO: implementar la subida de todas las inspecciones pendientes

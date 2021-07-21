@@ -9,6 +9,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
+import 'presentation/pages/history_screen.dart';
 import 'infrastructure/moor_database.dart';
 import 'mvvc/creacion_form_page.dart';
 import 'mvvc/llenado_form_page.dart';
@@ -28,6 +29,7 @@ class Routes {
   static const String sincronizacionPage = '/sincronizacion-page';
   static const String cuestionariosPage = '/cuestionarios-page';
   static const String gruposScreen = '/grupos-screen';
+  static const String historyInspeccionesPage = '/history_screen';
   static const all = <String>{
     splashPage,
     loginScreen,
@@ -37,6 +39,7 @@ class Routes {
     sincronizacionPage,
     cuestionariosPage,
     gruposScreen,
+    historyInspeccionesPage,
   };
 }
 
@@ -52,6 +55,7 @@ class AutoRouter extends RouterBase {
     RouteDef(Routes.sincronizacionPage, page: SincronizacionPage),
     RouteDef(Routes.cuestionariosPage, page: CuestionariosPage),
     RouteDef(Routes.gruposScreen, page: GruposScreen),
+    RouteDef(Routes.historyInspeccionesPage, page: HistoryInspeccionesPage),
   ];
   @override
   Map<Type, AutoRouteFactory> get pagesMap => _pagesMap;
@@ -116,6 +120,12 @@ class AutoRouter extends RouterBase {
     GruposScreen: (data) {
       return MaterialPageRoute<dynamic>(
         builder: (context) => GruposScreen().wrappedRoute(context),
+        settings: data,
+      );
+    },
+    HistoryInspeccionesPage: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => HistoryInspeccionesPage(),
         settings: data,
       );
     },
