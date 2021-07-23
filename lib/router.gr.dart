@@ -9,13 +9,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
-import 'presentation/pages/history_screen.dart';
 import 'infrastructure/moor_database.dart';
 import 'mvvc/creacion_form_page.dart';
 import 'mvvc/llenado_form_page.dart';
 import 'presentation/pages/borradores_screen.dart';
 import 'presentation/pages/cuestionarios_screen.dart';
 import 'presentation/pages/grupos_screen.dart';
+import 'presentation/pages/history_screen.dart';
 import 'presentation/pages/login_screen.dart';
 import 'presentation/pages/sincronizacion_screen.dart';
 import 'presentation/pages/splash_screen.dart';
@@ -29,7 +29,7 @@ class Routes {
   static const String sincronizacionPage = '/sincronizacion-page';
   static const String cuestionariosPage = '/cuestionarios-page';
   static const String gruposScreen = '/grupos-screen';
-  static const String historyInspeccionesPage = '/history_screen';
+  static const String historyInspeccionesPage = '/history-inspecciones-page';
   static const all = <String>{
     splashPage,
     loginScreen,
@@ -125,7 +125,7 @@ class AutoRouter extends RouterBase {
     },
     HistoryInspeccionesPage: (data) {
       return MaterialPageRoute<dynamic>(
-        builder: (context) => HistoryInspeccionesPage(),
+        builder: (context) => HistoryInspeccionesPage().wrappedRoute(context),
         settings: data,
       );
     },
@@ -176,6 +176,9 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
       push<dynamic>(Routes.cuestionariosPage);
 
   Future<dynamic> pushGruposScreen() => push<dynamic>(Routes.gruposScreen);
+
+  Future<dynamic> pushHistoryInspeccionesPage() =>
+      push<dynamic>(Routes.historyInspeccionesPage);
 }
 
 /// ************************************************************************

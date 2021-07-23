@@ -29,10 +29,10 @@ abstract class InspeccionesRemoteDataSource {
 @LazySingleton(as: InspeccionesRemoteDataSource)
 class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   /// Ruta base del serer.
-  static const _server =
-      'https://gomac.medellin.unal.edu.co'; /* 'https://gomac.medellin.unal.edu.co' ; */
+   static const _server =
+       'http://10.0.2.2:8000'; /* 'https://gomac.medellin.unal.edu.co' ; */
   /* http://pruebainsgomac.duckdns.org:8000' */
-  //static const _server = 'http://10.0.2.2:8000';
+  // static const _server = 'http://10.0.2.2:8000';
   /// Ruta base de la apo
   static const _apiBase = '/inspecciones/api/v1';
   static const _timeLimit = Duration(seconds: 5); //TODO: ajustar el timelimit

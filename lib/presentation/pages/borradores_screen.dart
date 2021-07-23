@@ -217,7 +217,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                                           credencialesException: () =>
                                               'Error inesperado: intente inciar sesión nuevamente'),
                                       (u) {
-                                    db.borradoresDao.eliminarBorrador(borrador);
+                                    // db.borradoresDao.eliminarBorrador(borrador);
                                     return "exito";
                                   }));
                           res == 'exito'
