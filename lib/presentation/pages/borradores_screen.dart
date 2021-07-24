@@ -25,7 +25,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
         RepositoryProvider(
             create: (ctx) => getIt<InspeccionesRepository>(
                 param1: authBloc.state.maybeWhen(
-                    authenticated: (u) => u.token,
+                    authenticated: (u, s) => u.token,
                     orElse: () => throw Exception(
                         "Error inesperado: usuario no encontrado")))),
         RepositoryProvider(create: (_) => getIt<Database>()),
@@ -62,7 +62,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
             ) */
         ),
         actions: [
-          IconButton(
+          /* IconButton(
             onPressed: () {
               //TODO: implementar el historial
               showDialog(
@@ -103,7 +103,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
           ),
           const SizedBox(
             width: 5,
-          ),
+          ), */
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.asset(
@@ -214,7 +214,8 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                                           credencialesException: () =>
                                               'Error inesperado: intente inciar sesión nuevamente'),
                                       (u) {
-                                    db.borradoresDao.eliminarBorrador(borrador);
+                                    db.borradoresDao
+                                        .eliminarRespuestas(borrador);
                                     return "exito";
                                   }));
                           res == 'exito'
@@ -253,10 +254,12 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                                 ));
                         })
                     : const SizedBox(),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => eliminarBorrador(borrador, context),
-                ),
+                trailing: borrador.inspeccion.esNueva
+                    ? IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => eliminarBorrador(borrador, context),
+                      )
+                    : const SizedBox.shrink(),
                 onTap: () => ExtendedNavigator.of(context).push(
                   Routes.llenadoFormPage,
                   arguments: LlenadoFormPageArguments(

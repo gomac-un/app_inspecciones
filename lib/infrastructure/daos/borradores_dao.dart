@@ -46,7 +46,11 @@ class BorradoresDao extends DatabaseAccessor<Database>
   Stream<List<Borrador>> borradores() {
     final query = select(inspecciones).join([
       innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
-    ]);
+    ])
+
+      /// Se filtran los que tengan momentoEnvio nulo, esto, porque también están quedando guardadas las enviadas para el historial
+      /// y estas no se muestran en la pantalla de borradores.
+      ..where(isNull(inspecciones.momentoEnvio));
 
     /// Agrupación del resultado de la consulta en la clase Borrador para manejarlo mejor en la UI
     return query
@@ -77,6 +81,26 @@ class BorradoresDao extends DatabaseAccessor<Database>
   Future eliminarBorrador(Borrador borrador) async {
     await (delete(inspecciones)
           ..where((ins) => ins.id.equals(borrador.inspeccion.id)))
+        .go();
+  }
+
+  /// Método usado cuando se envía inspección al server que actualiza el momento de envío y
+  /// elimina las respuestas
+  Future eliminarRespuestas(Borrador borrador) async {
+    /// Se está actualizando en la bd porque para el historial, la inspeccion no se va a borrar del cel
+    ///  y se necesita el momento de envio como constancia //TODO: implementar historial
+    await (update(inspecciones)
+          ..where((i) => i.id.equals(borrador.inspeccion.id)))
+        .write(
+      InspeccionesCompanion(
+        momentoEnvio: Value(DateTime.now()),
+      ),
+    );
+
+    /// Se eliminan las respuestas porque no es necesario para el historial y
+    /// no tiene sentido tenerlas ocupando espacio  en la bd
+    await (delete(respuestas)
+          ..where((res) => res.inspeccionId.equals(borrador.inspeccion.id)))
         .go();
   }
 

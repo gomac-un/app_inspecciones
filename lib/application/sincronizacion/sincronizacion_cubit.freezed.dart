@@ -187,7 +187,12 @@ const $SincronizacionState = _$SincronizacionStateTearOff();
 mixin _$SincronizacionState {
   bool get cargado;
   Task get task;
+
+  /// Diccionario que guarda las novedades en un String por cada paso de la sincronización.
   Map<int, String> get info;
+
+  /// Etapa de la sincronización: 1-Descarga de cuestionarios, 2- Instalación de la Bd,
+  ///  3- Descarga de fotos y 4- Sincronización finalizada.
   int get paso;
 
   @JsonKey(ignore: true)
@@ -293,8 +298,13 @@ class _$_SincronizacionState
   @override
   final Task task;
   @override
+
+  /// Diccionario que guarda las novedades en un String por cada paso de la sincronización.
   final Map<int, String> info;
   @override
+
+  /// Etapa de la sincronización: 1-Descarga de cuestionarios, 2- Instalación de la Bd,
+  ///  3- Descarga de fotos y 4- Sincronización finalizada.
   final int paso;
 
   @override
@@ -355,8 +365,13 @@ abstract class _SincronizacionState implements SincronizacionState {
   @override
   Task get task;
   @override
+
+  /// Diccionario que guarda las novedades en un String por cada paso de la sincronización.
   Map<int, String> get info;
   @override
+
+  /// Etapa de la sincronización: 1-Descarga de cuestionarios, 2- Instalación de la Bd,
+  ///  3- Descarga de fotos y 4- Sincronización finalizada.
   int get paso;
   @override
   @JsonKey(ignore: true)
