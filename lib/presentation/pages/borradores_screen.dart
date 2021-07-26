@@ -62,6 +62,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
             ) */
         ),
         actions: [
+          IconButton(icon: Icon(Icons.history), onPressed: () => ExtendedNavigator.of(context).push(Routes.historyInspeccionesPage)),
           /* IconButton(
             onPressed: () {
               //TODO: implementar el historial

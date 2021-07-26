@@ -192,7 +192,7 @@ class Opciones extends StatelessWidget {
               ),
           /*LimpiezaBase(),*/
           SincronizarConGomac(),
-          /* Card(
+           Card(
             child: ListTile(
               title: const Text('Ver base de datos',
                   style: TextStyle(
@@ -213,7 +213,7 @@ class Opciones extends StatelessWidget {
                 );
               },
             ),
-          ), */
+          ),
           LogOut(),
         ],
       );
