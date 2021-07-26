@@ -20,7 +20,7 @@ class GruposScreen extends StatelessWidget implements AutoRouteWrapper {
         RepositoryProvider(
             create: (ctx) => getIt<InspeccionesRepository>(
                 param1: authBloc.state.maybeWhen(
-                    authenticated: (u) => u.token,
+                    authenticated: (u, s) => u.token,
                     orElse: () => throw Exception(
                         "Error inesperado: usuario no encontrado")))),
         RepositoryProvider(create: (_) => getIt<Database>()),
@@ -83,7 +83,8 @@ class GruposScreen extends StatelessWidget implements AutoRouteWrapper {
                     context,
                     MaterialPageRoute(
                         builder: (BuildContext context) => DetailGruposPage(
-                              tipoInspeccion: grupo.tipoInspeccion.toCompanion(true),
+                              tipoInspeccion:
+                                  grupo.tipoInspeccion.toCompanion(true),
                             )),
                   );
                 },

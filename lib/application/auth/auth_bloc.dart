@@ -40,11 +40,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       startingApp: () async* {
         final usuario = userRepository.getLocalUser();
 
+        final lastSinc =
+            getIt<UserRepository>().localPreferences.getUltimaActualizacion();
         yield usuario.fold(
           () => const AuthState.unauthenticated(),
           (usuario) {
             registrarAPI(usuario);
-            return AuthState.authenticated(usuario: usuario);
+            return AuthState.authenticated(
+              usuario: usuario,
+              sincronizado: lastSinc,
+            );
           },
         );
       },
@@ -60,9 +65,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           throw Exception("No se puede ingresar sin internet por primera vez");
         }
 
+        /// Obtiene la ultima sincronización, esto para saber que pantalla se muestra primero: sincronización o borradores.
+        final lastSinc =
+            getIt<UserRepository>().localPreferences.getUltimaActualizacion();
+
         /// Guarda los datos del usuario, para que no tenga que iniciar sesión la próxima vez
         await userRepository.saveLocalUser(user: usuario);
-        yield AuthState.authenticated(usuario: usuario);
+        yield AuthState.authenticated(usuario: usuario, sincronizado: lastSinc);
       },
 
       /// Actualiza el estado del login a inautenticado cuando el usuario cierra sesión

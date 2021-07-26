@@ -68,6 +68,7 @@ class CreacionGrupoCard extends StatelessWidget {
   const CreacionGrupoCard();
   @override
   Widget build(BuildContext context) {
+    final selectedDate = DateTime.now();
     final dic = [
       [1, 'Enero'],
       [2, 'Febrero'],
@@ -88,7 +89,7 @@ class CreacionGrupoCard extends StatelessWidget {
           RepositoryProvider(
               create: (ctx) => getIt<PlaneacionRepository>(
                   param1: authBloc.state.maybeWhen(
-                      authenticated: (u) => u.token,
+                      authenticated: (u, s) => u.token,
                       orElse: () => throw Exception(
                           "Error inesperado: usuario no encontrado")))),
           Provider(
@@ -113,7 +114,7 @@ class CreacionGrupoCard extends StatelessWidget {
                           leading: Icon(Icons.contact_support_rounded,
                               color: Colors.red),
                           title: Text(
-                            'Si ya existen grupos planeados para el tipo de inspección, puede volver atrás y editarlos',
+                            'Seleccione las fechas de inicio y de fin, los grupos se crearán automáticamente.', /* Luego de crearlos, puede elegir las inspecciones que se realizarán en cada uno de los grupos.', */
                             /*  style: TextStyle(color: Theme.of(context).hintColor), */
                           ),
                         ),
@@ -131,65 +132,20 @@ class CreacionGrupoCard extends StatelessWidget {
                           formGroup: form,
                           child: Column(
                             children: [
-                              const SizedBox(
-                                height: 10,
+                              ReactiveTextField(
+                                formControl: form.control('nombre')
+                                    as FormControl<String>,
+                                decoration: const InputDecoration(
+                                  fillColor: Colors.transparent,
+                                  labelText: 'Nombre',
+                                  helperMaxLines: 2,
+                                  helperText:
+                                      'Asigne un nombre a esta ronda de grupos.',
+                                ),
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.next,
                               ),
-                              ValueListenableBuilder<List<TiposDeInspeccione>>(
-                                valueListenable: form.tiposDeInspeccion,
-                                builder: (context, value, child) {
-                                  return ReactiveDropdownField<
-                                      TiposDeInspeccione>(
-                                    formControlName: "tipoDeInspeccion",
-                                    validationMessages: (control) =>
-                                        {'required': 'Este valor es requerido'},
-                                    items: value
-                                        .map((e) => DropdownMenuItem<
-                                                TiposDeInspeccione>(
-                                              value: e,
-                                              child: Text(e.tipo),
-                                            ))
-                                        .toList(),
-                                    decoration: const InputDecoration(
-                                      fillColor: Colors.transparent,
-                                      helperMaxLines: 2,
-                                      labelText: 'Tipo de inspección',
-                                      helperText:
-                                          'Seleccione el tipo de inspección',
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(height: 10),
-                              ReactiveValueListenableBuilder<
-                                      TiposDeInspeccione>(
-                                  formControlName: "tipoDeInspeccion",
-                                  builder: (context, value, child) {
-                                    if (value.value.tipo == "Otra") {
-                                      return Column(
-                                        children: [
-                                          ReactiveTextField(
-                                            formControlName:
-                                                "nuevoTipoDeInspeccion",
-                                            validationMessages: (control) => {
-                                              'required':
-                                                  'Este valor es requerido',
-                                              'yaExiste':
-                                                  'Ya existen grupos planeados para este tipo de inspección'
-                                            },
-                                            decoration: const InputDecoration(
-                                              fillColor: Colors.transparent,
-                                              helperMaxLines: 2,
-                                              labelText: 'Tipo de inspección',
-                                              helperText:
-                                                  'Escriba el tipo de inspección',
-                                            ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                        ],
-                                      );
-                                    }
-                                    return const SizedBox.shrink();
-                                  }),
+                              const SizedBox(height: 10.0),
                               ReactiveTextField(
                                 validationMessages: (control) => {
                                   'required': 'Este valor es requerido',
@@ -204,32 +160,47 @@ class CreacionGrupoCard extends StatelessWidget {
                                 ),
                                 keyboardType: TextInputType.number,
                               ),
-                              const SizedBox(
-                                height: 10,
+                              const SizedBox(height: 10.0),
+                              ValueListenableBuilder<DateTime>(
+                                builder: (BuildContext context, value,
+                                    Widget child) {
+                                  return ReactiveTextField(
+                                      readOnly: true,
+                                      textInputAction: TextInputAction.next,
+                                      validationMessages: (control) =>
+                                          {'required': 'Seleccione la fecha'},
+                                      formControlName: 'fechaInicio',
+                                      decoration: const InputDecoration(
+                                        labelText: 'Fecha de inicio',
+                                        fillColor: Colors.transparent,
+                                        suffixIcon: Icon(Icons.calendar_today),
+                                      ),
+                                      onTap: () => _mostrarDatePicker(
+                                          context, value, 'inicio'));
+                                },
+                                valueListenable: form.fechaInicioSelec,
                               ),
-                              ReactiveDropdownField<int>(
-                                  formControl: form
-                                      .control(
-                                          'fechaInicio') as FormControl<
-                                      int>, //La de seleccion unica usa el control de la primer pregunta de la lista
-
-                                  items: dic
-                                      .map((e) => DropdownMenuItem<int>(
-                                          value: e[0] as int,
-                                          child: Text(e[1] as String)))
-                                      .toList(),
-                                  decoration: const InputDecoration(
-                                    fillColor: Colors.transparent,
-                                    labelText: 'Mes inicio',
-                                    helperText:
-                                        'Seleccione el mes en el que inicirá el ciclo',
-                                  ),
-                                  onTap: () {
-                                    FocusScope.of(context).unfocus();
-                                  }),
-                              const SizedBox(
-                                height: 10,
+                              const SizedBox(height: 10),
+                              ValueListenableBuilder<DateTime>(
+                                builder: (BuildContext context, value,
+                                    Widget child) {
+                                  return ReactiveTextField(
+                                      readOnly: true,
+                                      textInputAction: TextInputAction.next,
+                                      validationMessages: (control) =>
+                                          {'required': 'Seleccione la fecha'},
+                                      formControlName: 'fechaFin',
+                                      decoration: const InputDecoration(
+                                        labelText: 'Fecha de fin',
+                                        fillColor: Colors.transparent,
+                                        suffixIcon: Icon(Icons.calendar_today),
+                                      ),
+                                      onTap: () => _mostrarDatePicker(
+                                          context, value, 'fin'));
+                                },
+                                valueListenable: form.fechaFinSelec,
                               ),
+                              const SizedBox(height: 20.0),
                             ],
                           ),
                         ),
@@ -271,6 +242,50 @@ class CreacionGrupoCard extends StatelessWidget {
             ),
           );
         });
+  }
+}
+
+/// Muestra el DatePicker.
+///
+/// [tipo] se usa para saber que control es, si el de 'fechaInicio' o el de 'fechaFin'
+Future _mostrarDatePicker(
+    BuildContext context, DateTime value, String tipo) async {
+  final form = Provider.of<CrearGrupoControl>(context, listen: false);
+  final DateTime picked = await showDatePicker(
+      context: context,
+      locale: const Locale("es", ""),
+      initialDate: value, // Refer step 1
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2025),
+      helpText: 'Seleccione fecha de $tipo', // Can be used as title
+      cancelText: 'Cancelar',
+      confirmText: 'Aceptar',
+      errorFormatText: 'Ingrese una fecha válida',
+      fieldLabelText: 'Fecha $tipo',
+      fieldHintText: 'Mes/Día/Año',
+      builder: (BuildContext context, Widget child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+              colorScheme: ColorScheme.light(
+                primary: Theme.of(context).accentColor,
+                surface: Theme.of(context).primaryColor,
+                onPrimary: Colors.black,
+              ),
+              textTheme: const TextTheme(
+                overline: TextStyle(fontSize: 15),
+                subtitle1: TextStyle(color: Colors.black),
+              )),
+          child: child,
+        );
+      });
+  final fecha = tipo == 'inicio' ? form.fechaInicioSelec : form.fechaFinSelec;
+  if (picked != null && picked != fecha.value) {
+    tipo == 'inicio'
+        ? form.fechaInicioSelec.value = picked
+        : form.fechaFinSelec.value = picked;
+
+    /// Hace que el valor del reactiveTextField sea el seleccionado en el DateTimePicker
+    form.instanciarInicio(picked, tipo);
   }
 }
 
@@ -320,11 +335,9 @@ void mostrarAlertaGrupos(BuildContext context) {
           content: Text(
               'Los grupos fueron guardados localmente, pero no fueron enviados al servidor porque $respuesta'),
         ));
-      }
-      else{
+      } else {
         Scaffold.of(context).showSnackBar(SnackBar(
-          content: Text(
-              'Grupos creados con éxito'),
+          content: Text('Grupos creados con éxito'),
         ));
       }
     },
@@ -387,7 +400,7 @@ class DetailGruposPage extends StatelessWidget {
         RepositoryProvider(
             create: (ctx) => getIt<InspeccionesRepository>(
                 param1: authBloc.state.maybeWhen(
-                    authenticated: (u) => u.token,
+                    authenticated: (u, s) => u.token,
                     orElse: () => throw Exception(
                         "Error inesperado: usuario no encontrado")))),
         StreamProvider(
@@ -533,7 +546,7 @@ class ActualizacionCard extends StatelessWidget {
         RepositoryProvider(
             create: (ctx) => getIt<InspeccionesRepository>(
                 param1: authBloc.state.maybeWhen(
-                    authenticated: (u) => u.token,
+                    authenticated: (u, s) => u.token,
                     orElse: () => throw Exception(
                         "Error inesperado: usuario no encontrado")))),
         RepositoryProvider(create: (_) => getIt<Database>()),
@@ -800,7 +813,7 @@ class AllGroupsPage extends StatelessWidget {
         RepositoryProvider(
             create: (ctx) => getIt<InspeccionesRepository>(
                 param1: authBloc.state.maybeWhen(
-                    authenticated: (u) => u.token,
+                    authenticated: (u, s) => u.token,
                     orElse: () => throw Exception(
                         "Error inesperado: usuario no encontrado")))),
         StreamProvider(

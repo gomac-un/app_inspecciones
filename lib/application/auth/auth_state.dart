@@ -4,7 +4,10 @@ part of 'auth_bloc.dart';
 @freezed
 abstract class AuthState with _$AuthState {
   const factory AuthState.initial() = Initial;
-  const factory AuthState.authenticated({Usuario usuario}) = Authenticated;
+
+  /// [sincronizado] DateTime usado para saber si ha sincronizado alguna vez la app o no,.
+  const factory AuthState.authenticated(
+      {Usuario usuario, DateTime sincronizado}) = Authenticated;
   const factory AuthState.unauthenticated() = Unauthenticated;
   const factory AuthState.loading() = Loading;
 }

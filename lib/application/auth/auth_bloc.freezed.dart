@@ -413,9 +413,10 @@ class _$AuthStateTearOff {
   }
 
 // ignore: unused_element
-  Authenticated authenticated({Usuario usuario}) {
+  Authenticated authenticated({Usuario usuario, DateTime sincronizado}) {
     return Authenticated(
       usuario: usuario,
+      sincronizado: sincronizado,
     );
   }
 
@@ -439,14 +440,14 @@ mixin _$AuthState {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult initial(),
-    @required TResult authenticated(Usuario usuario),
+    @required TResult authenticated(Usuario usuario, DateTime sincronizado),
     @required TResult unauthenticated(),
     @required TResult loading(),
   });
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult initial(),
-    TResult authenticated(Usuario usuario),
+    TResult authenticated(Usuario usuario, DateTime sincronizado),
     TResult unauthenticated(),
     TResult loading(),
     @required TResult orElse(),
@@ -520,7 +521,7 @@ class _$Initial implements Initial {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult initial(),
-    @required TResult authenticated(Usuario usuario),
+    @required TResult authenticated(Usuario usuario, DateTime sincronizado),
     @required TResult unauthenticated(),
     @required TResult loading(),
   }) {
@@ -535,7 +536,7 @@ class _$Initial implements Initial {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult initial(),
-    TResult authenticated(Usuario usuario),
+    TResult authenticated(Usuario usuario, DateTime sincronizado),
     TResult unauthenticated(),
     TResult loading(),
     @required TResult orElse(),
@@ -588,7 +589,7 @@ abstract class $AuthenticatedCopyWith<$Res> {
   factory $AuthenticatedCopyWith(
           Authenticated value, $Res Function(Authenticated) then) =
       _$AuthenticatedCopyWithImpl<$Res>;
-  $Res call({Usuario usuario});
+  $Res call({Usuario usuario, DateTime sincronizado});
 
   $UsuarioCopyWith<$Res> get usuario;
 }
@@ -606,9 +607,13 @@ class _$AuthenticatedCopyWithImpl<$Res> extends _$AuthStateCopyWithImpl<$Res>
   @override
   $Res call({
     Object usuario = freezed,
+    Object sincronizado = freezed,
   }) {
     return _then(Authenticated(
       usuario: usuario == freezed ? _value.usuario : usuario as Usuario,
+      sincronizado: sincronizado == freezed
+          ? _value.sincronizado
+          : sincronizado as DateTime,
     ));
   }
 
@@ -625,14 +630,16 @@ class _$AuthenticatedCopyWithImpl<$Res> extends _$AuthStateCopyWithImpl<$Res>
 
 /// @nodoc
 class _$Authenticated implements Authenticated {
-  const _$Authenticated({this.usuario});
+  const _$Authenticated({this.usuario, this.sincronizado});
 
   @override
   final Usuario usuario;
+  @override
+  final DateTime sincronizado;
 
   @override
   String toString() {
-    return 'AuthState.authenticated(usuario: $usuario)';
+    return 'AuthState.authenticated(usuario: $usuario, sincronizado: $sincronizado)';
   }
 
   @override
@@ -640,12 +647,18 @@ class _$Authenticated implements Authenticated {
     return identical(this, other) ||
         (other is Authenticated &&
             (identical(other.usuario, usuario) ||
-                const DeepCollectionEquality().equals(other.usuario, usuario)));
+                const DeepCollectionEquality()
+                    .equals(other.usuario, usuario)) &&
+            (identical(other.sincronizado, sincronizado) ||
+                const DeepCollectionEquality()
+                    .equals(other.sincronizado, sincronizado)));
   }
 
   @override
   int get hashCode =>
-      runtimeType.hashCode ^ const DeepCollectionEquality().hash(usuario);
+      runtimeType.hashCode ^
+      const DeepCollectionEquality().hash(usuario) ^
+      const DeepCollectionEquality().hash(sincronizado);
 
   @JsonKey(ignore: true)
   @override
@@ -656,7 +669,7 @@ class _$Authenticated implements Authenticated {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult initial(),
-    @required TResult authenticated(Usuario usuario),
+    @required TResult authenticated(Usuario usuario, DateTime sincronizado),
     @required TResult unauthenticated(),
     @required TResult loading(),
   }) {
@@ -664,21 +677,21 @@ class _$Authenticated implements Authenticated {
     assert(authenticated != null);
     assert(unauthenticated != null);
     assert(loading != null);
-    return authenticated(usuario);
+    return authenticated(usuario, sincronizado);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult initial(),
-    TResult authenticated(Usuario usuario),
+    TResult authenticated(Usuario usuario, DateTime sincronizado),
     TResult unauthenticated(),
     TResult loading(),
     @required TResult orElse(),
   }) {
     assert(orElse != null);
     if (authenticated != null) {
-      return authenticated(usuario);
+      return authenticated(usuario, sincronizado);
     }
     return orElse();
   }
@@ -716,9 +729,11 @@ class _$Authenticated implements Authenticated {
 }
 
 abstract class Authenticated implements AuthState {
-  const factory Authenticated({Usuario usuario}) = _$Authenticated;
+  const factory Authenticated({Usuario usuario, DateTime sincronizado}) =
+      _$Authenticated;
 
   Usuario get usuario;
+  DateTime get sincronizado;
   @JsonKey(ignore: true)
   $AuthenticatedCopyWith<Authenticated> get copyWith;
 }
@@ -762,7 +777,7 @@ class _$Unauthenticated implements Unauthenticated {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult initial(),
-    @required TResult authenticated(Usuario usuario),
+    @required TResult authenticated(Usuario usuario, DateTime sincronizado),
     @required TResult unauthenticated(),
     @required TResult loading(),
   }) {
@@ -777,7 +792,7 @@ class _$Unauthenticated implements Unauthenticated {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult initial(),
-    TResult authenticated(Usuario usuario),
+    TResult authenticated(Usuario usuario, DateTime sincronizado),
     TResult unauthenticated(),
     TResult loading(),
     @required TResult orElse(),
@@ -862,7 +877,7 @@ class _$Loading implements Loading {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult initial(),
-    @required TResult authenticated(Usuario usuario),
+    @required TResult authenticated(Usuario usuario, DateTime sincronizado),
     @required TResult unauthenticated(),
     @required TResult loading(),
   }) {
@@ -877,7 +892,7 @@ class _$Loading implements Loading {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult initial(),
-    TResult authenticated(Usuario usuario),
+    TResult authenticated(Usuario usuario, DateTime sincronizado),
     TResult unauthenticated(),
     TResult loading(),
     @required TResult orElse(),

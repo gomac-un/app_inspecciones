@@ -19,12 +19,13 @@ class HistoryInspeccionesPage extends StatelessWidget
         RepositoryProvider(
             create: (ctx) => getIt<InspeccionesRepository>(
                 param1: authBloc.state.maybeWhen(
-                    authenticated: (u) => u.token,
+                    authenticated: (u, s) => u.token,
                     orElse: () => throw Exception(
                         "Error inesperado: usuario no encontrado")))),
         RepositoryProvider(create: (_) => getIt<Database>()),
         StreamProvider(
-            create: (_) => getIt<Database>().borradoresDao.borradoresHistorial()),
+            create: (_) =>
+                getIt<Database>().borradoresDao.borradoresHistorial()),
       ],
       child: this,
     );
@@ -36,14 +37,18 @@ class HistoryInspeccionesPage extends StatelessWidget
       appBar: AppBar(
         title: const Text('Historial'),
       ),
-      body: Consumer<List<Borrador>>(builder: (context, borradoresHistorial, child) {
+      body: Consumer<List<Borrador>>(
+          builder: (context, borradoresHistorial, child) {
         final textTheme = Theme.of(context).textTheme;
-        if (borradoresHistorial ==  null){
+        if (borradoresHistorial == null) {
           return const Text("Hay un null");
         }
-        if (borradoresHistorial.isEmpty){
+        if (borradoresHistorial.isEmpty) {
           return Center(
-            child: Text("No tiene inspecciones enviadas",style: textTheme.headline5,),
+            child: Text(
+              "No tiene inspecciones enviadas",
+              style: textTheme.headline5,
+            ),
           );
         }
         return ListView.separated(
@@ -59,7 +64,8 @@ class HistoryInspeccionesPage extends StatelessWidget
     );
   }
 
-  Widget _listTile(BuildContext context, Borrador borrador, TextTheme textTheme) {
+  Widget _listTile(
+      BuildContext context, Borrador borrador, TextTheme textTheme) {
     final _dateSend = borrador.inspeccion.momentoEnvio;
     return ListTile(
       tileColor: Theme.of(context).cardColor,
@@ -73,8 +79,10 @@ class HistoryInspeccionesPage extends StatelessWidget
           const SizedBox(
             height: 5,
           ),
-          Text(_dateSend == null ? "Fecha de envío: " :
-            "Fecha de envío: ${_dateSend.day}/${_dateSend.month}/${_dateSend.year} ${_dateSend.hour}:${_dateSend.minute}",
+          Text(
+            _dateSend == null
+                ? "Fecha de envío: "
+                : "Fecha de envío: ${_dateSend.day}/${_dateSend.month}/${_dateSend.year} ${_dateSend.hour}:${_dateSend.minute}",
             style: textTheme.subtitle1,
           )
         ],

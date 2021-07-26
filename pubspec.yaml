@@ -23,6 +23,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations: # Add this line
+    sdk: flutter 
   auto_route: ^0.6.9
   collection: ^1.14.13
   cool_stepper: ^1.1.3
