@@ -39,9 +39,15 @@ const $Usuario = _$UsuarioTearOff();
 
 /// @nodoc
 mixin _$Usuario {
+  /// Nombre de usuario
   String get documento;
   String get password;
+
+  /// Parte de la autenticación de Django para acceder a los servicios de la Api
+  /// https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
   String get token;
+
+  /// True si puede crear cuestionarios.
   bool get esAdmin;
 
   Map<String, dynamic> toJson();
@@ -123,12 +129,19 @@ class _$_Usuario implements _Usuario {
       _$_$_UsuarioFromJson(json);
 
   @override
+
+  /// Nombre de usuario
   final String documento;
   @override
   final String password;
   @override
+
+  /// Parte de la autenticación de Django para acceder a los servicios de la Api
+  /// https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
   final String token;
   @override
+
+  /// True si puede crear cuestionarios.
   final bool esAdmin;
 
   @override
@@ -181,12 +194,19 @@ abstract class _Usuario implements Usuario {
   factory _Usuario.fromJson(Map<String, dynamic> json) = _$_Usuario.fromJson;
 
   @override
+
+  /// Nombre de usuario
   String get documento;
   @override
   String get password;
   @override
+
+  /// Parte de la autenticación de Django para acceder a los servicios de la Api
+  /// https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
   String get token;
   @override
+
+  /// True si puede crear cuestionarios.
   bool get esAdmin;
   @override
   @JsonKey(ignore: true)

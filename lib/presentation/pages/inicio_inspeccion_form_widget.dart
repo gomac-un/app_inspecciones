@@ -41,12 +41,9 @@ class InicioInspeccionForm extends StatelessWidget {
 
                   tipoInspeccionCtrl.value = res.isNotEmpty ? res.first : null;
                 }),
+              'codigoInsp': fb.control<String>(null),
               'tipoDeInspeccion': tipoInspeccionCtrl,
-              'nueva': fb.control<bool>(false),
               'pendiente': fb.control<bool>(false),
-              'id': fb.control<String>(
-                null,
-              ),
             });
           },
           builder: (context, form, child) {
@@ -69,8 +66,7 @@ class InicioInspeccionForm extends StatelessWidget {
                 ),
                 ReactiveValueListenableBuilder<bool>(
                   formControlName: 'pendiente',
-                  builder: (BuildContext context, AbstractControl<bool> control,
-                      Widget child) {
+                  builder: (context, control, child) {
                     if (!control.value) {
                       return Column(children: [
                         const SizedBox(height: 10),
@@ -106,27 +102,39 @@ class InicioInspeccionForm extends StatelessWidget {
                     hint: "Seleccione el tipo de inspección",
                   ),*/
                         ),
-                        _BotonInicioInspeccion(),
                       ]);
                     }
-                    return Column(
-                      children: [
-                        const SizedBox(height: 10),
-                        ReactiveTextField(
-                          formControlName: 'id',
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Escriba el codigo de la inspección',
-                            prefixIcon: Icon(Icons.directions_car),
+                    return const SizedBox.shrink();
+                  },
+                ),
+                ReactiveValueListenableBuilder<bool>(
+                  formControlName: 'pendiente',
+                  builder: (context, control, child) {
+                    if (control.value) {
+                      return Column(
+                        children: [
+                          const SizedBox(height: 10),
+                          ReactiveTextField(
+                            formControlName: 'codigoInsp',
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Código de la inspección',
+                              prefixIcon: Icon(Icons.directions_car),
+                            ),
                           ),
-                        ),
-                        Builder(
-                          builder: (context) {
-                            return _BotonContinuarInspeccion(repository);
-                          },
-                        )
-                      ],
-                    );
+                        ],
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+                ReactiveValueListenableBuilder<bool>(
+                  formControlName: 'pendiente',
+                  builder: (context, control, child) {
+                    if (control.value) {
+                      return _BotonContinuarInspeccion(repository);
+                    }
+                    return _BotonInicioInspeccion();
                   },
                 ),
               ],
@@ -147,12 +155,16 @@ class _BotonContinuarInspeccion extends StatelessWidget {
   Widget build(BuildContext context) {
     final form = ReactiveForm.of(context) as FormGroup;
     return RaisedButton(
-      onPressed: form.control('id').value != null
+      color: Theme.of(context).accentColor,
+      onPressed: form.control('codigoInsp').value != null &&
+              (form.control('codigoInsp').value as String).isNotEmpty
           ? () async {
               /// Se descarga inspección con id=[form.control('id').value ] desde el server
+              print(form.control('codigoInsp').value);
+              print('Que mas');
               final res = await repository
                   .getInspeccionServidor(
-                      int.parse(form.control('id').value as String))
+                      int.parse(form.control('codigoInsp').value as String))
                   .then((res) => res.fold(
                           (fail) => fail.when(
                               pageNotFound: () =>
@@ -160,7 +172,7 @@ class _BotonContinuarInspeccion extends StatelessWidget {
                               noHayConexionAlServidor: () =>
                                   "No hay conexión al servidor",
                               noHayInternet: () =>
-                                  "No tiene conexión a internet",
+                                  "Verifique su conexión a internet",
                               serverError: (msg) => "Error interno: $msg",
                               credencialesException: () =>
                                   'Error inesperado: intente inciar sesión nuevamente'),
@@ -188,7 +200,7 @@ class _BotonContinuarInspeccion extends StatelessWidget {
                 /// En caso de exito, se debe hacer esta consulta para obtener la insp
                 /// que se descargo desde la bd
                 final inspec = await repository.getInspeccionParaTerminar(
-                    int.parse(form.control('id').value as String));
+                    int.parse(form.control('codigoInsp').value as String));
 
                 /// Se abre la pantalla de llenado de inspección normal
                 ExtendedNavigator.of(context).pop(
@@ -210,6 +222,7 @@ class _BotonInicioInspeccion extends StatelessWidget {
   Widget build(BuildContext context) {
     final form = ReactiveForm.of(context) as FormGroup;
     return RaisedButton(
+      color: Theme.of(context).accentColor,
       onPressed: form.errors.isEmpty
           ? () => ExtendedNavigator.of(context).pop(
                 LlenadoFormPageArguments(

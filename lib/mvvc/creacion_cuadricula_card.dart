@@ -31,6 +31,10 @@ class CreadorCuadriculaCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Titulo',
             ),
+            textCapitalization: TextCapitalization.sentences,
+            keyboardType: TextInputType.multiline,
+            minLines: 1,
+            maxLines: 2,
           ),
           const SizedBox(height: 10),
           ReactiveTextField(
@@ -41,6 +45,7 @@ class CreadorCuadriculaCard extends StatelessWidget {
             keyboardType: TextInputType.multiline,
             minLines: 1,
             maxLines: 50,
+            textCapitalization: TextCapitalization.sentences,
           ),
           const SizedBox(height: 10),
           ValueListenableBuilder<List<SubSistema>>(
@@ -159,9 +164,16 @@ class WidgetPreguntas extends StatelessWidget {
                                   ReactiveTextField(
                                     formControl: element.control('titulo')
                                         as FormControl,
+                                    validationMessages: (control) =>
+                                        {'required': 'Escriba el titulo'},
                                     decoration: const InputDecoration(
                                       labelText: 'Titulo',
                                     ),
+                                    keyboardType: TextInputType.multiline,
+                                    minLines: 1,
+                                    maxLines: 3,
+                                    textCapitalization:
+                                        TextCapitalization.sentences,
                                   ),
                                 ],
                               ),

@@ -24,7 +24,7 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
         RepositoryProvider(
             create: (ctx) => getIt<InspeccionesRepository>(
                 param1: authBloc.state.maybeWhen(
-                    authenticated: (u) => u.token,
+                    authenticated: (u, s) => u.token,
                     orElse: () => throw Exception(
                         "Error inesperado: usuario no encontrado")))),
         RepositoryProvider(create: (_) => getIt<Database>()),
@@ -90,7 +90,11 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
                     /// Si no se ha subido apaarece la opción de subir.
                     leading: cuestionario.esLocal
                         ? IconButton(
-                            icon: const Icon(Icons.cloud_upload),
+                            icon: Icon(Icons.cloud_upload,
+                                color: cuestionario.estado ==
+                                        EstadoDeCuestionario.finalizada
+                                    ? Theme.of(context).accentColor
+                                    : Colors.grey),
                             onPressed: () async {
                               final estado = cuestionario.estado;
 
