@@ -118,7 +118,7 @@ class InicioInspeccionForm extends StatelessWidget {
                             formControlName: 'codigoInsp',
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
-                              labelText: 'Escriba el codigo de la inspección',
+                              labelText: 'Código de la inspección',
                               prefixIcon: Icon(Icons.directions_car),
                             ),
                           ),

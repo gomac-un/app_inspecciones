@@ -585,7 +585,9 @@ class BotonesGuardado extends StatelessWidget {
     // set up the buttons
     final cancelButton = FlatButton(
       onPressed: () => Navigator.of(context).pop(),
-      child: const Text("Cancelar"), // OJO con el context
+      child: Text("Cancelar",
+          style: TextStyle(
+              color: Theme.of(context).accentColor)), // OJO con el context
     );
     final Widget continueButton = FlatButton(
       onPressed: () async {
@@ -594,13 +596,44 @@ class BotonesGuardado extends StatelessWidget {
         /// Metodo que se llama independientemente de si es borrador o reparacion
         await guardarParaReparacion(context, estado);
       },
-      child: const Text("Aceptar"),
+      child: Text("Aceptar",
+          style: TextStyle(color: Theme.of(context).accentColor)),
     );
     // set up the AlertDialog
     final alert = AlertDialog(
-      title: const Text("Alerta"),
-      content: const Text(
-          "¿Está seguro que desea finalizar esta inspección? Si lo hace, no podrá editarla después "),
+      title: const Text("Finalizar"),
+      content: RichText(
+        text: TextSpan(
+          text: '¿Está seguro que desea finalizar esta inspección?\n',
+          style: TextStyle(
+              color: Theme.of(context).hintColor,
+              fontSize: 18,
+              fontWeight: FontWeight.bold),
+          children: <TextSpan>[
+            TextSpan(
+              text: 'Si lo hace, no podrá editarla después.\n\n',
+              style:
+                  TextStyle(color: Theme.of(context).hintColor, fontSize: 17),
+            ),
+            TextSpan(
+              text: 'IMPORTANTE: ',
+              style: TextStyle(
+                color: Theme.of(context).accentColor,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text:
+                  'En caso de que otro usuario deba terminar la inspección, presione cancelar, guarde el avance y envíela sin finalizar',
+              style:
+                  TextStyle(color: Theme.of(context).hintColor, fontSize: 15),
+            ),
+          ],
+        ),
+      ),
+      /* const Text(
+          "¿Está seguro que desea finalizar esta inspección?\n\n"), */
       actions: [
         cancelButton,
         continueButton,

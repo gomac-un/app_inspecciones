@@ -36,6 +36,7 @@ class PreguntaCard extends StatelessWidget {
               Text(
                 titulo,
                 style: Theme.of(context).textTheme.headline6,
+                textAlign: TextAlign.center,
               ),
             const SizedBox(height: 5),
             if (descripcion != null)

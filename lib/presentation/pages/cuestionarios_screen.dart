@@ -90,7 +90,11 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
                     /// Si no se ha subido apaarece la opción de subir.
                     leading: cuestionario.esLocal
                         ? IconButton(
-                            icon: const Icon(Icons.cloud_upload),
+                            icon: Icon(Icons.cloud_upload,
+                                color: cuestionario.estado ==
+                                        EstadoDeCuestionario.finalizada
+                                    ? Theme.of(context).accentColor
+                                    : Colors.grey),
                             onPressed: () async {
                               final estado = cuestionario.estado;
 

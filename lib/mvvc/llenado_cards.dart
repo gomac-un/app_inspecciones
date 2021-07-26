@@ -95,8 +95,9 @@ class RespuestaBaseForm extends StatelessWidget {
           ),
           keyboardType: TextInputType.multiline,
           maxLines: null,
-          textInputAction:
-              TextInputAction.next, /* 
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization
+              .sentences, /* 
             readOnly: readOnly, */
           /*  enableInteractiveSelection: !readOnly, */
         ),
@@ -164,6 +165,7 @@ class ReparacionForm extends StatelessWidget {
                     keyboardType: TextInputType.multiline,
                     maxLines: null,
                     textInputAction: TextInputAction.next,
+                    textCapitalization: TextCapitalization.sentences,
                   ),
                   const SizedBox(
                     height: 20,
@@ -266,10 +268,10 @@ class NumericaCard extends StatelessWidget {
           ReactiveTextField(
             formControl: formGroup.control('valor') as FormControl,
             validationMessages: (control) =>
-                {'required': 'El valor no puede estar vacio'},
+                {'required': 'Escriba la respuesta'},
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: "Escriba la respuesta",
+              labelText: "Ej. 45.65",
             ),
             enableInteractiveSelection: !readOnly,
             onTap: () => {
