@@ -19,7 +19,7 @@ class HistoryInspeccionesPage extends StatelessWidget
         RepositoryProvider(
             create: (ctx) => getIt<InspeccionesRepository>(
                 param1: authBloc.state.maybeWhen(
-                    authenticated: (u) => u.token,
+                    authenticated: (u, s) => u.token,
                     orElse: () => throw Exception(
                         "Error inesperado: usuario no encontrado")))),
         RepositoryProvider(create: (_) => getIt<Database>()),
