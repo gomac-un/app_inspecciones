@@ -40,12 +40,17 @@ class BorradoresDao extends DatabaseAccessor<Database>
     // Devuelve solo la cantidad
     return query.length;
   }
+
   /// Devuelve [List<Borrador>] con todas las inspecciones que han sido guardadas
   /// para mostrar en la UI en borradores_screen.dart
   Stream<List<Borrador>> borradores() {
     final query = select(inspecciones).join([
       innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
-    ])..where(isNull(inspecciones.momentoEnvio));
+    ])
+
+      /// Se filtran los que tengan momentoEnvio nulo, esto, porque también están quedando guardadas las enviadas para el historial
+      /// y estas no se muestran en la pantalla de borradores.
+      ..where(isNull(inspecciones.momentoEnvio));
 
     /// Agrupación del resultado de la consulta en la clase Borrador para manejarlo mejor en la UI
     return query
@@ -71,40 +76,31 @@ class BorradoresDao extends DatabaseAccessor<Database>
           ),
         );
   }
-  Stream<List<Borrador>> borradoresHistorial() {
-    final query = select(inspecciones).join([
-      innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
-    ])..where(isNotNull(inspecciones.momentoEnvio));
-
-    /// Agrupación del resultado de la consulta en la clase Borrador para manejarlo mejor en la UI
-    return query
-        .map((row) => Borrador(row.readTable(activos),
-        row.readTable(inspecciones), null, null, null))
-        .watch()
-        .asyncMap<List<Borrador>>(
-          (l) async => Future.wait<Borrador>(
-        l.map(
-              (b) async {
-            /// Se consulta el cuestionario asociado a cada inspección, para saber de que tipo es
-            final cuestionario = await db.getCuestionario(b.inspeccion);
-            return b.copyWith(
-                cuestionario: cuestionario,
-
-                /// Cantidad de preguntas respondidas
-                avance: await getTotalRespuesta(b.inspeccion.id),
-
-                /// Total de preguntas del cuestionario
-                total: await db.getTotalPreguntas(cuestionario.id));
-          },
-        ),
-      ),
-    );
-  }
 
   /// Elimina la inspección donde inspeccion.id = [borrador.inspeccion.id] y en cascada las respuestas asociadas
   Future eliminarBorrador(Borrador borrador) async {
     await (delete(inspecciones)
           ..where((ins) => ins.id.equals(borrador.inspeccion.id)))
+        .go();
+  }
+
+  /// Método usado cuando se envía inspección al server que actualiza el momento de envío y
+  /// elimina las respuestas
+  Future eliminarRespuestas(Borrador borrador) async {
+    /// Se está actualizando en la bd porque para el historial, la inspeccion no se va a borrar del cel
+    ///  y se necesita el momento de envio como constancia //TODO: implementar historial
+    await (update(inspecciones)
+          ..where((i) => i.id.equals(borrador.inspeccion.id)))
+        .write(
+      InspeccionesCompanion(
+        momentoEnvio: Value(DateTime.now()),
+      ),
+    );
+
+    /// Se eliminan las respuestas porque no es necesario para el historial y
+    /// no tiene sentido tenerlas ocupando espacio  en la bd
+    await (delete(respuestas)
+          ..where((res) => res.inspeccionId.equals(borrador.inspeccion.id)))
         .go();
   }
 

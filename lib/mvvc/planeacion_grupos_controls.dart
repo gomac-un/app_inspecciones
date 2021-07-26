@@ -1,33 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/mvvc/planeacion_grupos_validators.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import '../injection.dart';
 
 class CrearGrupoControl extends FormGroup {
   final _db = getIt<Database>();
-  final tiposDeInspeccion = ValueNotifier<List<TiposDeInspeccione>>([]);
+  final fechaInicioSelec = ValueNotifier<DateTime>(DateTime.now());
+  final fechaFinSelec =
+      ValueNotifier<DateTime>(DateTime.now().add(const Duration(days: 30)));
   CrearGrupoControl()
       : super(
           {
-            'cantidad': fb.control<int>(null,
-                [Validators.required, Validators.number, Validators.max(6)]),
-            'fechaInicio': fb.control<int>(1, [Validators.required]),
-            'tipoDeInspeccion': FormControl<TiposDeInspeccione>(
-                value: TiposDeInspeccione(id: null, tipo: ''),
-                validators: [Validators.required]),
-            'nuevoTipoDeInspeccion': FormControl<String>(value: ""),
+            'fechaInicio': fb.control<DateTime>(null, [Validators.required]),
+            'cantidad': fb.control<int>(null, [
+              Validators.required,
+              Validators.number /* , Validators.max(6) */
+            ]),
+            'fechaFin': fb.control<DateTime>(null, [Validators.required]),
+            'nombre': fb.control<String>(null, [Validators.required]),
           },
-          validators: [nuevoTipoDeInspeccion],
-          asyncValidators: [inspeccionesExistentes],
-        ) {
-    cargarDatos();
-  }
+        );
 
-  Future cargarDatos() async {
-    tiposDeInspeccion.value = await _db.planeacionDao.getInspeccionesSinGrupo();
-    tiposDeInspeccion.value.add(TiposDeInspeccione(tipo: 'Otra', id: null));
+  // ignore: use_setters_to_change_properties
+  void instanciarInicio(DateTime fecha, String tipo) {
+    tipo == 'inicio'
+        ? control('fechaInicio').value = fecha
+        : control('fechaFin').value = fecha;
   }
 
   List<GruposInspecciones> crearGrupos() {
@@ -48,7 +47,7 @@ class CrearGrupoControl extends FormGroup {
       final grupo = GruposInspecciones(
         inicio: inicio,
         fin: fechaFinal,
-        nGrupo:contador,
+        nGrupo: contador,
         anio: DateTime.now().year,
       );
       grupos.add(grupo);
@@ -79,7 +78,8 @@ class CrearGrupoControl extends FormGroup {
     if (tipoDeInspeccion.tipo == 'Otra') {
       grupoInspeccion = grupoInspeccion.copyWith(
         tipoInspeccion: TiposDeInspeccione(
-          tipo: control('nuevoTipoDeInspeccion').value as String, id: null,
+          tipo: control('nuevoTipoDeInspeccion').value as String,
+          id: null,
         ),
       );
     } else {

@@ -5,14 +5,14 @@ import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:inspecciones/mvvc/planeacion_grupos_controls.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-//FIXME: no recalcula cuando cambia el tipo de inspeccion
 Future<Map<String, dynamic>> inspeccionesExistentes(
   AbstractControl<dynamic> control,
 ) async {
   final form = control as CrearGrupoControl;
-
+  final fechaInicio = form.control('fechaInicio') as FormControl<DateTime>;
+  final fechaFin = form.control('fechaFin') as FormControl<DateTime>;
   final tipoDeInspeccion =
-      form.control('tipoDeInspeccion') as FormControl<TiposDeInspeccione>;
+      form.control('cantidad') as FormControl<TiposDeInspeccione>;
 
   final nuevaControl =
       form.control('nuevoTipoDeInspeccion') as FormControl<String>;

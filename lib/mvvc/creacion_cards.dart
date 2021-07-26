@@ -46,6 +46,7 @@ class CreadorTituloCard extends StatelessWidget {
               decoration: const InputDecoration(
                 labelText: 'Titulo de sección',
               ),
+              textCapitalization: TextCapitalization.sentences,
             ),
             const SizedBox(height: 10),
             ReactiveTextField(
@@ -57,6 +58,7 @@ class CreadorTituloCard extends StatelessWidget {
               keyboardType: TextInputType.multiline,
               minLines: 1,
               maxLines: 50,
+              textCapitalization: TextCapitalization.sentences,
             ),
 
             /// Row con widgets que permiten añadir o pegar otro bloque debajo del actual.
@@ -138,6 +140,10 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Título',
             ),
+            keyboardType: TextInputType.multiline,
+            minLines: 1,
+            maxLines: 3,
+            textCapitalization: TextCapitalization.sentences,
           ),
           const SizedBox(height: 10),
           ReactiveTextField(
@@ -148,6 +154,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             keyboardType: TextInputType.multiline,
             minLines: 1,
             maxLines: 50,
+            textCapitalization: TextCapitalization.sentences,
           ),
           const SizedBox(height: 10),
 
@@ -351,6 +358,10 @@ class WidgetRespuestas extends StatelessWidget {
                                 decoration: const InputDecoration(
                                   labelText: 'Respuesta',
                                 ),
+                                keyboardType: TextInputType.multiline,
+                                maxLines: 3,
+                                textCapitalization:
+                                    TextCapitalization.sentences,
                               ),
                             ),
                             IconButton(

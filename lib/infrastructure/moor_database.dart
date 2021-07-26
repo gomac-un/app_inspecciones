@@ -205,15 +205,6 @@ class Database extends _$Database {
   /// Devuelve json con [inspeccion] y sus respectivas respuestas
   Future<Map<String, dynamic>> getInspeccionConRespuestas(
       Inspeccion inspeccion) async {
-    /// Se está actualizando en la bd porque para el historial, la inspeccion no se va a borrar del cel
-    ///  y se necesita el momento de envio como constancia //TODO: implementar historial
-    await (update(inspecciones)..where((i) => i.id.equals(inspeccion.id)))
-        .write(
-      InspeccionesCompanion(
-        momentoEnvio: Value(DateTime.now()),
-      ),
-    );
-
     ///Se usa [copyWith] porque el cambio que se hizo en las lineas anteriores no se ve reflejado en inspecciones
     final jsonIns = inspeccion
         .copyWith(momentoEnvio: DateTime.now())
@@ -272,15 +263,22 @@ class Database extends _$Database {
 
     /// Así queda solo los campos de la inspección y se puede dar [inspeccionParseadas]
     json.remove('respuestas');
+
+    /// Se elimina momentoEnvio para que aparezca como borrador y no en el historial.
+    json.remove('momentoEnvio');
     final inspeccionParseadas = Inspeccion.fromJson(
       json,
       serializer: const CustomSerializer(),
-    ).copyWith(esNueva: false);
+      // ignore: avoid_redundant_argument_values
+    ).copyWith(esNueva: false, momentoEnvio: null);
 
     await customStatement('PRAGMA foreign_keys = OFF');
+
+    /// Inicia transacción para asegurar que se puedan insertar tanto la inspección como sus respuestas.
     await transaction(() async {
+      /// Puede que la insp ya exista en la bd, por el historial, así que si existe se actualiza, si no se inserta.
+      await into(inspecciones).insertOnConflictUpdate(inspeccionParseadas);
       await batch((b) {
-        b.insert(inspecciones, inspeccionParseadas);
         b.insertAll(respuestas, respuestasParseadas);
       });
     });

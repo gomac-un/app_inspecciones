@@ -20,8 +20,9 @@ class AuthListener extends StatelessWidget {
             initial: (_) => navState.pushReplacementNamed(Routes.splashPage),
 
             /// Si se desea cambiar la pantalla inicial que se ve al iniciar sesión, se debe reemplazar aquí
-            authenticated: (_) =>
-                navState.pushReplacementNamed(Routes.borradoresPage),
+            authenticated: (u) => u.sincronizado != null
+                ? navState.pushReplacementNamed(Routes.borradoresPage)
+                : navState.pushReplacementNamed(Routes.sincronizacionPage),
             unauthenticated: (_) =>
                 navState.pushReplacementNamed(Routes.loginScreen),
             loading: (_) {});

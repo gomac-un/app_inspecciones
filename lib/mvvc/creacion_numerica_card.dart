@@ -27,6 +27,10 @@ class TipoPreguntaCard extends StatelessWidget {
           decoration: const InputDecoration(
             labelText: 'Titulo',
           ),
+          keyboardType: TextInputType.multiline,
+          minLines: 1,
+          maxLines: 3,
+          textCapitalization: TextCapitalization.sentences,
         ),
         const SizedBox(height: 10),
         ReactiveTextField(
@@ -37,6 +41,7 @@ class TipoPreguntaCard extends StatelessWidget {
           keyboardType: TextInputType.multiline,
           minLines: 1,
           maxLines: 50,
+          textCapitalization: TextCapitalization.sentences,
         ),
         const SizedBox(height: 10),
         ValueListenableBuilder<List<SubSistema>>(
@@ -177,6 +182,7 @@ class CriticidadCard extends StatelessWidget {
                                 decoration: const InputDecoration(
                                   labelText: 'Valor Minimo',
                                 ),
+                                
                               ),
                             ),
                             Expanded(

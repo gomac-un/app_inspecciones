@@ -29,12 +29,13 @@ abstract class InspeccionesRemoteDataSource {
 @LazySingleton(as: InspeccionesRemoteDataSource)
 class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   /// Ruta base del serer.
-   static const _server =
-       'http://10.0.2.2:8000'; /* 'https://gomac.medellin.unal.edu.co' ; */
+  static const _server =
+      'https://gomac.medellin.unal.edu.co'; /* 'https://gomac.medellin.unal.edu.co' ; */
   /* http://pruebainsgomac.duckdns.org:8000' */
-  // static const _server = 'http://10.0.2.2:8000';
+  //static const _server = 'http://10.0.2.2:8000';
   /// Ruta base de la apo
   static const _apiBase = '/inspecciones/api/v1';
+
   static const _timeLimit = Duration(seconds: 5); //TODO: ajustar el timelimit
   final Usuario _usuario;
   String get token => _usuario.token;
@@ -85,6 +86,10 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   @override
   Future<Map<String, dynamic>> getRecurso(String recursoEndpoint) async {
     final url = _server + _apiBase + recursoEndpoint;
+    final hayInternet = await _hayInternet();
+    if (!hayInternet) {
+      throw InternetException();
+    }
     print("req: $url\ntoken:$token");
     final http.Response response = await http.get(
       url,
@@ -93,6 +98,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
       },
     ).timeout(_timeLimit);
     print("res: ${response.statusCode}\n${response.body}");
+
     if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body) as Map<String, dynamic>;
     } else if (response.statusCode == 401 || response.statusCode == 403) {

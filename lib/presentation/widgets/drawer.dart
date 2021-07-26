@@ -104,7 +104,7 @@ class UserDrawer extends StatelessWidget {
                       ),
                     ),
 
-                    /// La app muestra diferentes funcionalidades deendiendo de si [esAdmin]
+                    /// La app muestra diferentes funcionalidades dependiendo de si [esAdmin]
                     Opciones(esAdmin: esAdmin),
                   ],
                 ),
@@ -161,7 +161,7 @@ class Opciones extends StatelessWidget {
                 ),
               ),
               children: <Widget>[
-                Planificacion(/* conSize: iconSize, textSize: textSize */),
+                Planeacion(/* conSize: iconSize, textSize: textSize */),
               ],
             ),
           ), */
@@ -190,9 +190,9 @@ class Opciones extends StatelessWidget {
               /* iconSize: iconSize,
             textSize: textSize, */
               ),
-           LimpiezaBase(),
+          /*LimpiezaBase(),*/
           SincronizarConGomac(),
-          Card(
+          /* Card(
             child: ListTile(
               title: const Text('Ver base de datos',
                   style: TextStyle(
@@ -213,7 +213,7 @@ class Opciones extends StatelessWidget {
                 );
               },
             ),
-          ),
+          ), */
           LogOut(),
         ],
       );
@@ -221,7 +221,7 @@ class Opciones extends StatelessWidget {
       return Column(
         children: [
           Borradores(),
-           LimpiezaBase(),
+          /* LimpiezaBase(), */
           SincronizarConGomac(),
           LogOut(),
         ],
@@ -319,7 +319,7 @@ class LogOut extends StatelessWidget {
   }
 }
 
-class Planificacion extends StatelessWidget {
+class Planeacion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(

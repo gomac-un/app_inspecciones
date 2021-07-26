@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/mvvc/auth_listener_widget.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
+
 import 'injection.dart';
 
 Future main() async {
@@ -19,6 +21,12 @@ Future main() async {
   await FlutterDownloader.initialize();
   runApp(
     MaterialApp(
+      /// Permite 'internacionalizar' la app. Se usa para poder cambiar el idioma del calendario en
+      /// planeacion_grupos_cards.dart
+      localizationsDelegates:
+          // ignore: prefer_const_literals_to_create_immutables
+          [GlobalMaterialLocalizations.delegate],
+      supportedLocales: const [Locale('en', ''), Locale('es', '')],
       theme: customTheme,
       home: const SizedBox(),
       builder: ExtendedNavigator.builder(
