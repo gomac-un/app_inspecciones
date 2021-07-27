@@ -81,7 +81,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
       innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
     ])
 
-    /// Se filtran los que tengan momentoEnvio nulo, esto, porque también están quedando guardadas las enviadas para el historial
+    /// Se filtran los que tengan momentoEnvio no nulo, esto, porque también están quedando guardadas las enviadas para el historial
     /// y estas no se muestran en la pantalla de borradores.
       ..where(isNotNull(inspecciones.momentoEnvio));
 

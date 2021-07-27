@@ -190,7 +190,7 @@ class Opciones extends StatelessWidget {
               /* iconSize: iconSize,
             textSize: textSize, */
               ),
-          /*LimpiezaBase(),*/
+          LimpiezaBase(),
           SincronizarConGomac(),
            Card(
             child: ListTile(
@@ -221,7 +221,7 @@ class Opciones extends StatelessWidget {
       return Column(
         children: [
           Borradores(),
-          /* LimpiezaBase(), */
+          LimpiezaBase(),
           SincronizarConGomac(),
           LogOut(),
         ],
