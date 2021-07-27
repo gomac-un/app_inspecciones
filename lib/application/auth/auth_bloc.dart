@@ -39,6 +39,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       //y, finalmente se actualiza el estado a autenticado
       startingApp: () async* {
         final usuario = userRepository.getLocalUser();
+
         final lastSinc =
             getIt<UserRepository>().localPreferences.getUltimaActualizacion();
         yield usuario.fold(
@@ -46,7 +47,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           (usuario) {
             registrarAPI(usuario);
             return AuthState.authenticated(
-                usuario: usuario, sincronizado: lastSinc);
+              usuario: usuario,
+              sincronizado: lastSinc,
+            );
           },
         );
       },
