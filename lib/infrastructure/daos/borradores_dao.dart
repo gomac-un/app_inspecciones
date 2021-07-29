@@ -81,6 +81,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
     final query = select(inspecciones).join([
       innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
     ])
+    /// Se filtran los que tengan momentoEnvio No nulo
       ..where(isNotNull(inspecciones.momentoEnvio));
 
     /// Agrupación del resultado de la consulta en la clase Borrador para manejarlo mejor en la UI

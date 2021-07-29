@@ -8,6 +8,7 @@ import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
 
+/// Vista con el historial de las inspecciones enviadas satisfactoriamente al servidor
 class HistoryInspeccionesPage extends StatelessWidget
     implements AutoRouteWrapper {
   @override
@@ -39,7 +40,10 @@ class HistoryInspeccionesPage extends StatelessWidget
         actions: [
           Builder(
             builder: (context) => FlatButton(
-              child: const Text('Limpiar Historial', style: TextStyle(color: Colors.white, fontSize: 15),),
+              child: const Text(
+                'Limpiar Historial',
+                style: TextStyle(color: Colors.white, fontSize: 15),
+              ),
               onPressed: () => _clearHistory(context, toDelete),
             ),
           )
@@ -66,7 +70,9 @@ class HistoryInspeccionesPage extends StatelessWidget
           itemBuilder: (context, index) {
             final borrador = borradoresHistorial[index];
             toDelete.add(borrador);
-            toDelete.forEach((element) {print(element);});
+            toDelete.forEach((element) {
+              print(element);
+            });
             final _dateSend = borrador.inspeccion.momentoEnvio;
             return ListTile(
               tileColor: Theme.of(context).cardColor,
@@ -98,7 +104,10 @@ class HistoryInspeccionesPage extends StatelessWidget
       }),
     );
   }
-
+  ///Usado para eliminar el item del historial seleccionado
+  ///[borrador] item del historial seleccionado
+  /// [_noButton]: Privado Cancela la trasaccion de eliminar el item seleccionado
+  /// [_yesButton]: Privado Elimina la seleccion
   void _deleteBorrador(BuildContext context, Borrador borrador) {
     final _noButton = FlatButton(
         onPressed: () => Navigator.of(context).pop(), child: const Text("No"));
@@ -124,17 +133,20 @@ class HistoryInspeccionesPage extends StatelessWidget
         ]);
     showDialog(context: context, builder: (BuildContext context) => alert);
   }
-
+  /// Usado para limipiar el contenido del historial
+  /// [List<Borrador> toDelete] contiene todos los items de la vista que no han sido eliminados
+  /// [_noButton]: Privado Cancela la trasaccion de limipiar el historial
+  /// [_yesButton]: Privado Elimina todos los items que contiene [toDelete] de la vista
   void _clearHistory(BuildContext context, List<Borrador> toDelete) {
     final _noButton = FlatButton(
         onPressed: () => Navigator.of(context).pop(), child: const Text("No"));
     final _yesButton = FlatButton(
         onPressed: () async {
           Navigator.of(context).pop();
-          await toDelete.forEach((borrador) { 
+          await toDelete.forEach((borrador) {
             RepositoryProvider.of<Database>(context)
-              .borradoresDao
-              .eliminarBorrador(borrador);
+                .borradoresDao
+                .eliminarBorrador(borrador);
           });
           Scaffold.of(context).showSnackBar(const SnackBar(
             content: Text("Finalizado"),
