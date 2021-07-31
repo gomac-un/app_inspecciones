@@ -3,6 +3,7 @@ import 'package:inspecciones/mvvc/creacion_form_page.dart';
 import 'package:inspecciones/mvvc/llenado_form_page.dart';
 import 'package:inspecciones/presentation/pages/borradores_screen.dart';
 import 'package:inspecciones/presentation/pages/cuestionarios_screen.dart';
+import 'package:inspecciones/presentation/pages/history_screen.dart';
 import 'package:inspecciones/presentation/pages/login_screen.dart';
 import 'package:inspecciones/presentation/pages/sincronizacion_screen.dart';
 import 'package:inspecciones/presentation/pages/splash_screen.dart';
@@ -24,6 +25,7 @@ import 'presentation/pages/grupos_screen.dart';
     MaterialRoute(page: SincronizacionPage),
     MaterialRoute(page: CuestionariosPage),
     MaterialRoute(page: GruposScreen),
+    MaterialRoute(page: HistoryInspeccionesPage),
   ],
 )
 class $AutoRouter {}

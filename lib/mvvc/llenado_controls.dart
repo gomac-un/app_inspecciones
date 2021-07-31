@@ -117,9 +117,10 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
       respuestas = FormControl<List<OpcionDeRespuesta>>(
         value: opcionesElegidas.map((e) => e.opcionesDeRespuesta).toList(),
         validators: [
-          /* if (!(pregunta.pregunta.tipo ==
-              TipoDePregunta.parteDeCuadriculaMultiple)) */
-          Validators.minLength(1)
+          ///TODO: mirar como hacer para que las cuadriculas multiples no permitan finalizar un cuestionario sin responderlas.
+          if (!(pregunta.pregunta.tipo ==
+              TipoDePregunta.parteDeCuadriculaMultiple))
+            Validators.minLength(1)
         ],
       );
 

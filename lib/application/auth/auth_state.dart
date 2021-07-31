@@ -5,7 +5,7 @@ part of 'auth_bloc.dart';
 abstract class AuthState with _$AuthState {
   const factory AuthState.initial() = Initial;
 
-  /// [sincronizado] bool usado para saber si ha sincronizado alguna vez la app o no.
+  /// [sincronizado] DateTime usado para saber si ha sincronizado alguna vez la app o no,.
   const factory AuthState.authenticated(
       {Usuario usuario, DateTime sincronizado}) = Authenticated;
   const factory AuthState.unauthenticated() = Unauthenticated;

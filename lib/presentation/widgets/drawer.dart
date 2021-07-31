@@ -221,7 +221,7 @@ class Opciones extends StatelessWidget {
       return Column(
         children: [
           Borradores(),
-          /* LimpiezaBase(), */
+          LimpiezaBase(),
           SincronizarConGomac(),
           LogOut(),
         ],

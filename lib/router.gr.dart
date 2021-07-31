@@ -15,6 +15,7 @@ import 'mvvc/llenado_form_page.dart';
 import 'presentation/pages/borradores_screen.dart';
 import 'presentation/pages/cuestionarios_screen.dart';
 import 'presentation/pages/grupos_screen.dart';
+import 'presentation/pages/history_screen.dart';
 import 'presentation/pages/login_screen.dart';
 import 'presentation/pages/sincronizacion_screen.dart';
 import 'presentation/pages/splash_screen.dart';
@@ -28,6 +29,7 @@ class Routes {
   static const String sincronizacionPage = '/sincronizacion-page';
   static const String cuestionariosPage = '/cuestionarios-page';
   static const String gruposScreen = '/grupos-screen';
+  static const String historyInspeccionesPage = '/history-inspecciones-page';
   static const all = <String>{
     splashPage,
     loginScreen,
@@ -37,6 +39,7 @@ class Routes {
     sincronizacionPage,
     cuestionariosPage,
     gruposScreen,
+    historyInspeccionesPage,
   };
 }
 
@@ -52,6 +55,7 @@ class AutoRouter extends RouterBase {
     RouteDef(Routes.sincronizacionPage, page: SincronizacionPage),
     RouteDef(Routes.cuestionariosPage, page: CuestionariosPage),
     RouteDef(Routes.gruposScreen, page: GruposScreen),
+    RouteDef(Routes.historyInspeccionesPage, page: HistoryInspeccionesPage),
   ];
   @override
   Map<Type, AutoRouteFactory> get pagesMap => _pagesMap;
@@ -119,6 +123,12 @@ class AutoRouter extends RouterBase {
         settings: data,
       );
     },
+    HistoryInspeccionesPage: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => HistoryInspeccionesPage().wrappedRoute(context),
+        settings: data,
+      );
+    },
   };
 }
 
@@ -166,6 +176,9 @@ extension AutoRouterExtendedNavigatorStateX on ExtendedNavigatorState {
       push<dynamic>(Routes.cuestionariosPage);
 
   Future<dynamic> pushGruposScreen() => push<dynamic>(Routes.gruposScreen);
+
+  Future<dynamic> pushHistoryInspeccionesPage() =>
+      push<dynamic>(Routes.historyInspeccionesPage);
 }
 
 /// ************************************************************************
