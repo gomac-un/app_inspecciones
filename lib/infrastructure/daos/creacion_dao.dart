@@ -265,7 +265,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     /// En caso de que [cuestionario] no esté guardado en la BD
     if (cuestionario.id == null) return Future.value();
 
-    /// Si existe, se actualiza con los nuevos datos de [tipoDeInspeccion],[estado] y [sistemaId]
+    /// Si existe, se actualiza con los nuevos datos de [tipoDeInspeccion] y [estado]
     final query = select(cuestionarios)
       ..where((cues) => cues.id.equals(cuestionario.id));
 
@@ -274,7 +274,6 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
       CuestionariosCompanion(
         tipoDeInspeccion: Value(cuestionario.tipoDeInspeccion),
         estado: Value(cuestionario.estado),
-        sistemaId: Value(cuestionario.sistemaId),
       ),
     );
 
@@ -283,7 +282,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
 
   /// Crea un cuestionario en el momento que el usuario presiona guardar y lo devuelve
   ///
-  /// [cuestionario] trae la info de [tipoDeInspeccion],[estado] y [sistemaId] que son los unicos datos que se pueden actualizar.
+  /// [cuestionario] trae la info de [tipoDeInspeccion] y [estado] que son los unicos datos que se pueden actualizar.
   Future<Cuestionario> crearCuestionarioToSave(
       Cuestionario cuestionario) async {
     ///Primero lo iserta en la bd
@@ -291,7 +290,6 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
       CuestionariosCompanion.insert(
         tipoDeInspeccion: cuestionario.tipoDeInspeccion,
         estado: cuestionario.estado,
-        sistemaId: Value(cuestionario.sistemaId),
       ),
     );
 

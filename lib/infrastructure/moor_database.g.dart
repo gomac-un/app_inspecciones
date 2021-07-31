@@ -567,13 +567,11 @@ class $CuestionarioDeModelosTable extends CuestionarioDeModelos
 class Cuestionario extends DataClass implements Insertable<Cuestionario> {
   final int id;
   final String tipoDeInspeccion;
-  final int sistemaId;
   final EstadoDeCuestionario estado;
   final bool esLocal;
   Cuestionario(
       {@required this.id,
       @required this.tipoDeInspeccion,
-      this.sistemaId,
       @required this.estado,
       @required this.esLocal});
   factory Cuestionario.fromData(Map<String, dynamic> data, GeneratedDatabase db,
@@ -586,8 +584,6 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       tipoDeInspeccion: stringType.mapFromDatabaseResponse(
           data['${effectivePrefix}tipo_de_inspeccion']),
-      sistemaId:
-          intType.mapFromDatabaseResponse(data['${effectivePrefix}sistema_id']),
       estado: $CuestionariosTable.$converter0.mapToDart(
           intType.mapFromDatabaseResponse(data['${effectivePrefix}estado'])),
       esLocal:
@@ -602,9 +598,6 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     }
     if (!nullToAbsent || tipoDeInspeccion != null) {
       map['tipo_de_inspeccion'] = Variable<String>(tipoDeInspeccion);
-    }
-    if (!nullToAbsent || sistemaId != null) {
-      map['sistema_id'] = Variable<int>(sistemaId);
     }
     if (!nullToAbsent || estado != null) {
       final converter = $CuestionariosTable.$converter0;
@@ -622,9 +615,6 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
       tipoDeInspeccion: tipoDeInspeccion == null && nullToAbsent
           ? const Value.absent()
           : Value(tipoDeInspeccion),
-      sistemaId: sistemaId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(sistemaId),
       estado:
           estado == null && nullToAbsent ? const Value.absent() : Value(estado),
       esLocal: esLocal == null && nullToAbsent
@@ -639,7 +629,6 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     return Cuestionario(
       id: serializer.fromJson<int>(json['id']),
       tipoDeInspeccion: serializer.fromJson<String>(json['tipoDeInspeccion']),
-      sistemaId: serializer.fromJson<int>(json['sistema']),
       estado: serializer.fromJson<EstadoDeCuestionario>(json['estado']),
       esLocal: serializer.fromJson<bool>(json['esLocal']),
     );
@@ -650,7 +639,6 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'tipoDeInspeccion': serializer.toJson<String>(tipoDeInspeccion),
-      'sistema': serializer.toJson<int>(sistemaId),
       'estado': serializer.toJson<EstadoDeCuestionario>(estado),
       'esLocal': serializer.toJson<bool>(esLocal),
     };
@@ -659,13 +647,11 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
   Cuestionario copyWith(
           {int id,
           String tipoDeInspeccion,
-          int sistemaId,
           EstadoDeCuestionario estado,
           bool esLocal}) =>
       Cuestionario(
         id: id ?? this.id,
         tipoDeInspeccion: tipoDeInspeccion ?? this.tipoDeInspeccion,
-        sistemaId: sistemaId ?? this.sistemaId,
         estado: estado ?? this.estado,
         esLocal: esLocal ?? this.esLocal,
       );
@@ -674,7 +660,6 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
     return (StringBuffer('Cuestionario(')
           ..write('id: $id, ')
           ..write('tipoDeInspeccion: $tipoDeInspeccion, ')
-          ..write('sistemaId: $sistemaId, ')
           ..write('estado: $estado, ')
           ..write('esLocal: $esLocal')
           ..write(')'))
@@ -684,17 +669,14 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
   @override
   int get hashCode => $mrjf($mrjc(
       id.hashCode,
-      $mrjc(
-          tipoDeInspeccion.hashCode,
-          $mrjc(
-              sistemaId.hashCode, $mrjc(estado.hashCode, esLocal.hashCode)))));
+      $mrjc(tipoDeInspeccion.hashCode,
+          $mrjc(estado.hashCode, esLocal.hashCode))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is Cuestionario &&
           other.id == this.id &&
           other.tipoDeInspeccion == this.tipoDeInspeccion &&
-          other.sistemaId == this.sistemaId &&
           other.estado == this.estado &&
           other.esLocal == this.esLocal);
 }
@@ -702,20 +684,17 @@ class Cuestionario extends DataClass implements Insertable<Cuestionario> {
 class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
   final Value<int> id;
   final Value<String> tipoDeInspeccion;
-  final Value<int> sistemaId;
   final Value<EstadoDeCuestionario> estado;
   final Value<bool> esLocal;
   const CuestionariosCompanion({
     this.id = const Value.absent(),
     this.tipoDeInspeccion = const Value.absent(),
-    this.sistemaId = const Value.absent(),
     this.estado = const Value.absent(),
     this.esLocal = const Value.absent(),
   });
   CuestionariosCompanion.insert({
     this.id = const Value.absent(),
     @required String tipoDeInspeccion,
-    this.sistemaId = const Value.absent(),
     @required EstadoDeCuestionario estado,
     this.esLocal = const Value.absent(),
   })  : tipoDeInspeccion = Value(tipoDeInspeccion),
@@ -723,14 +702,12 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
   static Insertable<Cuestionario> custom({
     Expression<int> id,
     Expression<String> tipoDeInspeccion,
-    Expression<int> sistemaId,
     Expression<int> estado,
     Expression<bool> esLocal,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (tipoDeInspeccion != null) 'tipo_de_inspeccion': tipoDeInspeccion,
-      if (sistemaId != null) 'sistema_id': sistemaId,
       if (estado != null) 'estado': estado,
       if (esLocal != null) 'es_local': esLocal,
     });
@@ -739,13 +716,11 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
   CuestionariosCompanion copyWith(
       {Value<int> id,
       Value<String> tipoDeInspeccion,
-      Value<int> sistemaId,
       Value<EstadoDeCuestionario> estado,
       Value<bool> esLocal}) {
     return CuestionariosCompanion(
       id: id ?? this.id,
       tipoDeInspeccion: tipoDeInspeccion ?? this.tipoDeInspeccion,
-      sistemaId: sistemaId ?? this.sistemaId,
       estado: estado ?? this.estado,
       esLocal: esLocal ?? this.esLocal,
     );
@@ -759,9 +734,6 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
     }
     if (tipoDeInspeccion.present) {
       map['tipo_de_inspeccion'] = Variable<String>(tipoDeInspeccion.value);
-    }
-    if (sistemaId.present) {
-      map['sistema_id'] = Variable<int>(sistemaId.value);
     }
     if (estado.present) {
       final converter = $CuestionariosTable.$converter0;
@@ -778,7 +750,6 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
     return (StringBuffer('CuestionariosCompanion(')
           ..write('id: $id, ')
           ..write('tipoDeInspeccion: $tipoDeInspeccion, ')
-          ..write('sistemaId: $sistemaId, ')
           ..write('estado: $estado, ')
           ..write('esLocal: $esLocal')
           ..write(')'))
@@ -814,15 +785,6 @@ class $CuestionariosTable extends Cuestionarios
     );
   }
 
-  final VerificationMeta _sistemaIdMeta = const VerificationMeta('sistemaId');
-  GeneratedIntColumn _sistemaId;
-  @override
-  GeneratedIntColumn get sistemaId => _sistemaId ??= _constructSistemaId();
-  GeneratedIntColumn _constructSistemaId() {
-    return GeneratedIntColumn('sistema_id', $tableName, true,
-        $customConstraints: 'REFERENCES sistemas(id)');
-  }
-
   final VerificationMeta _estadoMeta = const VerificationMeta('estado');
   GeneratedIntColumn _estado;
   @override
@@ -845,8 +807,7 @@ class $CuestionariosTable extends Cuestionarios
   }
 
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, tipoDeInspeccion, sistemaId, estado, esLocal];
+  List<GeneratedColumn> get $columns => [id, tipoDeInspeccion, estado, esLocal];
   @override
   $CuestionariosTable get asDslTable => this;
   @override
@@ -868,10 +829,6 @@ class $CuestionariosTable extends Cuestionarios
               data['tipo_de_inspeccion'], _tipoDeInspeccionMeta));
     } else if (isInserting) {
       context.missing(_tipoDeInspeccionMeta);
-    }
-    if (data.containsKey('sistema_id')) {
-      context.handle(_sistemaIdMeta,
-          sistemaId.isAcceptableOrUnknown(data['sistema_id'], _sistemaIdMeta));
     }
     context.handle(_estadoMeta, const VerificationResult.success());
     if (data.containsKey('es_local')) {
@@ -1760,6 +1717,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
   final String posicion;
   final KtList<String> fotosGuia;
   final bool esCondicional;
+  final int sistemaId;
   final int bloqueId;
   final int subSistemaId;
   final TipoDePregunta tipo;
@@ -1771,6 +1729,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       this.posicion,
       @required this.fotosGuia,
       @required this.esCondicional,
+      this.sistemaId,
       @required this.bloqueId,
       this.subSistemaId,
       @required this.tipo});
@@ -1794,6 +1753,8 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           .mapFromDatabaseResponse(data['${effectivePrefix}fotos_guia'])),
       esCondicional: boolType
           .mapFromDatabaseResponse(data['${effectivePrefix}es_condicional']),
+      sistemaId:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}sistema_id']),
       bloqueId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}bloque_id']),
       subSistemaId: intType
@@ -1826,6 +1787,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
     }
     if (!nullToAbsent || esCondicional != null) {
       map['es_condicional'] = Variable<bool>(esCondicional);
+    }
+    if (!nullToAbsent || sistemaId != null) {
+      map['sistema_id'] = Variable<int>(sistemaId);
     }
     if (!nullToAbsent || bloqueId != null) {
       map['bloque_id'] = Variable<int>(bloqueId);
@@ -1860,6 +1824,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       esCondicional: esCondicional == null && nullToAbsent
           ? const Value.absent()
           : Value(esCondicional),
+      sistemaId: sistemaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sistemaId),
       bloqueId: bloqueId == null && nullToAbsent
           ? const Value.absent()
           : Value(bloqueId),
@@ -1881,6 +1848,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       posicion: serializer.fromJson<String>(json['posicion']),
       fotosGuia: serializer.fromJson<KtList<String>>(json['fotosGuia']),
       esCondicional: serializer.fromJson<bool>(json['esCondicional']),
+      sistemaId: serializer.fromJson<int>(json['sistema']),
       bloqueId: serializer.fromJson<int>(json['bloque']),
       subSistemaId: serializer.fromJson<int>(json['subSistema']),
       tipo: serializer.fromJson<TipoDePregunta>(json['tipo']),
@@ -1897,6 +1865,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       'posicion': serializer.toJson<String>(posicion),
       'fotosGuia': serializer.toJson<KtList<String>>(fotosGuia),
       'esCondicional': serializer.toJson<bool>(esCondicional),
+      'sistema': serializer.toJson<int>(sistemaId),
       'bloque': serializer.toJson<int>(bloqueId),
       'subSistema': serializer.toJson<int>(subSistemaId),
       'tipo': serializer.toJson<TipoDePregunta>(tipo),
@@ -1911,6 +1880,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           String posicion,
           KtList<String> fotosGuia,
           bool esCondicional,
+          int sistemaId,
           int bloqueId,
           int subSistemaId,
           TipoDePregunta tipo}) =>
@@ -1922,6 +1892,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
         posicion: posicion ?? this.posicion,
         fotosGuia: fotosGuia ?? this.fotosGuia,
         esCondicional: esCondicional ?? this.esCondicional,
+        sistemaId: sistemaId ?? this.sistemaId,
         bloqueId: bloqueId ?? this.bloqueId,
         subSistemaId: subSistemaId ?? this.subSistemaId,
         tipo: tipo ?? this.tipo,
@@ -1936,6 +1907,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           ..write('posicion: $posicion, ')
           ..write('fotosGuia: $fotosGuia, ')
           ..write('esCondicional: $esCondicional, ')
+          ..write('sistemaId: $sistemaId, ')
           ..write('bloqueId: $bloqueId, ')
           ..write('subSistemaId: $subSistemaId, ')
           ..write('tipo: $tipo')
@@ -1959,9 +1931,11 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
                           $mrjc(
                               esCondicional.hashCode,
                               $mrjc(
-                                  bloqueId.hashCode,
-                                  $mrjc(subSistemaId.hashCode,
-                                      tipo.hashCode))))))))));
+                                  sistemaId.hashCode,
+                                  $mrjc(
+                                      bloqueId.hashCode,
+                                      $mrjc(subSistemaId.hashCode,
+                                          tipo.hashCode)))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -1973,6 +1947,7 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           other.posicion == this.posicion &&
           other.fotosGuia == this.fotosGuia &&
           other.esCondicional == this.esCondicional &&
+          other.sistemaId == this.sistemaId &&
           other.bloqueId == this.bloqueId &&
           other.subSistemaId == this.subSistemaId &&
           other.tipo == this.tipo);
@@ -1986,6 +1961,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
   final Value<String> posicion;
   final Value<KtList<String>> fotosGuia;
   final Value<bool> esCondicional;
+  final Value<int> sistemaId;
   final Value<int> bloqueId;
   final Value<int> subSistemaId;
   final Value<TipoDePregunta> tipo;
@@ -1997,6 +1973,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     this.posicion = const Value.absent(),
     this.fotosGuia = const Value.absent(),
     this.esCondicional = const Value.absent(),
+    this.sistemaId = const Value.absent(),
     this.bloqueId = const Value.absent(),
     this.subSistemaId = const Value.absent(),
     this.tipo = const Value.absent(),
@@ -2009,6 +1986,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     this.posicion = const Value.absent(),
     this.fotosGuia = const Value.absent(),
     this.esCondicional = const Value.absent(),
+    this.sistemaId = const Value.absent(),
     @required int bloqueId,
     this.subSistemaId = const Value.absent(),
     @required TipoDePregunta tipo,
@@ -2025,6 +2003,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     Expression<String> posicion,
     Expression<String> fotosGuia,
     Expression<bool> esCondicional,
+    Expression<int> sistemaId,
     Expression<int> bloqueId,
     Expression<int> subSistemaId,
     Expression<int> tipo,
@@ -2037,6 +2016,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       if (posicion != null) 'posicion': posicion,
       if (fotosGuia != null) 'fotos_guia': fotosGuia,
       if (esCondicional != null) 'es_condicional': esCondicional,
+      if (sistemaId != null) 'sistema_id': sistemaId,
       if (bloqueId != null) 'bloque_id': bloqueId,
       if (subSistemaId != null) 'sub_sistema_id': subSistemaId,
       if (tipo != null) 'tipo': tipo,
@@ -2051,6 +2031,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       Value<String> posicion,
       Value<KtList<String>> fotosGuia,
       Value<bool> esCondicional,
+      Value<int> sistemaId,
       Value<int> bloqueId,
       Value<int> subSistemaId,
       Value<TipoDePregunta> tipo}) {
@@ -2062,6 +2043,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       posicion: posicion ?? this.posicion,
       fotosGuia: fotosGuia ?? this.fotosGuia,
       esCondicional: esCondicional ?? this.esCondicional,
+      sistemaId: sistemaId ?? this.sistemaId,
       bloqueId: bloqueId ?? this.bloqueId,
       subSistemaId: subSistemaId ?? this.subSistemaId,
       tipo: tipo ?? this.tipo,
@@ -2093,6 +2075,9 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     if (esCondicional.present) {
       map['es_condicional'] = Variable<bool>(esCondicional.value);
     }
+    if (sistemaId.present) {
+      map['sistema_id'] = Variable<int>(sistemaId.value);
+    }
     if (bloqueId.present) {
       map['bloque_id'] = Variable<int>(bloqueId.value);
     }
@@ -2116,6 +2101,7 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
           ..write('posicion: $posicion, ')
           ..write('fotosGuia: $fotosGuia, ')
           ..write('esCondicional: $esCondicional, ')
+          ..write('sistemaId: $sistemaId, ')
           ..write('bloqueId: $bloqueId, ')
           ..write('subSistemaId: $subSistemaId, ')
           ..write('tipo: $tipo')
@@ -2199,6 +2185,15 @@ class $PreguntasTable extends Preguntas
         defaultValue: const Constant(false));
   }
 
+  final VerificationMeta _sistemaIdMeta = const VerificationMeta('sistemaId');
+  GeneratedIntColumn _sistemaId;
+  @override
+  GeneratedIntColumn get sistemaId => _sistemaId ??= _constructSistemaId();
+  GeneratedIntColumn _constructSistemaId() {
+    return GeneratedIntColumn('sistema_id', $tableName, true,
+        $customConstraints: 'REFERENCES sistemas(id)');
+  }
+
   final VerificationMeta _bloqueIdMeta = const VerificationMeta('bloqueId');
   GeneratedIntColumn _bloqueId;
   @override
@@ -2240,6 +2235,7 @@ class $PreguntasTable extends Preguntas
         posicion,
         fotosGuia,
         esCondicional,
+        sistemaId,
         bloqueId,
         subSistemaId,
         tipo
@@ -2290,6 +2286,10 @@ class $PreguntasTable extends Preguntas
           _esCondicionalMeta,
           esCondicional.isAcceptableOrUnknown(
               data['es_condicional'], _esCondicionalMeta));
+    }
+    if (data.containsKey('sistema_id')) {
+      context.handle(_sistemaIdMeta,
+          sistemaId.isAcceptableOrUnknown(data['sistema_id'], _sistemaIdMeta));
     }
     if (data.containsKey('bloque_id')) {
       context.handle(_bloqueIdMeta,
@@ -2713,8 +2713,8 @@ class $OpcionesDeRespuestaTable extends OpcionesDeRespuesta
 class Inspeccion extends DataClass implements Insertable<Inspeccion> {
   final int id;
   final EstadoDeInspeccion estado;
-  final int criticidadTotal;
-  final int criticidadReparacion;
+  final double criticidadTotal;
+  final double criticidadReparacion;
   final DateTime momentoInicio;
   final DateTime momentoBorradorGuardado;
   final DateTime momentoFinalizacion;
@@ -2738,15 +2738,16 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
+    final doubleType = db.typeSystem.forDartType<double>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
     final boolType = db.typeSystem.forDartType<bool>();
     return Inspeccion(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       estado: $InspeccionesTable.$converter0.mapToDart(
           intType.mapFromDatabaseResponse(data['${effectivePrefix}estado'])),
-      criticidadTotal: intType
+      criticidadTotal: doubleType
           .mapFromDatabaseResponse(data['${effectivePrefix}criticidad_total']),
-      criticidadReparacion: intType.mapFromDatabaseResponse(
+      criticidadReparacion: doubleType.mapFromDatabaseResponse(
           data['${effectivePrefix}criticidad_reparacion']),
       momentoInicio: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}momento_inicio']),
@@ -2775,10 +2776,10 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
       map['estado'] = Variable<int>(converter.mapToSql(estado));
     }
     if (!nullToAbsent || criticidadTotal != null) {
-      map['criticidad_total'] = Variable<int>(criticidadTotal);
+      map['criticidad_total'] = Variable<double>(criticidadTotal);
     }
     if (!nullToAbsent || criticidadReparacion != null) {
-      map['criticidad_reparacion'] = Variable<int>(criticidadReparacion);
+      map['criticidad_reparacion'] = Variable<double>(criticidadReparacion);
     }
     if (!nullToAbsent || momentoInicio != null) {
       map['momento_inicio'] = Variable<DateTime>(momentoInicio);
@@ -2846,9 +2847,9 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
     return Inspeccion(
       id: serializer.fromJson<int>(json['id']),
       estado: serializer.fromJson<EstadoDeInspeccion>(json['estado']),
-      criticidadTotal: serializer.fromJson<int>(json['criticidadTotal']),
+      criticidadTotal: serializer.fromJson<double>(json['criticidadTotal']),
       criticidadReparacion:
-          serializer.fromJson<int>(json['criticidadReparacion']),
+          serializer.fromJson<double>(json['criticidadReparacion']),
       momentoInicio: serializer.fromJson<DateTime>(json['momentoInicio']),
       momentoBorradorGuardado:
           serializer.fromJson<DateTime>(json['momentoBorradorGuardado']),
@@ -2866,8 +2867,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'estado': serializer.toJson<EstadoDeInspeccion>(estado),
-      'criticidadTotal': serializer.toJson<int>(criticidadTotal),
-      'criticidadReparacion': serializer.toJson<int>(criticidadReparacion),
+      'criticidadTotal': serializer.toJson<double>(criticidadTotal),
+      'criticidadReparacion': serializer.toJson<double>(criticidadReparacion),
       'momentoInicio': serializer.toJson<DateTime>(momentoInicio),
       'momentoBorradorGuardado':
           serializer.toJson<DateTime>(momentoBorradorGuardado),
@@ -2882,8 +2883,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
   Inspeccion copyWith(
           {int id,
           EstadoDeInspeccion estado,
-          int criticidadTotal,
-          int criticidadReparacion,
+          double criticidadTotal,
+          double criticidadReparacion,
           DateTime momentoInicio,
           DateTime momentoBorradorGuardado,
           DateTime momentoFinalizacion,
@@ -2964,8 +2965,8 @@ class Inspeccion extends DataClass implements Insertable<Inspeccion> {
 class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
   final Value<int> id;
   final Value<EstadoDeInspeccion> estado;
-  final Value<int> criticidadTotal;
-  final Value<int> criticidadReparacion;
+  final Value<double> criticidadTotal;
+  final Value<double> criticidadReparacion;
   final Value<DateTime> momentoInicio;
   final Value<DateTime> momentoBorradorGuardado;
   final Value<DateTime> momentoFinalizacion;
@@ -2989,8 +2990,8 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
   InspeccionesCompanion.insert({
     this.id = const Value.absent(),
     @required EstadoDeInspeccion estado,
-    @required int criticidadTotal,
-    @required int criticidadReparacion,
+    @required double criticidadTotal,
+    @required double criticidadReparacion,
     this.momentoInicio = const Value.absent(),
     this.momentoBorradorGuardado = const Value.absent(),
     this.momentoFinalizacion = const Value.absent(),
@@ -3006,8 +3007,8 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
   static Insertable<Inspeccion> custom({
     Expression<int> id,
     Expression<int> estado,
-    Expression<int> criticidadTotal,
-    Expression<int> criticidadReparacion,
+    Expression<double> criticidadTotal,
+    Expression<double> criticidadReparacion,
     Expression<DateTime> momentoInicio,
     Expression<DateTime> momentoBorradorGuardado,
     Expression<DateTime> momentoFinalizacion,
@@ -3037,8 +3038,8 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
   InspeccionesCompanion copyWith(
       {Value<int> id,
       Value<EstadoDeInspeccion> estado,
-      Value<int> criticidadTotal,
-      Value<int> criticidadReparacion,
+      Value<double> criticidadTotal,
+      Value<double> criticidadReparacion,
       Value<DateTime> momentoInicio,
       Value<DateTime> momentoBorradorGuardado,
       Value<DateTime> momentoFinalizacion,
@@ -3073,10 +3074,11 @@ class InspeccionesCompanion extends UpdateCompanion<Inspeccion> {
       map['estado'] = Variable<int>(converter.mapToSql(estado.value));
     }
     if (criticidadTotal.present) {
-      map['criticidad_total'] = Variable<int>(criticidadTotal.value);
+      map['criticidad_total'] = Variable<double>(criticidadTotal.value);
     }
     if (criticidadReparacion.present) {
-      map['criticidad_reparacion'] = Variable<int>(criticidadReparacion.value);
+      map['criticidad_reparacion'] =
+          Variable<double>(criticidadReparacion.value);
     }
     if (momentoInicio.present) {
       map['momento_inicio'] = Variable<DateTime>(momentoInicio.value);
@@ -3154,12 +3156,12 @@ class $InspeccionesTable extends Inspecciones
 
   final VerificationMeta _criticidadTotalMeta =
       const VerificationMeta('criticidadTotal');
-  GeneratedIntColumn _criticidadTotal;
+  GeneratedRealColumn _criticidadTotal;
   @override
-  GeneratedIntColumn get criticidadTotal =>
+  GeneratedRealColumn get criticidadTotal =>
       _criticidadTotal ??= _constructCriticidadTotal();
-  GeneratedIntColumn _constructCriticidadTotal() {
-    return GeneratedIntColumn(
+  GeneratedRealColumn _constructCriticidadTotal() {
+    return GeneratedRealColumn(
       'criticidad_total',
       $tableName,
       false,
@@ -3168,12 +3170,12 @@ class $InspeccionesTable extends Inspecciones
 
   final VerificationMeta _criticidadReparacionMeta =
       const VerificationMeta('criticidadReparacion');
-  GeneratedIntColumn _criticidadReparacion;
+  GeneratedRealColumn _criticidadReparacion;
   @override
-  GeneratedIntColumn get criticidadReparacion =>
+  GeneratedRealColumn get criticidadReparacion =>
       _criticidadReparacion ??= _constructCriticidadReparacion();
-  GeneratedIntColumn _constructCriticidadReparacion() {
-    return GeneratedIntColumn(
+  GeneratedRealColumn _constructCriticidadReparacion() {
+    return GeneratedRealColumn(
       'criticidad_reparacion',
       $tableName,
       false,

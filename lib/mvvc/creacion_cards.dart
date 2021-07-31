@@ -158,10 +158,27 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          /// Cuando cambia el valor de sistema en el formulario base, los subsistemas tambien se actualizan
-          /// Este ValueListenableBuilder, escucha esos cambios y actualiza las opciones de susbsistema en cada preguta
+          /// Se puede elegir a que sistema está asociado la pregunta, dependiendo de ese sistema elegido, se cargan los subsistemas
+          ValueListenableBuilder<List<Sistema>>(
+            valueListenable: viewModel.sistemas,
+            builder: (context, value, child) {
+              return ReactiveDropdownField<Sistema>(
+                formControl: formGroup.control('sistema') as FormControl,
+                items: value
+                    .map((e) => DropdownMenuItem<Sistema>(
+                          value: e,
+                          child: Text(e.nombre),
+                        ))
+                    .toList(),
+                decoration: const InputDecoration(
+                  labelText: 'Sistema',
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
           ValueListenableBuilder<List<SubSistema>>(
-              valueListenable: viewModel.subSistemas,
+              valueListenable: formGroup.subSistemas,
               builder: (context, value, child) {
                 return ReactiveDropdownField<SubSistema>(
                   formControl: formGroup.control('subSistema') as FormControl,
@@ -360,6 +377,7 @@ class WidgetRespuestas extends StatelessWidget {
                                 ),
                                 keyboardType: TextInputType.multiline,
                                 maxLines: 3,
+                                minLines: 1,
                                 textCapitalization:
                                     TextCapitalization.sentences,
                               ),

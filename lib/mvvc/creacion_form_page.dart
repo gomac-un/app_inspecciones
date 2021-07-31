@@ -126,33 +126,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
                                 });
                       }),
                 ),
-                PreguntaCard(
-                  titulo: 'Sistema',
-                  child: ValueListenableBuilder<List<Sistema>>(
-                    valueListenable: formGroup.sistemas,
-                    builder: (context, value, child) {
-                      return ReactiveDropdownField<Sistema>(
-                        formControl:
-                            formGroup.control('sistema') as FormControl,
-                        validationMessages: (control) =>
-                            {'required': 'Seleccione el sistema'},
-                        items: value
-                            .map((e) => DropdownMenuItem<Sistema>(
-                                  value: e,
-                                  child: Text(e.nombre),
-                                ))
-                            .toList(),
-                        decoration: const InputDecoration(
-                          labelText: 'Sistema',
-                        ),
-                        onTap: () {
-                          FocusScope.of(context)
-                              .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-                        },
-                      );
-                    },
-                  ),
-                ),
+
                 PreguntaCard(
                   titulo: 'Contratista',
                   child: ValueListenableBuilder<List<Contratista>>(

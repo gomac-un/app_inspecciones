@@ -44,8 +44,26 @@ class TipoPreguntaCard extends StatelessWidget {
           textCapitalization: TextCapitalization.sentences,
         ),
         const SizedBox(height: 10),
+        ValueListenableBuilder<List<Sistema>>(
+          valueListenable: viewModel.sistemas,
+          builder: (context, value, child) {
+            return ReactiveDropdownField<Sistema>(
+              formControl: formGroup.control('sistema') as FormControl,
+              items: value
+                  .map((e) => DropdownMenuItem<Sistema>(
+                        value: e,
+                        child: Text(e.nombre),
+                      ))
+                  .toList(),
+              decoration: const InputDecoration(
+                labelText: 'Sistema',
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 10),
         ValueListenableBuilder<List<SubSistema>>(
-            valueListenable: viewModel.subSistemas,
+            valueListenable: formGroup.subSistemas,
             builder: (context, value, child) {
               return ReactiveDropdownField<SubSistema>(
                 formControl: formGroup.control('subSistema') as FormControl,
@@ -182,7 +200,6 @@ class CriticidadCard extends StatelessWidget {
                                 decoration: const InputDecoration(
                                   labelText: 'Valor Minimo',
                                 ),
-                                
                               ),
                             ),
                             Expanded(

@@ -13,7 +13,6 @@ import 'package:kt_dart/kt.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:simple_tooltip/simple_tooltip.dart';
 
 /// Cuando se selecciona una respuesta a la que se le pueda asignar una gravedad propia
 /// Se muestra esta Card
@@ -26,43 +25,57 @@ class CalificacionCard extends StatelessWidget {
       : super(key: key);
   @override
   Widget build(BuildContext context) {
-    final mostrarToolTip = ValueNotifier<bool>(false);
     if (controlRespuesta ?? false) {
       return Column(children: [
         const SizedBox(height: 10),
         const Text('Criticidad', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 5),
+        Text(
+          'Asigne una criticidad dependiendo del estado de la falla',
+          style: Theme.of(context).textTheme.caption,
+          textAlign: TextAlign.center,
+        ),
         Row(
           children: [
-            ValueListenableBuilder<bool>(
-              builder: (BuildContext context, value, Widget child) {
-                /// Se usa ToolTip para que las instrucciones no estén siempre ocupando tanto espacio en la pantalla
-                return SimpleTooltip(
-                  show: value,
-                  tooltipDirection: TooltipDirection.right,
-                  content: Text(
-                    "Asigne una criticidad dependiendo del estado de la falla, siendo 0 la menor y 4 la mayor",
-                    style: Theme.of(context).textTheme.subtitle2,
-                  ),
-                  ballonPadding: const EdgeInsets.all(2),
-                  borderColor: Theme.of(context).primaryColor,
-                  borderWidth: 0,
-                  child: IconButton(
-                      iconSize: 20,
-                      icon: const Icon(
-                        Icons.info,
-                      ),
-                      onPressed: () => mostrarToolTip.value == true
-                          ? mostrarToolTip.value = false
-                          : mostrarToolTip.value = true),
-                );
-              },
-              valueListenable: mostrarToolTip,
+            IconButton(
+              iconSize: 20,
+              icon: const Icon(
+                Icons.info,
+              ),
+              onPressed: () => showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text(
+                      'Nivel de gravedad de la falla',
+                      textAlign: TextAlign.center,
+                    ),
+                    content: Text(
+                      "Cada opción representa un porcentaje de la gravedad de la falla así:\n\n-Criticidad 1 representa el 55%\n-Criticidad 2 representa el 70%\n-Criticidad 3 representa el 80%\n-Criticidad 4 representa el 100%",
+                      style: Theme.of(context).textTheme.subtitle1,
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'Aceptar',
+                          /* style: TextStyle(
+                                color: Theme.of(context).accentColor) */
+                        ),
+                      )
+                    ],
+                  );
+                },
+              ),
             ),
             Expanded(
               child: ReactiveSlider(
                 formControl: controlCalificacion,
+                min: 1,
                 max: 4,
-                divisions: 4,
+                divisions: 3,
                 labelBuilder: (v) => v.round().toString(),
                 activeColor: Colors.red,
               ),
@@ -254,7 +267,7 @@ class NumericaCard extends StatelessWidget {
     return PreguntaCard(
       titulo: formGroup.pregunta.titulo,
       descripcion: formGroup.pregunta.descripcion,
-      criticidad: criticidad,
+      criticidad: criticidad.toDouble(),
       estado: mensajeCriticidad,
       child: Column(
         children: [
@@ -330,7 +343,7 @@ class SeleccionSimpleCard extends StatelessWidget {
     return PreguntaCard(
       titulo: formGroup.pregunta.pregunta.titulo,
       descripcion: formGroup.pregunta.pregunta.descripcion,
-      criticidad: criticidad,
+      criticidad: criticidad.toDouble(),
       estado: mensajeCriticidad,
       child: Builder(
         builder: (BuildContext context) {

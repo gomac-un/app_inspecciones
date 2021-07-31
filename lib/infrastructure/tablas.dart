@@ -51,10 +51,6 @@ class Cuestionarios extends Table {
 
   TextColumn get tipoDeInspeccion => text()();
 
-  @JsonKey('sistema')
-  IntColumn get sistemaId =>
-      integer().nullable().customConstraint('REFERENCES sistemas(id)')();
-
   IntColumn get estado => intEnum<EstadoDeCuestionario>()();
 
   /// Campo usado solo en la app para identificar los cuestionarios nuevos que deben ser enviados al server.
@@ -165,10 +161,14 @@ class Preguntas extends Table {
       .map(const ListInColumnConverter())
       .withDefault(const Constant("[]"))();
 
-  /// Campo usado paraa preguntas que actian otras dependiendo de laa respuesta.
+  /// Campo usado paraa preguntas que activan otras dependiendo de laa respuesta.
   //TODO: implementar
   BoolColumn get esCondicional =>
       boolean().withDefault(const Constant(false))();
+
+  @JsonKey('sistema')
+  IntColumn get sistemaId =>
+      integer().nullable().customConstraint('REFERENCES sistemas(id)')();
 
   @JsonKey('bloque')
   IntColumn get bloqueId =>
@@ -212,11 +212,13 @@ class Inspecciones extends Table {
 
   IntColumn get estado => intEnum<EstadoDeInspeccion>()();
 
-  IntColumn get criticidadTotal => integer()();
+  RealColumn get criticidadTotal => real()();
 
-  IntColumn get criticidadReparacion => integer()();
-/// Cuando se inicia la inspeccion
+  RealColumn get criticidadReparacion => real()();
+
+  /// Cuando se inicia la inspeccion
   DateTimeColumn get momentoInicio => dateTime().nullable()();
+
   /// Se actualiza cada que se presiona guardar en el llenado
   DateTimeColumn get momentoBorradorGuardado => dateTime().nullable()();
 
@@ -235,6 +237,7 @@ class Inspecciones extends Table {
       .customConstraint('REFERENCES activos(id) ON DELETE NO ACTION')();
 
   /// Esta columna es usada en la app para saber si es creada por el usuario o la descargó del servidor
+
   BoolColumn get esNueva => boolean().clientDefault(() => true)();
 
   @override

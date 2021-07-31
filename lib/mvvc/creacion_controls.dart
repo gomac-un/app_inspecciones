@@ -54,6 +54,8 @@ class CreadorTituloFormGroup extends FormGroup implements Copiable {
 ///  Control encargado de manejar las preguntas de tipo selección
 class CreadorPreguntaFormGroup extends FormGroup
     implements ConRespuestas, Copiable {
+  final ValueNotifier<List<SubSistema>> subSistemas;
+
   /// Si se llama al agregar un nuevo bloque (desde [BotonesBloque]), [preguntaPorDefecto] es null,
   /// Cuando se va a editar, [preguntaPorDefecto] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
   /// Cuando se usa copiar, [preguntaPorDefecto] se obtiene desde el método [toDataClass()]
@@ -69,6 +71,13 @@ class CreadorPreguntaFormGroup extends FormGroup
   }) {
     final d = defaultValue;
     final c = parteDeCuadricula;
+    final sistema = fb.control<Sistema>(null, [Validators.required]);
+    final subSistemas = ValueNotifier<List<SubSistema>>([]);
+
+    sistema.valueChanges.asBroadcastStream().listen((sistema) async {
+      subSistemas.value =
+          await getIt<Database>().creacionDao.getSubSistemas(sistema);
+    });
 
     /// Si es de cuadricula, no se debe requerir que elija el tipo e pregunta
     final tipoDePregunta = fb.control<TipoDePregunta>(
@@ -93,6 +102,7 @@ class CreadorPreguntaFormGroup extends FormGroup
       'titulo':
           fb.control<String>(d?.pregunta?.titulo ?? "", [Validators.required]),
       'descripcion': fb.control<String>(d?.pregunta?.descripcion ?? ""),
+      'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
       'posicion': fb.control<String>(d?.pregunta?.posicion ?? "No aplica"),
       'criticidad':
@@ -100,17 +110,15 @@ class CreadorPreguntaFormGroup extends FormGroup
       'fotosGuia': fb.array<File>(
           d?.pregunta?.fotosGuia?.iter?.map((e) => File(e))?.toList() ?? []),
       'tipoDePregunta': tipoDePregunta,
-      'condicional': fb.control<bool>(d?.pregunta?.esCondicional ?? false,
-          [if (!parteDeCuadricula & !esNumerica) Validators.required]),
       'respuestas': respuestas,
     };
 
-    return CreadorPreguntaFormGroup._(controles, d, c);
+    return CreadorPreguntaFormGroup._(controles, subSistemas, d, c);
   }
 
   ///Constructor que le envia los controles a la clase padre
   CreadorPreguntaFormGroup._(Map<String, AbstractControl<dynamic>> controles,
-      this.preguntaPorDefecto, this.parteDeCuadricula)
+      this.subSistemas, this.preguntaPorDefecto, this.parteDeCuadricula)
       : super(controles) {
     instanciarControls(preguntaPorDefecto);
 
@@ -131,8 +139,8 @@ class CreadorPreguntaFormGroup extends FormGroup
     return instancia;
   }*/
   Future<void> instanciarControls(PreguntaConOpcionesDeRespuesta d) async {
-    //controls['sistema'].value =
-    // await getIt<Database>().getSistemaPorId(d?.pregunta?.sistemaId);
+    controls['sistema'].value =
+        await getIt<Database>().getSistemaPorId(d?.pregunta?.sistemaId);
     controls['subSistema'].value =
         await getIt<Database>().getSubSistemaPorId(d?.pregunta?.subSistemaId);
   }
@@ -151,7 +159,7 @@ class CreadorPreguntaFormGroup extends FormGroup
         bloqueId: null,
         titulo: value['titulo'] as String ?? "      ",
         descripcion: value['descripcion'] as String,
-        // sistemaId: (value['sistema'] as Sistema)?.id,
+        sistemaId: (value['sistema'] as Sistema)?.id,
         subSistemaId: (value['subSistema'] as SubSistema)?.id,
         posicion: value['posicion'] as String,
         criticidad: (value['criticidad'] as double).round(),
@@ -185,7 +193,7 @@ class CreadorPreguntaFormGroup extends FormGroup
       preguntaPorDefecto?.pregunta?.copyWith(
             titulo: value['titulo'] as String ?? "     ",
             descripcion: value['descripcion'] as String,
-            //sistemaId: (value['sistema'] as Sistema)?.id,
+            sistemaId: (value['sistema'] as Sistema)?.id,
             subSistemaId: (value['subSistema'] as SubSistema)?.id,
             posicion: value['posicion'] as String,
             criticidad: (value['criticidad'] as double).round(),
@@ -374,10 +382,17 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
   }) {
     final d = cuadricula;
     final n = preguntasDeCuadricula;
+    final sistema = fb.control<Sistema>(null, [Validators.required]);
     final subSistemas = ValueNotifier<List<SubSistema>>([]);
+
+    sistema.valueChanges.asBroadcastStream().listen((sistema) async {
+      subSistemas.value =
+          await getIt<Database>().creacionDao.getSubSistemas(sistema);
+    });
     final Map<String, AbstractControl<dynamic>> controles = {
       'titulo': fb.control<String>(d?.cuadricula?.titulo ?? " "),
       'descripcion': fb.control<String>(d?.cuadricula?.descripcion ?? ""),
+      'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
       'posicion': fb.control<String>("no aplica"),
       'tipoDePregunta': fb.control<TipoDePregunta>(
@@ -420,8 +435,8 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
   //TODO: arreglar esto
 
   Future<void> instanciarControls(PreguntaConOpcionesDeRespuesta d) async {
-    // controls['sistema'].value =
-    //  await getIt<Database>().getSistemaPorId(d?.pregunta?.sistemaId);
+    controls['sistema'].value =
+        await getIt<Database>().getSistemaPorId(d?.pregunta?.sistemaId);
     controls['subSistema'].value =
         await getIt<Database>().getSubSistemaPorId(d?.pregunta?.subSistemaId);
     controls['posicion'].value = d?.pregunta?.posicion;
@@ -435,6 +450,7 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
     await Future.delayed(const Duration(
         seconds:
             1)); //machete para poder asignar el sistema sin que el constructor le asigne null despues
+    instancia.controls['sistema'].value = value['sistema'] as Sistema;
     instancia.controls['subSistema'].value = value['subSistema'] as SubSistema;
     instancia.controls['posicion'].value = value['posicion'] as String;
     instancia.controls['tipoDePregunta'].value =
@@ -538,6 +554,8 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
 /// FormGroup encargado de manejar la creación de preguntas numéricas
 class CreadorPreguntaNumericaFormGroup extends FormGroup
     implements Copiable, Numerica {
+  final ValueNotifier<List<SubSistema>> subSistemas;
+
   /// Si se llama al agregar un nuevo bloque (desde [BotonesBloque]), [preguntaPorDefecto] es null,
   /// Cuando se va a editar, [preguntaPorDefecto] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
   /// Cuando se usa copiar, [preguntaPorDefecto] se obtiene desde el método [toDataClass()]
@@ -547,11 +565,19 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
     PreguntaNumerica defaultValue,
   }) {
     final d = defaultValue;
+    final sistema = fb.control<Sistema>(null, [Validators.required]);
+    final subSistemas = ValueNotifier<List<SubSistema>>([]);
+
+    sistema.valueChanges.asBroadcastStream().listen((sistema) async {
+      subSistemas.value =
+          await getIt<Database>().creacionDao.getSubSistemas(sistema);
+    });
 
     final Map<String, AbstractControl<dynamic>> controles = {
       'titulo': fb
           .control<String>(d?.pregunta?.titulo ?? "  ", [Validators.required]),
       'descripcion': fb.control<String>(d?.pregunta?.descripcion ?? ""),
+      'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
       'posicion': fb.control<String>(d?.pregunta?.posicion ?? "no aplica"),
       'criticidad':
@@ -571,10 +597,12 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
       )
     };
 
-    return CreadorPreguntaNumericaFormGroup._(controles, d, d: d);
+    return CreadorPreguntaNumericaFormGroup._(controles, subSistemas, d, d: d);
   }
   CreadorPreguntaNumericaFormGroup._(
-      Map<String, AbstractControl<dynamic>> controles, this.preguntaPordefecto,
+      Map<String, AbstractControl<dynamic>> controles,
+      this.subSistemas,
+      this.preguntaPordefecto,
       {PreguntaNumerica d})
       : super(controles) {
     instanciarControls(d);
@@ -584,8 +612,8 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
 
   /// Consulta el subsistema de [d] en la bd por el id
   Future<void> instanciarControls(PreguntaNumerica d) async {
-    // controls['sistema'].value =
-    //     await getIt<Database>().getSistemaPorId(d?.pregunta?.sistemaId);
+    controls['sistema'].value =
+        await getIt<Database>().getSistemaPorId(d?.pregunta?.sistemaId);
     controls['subSistema'].value =
         await getIt<Database>().getSubSistemaPorId(d?.pregunta?.subSistemaId);
   }
@@ -605,7 +633,7 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
               bloqueId: null,
               titulo: value['titulo'] as String ?? '  ',
               descripcion: value['descripcion'] as String,
-              // sistemaId: (value['sistema'] as Sistema)?.id,
+              sistemaId: (value['sistema'] as Sistema)?.id,
               subSistemaId: (value['subSistema'] as SubSistema)?.id,
               posicion: value['posicion'] as String,
               criticidad: (value['criticidad'] as double).round(),
@@ -630,7 +658,7 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
         preguntaPordefecto?.pregunta?.copyWith(
               titulo: value['titulo'] as String ?? '  ',
               descripcion: value['descripcion'] as String,
-              //   sistemaId: (value['sistema'] as Sistema)?.id,
+              sistemaId: (value['sistema'] as Sistema)?.id,
               subSistemaId: (value['subSistema'] as SubSistema)?.id,
               posicion: value['posicion'] as String,
               criticidad: (value['criticidad'] as double).round(),

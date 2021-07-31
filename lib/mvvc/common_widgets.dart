@@ -10,7 +10,7 @@ class PreguntaCard extends StatelessWidget {
   final String descripcion;
 
   /// Criticidad de la pregunta.
-  final int criticidad;
+  final double criticidad;
 
   /// Para el mensaje de criticidad, puede ser total (Si la inspeccion esta finalizada) o parcial (en cualquier otro caso)
   final String estado;

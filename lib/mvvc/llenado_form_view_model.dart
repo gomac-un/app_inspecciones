@@ -91,8 +91,8 @@ class LlenadoFormViewModel extends ChangeNotifier {
   /// Guarda la inspección en la bd.
   Future guardarInspeccionEnLocal({
     @required EstadoDeInspeccion estado,
-    @required int criticidadTotal,
-    @required int criticidadReparacion,
+    @required double criticidadTotal,
+    @required double criticidadReparacion,
   }) async {
     form.markAllAsTouched();
     List<List<RespuestaConOpcionesDeRespuesta>> respuestas;
