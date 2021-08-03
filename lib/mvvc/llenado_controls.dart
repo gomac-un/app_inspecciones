@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:kt_dart/kt.dart';
@@ -17,7 +18,7 @@ class LlenadoOpcionFormGroup extends FormGroup {
 
     final Map<String, AbstractControl<dynamic>> controles = {
       'calificacion':
-          fb.control<double>(respuesta?.calificacion?.value?.toDouble() ?? 0),
+          fb.control<double>(respuesta?.calificacion?.value?.toDouble()),
       'respuesta': fb.control<OpcionDeRespuesta>(opcion, [Validators.required]),
       'fotosBase': fb.array<File>(
           respuesta?.fotosBase?.value
@@ -53,7 +54,7 @@ class LlenadoOpcionFormGroup extends FormGroup {
   RespuestaConOpcionesDeRespuesta toDB(DateTime momentoRespuesta) =>
       RespuestaConOpcionesDeRespuesta(
         respuesta?.copyWith(
-            calificacion: Value((value['calificacion'] as double).round()),
+            calificacion: Value((value['calificacion'] as double)?.round()),
             opcionDeRespuestaId:
                 Value((control('respuesta').value as OpcionDeRespuesta).id),
             fotosBase: Value((control('fotosBase') as FormArray<File>)
@@ -190,7 +191,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     final Map<String, AbstractControl<dynamic>> controles = {
       'respuestas': respuestas,
       'calificacion': fb.control<double>(
-          respuesta?.first?.respuesta?.calificacion?.value?.toDouble() ?? 0),
+          respuesta?.first?.respuesta?.calificacion?.value?.toDouble()),
       'respMultiple': respuestaMultiple,
       'fotosBase': fb.array<File>(
           respuesta?.first?.respuesta?.fotosBase?.value
@@ -238,16 +239,37 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     }); //guarda el momento de la ultima edicion
   }
 
+  /// Devuelve el porcentaje que representa la calificación dada por el inspector.
+  double _getPorcentaje(double calificacion) {
+    double porcentaje = 1;
+    switch (calificacion?.round()) {
+      case 1:
+        porcentaje = 0.55;
+        break;
+      case 2:
+        porcentaje = 0.70;
+        break;
+      case 3:
+        porcentaje = 0.85;
+        break;
+      case 4:
+        porcentaje = 1;
+        break;
+    }
+    return porcentaje;
+  }
+
   /// Devuelve la criticidad total de la pregunta sin reparación. criticidad pregunta * criticidad respuesta.
   @override
-  int get criticidad {
+  double get criticidad {
     /*TODO: calcular la criticidad de las multiples con las reglas de
       * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
       * solo para la pantalla de arreglos
       */
     /// Suma de la criticidad de las respuestas, incluye la dada por el creador del cuestionario
     /// más la calificación del inspector.
-    int sumres;
+
+    double sumres;
 
     switch (pregunta.pregunta.tipo) {
       case TipoDePregunta.multipleRespuesta:
@@ -262,11 +284,10 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
                   0,
                   (p, c) =>
                       p +
-                      (c as LlenadoOpcionFormGroup).opcion.criticidad +
-                      ((c as LlenadoOpcionFormGroup)
+                      ((c as LlenadoOpcionFormGroup).opcion.criticidad *
+                          _getPorcentaje((c as LlenadoOpcionFormGroup)
                               .control('calificacion')
-                              .value as double)
-                          .round());
+                              .value as double)));
         } else {
           sumres = 0;
         }
@@ -276,8 +297,8 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
             null) {
           sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
                   .value
-                  .criticidad +
-              (control('calificacion').value as double).round();
+                  .criticidad *
+              _getPorcentaje(control('calificacion').value as double);
         } else {
           sumres = 0;
         }
@@ -287,8 +308,8 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
             null) {
           sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
                   .value
-                  .criticidad +
-              (control('calificacion').value as double).round();
+                  .criticidad *
+              _getPorcentaje(control('calificacion').value as double);
         } else {
           sumres = 0;
         }
@@ -303,11 +324,10 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
                   0,
                   (p, c) =>
                       p +
-                      (c as LlenadoOpcionFormGroup).opcion.criticidad +
-                      ((c as LlenadoOpcionFormGroup)
+                      (c as LlenadoOpcionFormGroup).opcion.criticidad *
+                          _getPorcentaje((c as LlenadoOpcionFormGroup)
                               .control('calificacion')
-                              .value as double)
-                          .round());
+                              .value as double));
         } else {
           sumres = 0;
         }
@@ -317,12 +337,15 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
         throw Exception("tipo de pregunta no esperado");
     }
 
-    return pregunta.pregunta.criticidad * sumres;
+    /// Redondea la criticidad
+    final mod = pow(10.0, 2);
+    return (pregunta.pregunta.criticidad * sumres * mod).round().toDouble() /
+        mod;
   }
 
   /// Devuelve la criticidad después de la reparación. Si fue reparado es 0.
   @override
-  int get criticidadReparacion {
+  double get criticidadReparacion {
     if (control('reparado').value as bool) {
       return 0;
     } else {
@@ -330,28 +353,6 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     }
   }
 
-  /* int verificarSeccion(
-    String respuesta,
-    PreguntasCondicionalData secciones,
-  ) {
-    if (respuesta == secciones.opcionDeRespuesta) {
-      return secciones.seccion;
-    }
-    return null;
-  }
-
-  int get seccion {
-    if (pregunta.pregunta.esCondicional) {
-      final String respuesta =
-          (control('respuestas').value as OpcionDeRespuesta)?.texto;
-      final x = condiciones
-          ?.map((con) => verificarSeccion(respuesta, con))
-          ?.lastWhere((e) => e != null, orElse: () => null);
-
-      return x;
-    }
-    return null;
-  } */
   /// Devuelve la lista de todas las respuestas seleccionadas.
   List<RespuestaConOpcionesDeRespuesta> toDB() {
     if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta ||
@@ -456,17 +457,17 @@ class RespuestaNumericaFormGroup extends FormGroup
 
   /// Devuelve la criticidad de la pregunta dependiendo del valor introducido en el TextField
   @override
-  int get criticidad {
+  double get criticidad {
     final double respuesta = (control('valor') as FormControl<double>).value;
     final criRes = respuesta != null
         ? criticidades?.firstWhere(
-            (x) => respuesta >= x.valorMinimo && respuesta <= x.valorMaximo,
+            (x) => respuesta >= x.valorMinimo && respuesta < x.valorMaximo,
             orElse: () {
             return CriticidadesNumerica(criticidad: 0);
           })
         : CriticidadesNumerica(criticidad: 0);
 
-    return pregunta.criticidad * criRes.criticidad;
+    return (pregunta.criticidad * criRes.criticidad).toDouble();
   }
 
   /// Devuelve [RespuestaConOpcionesDeRespuesta]  porque así lo requiere el metodo [LlenadoFormViewModel.guardarInspeccionEnLocal()]
@@ -504,7 +505,7 @@ class RespuestaNumericaFormGroup extends FormGroup
   /// Devuelve criticidad despues de reparacion.
   /// Es cero si fue reparado.
   @override
-  int get criticidadReparacion {
+  double get criticidadReparacion {
     if (control('reparado').value as bool) {
       return 0;
     } else {
@@ -558,12 +559,12 @@ class RespuestaCuadriculaFormArray extends FormArray
   /// Devuelve la criticidad de la cuadricula.
   /// Es la suma de la criticidad de todas las preguntas.
   @override
-  int get criticidad {
+  double get criticidad {
     /*TODO: calcular la criticidad de las multiples con las reglas de
       * Sebastian o hacerlo en la bd dejando esta criticidad como axiliar 
       * solo para la pantalla de arreglos
       */
-    final int x = controls.map((d) {
+    final double x = controls.map((d) {
       final e = d as RespuestaSeleccionSimpleFormGroup;
       if (e.pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaUnica) {
         final ctrlPregunta =
@@ -585,8 +586,8 @@ class RespuestaCuadriculaFormArray extends FormArray
   }
 
   @override
-  int get criticidadReparacion {
-    final int x = controls.map((d) {
+  double get criticidadReparacion {
+    final double x = controls.map((d) {
       final e = d as RespuestaSeleccionSimpleFormGroup;
       if (e.control('reparado').value as bool) {
         return 0;
@@ -617,10 +618,10 @@ class TituloFormGroup extends FormGroup implements BloqueDeFormulario {
   TituloFormGroup(this.titulo) : super({});
 
   @override
-  int get criticidad => 0;
+  double get criticidad => 0;
 
   @override
-  int get criticidadReparacion => 0;
+  double get criticidadReparacion => 0;
 }
 
 RespuestasCompanion crearRespuestaPorDefecto(int preguntaId) =>
@@ -635,6 +636,6 @@ RespuestasCompanion crearRespuestaPorDefecto(int preguntaId) =>
     );
 
 abstract class BloqueDeFormulario {
-  int get criticidad;
-  int get criticidadReparacion;
+  double get criticidad;
+  double get criticidadReparacion;
 }

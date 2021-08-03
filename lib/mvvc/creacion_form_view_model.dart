@@ -55,6 +55,7 @@ class CreacionFormViewModel extends FormGroup {
   final _db = getIt<Database>();
 
   /// Estos ValueNotifier comienzan vacíos y se llenan con la funcion [cargarDatos()]
+  /// [sistemas] lista de todos los sistemas disponibles, se usan para elegir el sistema en cada pregunta.
   final sistemas = ValueNotifier<List<Sistema>>([]);
   final tiposDeInspeccion = ValueNotifier<List<String>>([]);
   final modelos = ValueNotifier<List<String>>([]);
@@ -62,7 +63,6 @@ class CreacionFormViewModel extends FormGroup {
 
   /// El estado inicial es borrador.
   final estado = ValueNotifier(EstadoDeCuestionario.borrador);
-  final ValueNotifier<List<SubSistema>> subSistemas;
 
   /// [cuestionario], [cuestionarioDeModelo] y [bloquesBD] No son null cuando es para edición.
   Cuestionario cuestionario;
@@ -71,6 +71,21 @@ class CreacionFormViewModel extends FormGroup {
 
   /// Se modifica cuando se copia un bloque desde creacion_controls.dart
   Copiable bloqueCopiado;
+  final ejes = [
+    "Primer eje",
+    "Segundo eje",
+    "Tercer eje",
+    "Entre primer y segundo eje",
+    "Entre segundo y tercer eje",
+    "Adelante",
+    "Atrás"
+  ];
+  final lados = [
+    'Izquierda',
+    'Centro',
+    'Derecha',
+  ];
+  final posZ = ['Arriba', 'Medio', 'Abajo'];
 
   factory CreacionFormViewModel({
     CuestionarioConContratista cuestionarioDeModelo,
@@ -82,24 +97,15 @@ class CreacionFormViewModel extends FormGroup {
 
     /// Estos bloques se envían cuando se hace clic en crear nuevo cuestionario
     ///
-    /// La cosa es que eso ralentiza la UI, porque hacce la consulta de los bloques antes de cargar esta pagina,
+    /// La cosa es que eso ralentiza la UI, porque hace la consulta de los bloques antes de cargar esta pagina,
     /// pero se desarrolló asi, porque el metodo que los carga es Future, y no se puede asignar un tipo Future<FormArray> a los controles
     /// //TODO: Mirar como solucionar esta parte
     final bloques = bloquesBD;
-    final sistema = fb.control<Sistema>(null, [Validators.required]);
-    final subSistemas = ValueNotifier<List<SubSistema>>([]);
-
-    /// Cuando cambia el valor de [sistema] se cargan los valores de [subSistemas]
-    sistema.valueChanges.asBroadcastStream().listen((sistema) async {
-      subSistemas.value =
-          await getIt<Database>().creacionDao.getSubSistemas(sistema);
-    });
 
     final Map<String, AbstractControl<dynamic>> controles = {
       'tipoDeInspeccion': FormControl<String>(
           value: cuestionario?.tipoDeInspeccion ?? '',
           validators: [Validators.required]),
-      'sistema': sistema,
       'nuevoTipoDeInspeccion': FormControl<String>(value: ""),
       'contratista': FormControl<Contratista>(
           value: cuestionarioDeModelo?.contratista,
@@ -121,17 +127,12 @@ class CreacionFormViewModel extends FormGroup {
       //agrega un titulo inicial
     };
 
-    return CreacionFormViewModel._(
-        controles, subSistemas, modelo, cuesti, bloques);
+    return CreacionFormViewModel._(controles, modelo, cuesti, bloques);
   }
 
   //constructor que le envia los controles a la clase padre
-  CreacionFormViewModel._(
-      Map<String, AbstractControl<dynamic>> controles,
-      this.subSistemas,
-      this.cuestionarioDeModelo,
-      this.cuestionario,
-      this.bloquesBD)
+  CreacionFormViewModel._(Map<String, AbstractControl<dynamic>> controles,
+      this.cuestionarioDeModelo, this.cuestionario, this.bloquesBD)
       : super(
           controles,
           asyncValidators: [cuestionariosExistentes],
@@ -158,8 +159,6 @@ class CreacionFormViewModel extends FormGroup {
 
     /// Si cuestionario es nuevo, se le asigna borrador.
     estado.value = cuestionario?.estado ?? EstadoDeCuestionario.borrador;
-    controls['sistema'].value =
-        await getIt<Database>().getSistemaPorId(cuestionario?.sistemaId);
 
     /* if (cuestionario != null) {
       bloquesBD.forEach(
@@ -221,7 +220,6 @@ class CreacionFormViewModel extends FormGroup {
       esLocal: null,
       id: cuestionarioId,
       estado: estado,
-      sistemaId: (control('sistema').value as Sistema)?.id,
     );
 
     final List<CuestionarioDeModelo> nuevoscuestionariosDeModelos =

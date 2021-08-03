@@ -194,8 +194,14 @@ class Database extends _$Database {
   }
 
   /// Devuelve inspección con id = [id] cuando se descargó del server y se va a llenar desde la app
-  Future<Inspeccion> getInspeccionParaTerminar(int id) =>
-      (select(inspecciones)..where((ins) => ins.id.equals(id))).getSingle();
+  Future<Inspeccion> getInspeccionParaTerminar(int id) {
+    /// Se elimina momentoEnvio para que aparezca como borrador y no en el historial.
+    (update(inspecciones)..where((c) => c.id.equals(id))).write(
+        const InspeccionesCompanion(
+            momentoEnvio: Value(null), esNueva: Value(false)));
+    return (select(inspecciones)..where((ins) => ins.id.equals(id)))
+        .getSingle();
+  }
 
   /// marca [cuestionario.esLocal] = false cuando [cuestionario] es subido al server
   Future marcarCuestionarioSubido(Cuestionario cuestionario) =>
@@ -264,13 +270,11 @@ class Database extends _$Database {
     /// Así queda solo los campos de la inspección y se puede dar [inspeccionParseadas]
     json.remove('respuestas');
 
-    /// Se elimina momentoEnvio para que aparezca como borrador y no en el historial.
-    json.remove('momentoEnvio');
     final inspeccionParseadas = Inspeccion.fromJson(
       json,
       serializer: const CustomSerializer(),
       // ignore: avoid_redundant_argument_values
-    ).copyWith(esNueva: false, momentoEnvio: null);
+    );
 
     await customStatement('PRAGMA foreign_keys = OFF');
 

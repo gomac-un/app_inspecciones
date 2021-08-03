@@ -95,14 +95,14 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
 
                       /// Suma la criticidad de todas las preguntas y respuestas.
                       final criticidadTotal = viewModel.bloques.controls
-                          .fold<int>(
+                          .fold<double>(
                               0,
                               (p, c) =>
                                   p + (c as BloqueDeFormulario).criticidad);
 
                       /// Suma la criticidad de las preguntas despues de la reparación.
                       final criticidadReparacion = viewModel.bloques.controls
-                          .fold<int>(
+                          .fold<double>(
                               0,
                               (p, c) =>
                                   p +
@@ -271,11 +271,11 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
 class BotonesComunes extends StatelessWidget {
   final String titulo;
   final EstadoDeInspeccion estado;
-  final int criticidadTotal;
+  final double criticidadTotal;
   final int totalBloques;
   final String titulo1;
 
-  final int criticidadReparacion;
+  final double criticidadReparacion;
   final int i;
   final PageController controller;
 
@@ -399,7 +399,7 @@ class BotonesComunes extends StatelessWidget {
                           color: Colors.green[200], /* color: Colors.white, */
                         ),
                       Text(
-                        ' ${criticidadReparacion.toString()}',
+                        ' ${criticidadReparacion.toStringAsFixed(2)}',
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                     ],
@@ -448,12 +448,12 @@ class BotonesGuardado extends StatelessWidget {
               label: 'Guardar',
               onPressed: () async {
                 /// Suma criticidad de todas las preguntas y sus respuestas
-                final criticidadTotal = viewModel.bloques.controls.fold<int>(
+                final criticidadTotal = viewModel.bloques.controls.fold<double>(
                     0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
 
                 /// Suma criticidad de todas las preguntas despues de la reparación.
                 final criticidadReparacion = viewModel.bloques.controls
-                    .fold<int>(
+                    .fold<double>(
                         0,
                         (p, c) =>
                             p + (c as BloqueDeFormulario).criticidadReparacion);
@@ -650,7 +650,7 @@ class BotonesGuardado extends StatelessWidget {
       );
     } else if (estado == EstadoDeInspeccion.borrador) {
       final criticidadTotal = viewModel.bloques.controls
-          .fold<int>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+          .fold<double>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
 
       /// Si es borrador, pero no presentó ninguna novedad, puede finalizar
       if (criticidadTotal <= 0) {
@@ -675,9 +675,9 @@ class BotonesGuardado extends StatelessWidget {
     final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
     switch (estadoIns) {
       case EstadoDeInspeccion.borrador:
-        final criticidadTotal = viewModel.bloques.controls
-            .fold<int>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
-        final criticidadReparacion = viewModel.bloques.controls.fold<int>(
+        final criticidadTotal = viewModel.bloques.controls.fold<double>(
+            0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+        final criticidadReparacion = viewModel.bloques.controls.fold<double>(
             0, (p, c) => p + (c as BloqueDeFormulario).criticidadReparacion);
         if (criticidadTotal > 0) {
           /// Si no tiene que pasar a pantalla de reparaciones, solamente se guarda y cambia de estado a reparación.
@@ -715,8 +715,8 @@ class BotonesGuardado extends StatelessWidget {
   Future guardarYSalir(BuildContext context) async {
     final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
     final criticidadTotal = viewModel.bloques.controls
-        .fold<int>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
-    final criticidadReparacion = viewModel.bloques.controls.fold<int>(
+        .fold<double>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+    final criticidadReparacion = viewModel.bloques.controls.fold<double>(
         0, (p, c) => p + (c as BloqueDeFormulario).criticidadReparacion);
     viewModel.estado.value = EstadoDeInspeccion.finalizada;
     LoadingDialog.show(context);

@@ -62,48 +62,15 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
             ) */
         ),
         actions: [
-          /* IconButton(
-            onPressed: () {
-              //TODO: implementar el historial
-              showDialog(
-                  context: context,
-                  builder: (_) => AlertDialog(
-                        title: Text("Historial",
-                            style: TextStyle(
-                                color: Theme.of(context).accentColor)),
-                        content: SingleChildScrollView(
-                          child: Column(children: [
-                            for (var i = 0; i < 1000; i += 1) Text(i.toString())
-                          ]),
-                        ),
-                        actions: <Widget>[
-                          FlatButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('Borrar',
-                                style: TextStyle(
-                                    color: Theme.of(context).accentColor)),
-                          ),
-                          FlatButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('Cerrar',
-                                style: TextStyle(
-                                    color: Theme.of(context).accentColor)),
-                          ),
-                        ],
-                      ));
-            },
-            icon: const Icon(
-              Icons.history,
-            ),
-            tooltip: "Historial",
-          ),
-          const SizedBox(
-            width: 5,
-          ), */
+          // ExtendedNavigator.of(context)
+          //     .push(Routes.llenadoFormPage, arguments: res)
+          IconButton(
+              icon: const Icon(Icons.history),
+              onPressed: () {
+                ExtendedNavigator.of(context)
+                    .push(Routes.historyInspeccionesPage);
+              }),
+
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.asset(

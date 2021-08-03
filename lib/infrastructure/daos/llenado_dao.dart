@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:intl/intl.dart';
@@ -67,7 +69,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     ).map((row) => Cuestionario.fromData(row.data, db)).get();
   }
 
-  /// Revisa si existe una inspeccion para cuestionario con id=[cuestionarioId] empezada  y la devuelve
+  /// Revisa si existe una inspeccionpara cuestionario con id=[cuestionarioId] empezada  y la devuelve
   /// en caso de que no exista devuelve null
   Future<Inspeccion> getInspeccion(int activoId, int cuestionarioId) {
     if (cuestionarioId == null || activoId == null) return Future.value();
@@ -75,7 +77,11 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       ..where(
         (ins) =>
             ins.cuestionarioId.equals(cuestionarioId) &
-            ins.activoId.equals(activoId),
+            ins.activoId.equals(activoId) &
+
+            /// Pueden haber muchas inspecciones del mismo cuestionario para el mismo activo en la bd, pero aparecen solo en el historial
+            /// así que se filtra solo las que no hayan sido enviadas.
+            isNull(ins.momentoEnvio),
       );
 
     return query.getSingle();
@@ -309,7 +315,10 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     final inspeccion = await (select(inspecciones)
           ..where((tbl) =>
               tbl.cuestionarioId.equals(cuestionarioId) &
-              tbl.activoId.equals(activoId)))
+              tbl.activoId.equals(activoId) &
+
+              /// Para no cargar las que están en el historial
+              isNull(tbl.momentoEnvio)))
         .getSingle();
 
     final inspeccionId = inspeccion?.id;
@@ -350,10 +359,10 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       EstadoDeInspeccion estado,
 
       /// Criticidad de la inspección antes de reparaciones.
-      int criticidad,
+      double criticidad,
 
       /// Criticidad de la inspección después de reparaciones.
-      int criticidadReparacion) async {
+      double criticidadReparacion) async {
     if (activo == null) throw Exception("activo nulo");
     final ins = InspeccionesCompanion.insert(
       id: Value(generarId(activo)),
@@ -376,28 +385,33 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       EstadoDeInspeccion estado,
 
       /// Criticidad de la inspección antes de reparaciones.
-      int criticidad,
+      double criticidad,
 
       /// Criticidad de la inspección después de reparaciones.
-      int criticidadReparacion) async {
+      double criticidadReparacion) async {
     return transaction(() async {
+      /// Se redondea para evitar que se guarde en la bd un montón de decimales.
+      final mod = pow(10.0, 2);
+      final critiRound = (criticidad * mod).round().toDouble() / mod;
+      final critiRepaRound =
+          (criticidadReparacion * mod).round().toDouble() / mod;
+
       /// Se consulta si ya existe una inspección para [activoId] y si no existe se crea.
       Inspeccion ins = await getInspeccion(activoId, cuestionarioId);
       ins ??= await crearInspeccion(
-          cuestionarioId, activoId, estado, criticidad, criticidadReparacion);
-
+          cuestionarioId, activoId, estado, critiRound, critiRepaRound);
       await (update(inspecciones)..where((i) => i.id.equals(ins.id))).write(
         estado == EstadoDeInspeccion.finalizada
             ? InspeccionesCompanion(
                 momentoFinalizacion: Value(DateTime.now()),
                 estado: Value(estado),
-                criticidadTotal: Value(criticidad),
-                criticidadReparacion: Value(criticidadReparacion))
+                criticidadTotal: Value(critiRound),
+                criticidadReparacion: Value(critiRepaRound))
             : InspeccionesCompanion(
                 momentoBorradorGuardado: Value(DateTime.now()),
                 estado: Value(estado),
-                criticidadTotal: Value(criticidad),
-                criticidadReparacion: Value(criticidadReparacion),
+                criticidadTotal: Value(critiRound),
+                criticidadReparacion: Value(critiRepaRound),
               ),
       );
 

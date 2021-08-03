@@ -6,6 +6,7 @@ import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_cards.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
+import 'package:inspecciones/presentation/pages/ayuda_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -48,11 +49,33 @@ class CreadorCuadriculaCard extends StatelessWidget {
             textCapitalization: TextCapitalization.sentences,
           ),
           const SizedBox(height: 10),
+          ValueListenableBuilder<List<Sistema>>(
+            valueListenable: viewModel.sistemas,
+            builder: (context, value, child) {
+              return ReactiveDropdownField<Sistema>(
+                formControl: formGroup.control('sistema') as FormControl,
+                validationMessages: (control) =>
+                    {'required': 'Elija el sistema'},
+                items: value
+                    .map((e) => DropdownMenuItem<Sistema>(
+                          value: e,
+                          child: Text(e.nombre),
+                        ))
+                    .toList(),
+                decoration: const InputDecoration(
+                  labelText: 'Sistema',
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
           ValueListenableBuilder<List<SubSistema>>(
-              valueListenable: viewModel.subSistemas,
+              valueListenable: formGroup.subSistemas,
               builder: (context, value, child) {
                 return ReactiveDropdownField<SubSistema>(
                   formControl: formGroup.control('subSistema') as FormControl,
+                  validationMessages: (control) =>
+                      {'required': 'Elija el subSistema'},
                   items: value
                       .map((e) => DropdownMenuItem<SubSistema>(
                             value: e,
@@ -68,23 +91,95 @@ class CreadorCuadriculaCard extends StatelessWidget {
                   },
                 );
               }),
-          const SizedBox(height: 10),
+          const SizedBox(height: 5),
+          const Divider(height: 15, color: Colors.black),
+          Row(
+            children: [
+              const Expanded(
+                flex: 3,
+                child: Text(
+                  'Posición',
+                  textAlign: TextAlign.start,
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (BuildContext context) => AyudaPage()));
+                  },
+                  child: const Text(
+                    '¿Necesitas ayuda?',
+                    textAlign: TextAlign.end,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
           ReactiveDropdownField<String>(
-            formControl: formGroup.control('posicion') as FormControl,
-            items: ["No aplica", "Adelante", "Atrás", 'Izquierda', 'Derecha']
+            formControl: formGroup.control('eje') as FormControl,
+            validationMessages: (control) =>
+                {'required': 'Este valor es requerido'},
+            items: viewModel
+                .ejes //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),
                     ))
                 .toList(),
             decoration: const InputDecoration(
-              labelText: 'Posicion',
+              labelText: 'Posición Y',
             ),
             onTap: () {
               FocusScope.of(context)
                   .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
             },
           ),
+          const SizedBox(height: 10),
+          ReactiveDropdownField<String>(
+            formControl: formGroup.control('lado') as FormControl,
+            validationMessages: (control) =>
+                {'required': 'Este valor es requerido'},
+            items: viewModel
+                .lados //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+                .map((e) => DropdownMenuItem<String>(
+                      value: e,
+                      child: Text(e),
+                    ))
+                .toList(),
+            decoration: const InputDecoration(
+              labelText: 'Posición X',
+            ),
+            onTap: () {
+              FocusScope.of(context)
+                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+            },
+          ),
+          const SizedBox(height: 10),
+          ReactiveDropdownField<String>(
+            formControl: formGroup.control('posicionZ') as FormControl,
+            validationMessages: (control) =>
+                {'required': 'Este valor es requerido'},
+            items: viewModel
+                .posZ //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+                .map((e) => DropdownMenuItem<String>(
+                      value: e,
+                      child: Text(e),
+                    ))
+                .toList(),
+            decoration: const InputDecoration(
+              labelText: 'Posición Z',
+            ),
+            onTap: () {
+              FocusScope.of(context)
+                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+            },
+          ),
+          const SizedBox(height: 10),
           const SizedBox(height: 10),
           ReactiveDropdownField<TipoDePregunta>(
             formControl: formGroup.control('tipoDePregunta') as FormControl,
