@@ -71,6 +71,21 @@ class CreacionFormViewModel extends FormGroup {
 
   /// Se modifica cuando se copia un bloque desde creacion_controls.dart
   Copiable bloqueCopiado;
+  final ejes = [
+    "Primer eje",
+    "Segundo eje",
+    "Tercer eje",
+    "Entre primer y segundo eje",
+    "Entre segundo y tercer eje",
+    "Adelante",
+    "Atrás"
+  ];
+  final lados = [
+    'Izquierda',
+    'Centro',
+    'Derecha',
+  ];
+  final posZ = ['Arriba', 'Medio', 'Abajo'];
 
   factory CreacionFormViewModel({
     CuestionarioConContratista cuestionarioDeModelo,
@@ -82,7 +97,7 @@ class CreacionFormViewModel extends FormGroup {
 
     /// Estos bloques se envían cuando se hace clic en crear nuevo cuestionario
     ///
-    /// La cosa es que eso ralentiza la UI, porque hacce la consulta de los bloques antes de cargar esta pagina,
+    /// La cosa es que eso ralentiza la UI, porque hace la consulta de los bloques antes de cargar esta pagina,
     /// pero se desarrolló asi, porque el metodo que los carga es Future, y no se puede asignar un tipo Future<FormArray> a los controles
     /// //TODO: Mirar como solucionar esta parte
     final bloques = bloquesBD;

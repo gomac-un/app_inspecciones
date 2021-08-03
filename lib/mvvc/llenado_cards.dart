@@ -268,6 +268,8 @@ class NumericaCard extends StatelessWidget {
       titulo: formGroup.pregunta.titulo,
       descripcion: formGroup.pregunta.descripcion,
       criticidad: criticidad.toDouble(),
+      posicion:
+          '${formGroup.pregunta.eje}, ${formGroup.pregunta.lado}, ${formGroup.pregunta.posicionZ}',
       estado: mensajeCriticidad,
       child: Column(
         children: [
@@ -344,6 +346,8 @@ class SeleccionSimpleCard extends StatelessWidget {
       titulo: formGroup.pregunta.pregunta.titulo,
       descripcion: formGroup.pregunta.pregunta.descripcion,
       criticidad: criticidad.toDouble(),
+      posicion:
+          '${formGroup.pregunta.pregunta.eje}, ${formGroup.pregunta.pregunta.lado}, ${formGroup.pregunta.pregunta.posicionZ}',
       estado: mensajeCriticidad,
       child: Builder(
         builder: (BuildContext context) {

@@ -1715,6 +1715,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
   final String descripcion;
   final int criticidad;
   final String posicion;
+  final String eje;
+  final String posicionZ;
+  final String lado;
   final KtList<String> fotosGuia;
   final bool esCondicional;
   final int sistemaId;
@@ -1727,6 +1730,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       @required this.descripcion,
       @required this.criticidad,
       this.posicion,
+      this.eje,
+      this.posicionZ,
+      this.lado,
       @required this.fotosGuia,
       @required this.esCondicional,
       this.sistemaId,
@@ -1749,6 +1755,10 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           intType.mapFromDatabaseResponse(data['${effectivePrefix}criticidad']),
       posicion: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}posicion']),
+      eje: stringType.mapFromDatabaseResponse(data['${effectivePrefix}eje']),
+      posicionZ: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}posicion_z']),
+      lado: stringType.mapFromDatabaseResponse(data['${effectivePrefix}lado']),
       fotosGuia: $PreguntasTable.$converter0.mapToDart(stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}fotos_guia'])),
       esCondicional: boolType
@@ -1780,6 +1790,15 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
     }
     if (!nullToAbsent || posicion != null) {
       map['posicion'] = Variable<String>(posicion);
+    }
+    if (!nullToAbsent || eje != null) {
+      map['eje'] = Variable<String>(eje);
+    }
+    if (!nullToAbsent || posicionZ != null) {
+      map['posicion_z'] = Variable<String>(posicionZ);
+    }
+    if (!nullToAbsent || lado != null) {
+      map['lado'] = Variable<String>(lado);
     }
     if (!nullToAbsent || fotosGuia != null) {
       final converter = $PreguntasTable.$converter0;
@@ -1818,6 +1837,11 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       posicion: posicion == null && nullToAbsent
           ? const Value.absent()
           : Value(posicion),
+      eje: eje == null && nullToAbsent ? const Value.absent() : Value(eje),
+      posicionZ: posicionZ == null && nullToAbsent
+          ? const Value.absent()
+          : Value(posicionZ),
+      lado: lado == null && nullToAbsent ? const Value.absent() : Value(lado),
       fotosGuia: fotosGuia == null && nullToAbsent
           ? const Value.absent()
           : Value(fotosGuia),
@@ -1846,6 +1870,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       descripcion: serializer.fromJson<String>(json['descripcion']),
       criticidad: serializer.fromJson<int>(json['criticidad']),
       posicion: serializer.fromJson<String>(json['posicion']),
+      eje: serializer.fromJson<String>(json['eje']),
+      posicionZ: serializer.fromJson<String>(json['posicionZ']),
+      lado: serializer.fromJson<String>(json['lado']),
       fotosGuia: serializer.fromJson<KtList<String>>(json['fotosGuia']),
       esCondicional: serializer.fromJson<bool>(json['esCondicional']),
       sistemaId: serializer.fromJson<int>(json['sistema']),
@@ -1863,6 +1890,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       'descripcion': serializer.toJson<String>(descripcion),
       'criticidad': serializer.toJson<int>(criticidad),
       'posicion': serializer.toJson<String>(posicion),
+      'eje': serializer.toJson<String>(eje),
+      'posicionZ': serializer.toJson<String>(posicionZ),
+      'lado': serializer.toJson<String>(lado),
       'fotosGuia': serializer.toJson<KtList<String>>(fotosGuia),
       'esCondicional': serializer.toJson<bool>(esCondicional),
       'sistema': serializer.toJson<int>(sistemaId),
@@ -1878,6 +1908,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           String descripcion,
           int criticidad,
           String posicion,
+          String eje,
+          String posicionZ,
+          String lado,
           KtList<String> fotosGuia,
           bool esCondicional,
           int sistemaId,
@@ -1890,6 +1923,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
         descripcion: descripcion ?? this.descripcion,
         criticidad: criticidad ?? this.criticidad,
         posicion: posicion ?? this.posicion,
+        eje: eje ?? this.eje,
+        posicionZ: posicionZ ?? this.posicionZ,
+        lado: lado ?? this.lado,
         fotosGuia: fotosGuia ?? this.fotosGuia,
         esCondicional: esCondicional ?? this.esCondicional,
         sistemaId: sistemaId ?? this.sistemaId,
@@ -1905,6 +1941,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           ..write('descripcion: $descripcion, ')
           ..write('criticidad: $criticidad, ')
           ..write('posicion: $posicion, ')
+          ..write('eje: $eje, ')
+          ..write('posicionZ: $posicionZ, ')
+          ..write('lado: $lado, ')
           ..write('fotosGuia: $fotosGuia, ')
           ..write('esCondicional: $esCondicional, ')
           ..write('sistemaId: $sistemaId, ')
@@ -1927,15 +1966,21 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
                   $mrjc(
                       posicion.hashCode,
                       $mrjc(
-                          fotosGuia.hashCode,
+                          eje.hashCode,
                           $mrjc(
-                              esCondicional.hashCode,
+                              posicionZ.hashCode,
                               $mrjc(
-                                  sistemaId.hashCode,
+                                  lado.hashCode,
                                   $mrjc(
-                                      bloqueId.hashCode,
-                                      $mrjc(subSistemaId.hashCode,
-                                          tipo.hashCode)))))))))));
+                                      fotosGuia.hashCode,
+                                      $mrjc(
+                                          esCondicional.hashCode,
+                                          $mrjc(
+                                              sistemaId.hashCode,
+                                              $mrjc(
+                                                  bloqueId.hashCode,
+                                                  $mrjc(subSistemaId.hashCode,
+                                                      tipo.hashCode))))))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -1945,6 +1990,9 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           other.descripcion == this.descripcion &&
           other.criticidad == this.criticidad &&
           other.posicion == this.posicion &&
+          other.eje == this.eje &&
+          other.posicionZ == this.posicionZ &&
+          other.lado == this.lado &&
           other.fotosGuia == this.fotosGuia &&
           other.esCondicional == this.esCondicional &&
           other.sistemaId == this.sistemaId &&
@@ -1959,6 +2007,9 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
   final Value<String> descripcion;
   final Value<int> criticidad;
   final Value<String> posicion;
+  final Value<String> eje;
+  final Value<String> posicionZ;
+  final Value<String> lado;
   final Value<KtList<String>> fotosGuia;
   final Value<bool> esCondicional;
   final Value<int> sistemaId;
@@ -1971,6 +2022,9 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     this.descripcion = const Value.absent(),
     this.criticidad = const Value.absent(),
     this.posicion = const Value.absent(),
+    this.eje = const Value.absent(),
+    this.posicionZ = const Value.absent(),
+    this.lado = const Value.absent(),
     this.fotosGuia = const Value.absent(),
     this.esCondicional = const Value.absent(),
     this.sistemaId = const Value.absent(),
@@ -1984,6 +2038,9 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     @required String descripcion,
     @required int criticidad,
     this.posicion = const Value.absent(),
+    this.eje = const Value.absent(),
+    this.posicionZ = const Value.absent(),
+    this.lado = const Value.absent(),
     this.fotosGuia = const Value.absent(),
     this.esCondicional = const Value.absent(),
     this.sistemaId = const Value.absent(),
@@ -2001,6 +2058,9 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     Expression<String> descripcion,
     Expression<int> criticidad,
     Expression<String> posicion,
+    Expression<String> eje,
+    Expression<String> posicionZ,
+    Expression<String> lado,
     Expression<String> fotosGuia,
     Expression<bool> esCondicional,
     Expression<int> sistemaId,
@@ -2014,6 +2074,9 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       if (descripcion != null) 'descripcion': descripcion,
       if (criticidad != null) 'criticidad': criticidad,
       if (posicion != null) 'posicion': posicion,
+      if (eje != null) 'eje': eje,
+      if (posicionZ != null) 'posicion_z': posicionZ,
+      if (lado != null) 'lado': lado,
       if (fotosGuia != null) 'fotos_guia': fotosGuia,
       if (esCondicional != null) 'es_condicional': esCondicional,
       if (sistemaId != null) 'sistema_id': sistemaId,
@@ -2029,6 +2092,9 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       Value<String> descripcion,
       Value<int> criticidad,
       Value<String> posicion,
+      Value<String> eje,
+      Value<String> posicionZ,
+      Value<String> lado,
       Value<KtList<String>> fotosGuia,
       Value<bool> esCondicional,
       Value<int> sistemaId,
@@ -2041,6 +2107,9 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       descripcion: descripcion ?? this.descripcion,
       criticidad: criticidad ?? this.criticidad,
       posicion: posicion ?? this.posicion,
+      eje: eje ?? this.eje,
+      posicionZ: posicionZ ?? this.posicionZ,
+      lado: lado ?? this.lado,
       fotosGuia: fotosGuia ?? this.fotosGuia,
       esCondicional: esCondicional ?? this.esCondicional,
       sistemaId: sistemaId ?? this.sistemaId,
@@ -2067,6 +2136,15 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     }
     if (posicion.present) {
       map['posicion'] = Variable<String>(posicion.value);
+    }
+    if (eje.present) {
+      map['eje'] = Variable<String>(eje.value);
+    }
+    if (posicionZ.present) {
+      map['posicion_z'] = Variable<String>(posicionZ.value);
+    }
+    if (lado.present) {
+      map['lado'] = Variable<String>(lado.value);
     }
     if (fotosGuia.present) {
       final converter = $PreguntasTable.$converter0;
@@ -2099,6 +2177,9 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
           ..write('descripcion: $descripcion, ')
           ..write('criticidad: $criticidad, ')
           ..write('posicion: $posicion, ')
+          ..write('eje: $eje, ')
+          ..write('posicionZ: $posicionZ, ')
+          ..write('lado: $lado, ')
           ..write('fotosGuia: $fotosGuia, ')
           ..write('esCondicional: $esCondicional, ')
           ..write('sistemaId: $sistemaId, ')
@@ -2162,6 +2243,33 @@ class $PreguntasTable extends Preguntas
   GeneratedTextColumn get posicion => _posicion ??= _constructPosicion();
   GeneratedTextColumn _constructPosicion() {
     return GeneratedTextColumn('posicion', $tableName, true,
+        minTextLength: 0, maxTextLength: 50);
+  }
+
+  final VerificationMeta _ejeMeta = const VerificationMeta('eje');
+  GeneratedTextColumn _eje;
+  @override
+  GeneratedTextColumn get eje => _eje ??= _constructEje();
+  GeneratedTextColumn _constructEje() {
+    return GeneratedTextColumn('eje', $tableName, true,
+        minTextLength: 0, maxTextLength: 50);
+  }
+
+  final VerificationMeta _posicionZMeta = const VerificationMeta('posicionZ');
+  GeneratedTextColumn _posicionZ;
+  @override
+  GeneratedTextColumn get posicionZ => _posicionZ ??= _constructPosicionZ();
+  GeneratedTextColumn _constructPosicionZ() {
+    return GeneratedTextColumn('posicion_z', $tableName, true,
+        minTextLength: 0, maxTextLength: 50);
+  }
+
+  final VerificationMeta _ladoMeta = const VerificationMeta('lado');
+  GeneratedTextColumn _lado;
+  @override
+  GeneratedTextColumn get lado => _lado ??= _constructLado();
+  GeneratedTextColumn _constructLado() {
+    return GeneratedTextColumn('lado', $tableName, true,
         minTextLength: 0, maxTextLength: 50);
   }
 
@@ -2233,6 +2341,9 @@ class $PreguntasTable extends Preguntas
         descripcion,
         criticidad,
         posicion,
+        eje,
+        posicionZ,
+        lado,
         fotosGuia,
         esCondicional,
         sistemaId,
@@ -2279,6 +2390,18 @@ class $PreguntasTable extends Preguntas
     if (data.containsKey('posicion')) {
       context.handle(_posicionMeta,
           posicion.isAcceptableOrUnknown(data['posicion'], _posicionMeta));
+    }
+    if (data.containsKey('eje')) {
+      context.handle(
+          _ejeMeta, eje.isAcceptableOrUnknown(data['eje'], _ejeMeta));
+    }
+    if (data.containsKey('posicion_z')) {
+      context.handle(_posicionZMeta,
+          posicionZ.isAcceptableOrUnknown(data['posicion_z'], _posicionZMeta));
+    }
+    if (data.containsKey('lado')) {
+      context.handle(
+          _ladoMeta, lado.isAcceptableOrUnknown(data['lado'], _ladoMeta));
     }
     context.handle(_fotosGuiaMeta, const VerificationResult.success());
     if (data.containsKey('es_condicional')) {

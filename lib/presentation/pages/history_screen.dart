@@ -39,11 +39,11 @@ class HistoryInspeccionesPage extends StatelessWidget
         actions: [
           Builder(
             builder: (context) => FlatButton(
+              onPressed: () => _clearHistory(context, toDelete),
               child: const Text(
                 'Limpiar Historial',
                 style: TextStyle(color: Colors.white, fontSize: 15),
               ),
-              onPressed: () => _clearHistory(context, toDelete),
             ),
           )
         ],
@@ -52,7 +52,9 @@ class HistoryInspeccionesPage extends StatelessWidget
           builder: (context, borradoresHistorial, child) {
         final textTheme = Theme.of(context).textTheme;
         if (borradoresHistorial == null) {
-          return const Text("Hay un null");
+          return const Align(
+            child: CircularProgressIndicator(),
+          );
         }
         if (borradoresHistorial.isEmpty) {
           return Center(
@@ -89,6 +91,10 @@ class HistoryInspeccionesPage extends StatelessWidget
                     _dateSend == null
                         ? "Fecha de envío: "
                         : "Fecha de envío: ${_dateSend.day}/${_dateSend.month}/${_dateSend.year} ${_dateSend.hour}:${_dateSend.minute}",
+                    style: textTheme.subtitle1,
+                  ),
+                  Text(
+                    'Codigo de inspección: ${borrador.inspeccion.id}',
                     style: textTheme.subtitle1,
                   )
                 ],

@@ -104,7 +104,10 @@ class CreadorPreguntaFormGroup extends FormGroup
       'descripcion': fb.control<String>(d?.pregunta?.descripcion ?? ""),
       'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
-      'posicion': fb.control<String>(d?.pregunta?.posicion ?? "No aplica"),
+      'eje': fb.control<String>(d?.pregunta?.eje, [Validators.required]),
+      'lado': fb.control<String>(d?.pregunta?.lado, [Validators.required]),
+      'posicionZ':
+          fb.control<String>(d?.pregunta?.posicionZ, [Validators.required]),
       'criticidad':
           fb.control<double>(d?.pregunta?.criticidad?.toDouble() ?? 0),
       'fotosGuia': fb.array<File>(
@@ -161,7 +164,9 @@ class CreadorPreguntaFormGroup extends FormGroup
         descripcion: value['descripcion'] as String,
         sistemaId: (value['sistema'] as Sistema)?.id,
         subSistemaId: (value['subSistema'] as SubSistema)?.id,
-        posicion: value['posicion'] as String,
+        eje: value['eje'] as String,
+        lado: value['lado'] as String,
+        posicionZ: value['posicionZ'] as String,
         criticidad: (value['criticidad'] as double).round(),
         fotosGuia: (control('fotosGuia') as FormArray<File>)
             .controls
@@ -195,7 +200,9 @@ class CreadorPreguntaFormGroup extends FormGroup
             descripcion: value['descripcion'] as String,
             sistemaId: (value['sistema'] as Sistema)?.id,
             subSistemaId: (value['subSistema'] as SubSistema)?.id,
-            posicion: value['posicion'] as String,
+            eje: value['eje'] as String,
+            lado: value['lado'] as String,
+            posicionZ: value['posicionZ'] as String,
             criticidad: (value['criticidad'] as double).round(),
             fotosGuia: (control('fotosGuia') as FormArray<File>)
                 .controls
@@ -394,6 +401,12 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
       'descripcion': fb.control<String>(d?.cuadricula?.descripcion ?? ""),
       'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
+      'eje': fb.control<String>(
+          n?.first?.pregunta?.eje ?? '', [Validators.required]),
+      'lado': fb.control<String>(
+          n?.first?.pregunta?.lado ?? '', [Validators.required]),
+      'posicionZ': fb.control<String>(
+          n?.first?.pregunta?.posicionZ ?? '', [Validators.required]),
       'posicion': fb.control<String>("no aplica"),
       'tipoDePregunta': fb.control<TipoDePregunta>(
           n?.first?.pregunta?.tipo, [Validators.required]),
@@ -439,7 +452,9 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
         await getIt<Database>().getSistemaPorId(d?.pregunta?.sistemaId);
     controls['subSistema'].value =
         await getIt<Database>().getSubSistemaPorId(d?.pregunta?.subSistemaId);
-    controls['posicion'].value = d?.pregunta?.posicion;
+    controls['eje'].value = d?.pregunta?.eje;
+    controls['lado'].value = d?.pregunta?.lado;
+    controls['posicionZ'].value = d?.pregunta?.posicionZ;
     controls['tipoDePregunta'].value = d?.pregunta?.tipo;
   }
 
@@ -452,7 +467,9 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
             1)); //machete para poder asignar el sistema sin que el constructor le asigne null despues
     instancia.controls['sistema'].value = value['sistema'] as Sistema;
     instancia.controls['subSistema'].value = value['subSistema'] as SubSistema;
-    instancia.controls['posicion'].value = value['posicion'] as String;
+    instancia.controls['eje'].value = value['eje'] as String;
+    instancia.controls['lado'].value = value['lado'] as String;
+    instancia.controls['posicionZ'].value = value['posicionZ'] as String;
     instancia.controls['tipoDePregunta'].value =
         value['tipoDePregunta'] as TipoDePregunta;
     (control('preguntas') as FormArray).add(instancia);
@@ -500,7 +517,9 @@ class CreadorPreguntaCuadriculaFormGroup extends FormGroup
         seconds:
             1)); //machete para poder asignar el sistema sin que el constructor le asigne null despues
     instancia.controls['subSistema'].value = value['subSistema'] as SubSistema;
-    instancia.controls['posicion'].value = value['posicion'] as String;
+    instancia.controls['eje'].value = value['eje'] as String;
+    instancia.controls['lado'].value = value['lado'] as String;
+    instancia.controls['posicionZ'].value = value['posicionZ'] as String;
     //instanciar los sistemas y subsitemas de las preguntas
     return instancia;
   }
@@ -579,7 +598,10 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
       'descripcion': fb.control<String>(d?.pregunta?.descripcion ?? ""),
       'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
-      'posicion': fb.control<String>(d?.pregunta?.posicion ?? "no aplica"),
+      'eje': fb.control<String>(d?.pregunta?.eje, [Validators.required]),
+      'lado': fb.control<String>(d?.pregunta?.lado, [Validators.required]),
+      'posicionZ':
+          fb.control<String>(d?.pregunta?.posicionZ, [Validators.required]),
       'criticidad':
           fb.control<double>(d?.pregunta?.criticidad?.toDouble() ?? 0),
       'fotosGuia': fb.array<File>(
@@ -635,7 +657,9 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
               descripcion: value['descripcion'] as String,
               sistemaId: (value['sistema'] as Sistema)?.id,
               subSistemaId: (value['subSistema'] as SubSistema)?.id,
-              posicion: value['posicion'] as String,
+              eje: value['eje'] as String,
+              lado: value['lado'] as String,
+              posicionZ: value['posicionZ'] as String,
               criticidad: (value['criticidad'] as double).round(),
               fotosGuia: (control('fotosGuia') as FormArray<File>)
                   .controls
@@ -660,7 +684,9 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
               descripcion: value['descripcion'] as String,
               sistemaId: (value['sistema'] as Sistema)?.id,
               subSistemaId: (value['subSistema'] as SubSistema)?.id,
-              posicion: value['posicion'] as String,
+              eje: value['eje'] as String,
+              lado: value['lado'] as String,
+              posicionZ: value['posicionZ'] as String,
               criticidad: (value['criticidad'] as double).round(),
               fotosGuia: (control('fotosGuia') as FormArray<File>)
                   .controls

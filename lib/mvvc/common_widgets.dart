@@ -8,6 +8,7 @@ class PreguntaCard extends StatelessWidget {
   final Widget child;
   final String titulo;
   final String descripcion;
+  final String posicion;
 
   /// Criticidad de la pregunta.
   final double criticidad;
@@ -21,7 +22,8 @@ class PreguntaCard extends StatelessWidget {
       this.titulo,
       this.descripcion,
       this.criticidad,
-      this.estado})
+      this.estado,
+      this.posicion})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -37,6 +39,12 @@ class PreguntaCard extends StatelessWidget {
                 titulo,
                 style: Theme.of(context).textTheme.headline6,
                 textAlign: TextAlign.center,
+              ),
+            const SizedBox(height: 5),
+            if (posicion != null)
+              Text(
+                posicion,
+                style: Theme.of(context).textTheme.bodyText1,
               ),
             const SizedBox(height: 5),
             if (descripcion != null)

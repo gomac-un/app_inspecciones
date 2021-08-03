@@ -155,7 +155,10 @@ class Preguntas extends Table {
   IntColumn get criticidad => integer()();
 
   /// Atributo usado para información al inspector. Indica a que posición del vehiculo hace referencia la pregunta.
-  TextColumn get posicion => text().nullable().withLength(min: 0, max: 50)();
+
+  TextColumn get eje => text().nullable().withLength(min: 0, max: 50)();
+  TextColumn get posicionZ => text().nullable().withLength(min: 0, max: 50)();
+  TextColumn get lado => text().nullable().withLength(min: 0, max: 50)();
 
   TextColumn get fotosGuia => text()
       .map(const ListInColumnConverter())

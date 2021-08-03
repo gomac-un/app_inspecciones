@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
+import 'package:inspecciones/presentation/pages/ayuda_screen.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -49,6 +50,8 @@ class TipoPreguntaCard extends StatelessWidget {
           builder: (context, value, child) {
             return ReactiveDropdownField<Sistema>(
               formControl: formGroup.control('sistema') as FormControl,
+              validationMessages: (control) =>
+                  {'required': 'Seleccione el sistema'},
               items: value
                   .map((e) => DropdownMenuItem<Sistema>(
                         value: e,
@@ -84,23 +87,95 @@ class TipoPreguntaCard extends StatelessWidget {
                 },
               );
             }),
-        const SizedBox(height: 10),
+        const SizedBox(height: 5),
+        const Divider(height: 15, color: Colors.black),
+        Row(
+          children: [
+            const Expanded(
+              flex: 3,
+              child: Text(
+                'Posición',
+                textAlign: TextAlign.start,
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (BuildContext context) => AyudaPage()));
+                },
+                child: const Text(
+                  '¿Necesitas ayuda?',
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
         ReactiveDropdownField<String>(
-          formControl: formGroup.control('posicion') as FormControl,
-          items: ["No aplica", "Adelante", "Atrás", 'Izquierda', 'Derecha']
+          formControl: formGroup.control('eje') as FormControl,
+          validationMessages: (control) =>
+              {'required': 'Este valor es requerido'},
+          items: viewModel
+              .ejes //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
               .map((e) => DropdownMenuItem<String>(
                     value: e,
                     child: Text(e),
                   ))
               .toList(),
           decoration: const InputDecoration(
-            labelText: 'Posicion',
+            labelText: 'Posición Y',
           ),
           onTap: () {
             FocusScope.of(context)
                 .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
           },
         ),
+        const SizedBox(height: 10),
+        ReactiveDropdownField<String>(
+          formControl: formGroup.control('lado') as FormControl,
+          validationMessages: (control) =>
+              {'required': 'Este valor es requerido'},
+          items: viewModel
+              .lados //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+              .map((e) => DropdownMenuItem<String>(
+                    value: e,
+                    child: Text(e),
+                  ))
+              .toList(),
+          decoration: const InputDecoration(
+            labelText: 'Posición X',
+          ),
+          onTap: () {
+            FocusScope.of(context)
+                .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+          },
+        ),
+        const SizedBox(height: 10),
+        ReactiveDropdownField<String>(
+          formControl: formGroup.control('posicionZ') as FormControl,
+          validationMessages: (control) =>
+              {'required': 'Este valor es requerido'},
+          items: viewModel
+              .posZ //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+              .map((e) => DropdownMenuItem<String>(
+                    value: e,
+                    child: Text(e),
+                  ))
+              .toList(),
+          decoration: const InputDecoration(
+            labelText: 'Posición Z',
+          ),
+          onTap: () {
+            FocusScope.of(context)
+                .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+          },
+        ),
+        const SizedBox(height: 10),
         InputDecorator(
           decoration: const InputDecoration(
               labelText: 'Criticidad de la pregunta', filled: false),

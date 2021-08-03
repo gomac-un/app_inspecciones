@@ -353,28 +353,6 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     }
   }
 
-  /* int verificarSeccion(
-    String respuesta,
-    PreguntasCondicionalData secciones,
-  ) {
-    if (respuesta == secciones.opcionDeRespuesta) {
-      return secciones.seccion;
-    }
-    return null;
-  }
-
-  int get seccion {
-    if (pregunta.pregunta.esCondicional) {
-      final String respuesta =
-          (control('respuestas').value as OpcionDeRespuesta)?.texto;
-      final x = condiciones
-          ?.map((con) => verificarSeccion(respuesta, con))
-          ?.lastWhere((e) => e != null, orElse: () => null);
-
-      return x;
-    }
-    return null;
-  } */
   /// Devuelve la lista de todas las respuestas seleccionadas.
   List<RespuestaConOpcionesDeRespuesta> toDB() {
     if (pregunta.pregunta.tipo == TipoDePregunta.multipleRespuesta ||
