@@ -286,10 +286,6 @@ class NumericaCard extends StatelessWidget {
                 {'required': 'Escriba la respuesta'},
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-<<<<<<< HEAD
-              helperText: 'Escriba la respuesta',
-=======
->>>>>>> sistemaPorPregunta
               labelText: "Ej. 45.65",
             ),
             enableInteractiveSelection: !readOnly,
