@@ -42,8 +42,8 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
 
   DjangoJsonAPI(this._usuario);
 
-  @factoryMethod
-  DjangoJsonAPI.anon() : this(null);
+  /* @factoryMethod
+  DjangoJsonAPI.anon() : this(null); */
 
   /// Devuelve el token del usuario
   ///

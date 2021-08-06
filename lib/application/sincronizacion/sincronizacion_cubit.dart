@@ -6,7 +6,7 @@ import 'dart:ui';
 
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
-import 'package:data_connection_checker/data_connection_checker.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_archive/flutter_archive.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -34,7 +34,7 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
   static const nombreZip = 'cuestionarios.zip';
   static const nombrePuerto = 'downloader_send_port';
   final _port = ReceivePort();
-  Stream<dynamic> _portStream;
+  late Stream<dynamic> _portStream; // se inicializa en el constructor
   final debug = true;
   final Database _db;
 
@@ -104,9 +104,8 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     );
 
     final dir = await _localPath;
-    Future<bool> _hayInternet() async => DataConnectionChecker().hasConnection;
 
-    final hayInternet = await _hayInternet();
+    final hayInternet = await InternetConnectionChecker().hasConnection;
 
     if (!hayInternet) {
       throw InternetException();
@@ -296,11 +295,11 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
 }
 
 @freezed
-abstract class Task with _$Task {
+class Task with _$Task {
   factory Task({
-    String id,
-    DownloadTaskStatus status,
-    int progress,
+    required String id,
+    required DownloadTaskStatus status,
+    required int progress,
   }) = _Task;
 }
 

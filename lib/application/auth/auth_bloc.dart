@@ -21,9 +21,7 @@ part 'auth_bloc.freezed.dart';
 
 @injectable
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc({@required this.userRepository})
-      : assert(UserRepository != null),
-        super(const AuthState.initial());
+  AuthBloc({required this.userRepository}) : super(const AuthState.initial());
 
   // Información del ususario
   final UserRepository userRepository;
@@ -39,16 +37,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       //y, finalmente se actualiza el estado a autenticado
       startingApp: () async* {
         final usuario = userRepository.getLocalUser();
+        final lastSync = userRepository.getUltimaActualizacion();
 
-        final lastSinc =
-            getIt<UserRepository>().localPreferences.getUltimaActualizacion();
         yield usuario.fold(
           () => const AuthState.unauthenticated(),
           (usuario) {
             registrarAPI(usuario);
             return AuthState.authenticated(
               usuario: usuario,
-              sincronizado: lastSinc,
+              sincronizado: lastSync,
             );
           },
         );
@@ -60,7 +57,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         registrarAPI(usuario);
 
         /// código unico que identifica cada instalación de la app
-        final appId = await getIt<UserRepository>().getAppId();
+        final appId = await userRepository.getAppId();
         if (appId == null) {
           throw Exception("No se puede ingresar sin internet por primera vez");
         }
@@ -77,7 +74,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       /// Actualiza el estado del login a inautenticado cuando el usuario cierra sesión
       loggingOut: () async* {
         yield const AuthState.loading();
-        registrarAPI(null);
 
         /// Se borra la info del usuario, lo que hace que deba iniciar sesión la próxima vez
         await userRepository.deleteLocalUser();

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
-import 'package:data_connection_checker/data_connection_checker.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/auth/usuario.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
@@ -21,7 +21,7 @@ class UserRepository {
 
   /// Proceso de autenticación del usuario, en el login
   Future<Either<AuthFailure, Usuario>> authenticateUser(
-      {UserLogin userLogin}) async {
+      {required UserLogin userLogin}) async {
     /// Usado para la autenticación en Django
     String token;
 
@@ -104,5 +104,10 @@ class UserRepository {
     return appId;
   }
 
-  Future<bool> _hayInternet() async => DataConnectionChecker().hasConnection;
+  Future<bool> _hayInternet() async =>
+      InternetConnectionChecker().hasConnection;
+
+  DateTime getUltimaActualizacion() {
+    return localPreferences.getUltimaActualizacion();
+  }
 }

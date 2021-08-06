@@ -1,5 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides
 
 part of 'api_model.dart';
 
@@ -8,6 +8,10 @@ part of 'api_model.dart';
 // **************************************************************************
 
 T _$identity<T>(T value) => value;
+
+final _privateConstructorUsedError = UnsupportedError(
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more informations: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+
 UserLogin _$UserLoginFromJson(Map<String, dynamic> json) {
   return _UserLogin.fromJson(json);
 }
@@ -16,41 +20,42 @@ UserLogin _$UserLoginFromJson(Map<String, dynamic> json) {
 class _$UserLoginTearOff {
   const _$UserLoginTearOff();
 
-// ignore: unused_element
-  _UserLogin call({String username, String password, bool esdAdmin}) {
+  _UserLogin call(
+      {required String username,
+      required String password,
+      required bool esAdmin}) {
     return _UserLogin(
       username: username,
       password: password,
-      esdAdmin: esdAdmin,
+      esAdmin: esAdmin,
     );
   }
 
-// ignore: unused_element
   UserLogin fromJson(Map<String, Object> json) {
     return UserLogin.fromJson(json);
   }
 }
 
 /// @nodoc
-// ignore: unused_element
 const $UserLogin = _$UserLoginTearOff();
 
 /// @nodoc
 mixin _$UserLogin {
-  String get username;
-  String get password;
-  bool get esdAdmin;
+  String get username => throw _privateConstructorUsedError;
+  String get password => throw _privateConstructorUsedError;
+  bool get esAdmin => throw _privateConstructorUsedError;
 
-  Map<String, dynamic> toJson();
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $UserLoginCopyWith<UserLogin> get copyWith;
+  $UserLoginCopyWith<UserLogin> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $UserLoginCopyWith<$Res> {
   factory $UserLoginCopyWith(UserLogin value, $Res Function(UserLogin) then) =
       _$UserLoginCopyWithImpl<$Res>;
-  $Res call({String username, String password, bool esdAdmin});
+  $Res call({String username, String password, bool esAdmin});
 }
 
 /// @nodoc
@@ -63,14 +68,23 @@ class _$UserLoginCopyWithImpl<$Res> implements $UserLoginCopyWith<$Res> {
 
   @override
   $Res call({
-    Object username = freezed,
-    Object password = freezed,
-    Object esdAdmin = freezed,
+    Object? username = freezed,
+    Object? password = freezed,
+    Object? esAdmin = freezed,
   }) {
     return _then(_value.copyWith(
-      username: username == freezed ? _value.username : username as String,
-      password: password == freezed ? _value.password : password as String,
-      esdAdmin: esdAdmin == freezed ? _value.esdAdmin : esdAdmin as bool,
+      username: username == freezed
+          ? _value.username
+          : username // ignore: cast_nullable_to_non_nullable
+              as String,
+      password: password == freezed
+          ? _value.password
+          : password // ignore: cast_nullable_to_non_nullable
+              as String,
+      esAdmin: esAdmin == freezed
+          ? _value.esAdmin
+          : esAdmin // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -81,7 +95,7 @@ abstract class _$UserLoginCopyWith<$Res> implements $UserLoginCopyWith<$Res> {
           _UserLogin value, $Res Function(_UserLogin) then) =
       __$UserLoginCopyWithImpl<$Res>;
   @override
-  $Res call({String username, String password, bool esdAdmin});
+  $Res call({String username, String password, bool esAdmin});
 }
 
 /// @nodoc
@@ -95,23 +109,33 @@ class __$UserLoginCopyWithImpl<$Res> extends _$UserLoginCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object username = freezed,
-    Object password = freezed,
-    Object esdAdmin = freezed,
+    Object? username = freezed,
+    Object? password = freezed,
+    Object? esAdmin = freezed,
   }) {
     return _then(_UserLogin(
-      username: username == freezed ? _value.username : username as String,
-      password: password == freezed ? _value.password : password as String,
-      esdAdmin: esdAdmin == freezed ? _value.esdAdmin : esdAdmin as bool,
+      username: username == freezed
+          ? _value.username
+          : username // ignore: cast_nullable_to_non_nullable
+              as String,
+      password: password == freezed
+          ? _value.password
+          : password // ignore: cast_nullable_to_non_nullable
+              as String,
+      esAdmin: esAdmin == freezed
+          ? _value.esAdmin
+          : esAdmin // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
 
-@JsonSerializable()
-
 /// @nodoc
+@JsonSerializable()
 class _$_UserLogin extends _UserLogin {
-  _$_UserLogin({this.username, this.password, this.esdAdmin}) : super._();
+  _$_UserLogin(
+      {required this.username, required this.password, required this.esAdmin})
+      : super._();
 
   factory _$_UserLogin.fromJson(Map<String, dynamic> json) =>
       _$_$_UserLoginFromJson(json);
@@ -121,11 +145,11 @@ class _$_UserLogin extends _UserLogin {
   @override
   final String password;
   @override
-  final bool esdAdmin;
+  final bool esAdmin;
 
   @override
   String toString() {
-    return 'UserLogin(username: $username, password: $password, esdAdmin: $esdAdmin)';
+    return 'UserLogin(username: $username, password: $password, esAdmin: $esAdmin)';
   }
 
   @override
@@ -138,9 +162,8 @@ class _$_UserLogin extends _UserLogin {
             (identical(other.password, password) ||
                 const DeepCollectionEquality()
                     .equals(other.password, password)) &&
-            (identical(other.esdAdmin, esdAdmin) ||
-                const DeepCollectionEquality()
-                    .equals(other.esdAdmin, esdAdmin)));
+            (identical(other.esAdmin, esAdmin) ||
+                const DeepCollectionEquality().equals(other.esAdmin, esAdmin)));
   }
 
   @override
@@ -148,7 +171,7 @@ class _$_UserLogin extends _UserLogin {
       runtimeType.hashCode ^
       const DeepCollectionEquality().hash(username) ^
       const DeepCollectionEquality().hash(password) ^
-      const DeepCollectionEquality().hash(esdAdmin);
+      const DeepCollectionEquality().hash(esAdmin);
 
   @JsonKey(ignore: true)
   @override
@@ -162,20 +185,23 @@ class _$_UserLogin extends _UserLogin {
 }
 
 abstract class _UserLogin extends UserLogin {
+  factory _UserLogin(
+      {required String username,
+      required String password,
+      required bool esAdmin}) = _$_UserLogin;
   _UserLogin._() : super._();
-  factory _UserLogin({String username, String password, bool esdAdmin}) =
-      _$_UserLogin;
 
   factory _UserLogin.fromJson(Map<String, dynamic> json) =
       _$_UserLogin.fromJson;
 
   @override
-  String get username;
+  String get username => throw _privateConstructorUsedError;
   @override
-  String get password;
+  String get password => throw _privateConstructorUsedError;
   @override
-  bool get esdAdmin;
+  bool get esAdmin => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  _$UserLoginCopyWith<_UserLogin> get copyWith;
+  _$UserLoginCopyWith<_UserLogin> get copyWith =>
+      throw _privateConstructorUsedError;
 }

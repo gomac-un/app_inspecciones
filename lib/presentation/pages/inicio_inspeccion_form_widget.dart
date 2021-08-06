@@ -184,7 +184,7 @@ class _BotonContinuarInspeccion extends StatelessWidget {
               if (res != 'exito') {
                 showDialog(
                   context: context,
-                  child: AlertDialog(
+                  builder: (context) => AlertDialog(
                     content: Text(res as String),
                     actions: [
                       TextButton(

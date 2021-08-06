@@ -1,5 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides
 
 part of 'sincronizacion_cubit.dart';
 
@@ -9,12 +9,17 @@ part of 'sincronizacion_cubit.dart';
 
 T _$identity<T>(T value) => value;
 
+final _privateConstructorUsedError = UnsupportedError(
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more informations: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+
 /// @nodoc
 class _$TaskTearOff {
   const _$TaskTearOff();
 
-// ignore: unused_element
-  _Task call({String id, DownloadTaskStatus status, int progress}) {
+  _Task call(
+      {required String id,
+      required DownloadTaskStatus status,
+      required int progress}) {
     return _Task(
       id: id,
       status: status,
@@ -24,17 +29,16 @@ class _$TaskTearOff {
 }
 
 /// @nodoc
-// ignore: unused_element
 const $Task = _$TaskTearOff();
 
 /// @nodoc
 mixin _$Task {
-  String get id;
-  DownloadTaskStatus get status;
-  int get progress;
+  String get id => throw _privateConstructorUsedError;
+  DownloadTaskStatus get status => throw _privateConstructorUsedError;
+  int get progress => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
-  $TaskCopyWith<Task> get copyWith;
+  $TaskCopyWith<Task> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -54,14 +58,23 @@ class _$TaskCopyWithImpl<$Res> implements $TaskCopyWith<$Res> {
 
   @override
   $Res call({
-    Object id = freezed,
-    Object status = freezed,
-    Object progress = freezed,
+    Object? id = freezed,
+    Object? status = freezed,
+    Object? progress = freezed,
   }) {
     return _then(_value.copyWith(
-      id: id == freezed ? _value.id : id as String,
-      status: status == freezed ? _value.status : status as DownloadTaskStatus,
-      progress: progress == freezed ? _value.progress : progress as int,
+      id: id == freezed
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      status: status == freezed
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as DownloadTaskStatus,
+      progress: progress == freezed
+          ? _value.progress
+          : progress // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -85,21 +98,31 @@ class __$TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object id = freezed,
-    Object status = freezed,
-    Object progress = freezed,
+    Object? id = freezed,
+    Object? status = freezed,
+    Object? progress = freezed,
   }) {
     return _then(_Task(
-      id: id == freezed ? _value.id : id as String,
-      status: status == freezed ? _value.status : status as DownloadTaskStatus,
-      progress: progress == freezed ? _value.progress : progress as int,
+      id: id == freezed
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      status: status == freezed
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as DownloadTaskStatus,
+      progress: progress == freezed
+          ? _value.progress
+          : progress // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
 
 /// @nodoc
+
 class _$_Task with DiagnosticableTreeMixin implements _Task {
-  _$_Task({this.id, this.status, this.progress});
+  _$_Task({required this.id, required this.status, required this.progress});
 
   @override
   final String id;
@@ -150,26 +173,31 @@ class _$_Task with DiagnosticableTreeMixin implements _Task {
 }
 
 abstract class _Task implements Task {
-  factory _Task({String id, DownloadTaskStatus status, int progress}) = _$_Task;
+  factory _Task(
+      {required String id,
+      required DownloadTaskStatus status,
+      required int progress}) = _$_Task;
 
   @override
-  String get id;
+  String get id => throw _privateConstructorUsedError;
   @override
-  DownloadTaskStatus get status;
+  DownloadTaskStatus get status => throw _privateConstructorUsedError;
   @override
-  int get progress;
+  int get progress => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  _$TaskCopyWith<_Task> get copyWith;
+  _$TaskCopyWith<_Task> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 class _$SincronizacionStateTearOff {
   const _$SincronizacionStateTearOff();
 
-// ignore: unused_element
   _SincronizacionState call(
-      {bool cargado = false, Task task, Map<int, String> info, int paso}) {
+      {bool cargado = false,
+      required Task task,
+      required List<dynamic> info,
+      required int paso}) {
     return _SincronizacionState(
       cargado: cargado,
       task: task,
@@ -180,23 +208,23 @@ class _$SincronizacionStateTearOff {
 }
 
 /// @nodoc
-// ignore: unused_element
 const $SincronizacionState = _$SincronizacionStateTearOff();
 
 /// @nodoc
 mixin _$SincronizacionState {
-  bool get cargado;
-  Task get task;
+  bool get cargado => throw _privateConstructorUsedError;
+  Task get task => throw _privateConstructorUsedError;
 
-  /// Diccionario que guarda las novedades en un String por cada paso de la sincronización.
-  Map<int, String> get info;
+  /// lista que guarda las novedades en un String por cada paso de la sincronización.
+  List<dynamic> get info => throw _privateConstructorUsedError;
 
   /// Etapa de la sincronización: 1-Descarga de cuestionarios, 2- Instalación de la Bd,
   ///  3- Descarga de fotos y 4- Sincronización finalizada.
-  int get paso;
+  int get paso => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
-  $SincronizacionStateCopyWith<SincronizacionState> get copyWith;
+  $SincronizacionStateCopyWith<SincronizacionState> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -204,7 +232,7 @@ abstract class $SincronizacionStateCopyWith<$Res> {
   factory $SincronizacionStateCopyWith(
           SincronizacionState value, $Res Function(SincronizacionState) then) =
       _$SincronizacionStateCopyWithImpl<$Res>;
-  $Res call({bool cargado, Task task, Map<int, String> info, int paso});
+  $Res call({bool cargado, Task task, List<dynamic> info, int paso});
 
   $TaskCopyWith<$Res> get task;
 }
@@ -220,24 +248,33 @@ class _$SincronizacionStateCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object cargado = freezed,
-    Object task = freezed,
-    Object info = freezed,
-    Object paso = freezed,
+    Object? cargado = freezed,
+    Object? task = freezed,
+    Object? info = freezed,
+    Object? paso = freezed,
   }) {
     return _then(_value.copyWith(
-      cargado: cargado == freezed ? _value.cargado : cargado as bool,
-      task: task == freezed ? _value.task : task as Task,
-      info: info == freezed ? _value.info : info as Map<int, String>,
-      paso: paso == freezed ? _value.paso : paso as int,
+      cargado: cargado == freezed
+          ? _value.cargado
+          : cargado // ignore: cast_nullable_to_non_nullable
+              as bool,
+      task: task == freezed
+          ? _value.task
+          : task // ignore: cast_nullable_to_non_nullable
+              as Task,
+      info: info == freezed
+          ? _value.info
+          : info // ignore: cast_nullable_to_non_nullable
+              as List<dynamic>,
+      paso: paso == freezed
+          ? _value.paso
+          : paso // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 
   @override
   $TaskCopyWith<$Res> get task {
-    if (_value.task == null) {
-      return null;
-    }
     return $TaskCopyWith<$Res>(_value.task, (value) {
       return _then(_value.copyWith(task: value));
     });
@@ -251,7 +288,7 @@ abstract class _$SincronizacionStateCopyWith<$Res>
           $Res Function(_SincronizacionState) then) =
       __$SincronizacionStateCopyWithImpl<$Res>;
   @override
-  $Res call({bool cargado, Task task, Map<int, String> info, int paso});
+  $Res call({bool cargado, Task task, List<dynamic> info, int paso});
 
   @override
   $TaskCopyWith<$Res> get task;
@@ -270,27 +307,42 @@ class __$SincronizacionStateCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object cargado = freezed,
-    Object task = freezed,
-    Object info = freezed,
-    Object paso = freezed,
+    Object? cargado = freezed,
+    Object? task = freezed,
+    Object? info = freezed,
+    Object? paso = freezed,
   }) {
     return _then(_SincronizacionState(
-      cargado: cargado == freezed ? _value.cargado : cargado as bool,
-      task: task == freezed ? _value.task : task as Task,
-      info: info == freezed ? _value.info : info as Map<int, String>,
-      paso: paso == freezed ? _value.paso : paso as int,
+      cargado: cargado == freezed
+          ? _value.cargado
+          : cargado // ignore: cast_nullable_to_non_nullable
+              as bool,
+      task: task == freezed
+          ? _value.task
+          : task // ignore: cast_nullable_to_non_nullable
+              as Task,
+      info: info == freezed
+          ? _value.info
+          : info // ignore: cast_nullable_to_non_nullable
+              as List<dynamic>,
+      paso: paso == freezed
+          ? _value.paso
+          : paso // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
 
 /// @nodoc
+
 class _$_SincronizacionState
     with DiagnosticableTreeMixin
     implements _SincronizacionState {
   _$_SincronizacionState(
-      {this.cargado = false, this.task, this.info, this.paso})
-      : assert(cargado != null);
+      {this.cargado = false,
+      required this.task,
+      required this.info,
+      required this.paso});
 
   @JsonKey(defaultValue: false)
   @override
@@ -299,8 +351,8 @@ class _$_SincronizacionState
   final Task task;
   @override
 
-  /// Diccionario que guarda las novedades en un String por cada paso de la sincronización.
-  final Map<int, String> info;
+  /// lista que guarda las novedades en un String por cada paso de la sincronización.
+  final List<dynamic> info;
   @override
 
   /// Etapa de la sincronización: 1-Descarga de cuestionarios, 2- Instalación de la Bd,
@@ -356,24 +408,25 @@ class _$_SincronizacionState
 abstract class _SincronizacionState implements SincronizacionState {
   factory _SincronizacionState(
       {bool cargado,
-      Task task,
-      Map<int, String> info,
-      int paso}) = _$_SincronizacionState;
+      required Task task,
+      required List<dynamic> info,
+      required int paso}) = _$_SincronizacionState;
 
   @override
-  bool get cargado;
+  bool get cargado => throw _privateConstructorUsedError;
   @override
-  Task get task;
+  Task get task => throw _privateConstructorUsedError;
   @override
 
-  /// Diccionario que guarda las novedades en un String por cada paso de la sincronización.
-  Map<int, String> get info;
+  /// lista que guarda las novedades en un String por cada paso de la sincronización.
+  List<dynamic> get info => throw _privateConstructorUsedError;
   @override
 
   /// Etapa de la sincronización: 1-Descarga de cuestionarios, 2- Instalación de la Bd,
   ///  3- Descarga de fotos y 4- Sincronización finalizada.
-  int get paso;
+  int get paso => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  _$SincronizacionStateCopyWith<_SincronizacionState> get copyWith;
+  _$SincronizacionStateCopyWith<_SincronizacionState> get copyWith =>
+      throw _privateConstructorUsedError;
 }

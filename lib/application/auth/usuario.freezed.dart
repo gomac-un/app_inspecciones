@@ -1,5 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides
 
 part of 'usuario.dart';
 
@@ -8,6 +8,10 @@ part of 'usuario.dart';
 // **************************************************************************
 
 T _$identity<T>(T value) => value;
+
+final _privateConstructorUsedError = UnsupportedError(
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more informations: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+
 Usuario _$UsuarioFromJson(Map<String, dynamic> json) {
   return _Usuario.fromJson(json);
 }
@@ -16,9 +20,11 @@ Usuario _$UsuarioFromJson(Map<String, dynamic> json) {
 class _$UsuarioTearOff {
   const _$UsuarioTearOff();
 
-// ignore: unused_element
   _Usuario call(
-      {String documento, String password, String token, bool esAdmin}) {
+      {required String documento,
+      required String password,
+      required String token,
+      required bool esAdmin}) {
     return _Usuario(
       documento: documento,
       password: password,
@@ -27,32 +33,30 @@ class _$UsuarioTearOff {
     );
   }
 
-// ignore: unused_element
   Usuario fromJson(Map<String, Object> json) {
     return Usuario.fromJson(json);
   }
 }
 
 /// @nodoc
-// ignore: unused_element
 const $Usuario = _$UsuarioTearOff();
 
 /// @nodoc
 mixin _$Usuario {
   /// Nombre de usuario
-  String get documento;
-  String get password;
+  String get documento => throw _privateConstructorUsedError;
+  String get password => throw _privateConstructorUsedError;
 
   /// Parte de la autenticación de Django para acceder a los servicios de la Api
   /// https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
-  String get token;
+  String get token => throw _privateConstructorUsedError;
 
   /// True si puede crear cuestionarios.
-  bool get esAdmin;
+  bool get esAdmin => throw _privateConstructorUsedError;
 
-  Map<String, dynamic> toJson();
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $UsuarioCopyWith<Usuario> get copyWith;
+  $UsuarioCopyWith<Usuario> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -72,16 +76,28 @@ class _$UsuarioCopyWithImpl<$Res> implements $UsuarioCopyWith<$Res> {
 
   @override
   $Res call({
-    Object documento = freezed,
-    Object password = freezed,
-    Object token = freezed,
-    Object esAdmin = freezed,
+    Object? documento = freezed,
+    Object? password = freezed,
+    Object? token = freezed,
+    Object? esAdmin = freezed,
   }) {
     return _then(_value.copyWith(
-      documento: documento == freezed ? _value.documento : documento as String,
-      password: password == freezed ? _value.password : password as String,
-      token: token == freezed ? _value.token : token as String,
-      esAdmin: esAdmin == freezed ? _value.esAdmin : esAdmin as bool,
+      documento: documento == freezed
+          ? _value.documento
+          : documento // ignore: cast_nullable_to_non_nullable
+              as String,
+      password: password == freezed
+          ? _value.password
+          : password // ignore: cast_nullable_to_non_nullable
+              as String,
+      token: token == freezed
+          ? _value.token
+          : token // ignore: cast_nullable_to_non_nullable
+              as String,
+      esAdmin: esAdmin == freezed
+          ? _value.esAdmin
+          : esAdmin // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -105,25 +121,40 @@ class __$UsuarioCopyWithImpl<$Res> extends _$UsuarioCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object documento = freezed,
-    Object password = freezed,
-    Object token = freezed,
-    Object esAdmin = freezed,
+    Object? documento = freezed,
+    Object? password = freezed,
+    Object? token = freezed,
+    Object? esAdmin = freezed,
   }) {
     return _then(_Usuario(
-      documento: documento == freezed ? _value.documento : documento as String,
-      password: password == freezed ? _value.password : password as String,
-      token: token == freezed ? _value.token : token as String,
-      esAdmin: esAdmin == freezed ? _value.esAdmin : esAdmin as bool,
+      documento: documento == freezed
+          ? _value.documento
+          : documento // ignore: cast_nullable_to_non_nullable
+              as String,
+      password: password == freezed
+          ? _value.password
+          : password // ignore: cast_nullable_to_non_nullable
+              as String,
+      token: token == freezed
+          ? _value.token
+          : token // ignore: cast_nullable_to_non_nullable
+              as String,
+      esAdmin: esAdmin == freezed
+          ? _value.esAdmin
+          : esAdmin // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
 
-@JsonSerializable()
-
 /// @nodoc
+@JsonSerializable()
 class _$_Usuario implements _Usuario {
-  _$_Usuario({this.documento, this.password, this.token, this.esAdmin});
+  _$_Usuario(
+      {required this.documento,
+      required this.password,
+      required this.token,
+      required this.esAdmin});
 
   factory _$_Usuario.fromJson(Map<String, dynamic> json) =>
       _$_$_UsuarioFromJson(json);
@@ -186,29 +217,30 @@ class _$_Usuario implements _Usuario {
 
 abstract class _Usuario implements Usuario {
   factory _Usuario(
-      {String documento,
-      String password,
-      String token,
-      bool esAdmin}) = _$_Usuario;
+      {required String documento,
+      required String password,
+      required String token,
+      required bool esAdmin}) = _$_Usuario;
 
   factory _Usuario.fromJson(Map<String, dynamic> json) = _$_Usuario.fromJson;
 
   @override
 
   /// Nombre de usuario
-  String get documento;
+  String get documento => throw _privateConstructorUsedError;
   @override
-  String get password;
+  String get password => throw _privateConstructorUsedError;
   @override
 
   /// Parte de la autenticación de Django para acceder a los servicios de la Api
   /// https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
-  String get token;
+  String get token => throw _privateConstructorUsedError;
   @override
 
   /// True si puede crear cuestionarios.
-  bool get esAdmin;
+  bool get esAdmin => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  _$UsuarioCopyWith<_Usuario> get copyWith;
+  _$UsuarioCopyWith<_Usuario> get copyWith =>
+      throw _privateConstructorUsedError;
 }
