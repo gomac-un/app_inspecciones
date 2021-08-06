@@ -3,72 +3,360 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
+import 'package:inspecciones/injection.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_archive/flutter_archive.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 
 part 'sincronizacion_state.dart';
 part 'sincronizacion_cubit.freezed.dart';
+
+abstract class SincronizacionStep extends Cubit<SincronizacionStepState> {
+  Future run();
+  String get titulo;
+
+  SincronizacionStep(SincronizacionStepState state) : super(state);
+
+  void emitWithLog(SincronizacionStepState newState) =>
+      emit(newState.copyWith(log: '${state.log}\n${newState.log}'));
+}
+
+class DescargaCuestionariosCubit extends SincronizacionStep {
+  @override
+  String get titulo => 'Descarga de cuestionarios';
+
+  final InspeccionesRepository _inspeccionesRepository;
+  final String nombreArchivoDescargado;
+
+  DescargaCuestionariosCubit(
+      this._inspeccionesRepository, this.nombreArchivoDescargado)
+      : super(const SincronizacionStepState.initial());
+
+  @override
+  Future run() async {
+    //inicializacion del downloader sacada del ejemplo flutter_downloader donde
+    // se muestra como hacer descargas de una lista de links y agregar opcion de pausa
+    // https://github.com/fluttercommunity/flutter_downloader/blob/master/example/lib/main.dart
+    // En realidad esta descarga se puede hacer con un http.get sencillo desde
+    // un repositorio pero el paquete flutter_downloader permite mostrar la barra de progreso
+    // y como es en un isolate no bloquea la UI
+    final ReceivePort port = ReceivePort();
+    final Stream<dynamic> portStream = port.asBroadcastStream();
+
+    final registradorDePuerto = RegistradorDePuerto(
+      port: port,
+      nombrePuerto: "descarga_cuestionarios",
+    ); //TODO: mirar si realmente es necesario usar el registerPortWithName
+
+    FlutterDownloader.registerCallback(registradorDePuerto.downloadCallback);
+
+    emitWithLog(
+      const SincronizacionStepState.inProgress(0, 'Descargando cuestionarios'),
+    );
+
+    /// Descarga de los datos del servidor (Sin fotos)
+    ///
+    /// Hace la petición al servidor, en caso de exito instala la bd localmente, en caso de error lanza el
+    /// mensaje 'Error de descarga'
+    final directorioDeDescarga = await directorioLocal();
+    await _inspeccionesRepository.descargarCuestionarios(
+        directorioDeDescarga, nombreArchivoDescargado);
+
+    /// Escucha de las actualizaciones que ofrece el downloader
+    late final StreamSubscription<dynamic> streamSubs;
+    streamSubs = portStream.listen((data) {
+      final task = data as Task;
+
+      emitWithLog(
+        state.maybeMap(
+          inProgress: (state) => state.copyWith(progress: task.progress),
+          orElse: () =>
+              const SincronizacionStepState.failure("Estado inesperado"),
+        ),
+      );
+
+      if (task.status == DownloadTaskStatus.complete) {
+        emitWithLog(
+          const SincronizacionStepState.success('Descarga exitosa'),
+        );
+
+        streamSubs.cancel();
+      }
+      if ([
+        DownloadTaskStatus.failed,
+        DownloadTaskStatus.canceled,
+        DownloadTaskStatus.paused,
+      ].contains(task.status)) {
+        emitWithLog(
+          const SincronizacionStepState.failure('Error de descarga'),
+        );
+      }
+    });
+  }
+}
+
+class InstalarDatabaseCubit extends SincronizacionStep {
+  /// Usa el Json descargado para insertar los datos en la BD local
+  @override
+  String get titulo => 'Instalación base de datos';
+
+  final String nombreArchivoDescargado;
+  final Database _db;
+
+  InstalarDatabaseCubit(this.nombreArchivoDescargado, this._db)
+      : super(const SincronizacionStepState.initial());
+
+  @override
+  Future run() async {
+    await Future.delayed(const Duration(seconds: 2));
+    emitWithLog(
+      const SincronizacionStepState.inProgress(0, 'Instalando base de datos'),
+    );
+    final directorioDeDescarga = await directorioLocal();
+    final archivoDescargado =
+        File(path.join(directorioDeDescarga, nombreArchivoDescargado));
+
+    late final String jsonString;
+    try {
+      jsonString = await archivoDescargado.readAsString();
+    } catch (e) {
+      emitWithLog(
+        SincronizacionStepState.failure(
+            'No se encontró el archivo descargado: ${e.toString()}'),
+      );
+      return;
+    }
+
+    //parsear el json en un isolate para no volver la UI lenta
+    // https://flutter.dev/docs/cookbook/networking/background-parsing
+    late final Map<String, dynamic> parsed;
+    try {
+      parsed = await compute(jsonDecode, jsonString) as Map<String, dynamic>;
+      emitWithLog(
+        const SincronizacionStepState.inProgress(50, 'Parsed Json'),
+      );
+    } catch (e) {
+      emitWithLog(
+        SincronizacionStepState.failure(
+            'Error en el parsing del json: ${e.toString()}'),
+      );
+      return;
+    }
+
+    ///Realiza la inserción de datos
+    try {
+      await _db.instalarBD(parsed);
+      emitWithLog(
+        const SincronizacionStepState.success('Instalación exitosa'),
+      );
+    } catch (e) {
+      emitWithLog(
+        SincronizacionStepState.failure(
+            'Error en la instalacion de la BD: ${e.toString()}'),
+      );
+    }
+  }
+}
+
+class DescargaFotosCubit extends SincronizacionStep {
+  //TODO: evitar la duplicacion de codigo con [DescargaCuestionariosCubit]
+  @override
+  String get titulo => 'Descarga de fotos';
+
+  final InspeccionesRepository _inspeccionesRepository;
+  final String nombreZip;
+
+  DescargaFotosCubit(this._inspeccionesRepository, this.nombreZip)
+      : super(const SincronizacionStepState.initial());
+
+  @override
+  Future run() async {
+    final ReceivePort port = ReceivePort();
+    final Stream<dynamic> portStream = port.asBroadcastStream();
+
+    final registradorDePuerto = RegistradorDePuerto(
+      port: port,
+      nombrePuerto: "descarga_fotos",
+    ); //TODO: mirar si realmente es necesario usar el registerPortWithName
+
+    FlutterDownloader.registerCallback(registradorDePuerto.downloadCallback);
+
+    emitWithLog(
+      const SincronizacionStepState.inProgress(0, 'Descargando fotos'),
+    );
+
+    final directorioDeDescarga = await directorioLocal();
+    await _inspeccionesRepository.descargarFotos(
+        directorioDeDescarga, nombreZip);
+
+    /// Escucha de las actualizaciones que ofrece el downloader
+    late final StreamSubscription<dynamic> streamSubs;
+    streamSubs = portStream.listen((data) {
+      final task = data as Task;
+
+      emitWithLog(
+        state.maybeMap(
+          inProgress: (state) => state.copyWith(progress: task.progress),
+          orElse: () =>
+              const SincronizacionStepState.failure("Estado inesperado"),
+        ),
+      );
+
+      if (task.status == DownloadTaskStatus.complete) {
+        emitWithLog(
+          const SincronizacionStepState.success('Descarga exitosa'),
+        );
+        streamSubs.cancel();
+        descomprimirZip();
+      }
+      if ([
+        DownloadTaskStatus.failed,
+        DownloadTaskStatus.canceled,
+        DownloadTaskStatus.paused,
+      ].contains(task.status)) {
+        emitWithLog(
+          const SincronizacionStepState.failure('Error de descarga'),
+        );
+        streamSubs.cancel();
+      }
+    });
+  }
+
+  Future descomprimirZip() async {
+    final directorioDeDescarga = await directorioLocal();
+    final zipFile = File(path.join(directorioDeDescarga, nombreZip));
+
+    final destinationDir =
+        Directory(path.join(directorioDeDescarga, 'cuestionarios'));
+    try {
+      await ZipFile.extractToDirectory(
+          zipFile: zipFile, destinationDir: destinationDir);
+      emitWithLog(
+        const SincronizacionStepState.success('Fotos descomprimidas'),
+      );
+    } catch (e) {
+      emitWithLog(
+        const SincronizacionStepState.failure(
+            'Error descomprimiendo las fotos'),
+      );
+      return;
+    }
+  }
+}
 
 /// Módulo injectable para la descarga de la bd de Gomac
 ///
 /// La actualización de los estados se puede ver en la UI, en sincronizacion_screen.dart
 @injectable
 class SincronizacionCubit extends Cubit<SincronizacionState> {
-  static const nombreJson = 'server.json';
+  final nombreJson = 'server.json';
 
   /// Zip en el server con las fotos de los cuestionarios
-  static const nombreZip = 'cuestionarios.zip';
-  static const nombrePuerto = 'downloader_send_port';
-  final _port = ReceivePort();
-  late Stream<dynamic> _portStream; // se inicializa en el constructor
-  final debug = true;
-  final Database _db;
+  final nombreZip = 'cuestionarios.zip';
 
   /// Datos guardados localmente en la aplicacion
   final ILocalPreferencesDataSource _localPreferences;
 
-  /// Consume la Api para inspecciones y cuestionarios
-  final InspeccionesRepository _inspeccionesRepository;
+  /// Emite estado con fecha de la ultima descarga de datos realizada [ultimaAct]
+  late final ValueNotifier<DateTime> ultimaActualizacion =
+      ValueNotifier(_localPreferences.getUltimaActualizacion());
+
+  late final DescargaCuestionariosCubit descargaCuestionariosCubit =
+      DescargaCuestionariosCubit(getIt<InspeccionesRepository>(), nombreJson);
+
+  late final InstalarDatabaseCubit instalarDatabaseCubit =
+      InstalarDatabaseCubit(nombreJson, getIt<Database>());
+
+  late final DescargaFotosCubit descargaFotosCubit =
+      DescargaFotosCubit(getIt<InspeccionesRepository>(), nombreZip);
+
+  late final List<SincronizacionStep> steps = [
+    descargaCuestionariosCubit,
+    instalarDatabaseCubit,
+    descargaFotosCubit
+  ];
+
+  late final List<StreamSubscription> subscriptions =
+      steps.asMap().entries.map((entry) {
+    final i = entry.key;
+    final cubit = entry.value;
+    return cubit.stream
+        .listen(progressOrFail(i, steps[i + 1], isLast: i == steps.length - 1));
+  }).toList();
 
   SincronizacionCubit(
-      this._db, this._inspeccionesRepository, this._localPreferences)
-      : super(SincronizacionState()) {
-    _portStream = _port.asBroadcastStream();
+    this._localPreferences,
+  ) : super(const SincronizacionState.initial(0));
+
+  Future<void> _run() async {
+    await steps.first.run();
   }
 
-  /// Emite estado con fecha de la ultima descarga de datos realizada [ultimaAct]
-  Future cargarUltimaActualizacion() async {
-    final ultimaAct = _localPreferences.getUltimaActualizacion();
-    emit(state.copyWith(
-      cargado: true,
-      paso: 0,
-      info: {
-        0: 'Ultima sincronización: ${ultimaAct ?? 'ninguna'}',
-        1: '',
-        2: '',
-        3: '',
-      },
-    ));
+  @override
+  Future<void> close() {
+    for (final sub in subscriptions) {
+      sub.cancel();
+    }
+    return super.close();
   }
+
+  @override
+  void onChange(Change<SincronizacionState> change) {
+    super.onChange(change);
+    if (change.nextState is SincronizacionSuccess) {
+      /// En caso de éxito, guarda el momento actual como fecha de la ultima actualización
+      _localPreferences.saveUltimaActualizacion().then((res) {
+        if (res) {
+          ultimaActualizacion.value =
+              _localPreferences.getUltimaActualizacion();
+        } //TODO: que pasa si falla?
+      });
+    }
+  }
+
+  void selectPaso(int paso) {
+    emit(state.copyWith(paso: paso));
+  }
+
+  void Function(SincronizacionStepState) progressOrFail(
+          int step, SincronizacionStep next,
+          {bool isLast = false}) =>
+      (SincronizacionStepState state) {
+        state.maybeMap(
+          success: (state) {
+            emit(SincronizacionState.inProgress(step));
+            if (!isLast) next.run();
+            if (isLast) emit(SincronizacionState.success(step));
+          },
+          failure: (state) {
+            emit(SincronizacionState.failure(step));
+          },
+          orElse: () {},
+        );
+      };
 
   /// Intento de hacer manejo de errores a la hora de descargar los datos del server
   Future<Either<ApiFailure, Unit>> descargarServer() async {
     try {
-      await descargarServerConErrores();
+      final hayInternet = await InternetConnectionChecker().hasConnection;
+      if (!hayInternet) {
+        throw InternetException();
+      }
+      await _run();
       return right(unit);
     } on TimeoutException {
       return const Left(ApiFailure.noHayConexionAlServidor());
@@ -83,214 +371,6 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     } catch (e) {
       return Left(ApiFailure.serverError(e.toString()));
     }
-  }
-
-  //TODO: manejo de errores
-  Future descargarServerConErrores() async {
-    //inicializacion del downloader sacada del ejemplo flutter_downloader donde
-    // se muestra como hacer descargas de una lista de links y agregar opcion de pausa
-    // https://github.com/fluttercommunity/flutter_downloader/blob/master/example/lib/main.dart
-    // En realidad esta descarga se puede hacer con un http.get sencillo desde
-    // un repositorio pero el paquete flutter_downloader permite mostrar la barra de progreso
-    // y como es en un isolate no bloquea la UI
-    _bindBackgroundIsolate();
-
-    FlutterDownloader.registerCallback(downloadCallback);
-    emit(
-      state.copyWith(
-        paso: 1,
-        info: {0: state.info[0], 1: 'Descargando cuestionarios', 2: '', 3: ''},
-      ),
-    );
-
-    final dir = await _localPath;
-
-    final hayInternet = await InternetConnectionChecker().hasConnection;
-
-    if (!hayInternet) {
-      throw InternetException();
-    }
-
-    /// Descarga de los datos del servidor (Sin fotos)
-    ///
-    /// Hace la petición al servidor, en caso de exito instala la bd localmente, en caso de error lanza el
-    /// mensaje 'Error de descarga'
-    await _inspeccionesRepository.descargarCuestionarios(dir, nombreJson);
-
-    /// Escucha de las actualizaciones que ofrece el downloader
-    StreamSubscription<dynamic> streamSubs1;
-    streamSubs1 = _portStream.listen((data) {
-      final task = data as Task;
-      emit(state.copyWith(task: task));
-      if (DownloadTaskStatus.complete == task.status) {
-        emit(state.copyWith(
-          info: {
-            0: state.info[0],
-            1: '${state.info[1]}\nDescarga exitosa',
-            2: '',
-            3: ''
-          },
-        ));
-        instalarBD();
-        streamSubs1.cancel();
-      }
-      if ([
-        DownloadTaskStatus.failed,
-        DownloadTaskStatus.canceled,
-        DownloadTaskStatus.paused,
-      ].contains(task.status)) {
-        emit(state.copyWith(info: {
-          0: state.info[0],
-          1: '${state.info[1]}\nError de descarga',
-          2: '',
-          3: ''
-        }));
-      }
-    });
-  }
-
-  /// Usa el Json descargado para insertar los datos en la BD local
-  Future instalarBD() async {
-    await Future.delayed(const Duration(seconds: 2));
-    emit(state.copyWith(paso: 2, info: {
-      0: state.info[0],
-      1: state.info[1],
-      2: 'Instalando base de datos',
-      3: ''
-    }));
-    final dir = await _localPath;
-    final archivoDescargado = File(path.join(dir, nombreJson));
-    final jsonString = await archivoDescargado.readAsString();
-    //parsear el json en un isolate para no volver la UI lenta
-    // https://flutter.dev/docs/cookbook/networking/background-parsing
-    final parsed =
-        await compute(jsonDecode, jsonString) as Map<String, dynamic>;
-
-    emit(state.copyWith(info: {
-      0: state.info[0],
-      1: state.info[1],
-      2: '${state.info[2]}\nParsed Json',
-      3: ''
-    }));
-
-    ///Realiza la inserción de datos
-    await _db.instalarBD(parsed);
-
-    emit(state.copyWith(info: {
-      0: state.info[0],
-      1: state.info[1],
-      2: '${state.info[2]}\nInstalación exitosa',
-      3: ''
-    }));
-    descargarFotos();
-  }
-
-  /// Descarga de [nombreZip] y lo descomprime
-  Future descargarFotos() async {
-    _bindBackgroundIsolate();
-
-    FlutterDownloader.registerCallback(downloadCallback);
-    await Future.delayed(const Duration(seconds: 2));
-    emit(state.copyWith(paso: 3, info: {
-      0: state.info[0],
-      1: state.info[1],
-      2: state.info[2],
-      3: 'Descargando fotos'
-    }));
-    final dir = await _localPath;
-    await _inspeccionesRepository.descargarFotos(dir, nombreZip);
-    // Escucha de las actualizaciones que ofrece el downloader
-    StreamSubscription<dynamic> streamSubs2;
-    streamSubs2 = _portStream.listen((data) {
-      final task = data as Task;
-      emit(state.copyWith(task: task));
-
-      if (DownloadTaskStatus.complete == task.status) {
-        emit(state.copyWith(info: {
-          0: state.info[0],
-          1: state.info[1],
-          2: state.info[2],
-          3: '${state.info[3]}\nDescarga exitosa'
-        }));
-        descomprimirZip();
-        streamSubs2.cancel();
-      }
-
-      if ([
-        DownloadTaskStatus.failed,
-        DownloadTaskStatus.canceled,
-        DownloadTaskStatus.paused,
-      ].contains(task.status)) {
-        emit(state.copyWith(info: {
-          0: state.info[0],
-          1: state.info[1],
-          2: state.info[2],
-          3: '${state.info[3]}\nError de descarga de las fotos'
-        }));
-      }
-    });
-  }
-
-  /// Descomprime el zip
-
-  Future descomprimirZip() async {
-    final dir = await _localPath;
-    final zipFile = File(path.join(dir, nombreZip));
-    final destinationDir = Directory(path.join(dir, 'cuestionarios'));
-    try {
-      await ZipFile.extractToDirectory(
-          zipFile: zipFile, destinationDir: destinationDir);
-      emit(state.copyWith(info: {
-        0: state.info[0],
-        1: state.info[1],
-        2: state.info[2],
-        3: '${state.info[3]}\nFotos descomprimidas'
-      }));
-      await Future.delayed(const Duration(seconds: 2));
-      emit(state.copyWith(paso: 4, info: {
-        0: state.info[0],
-        1: state.info[1],
-        2: state.info[2],
-        3: state.info[3],
-        4: 'Sincronización finalizada'
-      }));
-
-      /// En caso de éxito, guarda el momento actual como fecha de la ultima actualización
-      await _localPreferences.saveUltimaActualizacion();
-    } catch (e) {
-      emit(state.copyWith(info: {
-        0: 'Última sincronización ${_localPreferences.getUltimaActualizacion().toString()}',
-        1: state.info[1],
-        2: state.info[2],
-        3: '${state.info}\nError: $e'
-      }));
-    }
-  }
-
-  void _bindBackgroundIsolate() {
-    final isSuccess =
-        IsolateNameServer.registerPortWithName(_port.sendPort, nombrePuerto);
-    if (!isSuccess) {
-      _unbindBackgroundIsolate();
-      _bindBackgroundIsolate();
-      return;
-    }
-  }
-
-  void _unbindBackgroundIsolate() {
-    IsolateNameServer.removePortNameMapping(nombrePuerto);
-  }
-
-  static void downloadCallback(
-      String id, DownloadTaskStatus status, int progress) {
-    final SendPort send = IsolateNameServer.lookupPortByName(nombrePuerto);
-    send.send(Task(id: id, status: status, progress: progress));
-  }
-
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-
-    return directory.path;
   }
 }
 
@@ -313,6 +393,38 @@ extension DownloadTaskStatusX on DownloadTaskStatus {
     if (this == DownloadTaskStatus.failed) return "failed";
     if (this == DownloadTaskStatus.canceled) return "canceled";
     if (this == DownloadTaskStatus.paused) return "paused";
-    return null;
+    throw Exception("estado del downloader inesperado");
+  }
+}
+
+Future<String> directorioLocal() async {
+  final directory = await getApplicationDocumentsDirectory();
+  return directory.path;
+}
+
+class RegistradorDePuerto {
+  final String nombrePuerto;
+  final ReceivePort port;
+
+  RegistradorDePuerto({required this.port, required this.nombrePuerto}) {
+    bindBackgroundIsolate();
+  }
+
+  void bindBackgroundIsolate() {
+    final isSuccess =
+        IsolateNameServer.registerPortWithName(port.sendPort, nombrePuerto);
+    if (!isSuccess) {
+      unbindBackgroundIsolate();
+      bindBackgroundIsolate();
+    }
+  }
+
+  void unbindBackgroundIsolate() {
+    IsolateNameServer.removePortNameMapping(nombrePuerto);
+  }
+
+  void downloadCallback(String id, DownloadTaskStatus status, int progress) {
+    final SendPort send = IsolateNameServer.lookupPortByName(nombrePuerto)!;
+    send.send(Task(id: id, status: status, progress: progress));
   }
 }

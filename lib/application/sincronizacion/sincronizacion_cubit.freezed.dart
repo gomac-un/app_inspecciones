@@ -193,16 +193,27 @@ abstract class _Task implements Task {
 class _$SincronizacionStateTearOff {
   const _$SincronizacionStateTearOff();
 
-  _SincronizacionState call(
-      {bool cargado = false,
-      required Task task,
-      required List<dynamic> info,
-      required int paso}) {
-    return _SincronizacionState(
-      cargado: cargado,
-      task: task,
-      info: info,
-      paso: paso,
+  SincronizacionInitial initial(int paso) {
+    return SincronizacionInitial(
+      paso,
+    );
+  }
+
+  SincronizacionInProgress inProgress(int paso) {
+    return SincronizacionInProgress(
+      paso,
+    );
+  }
+
+  SincronizacionSuccess success(int paso) {
+    return SincronizacionSuccess(
+      paso,
+    );
+  }
+
+  SincronizacionFailure failure(int paso) {
+    return SincronizacionFailure(
+      paso,
     );
   }
 }
@@ -212,15 +223,42 @@ const $SincronizacionState = _$SincronizacionStateTearOff();
 
 /// @nodoc
 mixin _$SincronizacionState {
-  bool get cargado => throw _privateConstructorUsedError;
-  Task get task => throw _privateConstructorUsedError;
-
-  /// lista que guarda las novedades en un String por cada paso de la sincronización.
-  List<dynamic> get info => throw _privateConstructorUsedError;
-
-  /// Etapa de la sincronización: 1-Descarga de cuestionarios, 2- Instalación de la Bd,
-  ///  3- Descarga de fotos y 4- Sincronización finalizada.
   int get paso => throw _privateConstructorUsedError;
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(int paso) initial,
+    required TResult Function(int paso) inProgress,
+    required TResult Function(int paso) success,
+    required TResult Function(int paso) failure,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(int paso)? initial,
+    TResult Function(int paso)? inProgress,
+    TResult Function(int paso)? success,
+    TResult Function(int paso)? failure,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SincronizacionInitial value) initial,
+    required TResult Function(SincronizacionInProgress value) inProgress,
+    required TResult Function(SincronizacionSuccess value) success,
+    required TResult Function(SincronizacionFailure value) failure,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SincronizacionInitial value)? initial,
+    TResult Function(SincronizacionInProgress value)? inProgress,
+    TResult Function(SincronizacionSuccess value)? success,
+    TResult Function(SincronizacionFailure value)? failure,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $SincronizacionStateCopyWith<SincronizacionState> get copyWith =>
@@ -232,9 +270,7 @@ abstract class $SincronizacionStateCopyWith<$Res> {
   factory $SincronizacionStateCopyWith(
           SincronizacionState value, $Res Function(SincronizacionState) then) =
       _$SincronizacionStateCopyWithImpl<$Res>;
-  $Res call({bool cargado, Task task, List<dynamic> info, int paso});
-
-  $TaskCopyWith<$Res> get task;
+  $Res call({int paso});
 }
 
 /// @nodoc
@@ -248,84 +284,44 @@ class _$SincronizacionStateCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object? cargado = freezed,
-    Object? task = freezed,
-    Object? info = freezed,
     Object? paso = freezed,
   }) {
     return _then(_value.copyWith(
-      cargado: cargado == freezed
-          ? _value.cargado
-          : cargado // ignore: cast_nullable_to_non_nullable
-              as bool,
-      task: task == freezed
-          ? _value.task
-          : task // ignore: cast_nullable_to_non_nullable
-              as Task,
-      info: info == freezed
-          ? _value.info
-          : info // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>,
       paso: paso == freezed
           ? _value.paso
           : paso // ignore: cast_nullable_to_non_nullable
               as int,
     ));
   }
-
-  @override
-  $TaskCopyWith<$Res> get task {
-    return $TaskCopyWith<$Res>(_value.task, (value) {
-      return _then(_value.copyWith(task: value));
-    });
-  }
 }
 
 /// @nodoc
-abstract class _$SincronizacionStateCopyWith<$Res>
+abstract class $SincronizacionInitialCopyWith<$Res>
     implements $SincronizacionStateCopyWith<$Res> {
-  factory _$SincronizacionStateCopyWith(_SincronizacionState value,
-          $Res Function(_SincronizacionState) then) =
-      __$SincronizacionStateCopyWithImpl<$Res>;
+  factory $SincronizacionInitialCopyWith(SincronizacionInitial value,
+          $Res Function(SincronizacionInitial) then) =
+      _$SincronizacionInitialCopyWithImpl<$Res>;
   @override
-  $Res call({bool cargado, Task task, List<dynamic> info, int paso});
-
-  @override
-  $TaskCopyWith<$Res> get task;
+  $Res call({int paso});
 }
 
 /// @nodoc
-class __$SincronizacionStateCopyWithImpl<$Res>
+class _$SincronizacionInitialCopyWithImpl<$Res>
     extends _$SincronizacionStateCopyWithImpl<$Res>
-    implements _$SincronizacionStateCopyWith<$Res> {
-  __$SincronizacionStateCopyWithImpl(
-      _SincronizacionState _value, $Res Function(_SincronizacionState) _then)
-      : super(_value, (v) => _then(v as _SincronizacionState));
+    implements $SincronizacionInitialCopyWith<$Res> {
+  _$SincronizacionInitialCopyWithImpl(
+      SincronizacionInitial _value, $Res Function(SincronizacionInitial) _then)
+      : super(_value, (v) => _then(v as SincronizacionInitial));
 
   @override
-  _SincronizacionState get _value => super._value as _SincronizacionState;
+  SincronizacionInitial get _value => super._value as SincronizacionInitial;
 
   @override
   $Res call({
-    Object? cargado = freezed,
-    Object? task = freezed,
-    Object? info = freezed,
     Object? paso = freezed,
   }) {
-    return _then(_SincronizacionState(
-      cargado: cargado == freezed
-          ? _value.cargado
-          : cargado // ignore: cast_nullable_to_non_nullable
-              as bool,
-      task: task == freezed
-          ? _value.task
-          : task // ignore: cast_nullable_to_non_nullable
-              as Task,
-      info: info == freezed
-          ? _value.info
-          : info // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>,
-      paso: paso == freezed
+    return _then(SincronizacionInitial(
+      paso == freezed
           ? _value.paso
           : paso // ignore: cast_nullable_to_non_nullable
               as int,
@@ -335,98 +331,1214 @@ class __$SincronizacionStateCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_SincronizacionState
+class _$SincronizacionInitial
     with DiagnosticableTreeMixin
-    implements _SincronizacionState {
-  _$_SincronizacionState(
-      {this.cargado = false,
-      required this.task,
-      required this.info,
-      required this.paso});
+    implements SincronizacionInitial {
+  const _$SincronizacionInitial(this.paso);
 
-  @JsonKey(defaultValue: false)
   @override
-  final bool cargado;
-  @override
-  final Task task;
-  @override
-
-  /// lista que guarda las novedades en un String por cada paso de la sincronización.
-  final List<dynamic> info;
-  @override
-
-  /// Etapa de la sincronización: 1-Descarga de cuestionarios, 2- Instalación de la Bd,
-  ///  3- Descarga de fotos y 4- Sincronización finalizada.
   final int paso;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'SincronizacionState(cargado: $cargado, task: $task, info: $info, paso: $paso)';
+    return 'SincronizacionState.initial(paso: $paso)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'SincronizacionState'))
-      ..add(DiagnosticsProperty('cargado', cargado))
-      ..add(DiagnosticsProperty('task', task))
-      ..add(DiagnosticsProperty('info', info))
+      ..add(DiagnosticsProperty('type', 'SincronizacionState.initial'))
       ..add(DiagnosticsProperty('paso', paso));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _SincronizacionState &&
-            (identical(other.cargado, cargado) ||
-                const DeepCollectionEquality()
-                    .equals(other.cargado, cargado)) &&
-            (identical(other.task, task) ||
-                const DeepCollectionEquality().equals(other.task, task)) &&
-            (identical(other.info, info) ||
-                const DeepCollectionEquality().equals(other.info, info)) &&
+        (other is SincronizacionInitial &&
             (identical(other.paso, paso) ||
                 const DeepCollectionEquality().equals(other.paso, paso)));
   }
 
   @override
   int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(cargado) ^
-      const DeepCollectionEquality().hash(task) ^
-      const DeepCollectionEquality().hash(info) ^
-      const DeepCollectionEquality().hash(paso);
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(paso);
 
   @JsonKey(ignore: true)
   @override
-  _$SincronizacionStateCopyWith<_SincronizacionState> get copyWith =>
-      __$SincronizacionStateCopyWithImpl<_SincronizacionState>(
+  $SincronizacionInitialCopyWith<SincronizacionInitial> get copyWith =>
+      _$SincronizacionInitialCopyWithImpl<SincronizacionInitial>(
           this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(int paso) initial,
+    required TResult Function(int paso) inProgress,
+    required TResult Function(int paso) success,
+    required TResult Function(int paso) failure,
+  }) {
+    return initial(paso);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(int paso)? initial,
+    TResult Function(int paso)? inProgress,
+    TResult Function(int paso)? success,
+    TResult Function(int paso)? failure,
+    required TResult orElse(),
+  }) {
+    if (initial != null) {
+      return initial(paso);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SincronizacionInitial value) initial,
+    required TResult Function(SincronizacionInProgress value) inProgress,
+    required TResult Function(SincronizacionSuccess value) success,
+    required TResult Function(SincronizacionFailure value) failure,
+  }) {
+    return initial(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SincronizacionInitial value)? initial,
+    TResult Function(SincronizacionInProgress value)? inProgress,
+    TResult Function(SincronizacionSuccess value)? success,
+    TResult Function(SincronizacionFailure value)? failure,
+    required TResult orElse(),
+  }) {
+    if (initial != null) {
+      return initial(this);
+    }
+    return orElse();
+  }
 }
 
-abstract class _SincronizacionState implements SincronizacionState {
-  factory _SincronizacionState(
-      {bool cargado,
-      required Task task,
-      required List<dynamic> info,
-      required int paso}) = _$_SincronizacionState;
+abstract class SincronizacionInitial implements SincronizacionState {
+  const factory SincronizacionInitial(int paso) = _$SincronizacionInitial;
 
   @override
-  bool get cargado => throw _privateConstructorUsedError;
-  @override
-  Task get task => throw _privateConstructorUsedError;
-  @override
-
-  /// lista que guarda las novedades en un String por cada paso de la sincronización.
-  List<dynamic> get info => throw _privateConstructorUsedError;
-  @override
-
-  /// Etapa de la sincronización: 1-Descarga de cuestionarios, 2- Instalación de la Bd,
-  ///  3- Descarga de fotos y 4- Sincronización finalizada.
   int get paso => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  _$SincronizacionStateCopyWith<_SincronizacionState> get copyWith =>
+  $SincronizacionInitialCopyWith<SincronizacionInitial> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SincronizacionInProgressCopyWith<$Res>
+    implements $SincronizacionStateCopyWith<$Res> {
+  factory $SincronizacionInProgressCopyWith(SincronizacionInProgress value,
+          $Res Function(SincronizacionInProgress) then) =
+      _$SincronizacionInProgressCopyWithImpl<$Res>;
+  @override
+  $Res call({int paso});
+}
+
+/// @nodoc
+class _$SincronizacionInProgressCopyWithImpl<$Res>
+    extends _$SincronizacionStateCopyWithImpl<$Res>
+    implements $SincronizacionInProgressCopyWith<$Res> {
+  _$SincronizacionInProgressCopyWithImpl(SincronizacionInProgress _value,
+      $Res Function(SincronizacionInProgress) _then)
+      : super(_value, (v) => _then(v as SincronizacionInProgress));
+
+  @override
+  SincronizacionInProgress get _value =>
+      super._value as SincronizacionInProgress;
+
+  @override
+  $Res call({
+    Object? paso = freezed,
+  }) {
+    return _then(SincronizacionInProgress(
+      paso == freezed
+          ? _value.paso
+          : paso // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$SincronizacionInProgress
+    with DiagnosticableTreeMixin
+    implements SincronizacionInProgress {
+  const _$SincronizacionInProgress(this.paso);
+
+  @override
+  final int paso;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'SincronizacionState.inProgress(paso: $paso)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'SincronizacionState.inProgress'))
+      ..add(DiagnosticsProperty('paso', paso));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is SincronizacionInProgress &&
+            (identical(other.paso, paso) ||
+                const DeepCollectionEquality().equals(other.paso, paso)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(paso);
+
+  @JsonKey(ignore: true)
+  @override
+  $SincronizacionInProgressCopyWith<SincronizacionInProgress> get copyWith =>
+      _$SincronizacionInProgressCopyWithImpl<SincronizacionInProgress>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(int paso) initial,
+    required TResult Function(int paso) inProgress,
+    required TResult Function(int paso) success,
+    required TResult Function(int paso) failure,
+  }) {
+    return inProgress(paso);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(int paso)? initial,
+    TResult Function(int paso)? inProgress,
+    TResult Function(int paso)? success,
+    TResult Function(int paso)? failure,
+    required TResult orElse(),
+  }) {
+    if (inProgress != null) {
+      return inProgress(paso);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SincronizacionInitial value) initial,
+    required TResult Function(SincronizacionInProgress value) inProgress,
+    required TResult Function(SincronizacionSuccess value) success,
+    required TResult Function(SincronizacionFailure value) failure,
+  }) {
+    return inProgress(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SincronizacionInitial value)? initial,
+    TResult Function(SincronizacionInProgress value)? inProgress,
+    TResult Function(SincronizacionSuccess value)? success,
+    TResult Function(SincronizacionFailure value)? failure,
+    required TResult orElse(),
+  }) {
+    if (inProgress != null) {
+      return inProgress(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class SincronizacionInProgress implements SincronizacionState {
+  const factory SincronizacionInProgress(int paso) = _$SincronizacionInProgress;
+
+  @override
+  int get paso => throw _privateConstructorUsedError;
+  @override
+  @JsonKey(ignore: true)
+  $SincronizacionInProgressCopyWith<SincronizacionInProgress> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SincronizacionSuccessCopyWith<$Res>
+    implements $SincronizacionStateCopyWith<$Res> {
+  factory $SincronizacionSuccessCopyWith(SincronizacionSuccess value,
+          $Res Function(SincronizacionSuccess) then) =
+      _$SincronizacionSuccessCopyWithImpl<$Res>;
+  @override
+  $Res call({int paso});
+}
+
+/// @nodoc
+class _$SincronizacionSuccessCopyWithImpl<$Res>
+    extends _$SincronizacionStateCopyWithImpl<$Res>
+    implements $SincronizacionSuccessCopyWith<$Res> {
+  _$SincronizacionSuccessCopyWithImpl(
+      SincronizacionSuccess _value, $Res Function(SincronizacionSuccess) _then)
+      : super(_value, (v) => _then(v as SincronizacionSuccess));
+
+  @override
+  SincronizacionSuccess get _value => super._value as SincronizacionSuccess;
+
+  @override
+  $Res call({
+    Object? paso = freezed,
+  }) {
+    return _then(SincronizacionSuccess(
+      paso == freezed
+          ? _value.paso
+          : paso // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$SincronizacionSuccess
+    with DiagnosticableTreeMixin
+    implements SincronizacionSuccess {
+  const _$SincronizacionSuccess(this.paso);
+
+  @override
+  final int paso;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'SincronizacionState.success(paso: $paso)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'SincronizacionState.success'))
+      ..add(DiagnosticsProperty('paso', paso));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is SincronizacionSuccess &&
+            (identical(other.paso, paso) ||
+                const DeepCollectionEquality().equals(other.paso, paso)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(paso);
+
+  @JsonKey(ignore: true)
+  @override
+  $SincronizacionSuccessCopyWith<SincronizacionSuccess> get copyWith =>
+      _$SincronizacionSuccessCopyWithImpl<SincronizacionSuccess>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(int paso) initial,
+    required TResult Function(int paso) inProgress,
+    required TResult Function(int paso) success,
+    required TResult Function(int paso) failure,
+  }) {
+    return success(paso);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(int paso)? initial,
+    TResult Function(int paso)? inProgress,
+    TResult Function(int paso)? success,
+    TResult Function(int paso)? failure,
+    required TResult orElse(),
+  }) {
+    if (success != null) {
+      return success(paso);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SincronizacionInitial value) initial,
+    required TResult Function(SincronizacionInProgress value) inProgress,
+    required TResult Function(SincronizacionSuccess value) success,
+    required TResult Function(SincronizacionFailure value) failure,
+  }) {
+    return success(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SincronizacionInitial value)? initial,
+    TResult Function(SincronizacionInProgress value)? inProgress,
+    TResult Function(SincronizacionSuccess value)? success,
+    TResult Function(SincronizacionFailure value)? failure,
+    required TResult orElse(),
+  }) {
+    if (success != null) {
+      return success(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class SincronizacionSuccess implements SincronizacionState {
+  const factory SincronizacionSuccess(int paso) = _$SincronizacionSuccess;
+
+  @override
+  int get paso => throw _privateConstructorUsedError;
+  @override
+  @JsonKey(ignore: true)
+  $SincronizacionSuccessCopyWith<SincronizacionSuccess> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SincronizacionFailureCopyWith<$Res>
+    implements $SincronizacionStateCopyWith<$Res> {
+  factory $SincronizacionFailureCopyWith(SincronizacionFailure value,
+          $Res Function(SincronizacionFailure) then) =
+      _$SincronizacionFailureCopyWithImpl<$Res>;
+  @override
+  $Res call({int paso});
+}
+
+/// @nodoc
+class _$SincronizacionFailureCopyWithImpl<$Res>
+    extends _$SincronizacionStateCopyWithImpl<$Res>
+    implements $SincronizacionFailureCopyWith<$Res> {
+  _$SincronizacionFailureCopyWithImpl(
+      SincronizacionFailure _value, $Res Function(SincronizacionFailure) _then)
+      : super(_value, (v) => _then(v as SincronizacionFailure));
+
+  @override
+  SincronizacionFailure get _value => super._value as SincronizacionFailure;
+
+  @override
+  $Res call({
+    Object? paso = freezed,
+  }) {
+    return _then(SincronizacionFailure(
+      paso == freezed
+          ? _value.paso
+          : paso // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$SincronizacionFailure
+    with DiagnosticableTreeMixin
+    implements SincronizacionFailure {
+  const _$SincronizacionFailure(this.paso);
+
+  @override
+  final int paso;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'SincronizacionState.failure(paso: $paso)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'SincronizacionState.failure'))
+      ..add(DiagnosticsProperty('paso', paso));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is SincronizacionFailure &&
+            (identical(other.paso, paso) ||
+                const DeepCollectionEquality().equals(other.paso, paso)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(paso);
+
+  @JsonKey(ignore: true)
+  @override
+  $SincronizacionFailureCopyWith<SincronizacionFailure> get copyWith =>
+      _$SincronizacionFailureCopyWithImpl<SincronizacionFailure>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(int paso) initial,
+    required TResult Function(int paso) inProgress,
+    required TResult Function(int paso) success,
+    required TResult Function(int paso) failure,
+  }) {
+    return failure(paso);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(int paso)? initial,
+    TResult Function(int paso)? inProgress,
+    TResult Function(int paso)? success,
+    TResult Function(int paso)? failure,
+    required TResult orElse(),
+  }) {
+    if (failure != null) {
+      return failure(paso);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SincronizacionInitial value) initial,
+    required TResult Function(SincronizacionInProgress value) inProgress,
+    required TResult Function(SincronizacionSuccess value) success,
+    required TResult Function(SincronizacionFailure value) failure,
+  }) {
+    return failure(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SincronizacionInitial value)? initial,
+    TResult Function(SincronizacionInProgress value)? inProgress,
+    TResult Function(SincronizacionSuccess value)? success,
+    TResult Function(SincronizacionFailure value)? failure,
+    required TResult orElse(),
+  }) {
+    if (failure != null) {
+      return failure(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class SincronizacionFailure implements SincronizacionState {
+  const factory SincronizacionFailure(int paso) = _$SincronizacionFailure;
+
+  @override
+  int get paso => throw _privateConstructorUsedError;
+  @override
+  @JsonKey(ignore: true)
+  $SincronizacionFailureCopyWith<SincronizacionFailure> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+class _$SincronizacionStepStateTearOff {
+  const _$SincronizacionStepStateTearOff();
+
+  SincronizacionStepInitial initial([String log = ""]) {
+    return SincronizacionStepInitial(
+      log,
+    );
+  }
+
+  SincronizacionStepInProgress inProgress(int progress, [String log = ""]) {
+    return SincronizacionStepInProgress(
+      progress,
+      log,
+    );
+  }
+
+  SincronizacionStepSuccess success([String log = ""]) {
+    return SincronizacionStepSuccess(
+      log,
+    );
+  }
+
+  SincronizacionStepFailure failure([String log = ""]) {
+    return SincronizacionStepFailure(
+      log,
+    );
+  }
+}
+
+/// @nodoc
+const $SincronizacionStepState = _$SincronizacionStepStateTearOff();
+
+/// @nodoc
+mixin _$SincronizacionStepState {
+  String get log => throw _privateConstructorUsedError;
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String log) initial,
+    required TResult Function(int progress, String log) inProgress,
+    required TResult Function(String log) success,
+    required TResult Function(String log) failure,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String log)? initial,
+    TResult Function(int progress, String log)? inProgress,
+    TResult Function(String log)? success,
+    TResult Function(String log)? failure,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SincronizacionStepInitial value) initial,
+    required TResult Function(SincronizacionStepInProgress value) inProgress,
+    required TResult Function(SincronizacionStepSuccess value) success,
+    required TResult Function(SincronizacionStepFailure value) failure,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SincronizacionStepInitial value)? initial,
+    TResult Function(SincronizacionStepInProgress value)? inProgress,
+    TResult Function(SincronizacionStepSuccess value)? success,
+    TResult Function(SincronizacionStepFailure value)? failure,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+
+  @JsonKey(ignore: true)
+  $SincronizacionStepStateCopyWith<SincronizacionStepState> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SincronizacionStepStateCopyWith<$Res> {
+  factory $SincronizacionStepStateCopyWith(SincronizacionStepState value,
+          $Res Function(SincronizacionStepState) then) =
+      _$SincronizacionStepStateCopyWithImpl<$Res>;
+  $Res call({String log});
+}
+
+/// @nodoc
+class _$SincronizacionStepStateCopyWithImpl<$Res>
+    implements $SincronizacionStepStateCopyWith<$Res> {
+  _$SincronizacionStepStateCopyWithImpl(this._value, this._then);
+
+  final SincronizacionStepState _value;
+  // ignore: unused_field
+  final $Res Function(SincronizacionStepState) _then;
+
+  @override
+  $Res call({
+    Object? log = freezed,
+  }) {
+    return _then(_value.copyWith(
+      log: log == freezed
+          ? _value.log
+          : log // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+abstract class $SincronizacionStepInitialCopyWith<$Res>
+    implements $SincronizacionStepStateCopyWith<$Res> {
+  factory $SincronizacionStepInitialCopyWith(SincronizacionStepInitial value,
+          $Res Function(SincronizacionStepInitial) then) =
+      _$SincronizacionStepInitialCopyWithImpl<$Res>;
+  @override
+  $Res call({String log});
+}
+
+/// @nodoc
+class _$SincronizacionStepInitialCopyWithImpl<$Res>
+    extends _$SincronizacionStepStateCopyWithImpl<$Res>
+    implements $SincronizacionStepInitialCopyWith<$Res> {
+  _$SincronizacionStepInitialCopyWithImpl(SincronizacionStepInitial _value,
+      $Res Function(SincronizacionStepInitial) _then)
+      : super(_value, (v) => _then(v as SincronizacionStepInitial));
+
+  @override
+  SincronizacionStepInitial get _value =>
+      super._value as SincronizacionStepInitial;
+
+  @override
+  $Res call({
+    Object? log = freezed,
+  }) {
+    return _then(SincronizacionStepInitial(
+      log == freezed
+          ? _value.log
+          : log // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$SincronizacionStepInitial
+    with DiagnosticableTreeMixin
+    implements SincronizacionStepInitial {
+  const _$SincronizacionStepInitial([this.log = ""]);
+
+  @JsonKey(defaultValue: "")
+  @override
+  final String log;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'SincronizacionStepState.initial(log: $log)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'SincronizacionStepState.initial'))
+      ..add(DiagnosticsProperty('log', log));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is SincronizacionStepInitial &&
+            (identical(other.log, log) ||
+                const DeepCollectionEquality().equals(other.log, log)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(log);
+
+  @JsonKey(ignore: true)
+  @override
+  $SincronizacionStepInitialCopyWith<SincronizacionStepInitial> get copyWith =>
+      _$SincronizacionStepInitialCopyWithImpl<SincronizacionStepInitial>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String log) initial,
+    required TResult Function(int progress, String log) inProgress,
+    required TResult Function(String log) success,
+    required TResult Function(String log) failure,
+  }) {
+    return initial(log);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String log)? initial,
+    TResult Function(int progress, String log)? inProgress,
+    TResult Function(String log)? success,
+    TResult Function(String log)? failure,
+    required TResult orElse(),
+  }) {
+    if (initial != null) {
+      return initial(log);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SincronizacionStepInitial value) initial,
+    required TResult Function(SincronizacionStepInProgress value) inProgress,
+    required TResult Function(SincronizacionStepSuccess value) success,
+    required TResult Function(SincronizacionStepFailure value) failure,
+  }) {
+    return initial(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SincronizacionStepInitial value)? initial,
+    TResult Function(SincronizacionStepInProgress value)? inProgress,
+    TResult Function(SincronizacionStepSuccess value)? success,
+    TResult Function(SincronizacionStepFailure value)? failure,
+    required TResult orElse(),
+  }) {
+    if (initial != null) {
+      return initial(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class SincronizacionStepInitial implements SincronizacionStepState {
+  const factory SincronizacionStepInitial([String log]) =
+      _$SincronizacionStepInitial;
+
+  @override
+  String get log => throw _privateConstructorUsedError;
+  @override
+  @JsonKey(ignore: true)
+  $SincronizacionStepInitialCopyWith<SincronizacionStepInitial> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SincronizacionStepInProgressCopyWith<$Res>
+    implements $SincronizacionStepStateCopyWith<$Res> {
+  factory $SincronizacionStepInProgressCopyWith(
+          SincronizacionStepInProgress value,
+          $Res Function(SincronizacionStepInProgress) then) =
+      _$SincronizacionStepInProgressCopyWithImpl<$Res>;
+  @override
+  $Res call({int progress, String log});
+}
+
+/// @nodoc
+class _$SincronizacionStepInProgressCopyWithImpl<$Res>
+    extends _$SincronizacionStepStateCopyWithImpl<$Res>
+    implements $SincronizacionStepInProgressCopyWith<$Res> {
+  _$SincronizacionStepInProgressCopyWithImpl(
+      SincronizacionStepInProgress _value,
+      $Res Function(SincronizacionStepInProgress) _then)
+      : super(_value, (v) => _then(v as SincronizacionStepInProgress));
+
+  @override
+  SincronizacionStepInProgress get _value =>
+      super._value as SincronizacionStepInProgress;
+
+  @override
+  $Res call({
+    Object? progress = freezed,
+    Object? log = freezed,
+  }) {
+    return _then(SincronizacionStepInProgress(
+      progress == freezed
+          ? _value.progress
+          : progress // ignore: cast_nullable_to_non_nullable
+              as int,
+      log == freezed
+          ? _value.log
+          : log // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$SincronizacionStepInProgress
+    with DiagnosticableTreeMixin
+    implements SincronizacionStepInProgress {
+  const _$SincronizacionStepInProgress(this.progress, [this.log = ""]);
+
+  @override
+  final int progress;
+  @JsonKey(defaultValue: "")
+  @override
+  final String log;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'SincronizacionStepState.inProgress(progress: $progress, log: $log)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'SincronizacionStepState.inProgress'))
+      ..add(DiagnosticsProperty('progress', progress))
+      ..add(DiagnosticsProperty('log', log));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is SincronizacionStepInProgress &&
+            (identical(other.progress, progress) ||
+                const DeepCollectionEquality()
+                    .equals(other.progress, progress)) &&
+            (identical(other.log, log) ||
+                const DeepCollectionEquality().equals(other.log, log)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^
+      const DeepCollectionEquality().hash(progress) ^
+      const DeepCollectionEquality().hash(log);
+
+  @JsonKey(ignore: true)
+  @override
+  $SincronizacionStepInProgressCopyWith<SincronizacionStepInProgress>
+      get copyWith => _$SincronizacionStepInProgressCopyWithImpl<
+          SincronizacionStepInProgress>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String log) initial,
+    required TResult Function(int progress, String log) inProgress,
+    required TResult Function(String log) success,
+    required TResult Function(String log) failure,
+  }) {
+    return inProgress(progress, log);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String log)? initial,
+    TResult Function(int progress, String log)? inProgress,
+    TResult Function(String log)? success,
+    TResult Function(String log)? failure,
+    required TResult orElse(),
+  }) {
+    if (inProgress != null) {
+      return inProgress(progress, log);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SincronizacionStepInitial value) initial,
+    required TResult Function(SincronizacionStepInProgress value) inProgress,
+    required TResult Function(SincronizacionStepSuccess value) success,
+    required TResult Function(SincronizacionStepFailure value) failure,
+  }) {
+    return inProgress(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SincronizacionStepInitial value)? initial,
+    TResult Function(SincronizacionStepInProgress value)? inProgress,
+    TResult Function(SincronizacionStepSuccess value)? success,
+    TResult Function(SincronizacionStepFailure value)? failure,
+    required TResult orElse(),
+  }) {
+    if (inProgress != null) {
+      return inProgress(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class SincronizacionStepInProgress implements SincronizacionStepState {
+  const factory SincronizacionStepInProgress(int progress, [String log]) =
+      _$SincronizacionStepInProgress;
+
+  int get progress => throw _privateConstructorUsedError;
+  @override
+  String get log => throw _privateConstructorUsedError;
+  @override
+  @JsonKey(ignore: true)
+  $SincronizacionStepInProgressCopyWith<SincronizacionStepInProgress>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SincronizacionStepSuccessCopyWith<$Res>
+    implements $SincronizacionStepStateCopyWith<$Res> {
+  factory $SincronizacionStepSuccessCopyWith(SincronizacionStepSuccess value,
+          $Res Function(SincronizacionStepSuccess) then) =
+      _$SincronizacionStepSuccessCopyWithImpl<$Res>;
+  @override
+  $Res call({String log});
+}
+
+/// @nodoc
+class _$SincronizacionStepSuccessCopyWithImpl<$Res>
+    extends _$SincronizacionStepStateCopyWithImpl<$Res>
+    implements $SincronizacionStepSuccessCopyWith<$Res> {
+  _$SincronizacionStepSuccessCopyWithImpl(SincronizacionStepSuccess _value,
+      $Res Function(SincronizacionStepSuccess) _then)
+      : super(_value, (v) => _then(v as SincronizacionStepSuccess));
+
+  @override
+  SincronizacionStepSuccess get _value =>
+      super._value as SincronizacionStepSuccess;
+
+  @override
+  $Res call({
+    Object? log = freezed,
+  }) {
+    return _then(SincronizacionStepSuccess(
+      log == freezed
+          ? _value.log
+          : log // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$SincronizacionStepSuccess
+    with DiagnosticableTreeMixin
+    implements SincronizacionStepSuccess {
+  const _$SincronizacionStepSuccess([this.log = ""]);
+
+  @JsonKey(defaultValue: "")
+  @override
+  final String log;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'SincronizacionStepState.success(log: $log)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'SincronizacionStepState.success'))
+      ..add(DiagnosticsProperty('log', log));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is SincronizacionStepSuccess &&
+            (identical(other.log, log) ||
+                const DeepCollectionEquality().equals(other.log, log)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(log);
+
+  @JsonKey(ignore: true)
+  @override
+  $SincronizacionStepSuccessCopyWith<SincronizacionStepSuccess> get copyWith =>
+      _$SincronizacionStepSuccessCopyWithImpl<SincronizacionStepSuccess>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String log) initial,
+    required TResult Function(int progress, String log) inProgress,
+    required TResult Function(String log) success,
+    required TResult Function(String log) failure,
+  }) {
+    return success(log);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String log)? initial,
+    TResult Function(int progress, String log)? inProgress,
+    TResult Function(String log)? success,
+    TResult Function(String log)? failure,
+    required TResult orElse(),
+  }) {
+    if (success != null) {
+      return success(log);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SincronizacionStepInitial value) initial,
+    required TResult Function(SincronizacionStepInProgress value) inProgress,
+    required TResult Function(SincronizacionStepSuccess value) success,
+    required TResult Function(SincronizacionStepFailure value) failure,
+  }) {
+    return success(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SincronizacionStepInitial value)? initial,
+    TResult Function(SincronizacionStepInProgress value)? inProgress,
+    TResult Function(SincronizacionStepSuccess value)? success,
+    TResult Function(SincronizacionStepFailure value)? failure,
+    required TResult orElse(),
+  }) {
+    if (success != null) {
+      return success(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class SincronizacionStepSuccess implements SincronizacionStepState {
+  const factory SincronizacionStepSuccess([String log]) =
+      _$SincronizacionStepSuccess;
+
+  @override
+  String get log => throw _privateConstructorUsedError;
+  @override
+  @JsonKey(ignore: true)
+  $SincronizacionStepSuccessCopyWith<SincronizacionStepSuccess> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SincronizacionStepFailureCopyWith<$Res>
+    implements $SincronizacionStepStateCopyWith<$Res> {
+  factory $SincronizacionStepFailureCopyWith(SincronizacionStepFailure value,
+          $Res Function(SincronizacionStepFailure) then) =
+      _$SincronizacionStepFailureCopyWithImpl<$Res>;
+  @override
+  $Res call({String log});
+}
+
+/// @nodoc
+class _$SincronizacionStepFailureCopyWithImpl<$Res>
+    extends _$SincronizacionStepStateCopyWithImpl<$Res>
+    implements $SincronizacionStepFailureCopyWith<$Res> {
+  _$SincronizacionStepFailureCopyWithImpl(SincronizacionStepFailure _value,
+      $Res Function(SincronizacionStepFailure) _then)
+      : super(_value, (v) => _then(v as SincronizacionStepFailure));
+
+  @override
+  SincronizacionStepFailure get _value =>
+      super._value as SincronizacionStepFailure;
+
+  @override
+  $Res call({
+    Object? log = freezed,
+  }) {
+    return _then(SincronizacionStepFailure(
+      log == freezed
+          ? _value.log
+          : log // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$SincronizacionStepFailure
+    with DiagnosticableTreeMixin
+    implements SincronizacionStepFailure {
+  const _$SincronizacionStepFailure([this.log = ""]);
+
+  @JsonKey(defaultValue: "")
+  @override
+  final String log;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'SincronizacionStepState.failure(log: $log)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'SincronizacionStepState.failure'))
+      ..add(DiagnosticsProperty('log', log));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is SincronizacionStepFailure &&
+            (identical(other.log, log) ||
+                const DeepCollectionEquality().equals(other.log, log)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(log);
+
+  @JsonKey(ignore: true)
+  @override
+  $SincronizacionStepFailureCopyWith<SincronizacionStepFailure> get copyWith =>
+      _$SincronizacionStepFailureCopyWithImpl<SincronizacionStepFailure>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String log) initial,
+    required TResult Function(int progress, String log) inProgress,
+    required TResult Function(String log) success,
+    required TResult Function(String log) failure,
+  }) {
+    return failure(log);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String log)? initial,
+    TResult Function(int progress, String log)? inProgress,
+    TResult Function(String log)? success,
+    TResult Function(String log)? failure,
+    required TResult orElse(),
+  }) {
+    if (failure != null) {
+      return failure(log);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(SincronizacionStepInitial value) initial,
+    required TResult Function(SincronizacionStepInProgress value) inProgress,
+    required TResult Function(SincronizacionStepSuccess value) success,
+    required TResult Function(SincronizacionStepFailure value) failure,
+  }) {
+    return failure(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(SincronizacionStepInitial value)? initial,
+    TResult Function(SincronizacionStepInProgress value)? inProgress,
+    TResult Function(SincronizacionStepSuccess value)? success,
+    TResult Function(SincronizacionStepFailure value)? failure,
+    required TResult orElse(),
+  }) {
+    if (failure != null) {
+      return failure(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class SincronizacionStepFailure implements SincronizacionStepState {
+  const factory SincronizacionStepFailure([String log]) =
+      _$SincronizacionStepFailure;
+
+  @override
+  String get log => throw _privateConstructorUsedError;
+  @override
+  @JsonKey(ignore: true)
+  $SincronizacionStepFailureCopyWith<SincronizacionStepFailure> get copyWith =>
       throw _privateConstructorUsedError;
 }

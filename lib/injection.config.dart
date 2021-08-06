@@ -60,10 +60,8 @@ Future<_i1.GetIt> $initGetIt(_i1.GetIt get,
       get<_i6.InspeccionesRemoteDataSource>(),
       get<_i4.Database>(),
       get<_i12.ILocalPreferencesDataSource>()));
-  gh.factory<_i14.SincronizacionCubit>(() => _i14.SincronizacionCubit(
-      get<_i4.Database>(),
-      get<_i13.InspeccionesRepository>(),
-      get<_i12.ILocalPreferencesDataSource>()));
+  gh.factory<_i14.SincronizacionCubit>(
+      () => _i14.SincronizacionCubit(get<_i12.ILocalPreferencesDataSource>()));
   gh.factory<_i15.UserRepository>(() => _i15.UserRepository(
       get<_i6.InspeccionesRemoteDataSource>(),
       get<_i12.ILocalPreferencesDataSource>()));
