@@ -8,7 +8,6 @@ class UserLogin implements _$UserLogin {
   factory UserLogin({
     required String username,
     required String password,
-    required bool esAdmin,
   }) = _UserLogin;
 
   const UserLogin._();

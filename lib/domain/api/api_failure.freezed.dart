@@ -1,5 +1,6 @@
+// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
 
 part of 'api_failure.dart';
 
@@ -54,6 +55,15 @@ mixin _$ApiFailure {
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? noHayInternet,
+    TResult Function()? noHayConexionAlServidor,
+    TResult Function(String msg)? serverError,
+    TResult Function()? credencialesException,
+    TResult Function()? pageNotFound,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
@@ -71,6 +81,15 @@ mixin _$ApiFailure {
     required TResult Function(ServerError value) serverError,
     required TResult Function(CredencialesError value) credencialesException,
     required TResult Function(PageNotFoundError value) pageNotFound,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(NoHayInternet value)? noHayInternet,
+    TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
+    TResult Function(ServerError value)? serverError,
+    TResult Function(CredencialesError value)? credencialesException,
+    TResult Function(PageNotFoundError value)? pageNotFound,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -151,6 +170,18 @@ class _$NoHayInternet implements NoHayInternet {
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? noHayInternet,
+    TResult Function()? noHayConexionAlServidor,
+    TResult Function(String msg)? serverError,
+    TResult Function()? credencialesException,
+    TResult Function()? pageNotFound,
+  }) {
+    return noHayInternet?.call();
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
@@ -176,6 +207,18 @@ class _$NoHayInternet implements NoHayInternet {
     required TResult Function(PageNotFoundError value) pageNotFound,
   }) {
     return noHayInternet(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(NoHayInternet value)? noHayInternet,
+    TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
+    TResult Function(ServerError value)? serverError,
+    TResult Function(CredencialesError value)? credencialesException,
+    TResult Function(PageNotFoundError value)? pageNotFound,
+  }) {
+    return noHayInternet?.call(this);
   }
 
   @override
@@ -250,6 +293,18 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? noHayInternet,
+    TResult Function()? noHayConexionAlServidor,
+    TResult Function(String msg)? serverError,
+    TResult Function()? credencialesException,
+    TResult Function()? pageNotFound,
+  }) {
+    return noHayConexionAlServidor?.call();
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
@@ -275,6 +330,18 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
     required TResult Function(PageNotFoundError value) pageNotFound,
   }) {
     return noHayConexionAlServidor(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(NoHayInternet value)? noHayInternet,
+    TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
+    TResult Function(ServerError value)? serverError,
+    TResult Function(CredencialesError value)? credencialesException,
+    TResult Function(PageNotFoundError value)? pageNotFound,
+  }) {
+    return noHayConexionAlServidor?.call(this);
   }
 
   @override
@@ -373,6 +440,18 @@ class _$ServerError implements ServerError {
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? noHayInternet,
+    TResult Function()? noHayConexionAlServidor,
+    TResult Function(String msg)? serverError,
+    TResult Function()? credencialesException,
+    TResult Function()? pageNotFound,
+  }) {
+    return serverError?.call(msg);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
@@ -398,6 +477,18 @@ class _$ServerError implements ServerError {
     required TResult Function(PageNotFoundError value) pageNotFound,
   }) {
     return serverError(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(NoHayInternet value)? noHayInternet,
+    TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
+    TResult Function(ServerError value)? serverError,
+    TResult Function(CredencialesError value)? credencialesException,
+    TResult Function(PageNotFoundError value)? pageNotFound,
+  }) {
+    return serverError?.call(this);
   }
 
   @override
@@ -477,6 +568,18 @@ class _$CredencialesError implements CredencialesError {
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? noHayInternet,
+    TResult Function()? noHayConexionAlServidor,
+    TResult Function(String msg)? serverError,
+    TResult Function()? credencialesException,
+    TResult Function()? pageNotFound,
+  }) {
+    return credencialesException?.call();
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
@@ -502,6 +605,18 @@ class _$CredencialesError implements CredencialesError {
     required TResult Function(PageNotFoundError value) pageNotFound,
   }) {
     return credencialesException(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(NoHayInternet value)? noHayInternet,
+    TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
+    TResult Function(ServerError value)? serverError,
+    TResult Function(CredencialesError value)? credencialesException,
+    TResult Function(PageNotFoundError value)? pageNotFound,
+  }) {
+    return credencialesException?.call(this);
   }
 
   @override
@@ -576,6 +691,18 @@ class _$PageNotFoundError implements PageNotFoundError {
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? noHayInternet,
+    TResult Function()? noHayConexionAlServidor,
+    TResult Function(String msg)? serverError,
+    TResult Function()? credencialesException,
+    TResult Function()? pageNotFound,
+  }) {
+    return pageNotFound?.call();
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
@@ -601,6 +728,18 @@ class _$PageNotFoundError implements PageNotFoundError {
     required TResult Function(PageNotFoundError value) pageNotFound,
   }) {
     return pageNotFound(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(NoHayInternet value)? noHayInternet,
+    TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
+    TResult Function(ServerError value)? serverError,
+    TResult Function(CredencialesError value)? credencialesException,
+    TResult Function(PageNotFoundError value)? pageNotFound,
+  }) {
+    return pageNotFound?.call(this);
   }
 
   @override

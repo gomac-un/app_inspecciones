@@ -9,28 +9,26 @@ import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 
 /// Contiene los metodos encargados de subir cuestionarios e inspecciones al server y descargar inspecciones.
 @injectable
 class InspeccionesRepository {
   final InspeccionesRemoteDataSource _api;
   final Database _db;
-  final ILocalPreferencesDataSource localPreferences;
 
-  InspeccionesRepository(this._api, this._db, this.localPreferences);
+  InspeccionesRepository(this._api, this._db);
 
   /// Despues de la descarga de una inpeccion desde el server, se tiene que consultar nuevamente de la bd
   Future<Inspeccion> getInspeccionParaTerminar(int id) =>
       _db.getInspeccionParaTerminar(id);
 
-  /// Descarfa desde el servidor una inspección identificadada con [id] para poder continuarla en la app.
+  /// Descarga desde el servidor una inspección identificadada con [id] para poder continuarla en la app.
   Future<Either<ApiFailure, Unit>> getInspeccionServidor(int id) async {
     try {
       final endpoint = '/inspecciones/$id';
       final inspeccion = await _api.getRecurso(endpoint);
 
-      /// Al descragarla, se debe guardar en la bd para poder acceder a ella
+      /// Al descargarla, se debe guardar en la bd para poder acceder a ella
       await _db.guardarInspeccionBD(inspeccion);
       return right(unit);
     } on TimeoutException {
@@ -92,6 +90,7 @@ class InspeccionesRepository {
 
   Future<Either<ApiFailure, Unit>> subirCuestionariosPendientes() async {
     //TODO: subir cada uno, o todos a la vez para mas eficiencia
+    throw UnimplementedError();
   }
 
   /// Envia [cuestionario] al server.

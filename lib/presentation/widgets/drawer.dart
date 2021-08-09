@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
@@ -8,144 +9,16 @@ import 'package:provider/provider.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class UserDrawer extends StatelessWidget {
-  //TODO: si se genera este mismo drawer en varias paginas se puede crear un stack indeseado, una solucion seria que la instancia del drawer fuera unica en toda la app
+class OpcionesAdmin extends StatelessWidget {
+  /// La app muestra diferentes funcionalidades dependiendo de si [esAdmin]
+  final String nombre;
+  const OpcionesAdmin({Key? key, required this.nombre}) : super(key: key);
+
   @override
-  Widget build(BuildContext context) {
-    final authBloc = Provider.of<AuthBloc>(context);
-    final authState = authBloc.state;
-
-    /* final media = MediaQuery.of(context).size;
-    final orientacion = MediaQuery.of(context).orientation;
-    
-    double porIconSize = 0.025;
-    const porcTextSize = 0.018;
-    double porcHeight = 0.20;
-    double porcRolSize = 0.02;
-    double porcNombre = 0.015;
-    if (media.width < 600 || media.height < 600) {
-      porcHeight = 0.30;
-      porcRolSize = 0.025;
-      porcNombre = 0.02;
-      porIconSize = 0.03;
-    }
-    // Tamaños para los casos en los que el dipositivo es una tablet o un celular con más de 600 px de ancho
-    final iconSize = orientacion == Orientation.portrait
-        ? media.height * porIconSize
-        : media.width * porIconSize;
-    final textSize = orientacion == Orientation.portrait
-        ? media.height * porcTextSize
-        : media.width * porcTextSize;
-    final height = orientacion == Orientation.portrait
-        ? media.height * porcHeight
-        : media.width * porcHeight - 2;
-    final rolSize = orientacion == Orientation.portrait
-        ? media.height * porcRolSize
-        : media.width * porcRolSize;
-    final nombre = orientacion == Orientation.portrait
-        ? media.height * porcNombre
-        : media.width * porcNombre;
-    // Se modifican los valores para cuando es un dispositivo más pequeño */
-
-    bool esAdmin = false;
-
-    /// El usuario puede acceder desde el login aun cuando no tenga internet.
-    /// En ese caso, [esAdmin] es false.
-    /// Si tiene internet, [esAdmin] se obtiene desde la Api
-    if (authState is Authenticated) {
-      if ((authBloc.state as Authenticated).usuario.esAdmin != null) {
-        esAdmin = (authBloc.state as Authenticated).usuario.esAdmin;
-      }
-      return SafeArea(
-        child: Drawer(
-          child: Column(
-            children: <Widget>[
-              /// Información del usuario
-              Expanded(
-                flex: 2,
-                child: ListView(
-                  children: <Widget>[
-                    Container(
-                      color: Theme.of(context).primaryColor,
-                      /*   height: height, */
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 30.0),
-                        child: UserAccountsDrawerHeader(
-                          accountName: Text(
-                            esAdmin ? "Administrador" : "Inspector",
-                            /* style: TextStyle(
-                              fontSize: rolSize,
-                            ), */
-                          ),
-                          accountEmail: Text(
-                            /// Nombre de usuario
-                            authState.usuario.documento,
-                            /* style: TextStyle(
-                              fontSize: nombre,
-                            ), */
-                          ),
-                          currentAccountPicture: CircleAvatar(
-                            backgroundColor:
-                                Theme.of(context).primaryColorLight,
-                            child: Center(
-                              child: Text(
-                                authState.usuario.documento[0],
-                                style: TextStyle(
-                                    fontSize: 30,
-                                    /*  fontSize:
-                                        orientacion == Orientation.portrait
-                                            ? media.height * 0.05
-                                            : media.width * 0.05, */
-                                    color: Theme.of(context).accentColor),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    /// La app muestra diferentes funcionalidades dependiendo de si [esAdmin]
-                    Opciones(esAdmin: esAdmin),
-                  ],
-                ),
-              ),
-
-              /// Comun
-              Gomac(),
-            ],
-          ),
-        ),
-      );
-    } else {
-      return const Text("error");
-    }
-  }
-}
-
-/// Widget que divide las funcionalidades para administradores e inspectores
-class Opciones extends StatelessWidget {
-  final bool esAdmin;
-
-  const Opciones({Key key, this.esAdmin}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    /* final media = MediaQuery.of(context).size;
-    final orientacion = MediaQuery.of(context).orientation;
-    double iconSize = orientacion == Orientation.portrait
-        ? media.height * 0.025
-        : media.width * 0.025;
-    final textSize = orientacion == Orientation.portrait
-        ? media.height * 0.018
-        : media.width * 0.018;
-    if (media.width < 600 || media.height < 600) {
-      iconSize = orientacion == Orientation.portrait
-          ? media.height * 0.03
-          : media.width * 0.03;
-    } */
-    /// Si [esAdmin] muestra pagina de creación de cuestionarios y ver bases de datos
-    if (esAdmin) {
-      return Column(
+  Widget build(BuildContext context) => ListView(
         children: <Widget>[
+          AvatarCard(nombre: nombre, esAdmin: true),
+
           /* Card(
             child: ExpansionTile(
               childrenPadding: const EdgeInsets.only(left: 50),
@@ -171,28 +44,19 @@ class Opciones extends StatelessWidget {
                 selectedTileColor: Theme.of(context).accentColor,
                 title: const Text(
                   'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
-                  /* style: TextStyle(
-                    /* color: Colors.white ,*/ fontSize: textSize,
-                  ), */
                 ),
                 leading: const Icon(
                   Icons.app_registration,
                   color: Colors.black,
                   /* size: iconSize, */ /* color: Colors.white, */
                 ),
-                onTap: () => {
-                      ExtendedNavigator.of(context).pop(),
-                      ExtendedNavigator.of(context)
-                          .push(Routes.cuestionariosPage),
-                    }),
+                onTap: () =>
+                    context.router.popAndPush(const CuestionariosRoute())),
           ),
-          Borradores(
-              /* iconSize: iconSize,
-            textSize: textSize, */
-              ),
-          /*  LimpiezaBase(), */
-          SincronizarConGomac(),
-          /* Card(
+          const Borradores(),
+          const LimpiezaBase(),
+          const SincronizarConGomac(),
+          Card(
             child: ListTile(
               title: const Text('Ver base de datos',
                   style: TextStyle(
@@ -213,25 +77,97 @@ class Opciones extends StatelessWidget {
                 );
               },
             ),
-          ), */
-          LogOut(),
+          ),
+          const LogOut(),
+          const Gomac(),
         ],
       );
-    } else {
-      return Column(
+}
+
+class OpcionesInspector extends StatelessWidget {
+  final String nombre;
+  const OpcionesInspector({Key? key, required this.nombre}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) => ListView(
         children: [
-          Borradores(),
-          LimpiezaBase(),
-          SincronizarConGomac(),
-          LogOut(),
+          AvatarCard(nombre: nombre, esAdmin: false),
+          const Borradores(),
+          const LimpiezaBase(),
+          const SincronizarConGomac(),
+          const LogOut(),
+          const Gomac(),
         ],
       );
-    }
+}
+
+class UserDrawer extends StatelessWidget {
+  const UserDrawer({Key? key}) : super(key: key);
+  //TODO: si se genera este mismo drawer en varias paginas se puede crear un stack indeseado, una solucion seria que la instancia del drawer fuera unica en toda la app
+  @override
+  Widget build(BuildContext context) => SafeArea(
+        child: Drawer(
+          child: Expanded(
+            flex: 2,
+            child: BlocBuilder<AuthBloc, AuthState>(
+              /// El usuario puede acceder desde el login aun cuando no tenga internet.
+              /// En ese caso, [esAdmin] es false.
+              /// Si tiene internet, [esAdmin] se obtiene desde la Api
+              builder: (context, state) => state.maybeMap(
+                  authenticated: (state) => state.usuario.esAdmin
+                      ? OpcionesAdmin(nombre: state.usuario.documento)
+                      : OpcionesInspector(nombre: state.usuario.documento),
+                  unauthenticated: (state) => const OpcionesInspector(
+                      nombre:
+                          "anonimo"), //TODO: este estado no deberia existir al menos en el drawer
+                  orElse: () => Container()),
+            ),
+          ),
+        ),
+      );
+}
+
+class AvatarCard extends StatelessWidget {
+  final String nombre;
+  final bool esAdmin;
+  const AvatarCard({Key? key, required this.nombre, required this.esAdmin})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Theme.of(context).primaryColor,
+      /*   height: height, */
+      child: Padding(
+        padding: const EdgeInsets.only(top: 30.0),
+        child: UserAccountsDrawerHeader(
+          accountName: Text(
+            esAdmin ? "Administrador" : "Inspector",
+          ),
+          accountEmail: Text(
+            /// Nombre de usuario
+            nombre,
+          ),
+          currentAccountPicture: CircleAvatar(
+            backgroundColor: Theme.of(context).primaryColorLight,
+            child: Center(
+              child: Text(
+                nombre[0],
+                style: TextStyle(
+                    fontSize: 30, color: Theme.of(context).accentColor),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
 /// Lleva a lista de inspecciones pendientes
 class Borradores extends StatelessWidget {
+  const Borradores({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -246,10 +182,7 @@ class Borradores extends StatelessWidget {
           color: Colors.black,
           /* size: iconSize, */ /* color: Colors.white, */
         ),
-        onTap: () => {
-          ExtendedNavigator.of(context).pop(),
-          ExtendedNavigator.of(context).push(Routes.borradoresPage),
-        },
+        onTap: () => context.router.popAndPush(const BorradoresRoute()),
       ),
     );
   }
@@ -257,6 +190,8 @@ class Borradores extends StatelessWidget {
 
 /// Abre el sitio web de Gomac
 class Gomac extends StatelessWidget {
+  const Gomac({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     const _url = 'https://gomac.medellin.unal.edu.co';
@@ -264,26 +199,19 @@ class Gomac extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 20),
       child: SizedBox(
         width: double.infinity,
-        /* 
-                    alignment: FractionalOffset.bottomCenter, */
         child: ListTile(
           title: const Text(
             'Ir a Gomac',
           ),
           leading: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Image.asset(
-              "assets/images/logo-gomac.png",
-              /* width: media.orientation == Orientation.portrait
-                  ? media.size.width * 0.06
-                  : media.size.height * 0.06, */
-            ),
+            child: Image.asset("assets/images/logo-gomac.png"),
           ),
           onTap: () async => await canLaunch(_url)
               ? await launch(_url)
               : {
-                  Navigator.of(context).pop(),
-                  Scaffold.of(context).showSnackBar(
+                  context.router.pop(),
+                  ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
                           'No se puede abrir el sitio, verifique su conexión'),
@@ -298,13 +226,13 @@ class Gomac extends StatelessWidget {
 
 /// Cierra sesión al lanzar evento [AuthEvent.loggingOut()]
 class LogOut extends StatelessWidget {
+  const LogOut({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final authBloc = Provider.of<AuthBloc>(context);
 
     return Card(
-      /* 
-                    alignment: FractionalOffset.bottomCenter, */
       child: ListTile(
           selectedTileColor: Theme.of(context).accentColor,
           title: const Text(
@@ -320,6 +248,8 @@ class LogOut extends StatelessWidget {
 }
 
 class Planeacion extends StatelessWidget {
+  const Planeacion({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -327,12 +257,7 @@ class Planeacion extends StatelessWidget {
         ListTile(
           selectedTileColor: Theme.of(context).accentColor,
           title: const Text('Grupos', style: TextStyle(fontSize: 13)),
-          onTap: () async {
-            await ExtendedNavigator.of(context).push(
-              Routes.gruposScreen,
-            );
-            ExtendedNavigator.of(context).pop();
-          },
+          onTap: () => context.router.popAndPush(const GruposScreen()),
         ),
         /*  ListTile(
           selectedTileColor: Theme.of(context).accentColor,
@@ -353,6 +278,8 @@ class Planeacion extends StatelessWidget {
 
 /// Lleva a pagina de sincronizacion para descargar los datos del server
 class SincronizarConGomac extends StatelessWidget {
+  const SincronizarConGomac({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -366,10 +293,7 @@ class SincronizarConGomac extends StatelessWidget {
           color: Colors.black,
           /* color: Colors.white, */
         ),
-        onTap: () async {
-          await ExtendedNavigator.of(context).pushSincronizacionPage();
-          ExtendedNavigator.of(context).pop();
-        },
+        onTap: () => context.router.popAndPush(const SincronizacionRoute()),
       ),
     );
   }
@@ -377,19 +301,21 @@ class SincronizarConGomac extends StatelessWidget {
 
 /// Limpia todos los datos de la bd.
 class LimpiezaBase extends StatelessWidget {
+  const LimpiezaBase({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    final cancelButton = FlatButton(
-      onPressed: () => Navigator.of(context).pop(),
+    final cancelButton = TextButton(
+      onPressed: () => context.router.pop(),
       child: Text("Cancelar",
           style: TextStyle(
               color: Theme.of(context).accentColor)), // OJO con el context
     );
-    final Widget continueButton = FlatButton(
+    final Widget continueButton = TextButton(
       onPressed: () {
-        Navigator.of(context).pop();
+        context.router.pop();
         getIt<Database>().limpiezaBD();
-        Scaffold.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('La limpieza de datos ha finalizado'),
         ));
       },

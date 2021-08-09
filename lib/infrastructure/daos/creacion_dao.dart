@@ -1,11 +1,45 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:inspecciones/infrastructure/fotos_manager.dart';
-import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
 import 'package:kt_dart/kt.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:moor/moor.dart';
 
+import 'package:inspecciones/infrastructure/fotos_manager.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
+
 part 'creacion_dao.g.dart';
+
+class GrupoGetPreguntaNumerica {
+  final Bloque bloque;
+  final Pregunta pregunta;
+  final CriticidadesNumerica criticidades;
+  GrupoGetPreguntaNumerica({
+    required this.bloque,
+    required this.pregunta,
+    required this.criticidades,
+  });
+}
+
+class GrupoGetPreguntasSimples {
+  final Bloque bloque;
+  final Pregunta pregunta;
+  final OpcionDeRespuesta opcionesDePregunta;
+  GrupoGetPreguntasSimples({
+    required this.bloque,
+    required this.pregunta,
+    required this.opcionesDePregunta,
+  });
+}
+
+class GrupoGetCuadriculas {
+  final Pregunta pregunta;
+  final Bloque bloque;
+  final CuadriculaDePreguntas cuadricula;
+  GrupoGetCuadriculas({
+    required this.pregunta,
+    required this.bloque,
+    required this.cuadricula,
+  });
+}
 
 /// Acceso a los datos de la Bd.
 ///
@@ -34,7 +68,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   CreacionDao(Database db) : super(db);
 
   /// Devuelve los todos los modelos para la creación y edición de cuestionarios
-  Future<List<String>> getModelos() {
+  Future<List<String?>> getModelos() {
     final query = selectOnly(activos, distinct: true)
       ..addColumns([activos.modelo]);
 
@@ -42,7 +76,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   }
 
   /// Devuelve todos los tipos de inspección existentes para la creación y edición.
-  Future<List<String>> getTiposDeInspecciones() {
+  Future<List<String?>> getTiposDeInspecciones() {
     final query = selectOnly(cuestionarios, distinct: true)
       ..addColumns([cuestionarios.tipoDeInspeccion]);
 
@@ -57,8 +91,6 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
 
   /// Devuelve los subsistemas que están asociados con [sistema]
   Future<List<SubSistema>> getSubSistemas(Sistema sistema) {
-    if (sistema == null) return Future.value([]);
-
     final query = select(subSistemas)
       ..where((u) => u.sistemaId.equals(sistema.id));
 
@@ -118,27 +150,23 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
           (preguntas.tipo.equals(4)));
 
     final res = await query
-        .map((row) => {
-              'bloque': row.readTable(bloques),
-              'pregunta': row.readTable(preguntas),
-              'criticidades': row.readTable(criticidadesNumericas)
-            })
+        .map((row) => GrupoGetPreguntaNumerica(
+              bloque: row.readTable(bloques),
+              pregunta: row.readTable(preguntas),
+              criticidades: row.readTable(criticidadesNumericas),
+            ))
         .get();
 
-    final m = Future.wait(
-      groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
-        return BloqueConPreguntaNumerica(
-          entry.value.first['bloque'] as Bloque,
-          PreguntaNumerica(
-            entry.key as Pregunta,
-            entry.value
-                .map((item) => item['criticidades'] as CriticidadesNumerica)
-                .toList(),
-          ),
-        );
-      }),
-    );
-    return m;
+    return groupBy<GrupoGetPreguntaNumerica, Pregunta>(res, (e) => e.pregunta)
+        .entries
+        .map((entry) => BloqueConPreguntaNumerica(
+              entry.value.first.bloque,
+              PreguntaNumerica(
+                entry.key,
+                entry.value.map((item) => item.criticidades).toList(),
+              ),
+            ))
+        .toList();
   }
 
   /// Devuelve todas las preguntas de selección única o múltiple del cuestionario con id=[cuestionarioId]
@@ -159,26 +187,23 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
           (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)) &
           preguntas.esCondicional.equals(false));
     final res = await query
-        .map((row) => {
-              'bloque': row.readTable(bloques),
-              'pregunta': row.readTable(preguntas),
-              'opcionesDePregunta': row.readTable(opcionesPregunta)
-            })
+        .map((row) => GrupoGetPreguntasSimples(
+            bloque: row.readTable(bloques),
+            pregunta: row.readTable(preguntas),
+            opcionesDePregunta: row.readTable(opcionesPregunta)))
         .get();
 
-    return Future.wait(
-      groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
-        return BloqueConPreguntaSimple(
-          entry.value.first['bloque'] as Bloque,
-          PreguntaConOpcionesDeRespuesta(
-            entry.key as Pregunta,
-            entry.value
-                .map((e) => e['opcionesDePregunta'] as OpcionDeRespuesta)
-                .toList(),
-          ),
-        );
-      }),
-    );
+    return groupBy<GrupoGetPreguntasSimples, Pregunta>(res, (e) => e.pregunta)
+        .entries
+        .map((entry) {
+      return BloqueConPreguntaSimple(
+        entry.value.first.bloque,
+        PreguntaConOpcionesDeRespuesta(
+          entry.key,
+          entry.value.map((e) => e.opcionesDePregunta).toList(),
+        ),
+      );
+    }).toList();
   }
 
   /// Devuelve todas las cuadriculas  del cuestionario con id=[cuestionarioId] con sus respectivas preguntas y opciones de respuesta
@@ -193,31 +218,33 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     //parteDeCuadriculaUnica
 
     final res = await query1
-        .map((row) => {
-              'pregunta': row.readTable(preguntas),
-              'bloque': row.readTable(bloques),
-              'cuadricula': row.readTable(cuadriculasDePreguntas),
-            })
+        .map((row) => GrupoGetCuadriculas(
+              pregunta: row.readTable(preguntas),
+              bloque: row.readTable(bloques),
+              cuadricula: row.readTable(cuadriculasDePreguntas),
+            ))
         .get();
 
     return Future.wait(
-      groupBy(res, (e) => e['bloque'] as Bloque).entries.map((entry) async {
+      groupBy<GrupoGetCuadriculas, Bloque>(res, (e) => e.bloque)
+          .entries
+          .map((entry) async {
         return BloqueConCuadricula(
           entry.key,
           CuadriculaDePreguntasConOpcionesDeRespuesta(
-            entry.value.first['cuadricula'] as CuadriculaDePreguntas,
+            entry.value.first.cuadricula,
 
             /// Lista de opciones de respuesta asociada a la cuadricula
-            await respuestasDeCuadricula(
-                (entry.value.first['cuadricula'] as CuadriculaDePreguntas).id),
+            await respuestasDeCuadricula(entry.value.first.cuadricula.id),
           ),
-          preguntas: await Future.wait(entry.value.map(
-            (item) async =>
+          preguntas: entry.value
+              .map(
+                (item) =>
 
-                /// Envia lista vacia en las opciones de respuesta, porque ya van en [CuadriculaDePreguntasConOpcionesDeRespuesta]
-                PreguntaConOpcionesDeRespuesta(
-                    item['pregunta'] as Pregunta, []),
-          )),
+                    /// Envia lista vacia en las opciones de respuesta, porque ya van en [CuadriculaDePreguntasConOpcionesDeRespuesta]
+                    PreguntaConOpcionesDeRespuesta(item.pregunta, []),
+              )
+              .toList(),
         );
       }),
     );
@@ -232,8 +259,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   }
 
   /// Devuelve todos los bloques que pertenecen al cuestionario con id=[cuestionarioId]
-  Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId,
-      {int activoId}) async {
+  Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId) async {
     ///  Titulos del cuestionario
     final List<BloqueConTitulo> titulos = await getTitulos(cuestionarioId);
 
@@ -259,17 +285,19 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   }
 
   /// Verifica si ya existe un cuestionario o se debe crear uno nuevo
-  Future<Cuestionario> getCuestionarioToSave(
+  Future<Cuestionario> getAndUpdateOrCreateCuestionarioToSave(
     Cuestionario cuestionario,
   ) async {
     /// En caso de que [cuestionario] no esté guardado en la BD
-    if (cuestionario.id == null) return Future.value();
+    if (cuestionario.id == null)
+      return crearCuestionarioToSave(
+          cuestionario); //TODO: revisar la nulidad del id de las entidades sin guardar
 
     /// Si existe, se actualiza con los nuevos datos de [tipoDeInspeccion] y [estado]
     final query = select(cuestionarios)
       ..where((cues) => cues.id.equals(cuestionario.id));
 
-    await (update(cuestionarios)..where((i) => i.id.equals(cuestionario.id)))
+    await (update(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
         .write(
       CuestionariosCompanion(
         tipoDeInspeccion: Value(cuestionario.tipoDeInspeccion),
@@ -310,10 +338,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     return transaction(
       () async {
         /// Obtiene el cuestionario existente o null si es nuevo
-        Cuestionario cuesti = await getCuestionarioToSave(cuestionario);
-
-        /// Si no existe un cuestionario, se crea
-        cuesti ??= await crearCuestionarioToSave(cuestionario);
+        Cuestionario cuesti = await getOrCreateCuestionarioToSave(cuestionario);
 
         form.cuestionario = cuesti;
 

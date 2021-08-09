@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
@@ -50,8 +51,8 @@ FormArray _cargarBloques(
   }
 }
 
-/// FormGroup para los campos base de la creación de cuestionario
 class CreacionFormViewModel extends FormGroup {
+  /// FormGroup para los campos base de la creación de cuestionario
   final _db = getIt<Database>();
 
   /// Estos ValueNotifier comienzan vacíos y se llenan con la funcion [cargarDatos()]
@@ -215,9 +216,9 @@ class CreacionFormViewModel extends FormGroup {
         ? control("nuevoTipoDeInspeccion").value as String
         : control("tipoDeInspeccion").value as String;
 
-    final Cuestionario nuevoCuestionario = Cuestionario(
+    final CuestionariosCompanion nuevoCuestionario =
+        CuestionariosCompanion.insert(
       tipoDeInspeccion: tipoDeInspeccion,
-      esLocal: null,
       id: cuestionarioId,
       estado: estado,
     );

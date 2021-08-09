@@ -4,6 +4,6 @@ part of 'auth_bloc.dart';
 @freezed
 class AuthEvent with _$AuthEvent {
   const factory AuthEvent.startingApp() = StartingApp;
-  const factory AuthEvent.loggingIn({required Usuario usuario}) = LoggingIn;
+  const factory AuthEvent.loggingIn({required UserLogin usuario}) = LoggingIn;
   const factory AuthEvent.loggingOut() = LoggingOut;
 }

@@ -5,6 +5,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/application/auth/usuario.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
+import 'package:inspecciones/infrastructure/repositories/api_model.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:meta/meta.dart';
@@ -54,6 +55,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       /// Actualiza el estado del login a autenticado cuando [usuario] inicia sesión.
       /// si [appId] no existe, lanza error para que se conecte a internet.
       loggingIn: (usuario) async* {
+        yield const AuthState.loading();
         registrarAPI(usuario);
 
         /// código unico que identifica cada instalación de la app
@@ -63,12 +65,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
 
         /// Obtiene la ultima sincronización, esto para saber que pantalla se muestra primero: sincronización o borradores.
-        final lastSinc =
-            getIt<UserRepository>().localPreferences.getUltimaActualizacion();
+        final lastSync = userRepository.getUltimaSincronizacion();
 
         /// Guarda los datos del usuario, para que no tenga que iniciar sesión la próxima vez
         await userRepository.saveLocalUser(user: usuario);
-        yield AuthState.authenticated(usuario: usuario, sincronizado: lastSinc);
+        yield AuthState.authenticated(usuario: usuario, sincronizado: lastSync);
       },
 
       /// Actualiza el estado del login a inautenticado cuando el usuario cierra sesión

@@ -14,10 +14,11 @@ import 'presentation/pages/grupos_screen.dart';
 ///
 /// Al añadir una nueva ruta se debe correr en consola el comando 'flutter pub run build_runner build --delete-conflicting-outputs'
 @MaterialAutoRouter(
+  replaceInRouteName: 'Page,Route',
   routes: <AutoRoute>[
     // initial route is named "/"
     MaterialRoute(page: SplashPage, initial: true),
-    MaterialRoute(page: LoginScreen),
+    MaterialRoute(page: LoginPage),
     MaterialRoute(page: CreacionFormPage),
     MaterialRoute(page: BorradoresPage),
     MaterialRoute(page: LlenadoFormPage),
@@ -27,4 +28,4 @@ import 'presentation/pages/grupos_screen.dart';
     MaterialRoute(page: HistoryInspeccionesPage),
   ],
 )
-class $AutoRouter {}
+class $AppRouter {}

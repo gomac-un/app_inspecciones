@@ -1,5 +1,6 @@
+// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
 
 part of 'auth_failure.dart';
 
@@ -47,6 +48,14 @@ mixin _$AuthFailure {
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? noHayInternet,
+    TResult Function()? noHayConexionAlServidor,
+    TResult Function()? usuarioOPasswordInvalidos,
+    TResult Function()? serverError,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
@@ -63,6 +72,15 @@ mixin _$AuthFailure {
     required TResult Function(UsuarioOPasswordInvalidos value)
         usuarioOPasswordInvalidos,
     required TResult Function(ServerError value) serverError,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(NoHayInternet value)? noHayInternet,
+    TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
+    TResult Function(UsuarioOPasswordInvalidos value)?
+        usuarioOPasswordInvalidos,
+    TResult Function(ServerError value)? serverError,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -142,6 +160,17 @@ class _$NoHayInternet implements NoHayInternet {
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? noHayInternet,
+    TResult Function()? noHayConexionAlServidor,
+    TResult Function()? usuarioOPasswordInvalidos,
+    TResult Function()? serverError,
+  }) {
+    return noHayInternet?.call();
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
@@ -166,6 +195,18 @@ class _$NoHayInternet implements NoHayInternet {
     required TResult Function(ServerError value) serverError,
   }) {
     return noHayInternet(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(NoHayInternet value)? noHayInternet,
+    TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
+    TResult Function(UsuarioOPasswordInvalidos value)?
+        usuarioOPasswordInvalidos,
+    TResult Function(ServerError value)? serverError,
+  }) {
+    return noHayInternet?.call(this);
   }
 
   @override
@@ -239,6 +280,17 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? noHayInternet,
+    TResult Function()? noHayConexionAlServidor,
+    TResult Function()? usuarioOPasswordInvalidos,
+    TResult Function()? serverError,
+  }) {
+    return noHayConexionAlServidor?.call();
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
@@ -263,6 +315,18 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
     required TResult Function(ServerError value) serverError,
   }) {
     return noHayConexionAlServidor(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(NoHayInternet value)? noHayInternet,
+    TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
+    TResult Function(UsuarioOPasswordInvalidos value)?
+        usuarioOPasswordInvalidos,
+    TResult Function(ServerError value)? serverError,
+  }) {
+    return noHayConexionAlServidor?.call(this);
   }
 
   @override
@@ -337,6 +401,17 @@ class _$UsuarioOPasswordInvalidos implements UsuarioOPasswordInvalidos {
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? noHayInternet,
+    TResult Function()? noHayConexionAlServidor,
+    TResult Function()? usuarioOPasswordInvalidos,
+    TResult Function()? serverError,
+  }) {
+    return usuarioOPasswordInvalidos?.call();
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
@@ -361,6 +436,18 @@ class _$UsuarioOPasswordInvalidos implements UsuarioOPasswordInvalidos {
     required TResult Function(ServerError value) serverError,
   }) {
     return usuarioOPasswordInvalidos(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(NoHayInternet value)? noHayInternet,
+    TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
+    TResult Function(UsuarioOPasswordInvalidos value)?
+        usuarioOPasswordInvalidos,
+    TResult Function(ServerError value)? serverError,
+  }) {
+    return usuarioOPasswordInvalidos?.call(this);
   }
 
   @override
@@ -433,6 +520,17 @@ class _$ServerError implements ServerError {
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function()? noHayInternet,
+    TResult Function()? noHayConexionAlServidor,
+    TResult Function()? usuarioOPasswordInvalidos,
+    TResult Function()? serverError,
+  }) {
+    return serverError?.call();
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
@@ -457,6 +555,18 @@ class _$ServerError implements ServerError {
     required TResult Function(ServerError value) serverError,
   }) {
     return serverError(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(NoHayInternet value)? noHayInternet,
+    TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
+    TResult Function(UsuarioOPasswordInvalidos value)?
+        usuarioOPasswordInvalidos,
+    TResult Function(ServerError value)? serverError,
+  }) {
+    return serverError?.call(this);
   }
 
   @override

@@ -24,7 +24,7 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
   final CuestionarioConContratista cuestionarioDeModelo;
   final List<IBloqueOrdenable> bloques;
   const CreacionFormPage(
-      {Key key, this.cuestionario, this.cuestionarioDeModelo, this.bloques})
+      {Key? key, this.cuestionario, this.cuestionarioDeModelo, this.bloques})
       : super(key: key);
 
   /// Definición del provider, para poder acceder a [CreacionFormViewModel]
@@ -196,8 +196,8 @@ class CreacionFormPage extends StatelessWidget implements AutoRouteWrapper {
 /// Row con botón de guardar borrador y finalizar cuestionario
 class BotonesGuardado extends StatelessWidget {
   const BotonesGuardado({
-    Key key,
-    @required this.estado,
+    Key? key,
+    required this.estado,
   }) : super(key: key);
   final EstadoDeCuestionario estado;
 
@@ -229,7 +229,7 @@ class BotonesGuardado extends StatelessWidget {
                             as FormControl<String>)
                         .value
                         .isEmpty) {
-                  Scaffold.of(context).showSnackBar(const SnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text(
                           "Seleccione el tipo de inspección y elija por lo menos un modelo antes de guardar el cuestionario")));
                 } else {
@@ -291,11 +291,11 @@ class BotonesGuardado extends StatelessWidget {
     final viewModel =
         Provider.of<CreacionFormViewModel>(context, listen: false);
     // set up the buttons
-    final cancelButton = FlatButton(
+    final cancelButton = TextButton(
       onPressed: () => Navigator.of(context).pop(),
       child: const Text("Cancelar"), // OJO con el context
     );
-    final Widget continueButton = FlatButton(
+    final Widget continueButton = TextButton(
       onPressed: () async {
         Navigator.of(context).pop();
 

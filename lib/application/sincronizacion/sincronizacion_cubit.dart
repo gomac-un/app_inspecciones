@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
+import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:flutter_archive/flutter_archive.dart';
@@ -173,7 +174,7 @@ class InstalarDatabaseCubit extends SincronizacionStep {
 }
 
 class DescargaFotosCubit extends SincronizacionStep {
-  //TODO: evitar la duplicacion de codigo con [DescargaCuestionariosCubit]
+  //TODO: evitar la duplicacion del codigo de descarga con [DescargaCuestionariosCubit]
   @override
   String get titulo => 'Descarga de fotos';
 
@@ -253,7 +254,6 @@ class DescargaFotosCubit extends SincronizacionStep {
         const SincronizacionStepState.failure(
             'Error descomprimiendo las fotos'),
       );
-      return;
     }
   }
 }
@@ -269,11 +269,11 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
   final nombreZip = 'cuestionarios.zip';
 
   /// Datos guardados localmente en la aplicacion
-  final ILocalPreferencesDataSource _localPreferences;
+  final UserRepository _userRepository;
 
   /// Emite estado con fecha de la ultima descarga de datos realizada [ultimaAct]
-  late final ValueNotifier<DateTime> ultimaActualizacion =
-      ValueNotifier(_localPreferences.getUltimaActualizacion());
+  late final ValueNotifier<Option<DateTime>> ultimaActualizacion =
+      ValueNotifier(_userRepository.getUltimaActualizacion());
 
   late final DescargaCuestionariosCubit descargaCuestionariosCubit =
       DescargaCuestionariosCubit(getIt<InspeccionesRepository>(), nombreJson);
@@ -299,7 +299,7 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
   }).toList();
 
   SincronizacionCubit(
-    this._localPreferences,
+    this._userRepository,
   ) : super(const SincronizacionState.initial(0));
 
   Future<void> _run() async {
@@ -319,10 +319,9 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     super.onChange(change);
     if (change.nextState is SincronizacionSuccess) {
       /// En caso de éxito, guarda el momento actual como fecha de la ultima actualización
-      _localPreferences.saveUltimaActualizacion().then((res) {
+      _userRepository.saveUltimaActualizacion().then((res) {
         if (res) {
-          ultimaActualizacion.value =
-              _localPreferences.getUltimaActualizacion();
+          ultimaActualizacion.value = _userRepository.getUltimaActualizacion();
         } //TODO: que pasa si falla?
       });
     }

@@ -50,12 +50,12 @@ class BorradoresDao extends DatabaseAccessor<Database>
 
       /// Se filtran los que tengan momentoEnvio nulo, esto, porque también están quedando guardadas las enviadas para el historial
       /// y estas no se muestran en la pantalla de borradores.
-      ..where(isNull(inspecciones.momentoEnvio));
+      ..where(inspecciones.momentoEnvio.isNull());
 
     /// Agrupación del resultado de la consulta en la clase Borrador para manejarlo mejor en la UI
     return query
-        .map((row) => Borrador(row.readTable(activos),
-            row.readTable(inspecciones), null, null, null))
+        .map((row) =>
+            Borrador(row.readTable(activos), row.readTable(inspecciones)))
         .watch()
         .asyncMap<List<Borrador>>(
           (l) async => Future.wait<Borrador>(
@@ -81,13 +81,14 @@ class BorradoresDao extends DatabaseAccessor<Database>
     final query = select(inspecciones).join([
       innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
     ])
-    /// Se filtran los que tengan momentoEnvio No nulo
-      ..where(isNotNull(inspecciones.momentoEnvio));
+
+      /// Se filtran los que tengan momentoEnvio No nulo
+      ..where(inspecciones.momentoEnvio.isNotNull());
 
     /// Agrupación del resultado de la consulta en la clase Borrador para manejarlo mejor en la UI
     return query
-        .map((row) => Borrador(row.readTable(activos),
-            row.readTable(inspecciones), null, null, null))
+        .map((row) =>
+            Borrador(row.readTable(activos), row.readTable(inspecciones)))
         .watch()
         .asyncMap<List<Borrador>>(
           (l) async => Future.wait<Borrador>(
@@ -160,8 +161,6 @@ class BorradoresDao extends DatabaseAccessor<Database>
         .map((row) =>
             [row.readTable(cuestionarioDeModelos), row.readTable(contratistas)])
         .get();
-
-    if (res.isEmpty) return null;
 
     return CuestionarioConContratista(
         res.map((cu) => cu[0] as CuestionarioDeModelo).toList(),

@@ -1,5 +1,6 @@
+// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
 
 part of 'sincronizacion_cubit.dart';
 
@@ -17,9 +18,9 @@ class _$TaskTearOff {
   const _$TaskTearOff();
 
   _Task call(
-      {required String id,
-      required DownloadTaskStatus status,
-      required int progress}) {
+      {required path.String id,
+      required path.DownloadTaskStatus status,
+      required path.int progress}) {
     return _Task(
       id: id,
       status: status,
@@ -33,9 +34,9 @@ const $Task = _$TaskTearOff();
 
 /// @nodoc
 mixin _$Task {
-  String get id => throw _privateConstructorUsedError;
-  DownloadTaskStatus get status => throw _privateConstructorUsedError;
-  int get progress => throw _privateConstructorUsedError;
+  path.String get id => throw _privateConstructorUsedError;
+  path.DownloadTaskStatus get status => throw _privateConstructorUsedError;
+  path.int get progress => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $TaskCopyWith<Task> get copyWith => throw _privateConstructorUsedError;
@@ -45,7 +46,8 @@ mixin _$Task {
 abstract class $TaskCopyWith<$Res> {
   factory $TaskCopyWith(Task value, $Res Function(Task) then) =
       _$TaskCopyWithImpl<$Res>;
-  $Res call({String id, DownloadTaskStatus status, int progress});
+  $Res call(
+      {path.String id, path.DownloadTaskStatus status, path.int progress});
 }
 
 /// @nodoc
@@ -66,15 +68,15 @@ class _$TaskCopyWithImpl<$Res> implements $TaskCopyWith<$Res> {
       id: id == freezed
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as path.String,
       status: status == freezed
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
-              as DownloadTaskStatus,
+              as path.DownloadTaskStatus,
       progress: progress == freezed
           ? _value.progress
           : progress // ignore: cast_nullable_to_non_nullable
-              as int,
+              as path.int,
     ));
   }
 }
@@ -84,7 +86,8 @@ abstract class _$TaskCopyWith<$Res> implements $TaskCopyWith<$Res> {
   factory _$TaskCopyWith(_Task value, $Res Function(_Task) then) =
       __$TaskCopyWithImpl<$Res>;
   @override
-  $Res call({String id, DownloadTaskStatus status, int progress});
+  $Res call(
+      {path.String id, path.DownloadTaskStatus status, path.int progress});
 }
 
 /// @nodoc
@@ -106,15 +109,15 @@ class __$TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res>
       id: id == freezed
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as path.String,
       status: status == freezed
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
-              as DownloadTaskStatus,
+              as path.DownloadTaskStatus,
       progress: progress == freezed
           ? _value.progress
           : progress // ignore: cast_nullable_to_non_nullable
-              as int,
+              as path.int,
     ));
   }
 }
@@ -125,11 +128,11 @@ class _$_Task with DiagnosticableTreeMixin implements _Task {
   _$_Task({required this.id, required this.status, required this.progress});
 
   @override
-  final String id;
+  final path.String id;
   @override
-  final DownloadTaskStatus status;
+  final path.DownloadTaskStatus status;
   @override
-  final int progress;
+  final path.int progress;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
@@ -174,16 +177,16 @@ class _$_Task with DiagnosticableTreeMixin implements _Task {
 
 abstract class _Task implements Task {
   factory _Task(
-      {required String id,
-      required DownloadTaskStatus status,
-      required int progress}) = _$_Task;
+      {required path.String id,
+      required path.DownloadTaskStatus status,
+      required path.int progress}) = _$_Task;
 
   @override
-  String get id => throw _privateConstructorUsedError;
+  path.String get id => throw _privateConstructorUsedError;
   @override
-  DownloadTaskStatus get status => throw _privateConstructorUsedError;
+  path.DownloadTaskStatus get status => throw _privateConstructorUsedError;
   @override
-  int get progress => throw _privateConstructorUsedError;
+  path.int get progress => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   _$TaskCopyWith<_Task> get copyWith => throw _privateConstructorUsedError;
@@ -193,25 +196,25 @@ abstract class _Task implements Task {
 class _$SincronizacionStateTearOff {
   const _$SincronizacionStateTearOff();
 
-  SincronizacionInitial initial(int paso) {
+  SincronizacionInitial initial(path.int paso) {
     return SincronizacionInitial(
       paso,
     );
   }
 
-  SincronizacionInProgress inProgress(int paso) {
+  SincronizacionInProgress inProgress(path.int paso) {
     return SincronizacionInProgress(
       paso,
     );
   }
 
-  SincronizacionSuccess success(int paso) {
+  SincronizacionSuccess success(path.int paso) {
     return SincronizacionSuccess(
       paso,
     );
   }
 
-  SincronizacionFailure failure(int paso) {
+  SincronizacionFailure failure(path.int paso) {
     return SincronizacionFailure(
       paso,
     );
@@ -223,22 +226,30 @@ const $SincronizacionState = _$SincronizacionStateTearOff();
 
 /// @nodoc
 mixin _$SincronizacionState {
-  int get paso => throw _privateConstructorUsedError;
+  path.int get paso => throw _privateConstructorUsedError;
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int paso) initial,
-    required TResult Function(int paso) inProgress,
-    required TResult Function(int paso) success,
-    required TResult Function(int paso) failure,
+    required TResult Function(path.int paso) initial,
+    required TResult Function(path.int paso) inProgress,
+    required TResult Function(path.int paso) success,
+    required TResult Function(path.int paso) failure,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(path.int paso)? initial,
+    TResult Function(path.int paso)? inProgress,
+    TResult Function(path.int paso)? success,
+    TResult Function(path.int paso)? failure,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int paso)? initial,
-    TResult Function(int paso)? inProgress,
-    TResult Function(int paso)? success,
-    TResult Function(int paso)? failure,
+    TResult Function(path.int paso)? initial,
+    TResult Function(path.int paso)? inProgress,
+    TResult Function(path.int paso)? success,
+    TResult Function(path.int paso)? failure,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -248,6 +259,14 @@ mixin _$SincronizacionState {
     required TResult Function(SincronizacionInProgress value) inProgress,
     required TResult Function(SincronizacionSuccess value) success,
     required TResult Function(SincronizacionFailure value) failure,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(SincronizacionInitial value)? initial,
+    TResult Function(SincronizacionInProgress value)? inProgress,
+    TResult Function(SincronizacionSuccess value)? success,
+    TResult Function(SincronizacionFailure value)? failure,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -270,7 +289,7 @@ abstract class $SincronizacionStateCopyWith<$Res> {
   factory $SincronizacionStateCopyWith(
           SincronizacionState value, $Res Function(SincronizacionState) then) =
       _$SincronizacionStateCopyWithImpl<$Res>;
-  $Res call({int paso});
+  $Res call({path.int paso});
 }
 
 /// @nodoc
@@ -290,7 +309,7 @@ class _$SincronizacionStateCopyWithImpl<$Res>
       paso: paso == freezed
           ? _value.paso
           : paso // ignore: cast_nullable_to_non_nullable
-              as int,
+              as path.int,
     ));
   }
 }
@@ -302,7 +321,7 @@ abstract class $SincronizacionInitialCopyWith<$Res>
           $Res Function(SincronizacionInitial) then) =
       _$SincronizacionInitialCopyWithImpl<$Res>;
   @override
-  $Res call({int paso});
+  $Res call({path.int paso});
 }
 
 /// @nodoc
@@ -324,7 +343,7 @@ class _$SincronizacionInitialCopyWithImpl<$Res>
       paso == freezed
           ? _value.paso
           : paso // ignore: cast_nullable_to_non_nullable
-              as int,
+              as path.int,
     ));
   }
 }
@@ -337,7 +356,7 @@ class _$SincronizacionInitial
   const _$SincronizacionInitial(this.paso);
 
   @override
-  final int paso;
+  final path.int paso;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
@@ -373,21 +392,32 @@ class _$SincronizacionInitial
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int paso) initial,
-    required TResult Function(int paso) inProgress,
-    required TResult Function(int paso) success,
-    required TResult Function(int paso) failure,
+    required TResult Function(path.int paso) initial,
+    required TResult Function(path.int paso) inProgress,
+    required TResult Function(path.int paso) success,
+    required TResult Function(path.int paso) failure,
   }) {
     return initial(paso);
   }
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(path.int paso)? initial,
+    TResult Function(path.int paso)? inProgress,
+    TResult Function(path.int paso)? success,
+    TResult Function(path.int paso)? failure,
+  }) {
+    return initial?.call(paso);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int paso)? initial,
-    TResult Function(int paso)? inProgress,
-    TResult Function(int paso)? success,
-    TResult Function(int paso)? failure,
+    TResult Function(path.int paso)? initial,
+    TResult Function(path.int paso)? inProgress,
+    TResult Function(path.int paso)? success,
+    TResult Function(path.int paso)? failure,
     required TResult orElse(),
   }) {
     if (initial != null) {
@@ -409,6 +439,17 @@ class _$SincronizacionInitial
 
   @override
   @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(SincronizacionInitial value)? initial,
+    TResult Function(SincronizacionInProgress value)? inProgress,
+    TResult Function(SincronizacionSuccess value)? success,
+    TResult Function(SincronizacionFailure value)? failure,
+  }) {
+    return initial?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SincronizacionInitial value)? initial,
     TResult Function(SincronizacionInProgress value)? inProgress,
@@ -424,10 +465,10 @@ class _$SincronizacionInitial
 }
 
 abstract class SincronizacionInitial implements SincronizacionState {
-  const factory SincronizacionInitial(int paso) = _$SincronizacionInitial;
+  const factory SincronizacionInitial(path.int paso) = _$SincronizacionInitial;
 
   @override
-  int get paso => throw _privateConstructorUsedError;
+  path.int get paso => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   $SincronizacionInitialCopyWith<SincronizacionInitial> get copyWith =>
@@ -441,7 +482,7 @@ abstract class $SincronizacionInProgressCopyWith<$Res>
           $Res Function(SincronizacionInProgress) then) =
       _$SincronizacionInProgressCopyWithImpl<$Res>;
   @override
-  $Res call({int paso});
+  $Res call({path.int paso});
 }
 
 /// @nodoc
@@ -464,7 +505,7 @@ class _$SincronizacionInProgressCopyWithImpl<$Res>
       paso == freezed
           ? _value.paso
           : paso // ignore: cast_nullable_to_non_nullable
-              as int,
+              as path.int,
     ));
   }
 }
@@ -477,7 +518,7 @@ class _$SincronizacionInProgress
   const _$SincronizacionInProgress(this.paso);
 
   @override
-  final int paso;
+  final path.int paso;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
@@ -513,21 +554,32 @@ class _$SincronizacionInProgress
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int paso) initial,
-    required TResult Function(int paso) inProgress,
-    required TResult Function(int paso) success,
-    required TResult Function(int paso) failure,
+    required TResult Function(path.int paso) initial,
+    required TResult Function(path.int paso) inProgress,
+    required TResult Function(path.int paso) success,
+    required TResult Function(path.int paso) failure,
   }) {
     return inProgress(paso);
   }
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(path.int paso)? initial,
+    TResult Function(path.int paso)? inProgress,
+    TResult Function(path.int paso)? success,
+    TResult Function(path.int paso)? failure,
+  }) {
+    return inProgress?.call(paso);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int paso)? initial,
-    TResult Function(int paso)? inProgress,
-    TResult Function(int paso)? success,
-    TResult Function(int paso)? failure,
+    TResult Function(path.int paso)? initial,
+    TResult Function(path.int paso)? inProgress,
+    TResult Function(path.int paso)? success,
+    TResult Function(path.int paso)? failure,
     required TResult orElse(),
   }) {
     if (inProgress != null) {
@@ -549,6 +601,17 @@ class _$SincronizacionInProgress
 
   @override
   @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(SincronizacionInitial value)? initial,
+    TResult Function(SincronizacionInProgress value)? inProgress,
+    TResult Function(SincronizacionSuccess value)? success,
+    TResult Function(SincronizacionFailure value)? failure,
+  }) {
+    return inProgress?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SincronizacionInitial value)? initial,
     TResult Function(SincronizacionInProgress value)? inProgress,
@@ -564,10 +627,11 @@ class _$SincronizacionInProgress
 }
 
 abstract class SincronizacionInProgress implements SincronizacionState {
-  const factory SincronizacionInProgress(int paso) = _$SincronizacionInProgress;
+  const factory SincronizacionInProgress(path.int paso) =
+      _$SincronizacionInProgress;
 
   @override
-  int get paso => throw _privateConstructorUsedError;
+  path.int get paso => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   $SincronizacionInProgressCopyWith<SincronizacionInProgress> get copyWith =>
@@ -581,7 +645,7 @@ abstract class $SincronizacionSuccessCopyWith<$Res>
           $Res Function(SincronizacionSuccess) then) =
       _$SincronizacionSuccessCopyWithImpl<$Res>;
   @override
-  $Res call({int paso});
+  $Res call({path.int paso});
 }
 
 /// @nodoc
@@ -603,7 +667,7 @@ class _$SincronizacionSuccessCopyWithImpl<$Res>
       paso == freezed
           ? _value.paso
           : paso // ignore: cast_nullable_to_non_nullable
-              as int,
+              as path.int,
     ));
   }
 }
@@ -616,7 +680,7 @@ class _$SincronizacionSuccess
   const _$SincronizacionSuccess(this.paso);
 
   @override
-  final int paso;
+  final path.int paso;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
@@ -652,21 +716,32 @@ class _$SincronizacionSuccess
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int paso) initial,
-    required TResult Function(int paso) inProgress,
-    required TResult Function(int paso) success,
-    required TResult Function(int paso) failure,
+    required TResult Function(path.int paso) initial,
+    required TResult Function(path.int paso) inProgress,
+    required TResult Function(path.int paso) success,
+    required TResult Function(path.int paso) failure,
   }) {
     return success(paso);
   }
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(path.int paso)? initial,
+    TResult Function(path.int paso)? inProgress,
+    TResult Function(path.int paso)? success,
+    TResult Function(path.int paso)? failure,
+  }) {
+    return success?.call(paso);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int paso)? initial,
-    TResult Function(int paso)? inProgress,
-    TResult Function(int paso)? success,
-    TResult Function(int paso)? failure,
+    TResult Function(path.int paso)? initial,
+    TResult Function(path.int paso)? inProgress,
+    TResult Function(path.int paso)? success,
+    TResult Function(path.int paso)? failure,
     required TResult orElse(),
   }) {
     if (success != null) {
@@ -688,6 +763,17 @@ class _$SincronizacionSuccess
 
   @override
   @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(SincronizacionInitial value)? initial,
+    TResult Function(SincronizacionInProgress value)? inProgress,
+    TResult Function(SincronizacionSuccess value)? success,
+    TResult Function(SincronizacionFailure value)? failure,
+  }) {
+    return success?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SincronizacionInitial value)? initial,
     TResult Function(SincronizacionInProgress value)? inProgress,
@@ -703,10 +789,10 @@ class _$SincronizacionSuccess
 }
 
 abstract class SincronizacionSuccess implements SincronizacionState {
-  const factory SincronizacionSuccess(int paso) = _$SincronizacionSuccess;
+  const factory SincronizacionSuccess(path.int paso) = _$SincronizacionSuccess;
 
   @override
-  int get paso => throw _privateConstructorUsedError;
+  path.int get paso => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   $SincronizacionSuccessCopyWith<SincronizacionSuccess> get copyWith =>
@@ -720,7 +806,7 @@ abstract class $SincronizacionFailureCopyWith<$Res>
           $Res Function(SincronizacionFailure) then) =
       _$SincronizacionFailureCopyWithImpl<$Res>;
   @override
-  $Res call({int paso});
+  $Res call({path.int paso});
 }
 
 /// @nodoc
@@ -742,7 +828,7 @@ class _$SincronizacionFailureCopyWithImpl<$Res>
       paso == freezed
           ? _value.paso
           : paso // ignore: cast_nullable_to_non_nullable
-              as int,
+              as path.int,
     ));
   }
 }
@@ -755,7 +841,7 @@ class _$SincronizacionFailure
   const _$SincronizacionFailure(this.paso);
 
   @override
-  final int paso;
+  final path.int paso;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
@@ -791,21 +877,32 @@ class _$SincronizacionFailure
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int paso) initial,
-    required TResult Function(int paso) inProgress,
-    required TResult Function(int paso) success,
-    required TResult Function(int paso) failure,
+    required TResult Function(path.int paso) initial,
+    required TResult Function(path.int paso) inProgress,
+    required TResult Function(path.int paso) success,
+    required TResult Function(path.int paso) failure,
   }) {
     return failure(paso);
   }
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(path.int paso)? initial,
+    TResult Function(path.int paso)? inProgress,
+    TResult Function(path.int paso)? success,
+    TResult Function(path.int paso)? failure,
+  }) {
+    return failure?.call(paso);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int paso)? initial,
-    TResult Function(int paso)? inProgress,
-    TResult Function(int paso)? success,
-    TResult Function(int paso)? failure,
+    TResult Function(path.int paso)? initial,
+    TResult Function(path.int paso)? inProgress,
+    TResult Function(path.int paso)? success,
+    TResult Function(path.int paso)? failure,
     required TResult orElse(),
   }) {
     if (failure != null) {
@@ -827,6 +924,17 @@ class _$SincronizacionFailure
 
   @override
   @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(SincronizacionInitial value)? initial,
+    TResult Function(SincronizacionInProgress value)? inProgress,
+    TResult Function(SincronizacionSuccess value)? success,
+    TResult Function(SincronizacionFailure value)? failure,
+  }) {
+    return failure?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SincronizacionInitial value)? initial,
     TResult Function(SincronizacionInProgress value)? inProgress,
@@ -842,10 +950,10 @@ class _$SincronizacionFailure
 }
 
 abstract class SincronizacionFailure implements SincronizacionState {
-  const factory SincronizacionFailure(int paso) = _$SincronizacionFailure;
+  const factory SincronizacionFailure(path.int paso) = _$SincronizacionFailure;
 
   @override
-  int get paso => throw _privateConstructorUsedError;
+  path.int get paso => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   $SincronizacionFailureCopyWith<SincronizacionFailure> get copyWith =>
@@ -856,26 +964,27 @@ abstract class SincronizacionFailure implements SincronizacionState {
 class _$SincronizacionStepStateTearOff {
   const _$SincronizacionStepStateTearOff();
 
-  SincronizacionStepInitial initial([String log = ""]) {
+  SincronizacionStepInitial initial([path.String log = ""]) {
     return SincronizacionStepInitial(
       log,
     );
   }
 
-  SincronizacionStepInProgress inProgress(int progress, [String log = ""]) {
+  SincronizacionStepInProgress inProgress(path.int progress,
+      [path.String log = ""]) {
     return SincronizacionStepInProgress(
       progress,
       log,
     );
   }
 
-  SincronizacionStepSuccess success([String log = ""]) {
+  SincronizacionStepSuccess success([path.String log = ""]) {
     return SincronizacionStepSuccess(
       log,
     );
   }
 
-  SincronizacionStepFailure failure([String log = ""]) {
+  SincronizacionStepFailure failure([path.String log = ""]) {
     return SincronizacionStepFailure(
       log,
     );
@@ -887,22 +996,30 @@ const $SincronizacionStepState = _$SincronizacionStepStateTearOff();
 
 /// @nodoc
 mixin _$SincronizacionStepState {
-  String get log => throw _privateConstructorUsedError;
+  path.String get log => throw _privateConstructorUsedError;
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String log) initial,
-    required TResult Function(int progress, String log) inProgress,
-    required TResult Function(String log) success,
-    required TResult Function(String log) failure,
+    required TResult Function(path.String log) initial,
+    required TResult Function(path.int progress, path.String log) inProgress,
+    required TResult Function(path.String log) success,
+    required TResult Function(path.String log) failure,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(path.String log)? initial,
+    TResult Function(path.int progress, path.String log)? inProgress,
+    TResult Function(path.String log)? success,
+    TResult Function(path.String log)? failure,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String log)? initial,
-    TResult Function(int progress, String log)? inProgress,
-    TResult Function(String log)? success,
-    TResult Function(String log)? failure,
+    TResult Function(path.String log)? initial,
+    TResult Function(path.int progress, path.String log)? inProgress,
+    TResult Function(path.String log)? success,
+    TResult Function(path.String log)? failure,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -912,6 +1029,14 @@ mixin _$SincronizacionStepState {
     required TResult Function(SincronizacionStepInProgress value) inProgress,
     required TResult Function(SincronizacionStepSuccess value) success,
     required TResult Function(SincronizacionStepFailure value) failure,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(SincronizacionStepInitial value)? initial,
+    TResult Function(SincronizacionStepInProgress value)? inProgress,
+    TResult Function(SincronizacionStepSuccess value)? success,
+    TResult Function(SincronizacionStepFailure value)? failure,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -934,7 +1059,7 @@ abstract class $SincronizacionStepStateCopyWith<$Res> {
   factory $SincronizacionStepStateCopyWith(SincronizacionStepState value,
           $Res Function(SincronizacionStepState) then) =
       _$SincronizacionStepStateCopyWithImpl<$Res>;
-  $Res call({String log});
+  $Res call({path.String log});
 }
 
 /// @nodoc
@@ -954,7 +1079,7 @@ class _$SincronizacionStepStateCopyWithImpl<$Res>
       log: log == freezed
           ? _value.log
           : log // ignore: cast_nullable_to_non_nullable
-              as String,
+              as path.String,
     ));
   }
 }
@@ -966,7 +1091,7 @@ abstract class $SincronizacionStepInitialCopyWith<$Res>
           $Res Function(SincronizacionStepInitial) then) =
       _$SincronizacionStepInitialCopyWithImpl<$Res>;
   @override
-  $Res call({String log});
+  $Res call({path.String log});
 }
 
 /// @nodoc
@@ -989,7 +1114,7 @@ class _$SincronizacionStepInitialCopyWithImpl<$Res>
       log == freezed
           ? _value.log
           : log // ignore: cast_nullable_to_non_nullable
-              as String,
+              as path.String,
     ));
   }
 }
@@ -1003,7 +1128,7 @@ class _$SincronizacionStepInitial
 
   @JsonKey(defaultValue: "")
   @override
-  final String log;
+  final path.String log;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
@@ -1039,21 +1164,32 @@ class _$SincronizacionStepInitial
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String log) initial,
-    required TResult Function(int progress, String log) inProgress,
-    required TResult Function(String log) success,
-    required TResult Function(String log) failure,
+    required TResult Function(path.String log) initial,
+    required TResult Function(path.int progress, path.String log) inProgress,
+    required TResult Function(path.String log) success,
+    required TResult Function(path.String log) failure,
   }) {
     return initial(log);
   }
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(path.String log)? initial,
+    TResult Function(path.int progress, path.String log)? inProgress,
+    TResult Function(path.String log)? success,
+    TResult Function(path.String log)? failure,
+  }) {
+    return initial?.call(log);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String log)? initial,
-    TResult Function(int progress, String log)? inProgress,
-    TResult Function(String log)? success,
-    TResult Function(String log)? failure,
+    TResult Function(path.String log)? initial,
+    TResult Function(path.int progress, path.String log)? inProgress,
+    TResult Function(path.String log)? success,
+    TResult Function(path.String log)? failure,
     required TResult orElse(),
   }) {
     if (initial != null) {
@@ -1075,6 +1211,17 @@ class _$SincronizacionStepInitial
 
   @override
   @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(SincronizacionStepInitial value)? initial,
+    TResult Function(SincronizacionStepInProgress value)? inProgress,
+    TResult Function(SincronizacionStepSuccess value)? success,
+    TResult Function(SincronizacionStepFailure value)? failure,
+  }) {
+    return initial?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SincronizacionStepInitial value)? initial,
     TResult Function(SincronizacionStepInProgress value)? inProgress,
@@ -1090,11 +1237,11 @@ class _$SincronizacionStepInitial
 }
 
 abstract class SincronizacionStepInitial implements SincronizacionStepState {
-  const factory SincronizacionStepInitial([String log]) =
+  const factory SincronizacionStepInitial([path.String log]) =
       _$SincronizacionStepInitial;
 
   @override
-  String get log => throw _privateConstructorUsedError;
+  path.String get log => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   $SincronizacionStepInitialCopyWith<SincronizacionStepInitial> get copyWith =>
@@ -1109,7 +1256,7 @@ abstract class $SincronizacionStepInProgressCopyWith<$Res>
           $Res Function(SincronizacionStepInProgress) then) =
       _$SincronizacionStepInProgressCopyWithImpl<$Res>;
   @override
-  $Res call({int progress, String log});
+  $Res call({path.int progress, path.String log});
 }
 
 /// @nodoc
@@ -1134,11 +1281,11 @@ class _$SincronizacionStepInProgressCopyWithImpl<$Res>
       progress == freezed
           ? _value.progress
           : progress // ignore: cast_nullable_to_non_nullable
-              as int,
+              as path.int,
       log == freezed
           ? _value.log
           : log // ignore: cast_nullable_to_non_nullable
-              as String,
+              as path.String,
     ));
   }
 }
@@ -1151,10 +1298,10 @@ class _$SincronizacionStepInProgress
   const _$SincronizacionStepInProgress(this.progress, [this.log = ""]);
 
   @override
-  final int progress;
+  final path.int progress;
   @JsonKey(defaultValue: "")
   @override
-  final String log;
+  final path.String log;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
@@ -1196,21 +1343,32 @@ class _$SincronizacionStepInProgress
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String log) initial,
-    required TResult Function(int progress, String log) inProgress,
-    required TResult Function(String log) success,
-    required TResult Function(String log) failure,
+    required TResult Function(path.String log) initial,
+    required TResult Function(path.int progress, path.String log) inProgress,
+    required TResult Function(path.String log) success,
+    required TResult Function(path.String log) failure,
   }) {
     return inProgress(progress, log);
   }
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(path.String log)? initial,
+    TResult Function(path.int progress, path.String log)? inProgress,
+    TResult Function(path.String log)? success,
+    TResult Function(path.String log)? failure,
+  }) {
+    return inProgress?.call(progress, log);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String log)? initial,
-    TResult Function(int progress, String log)? inProgress,
-    TResult Function(String log)? success,
-    TResult Function(String log)? failure,
+    TResult Function(path.String log)? initial,
+    TResult Function(path.int progress, path.String log)? inProgress,
+    TResult Function(path.String log)? success,
+    TResult Function(path.String log)? failure,
     required TResult orElse(),
   }) {
     if (inProgress != null) {
@@ -1232,6 +1390,17 @@ class _$SincronizacionStepInProgress
 
   @override
   @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(SincronizacionStepInitial value)? initial,
+    TResult Function(SincronizacionStepInProgress value)? inProgress,
+    TResult Function(SincronizacionStepSuccess value)? success,
+    TResult Function(SincronizacionStepFailure value)? failure,
+  }) {
+    return inProgress?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SincronizacionStepInitial value)? initial,
     TResult Function(SincronizacionStepInProgress value)? inProgress,
@@ -1247,12 +1416,12 @@ class _$SincronizacionStepInProgress
 }
 
 abstract class SincronizacionStepInProgress implements SincronizacionStepState {
-  const factory SincronizacionStepInProgress(int progress, [String log]) =
-      _$SincronizacionStepInProgress;
+  const factory SincronizacionStepInProgress(path.int progress,
+      [path.String log]) = _$SincronizacionStepInProgress;
 
-  int get progress => throw _privateConstructorUsedError;
+  path.int get progress => throw _privateConstructorUsedError;
   @override
-  String get log => throw _privateConstructorUsedError;
+  path.String get log => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   $SincronizacionStepInProgressCopyWith<SincronizacionStepInProgress>
@@ -1266,7 +1435,7 @@ abstract class $SincronizacionStepSuccessCopyWith<$Res>
           $Res Function(SincronizacionStepSuccess) then) =
       _$SincronizacionStepSuccessCopyWithImpl<$Res>;
   @override
-  $Res call({String log});
+  $Res call({path.String log});
 }
 
 /// @nodoc
@@ -1289,7 +1458,7 @@ class _$SincronizacionStepSuccessCopyWithImpl<$Res>
       log == freezed
           ? _value.log
           : log // ignore: cast_nullable_to_non_nullable
-              as String,
+              as path.String,
     ));
   }
 }
@@ -1303,7 +1472,7 @@ class _$SincronizacionStepSuccess
 
   @JsonKey(defaultValue: "")
   @override
-  final String log;
+  final path.String log;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
@@ -1339,21 +1508,32 @@ class _$SincronizacionStepSuccess
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String log) initial,
-    required TResult Function(int progress, String log) inProgress,
-    required TResult Function(String log) success,
-    required TResult Function(String log) failure,
+    required TResult Function(path.String log) initial,
+    required TResult Function(path.int progress, path.String log) inProgress,
+    required TResult Function(path.String log) success,
+    required TResult Function(path.String log) failure,
   }) {
     return success(log);
   }
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(path.String log)? initial,
+    TResult Function(path.int progress, path.String log)? inProgress,
+    TResult Function(path.String log)? success,
+    TResult Function(path.String log)? failure,
+  }) {
+    return success?.call(log);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String log)? initial,
-    TResult Function(int progress, String log)? inProgress,
-    TResult Function(String log)? success,
-    TResult Function(String log)? failure,
+    TResult Function(path.String log)? initial,
+    TResult Function(path.int progress, path.String log)? inProgress,
+    TResult Function(path.String log)? success,
+    TResult Function(path.String log)? failure,
     required TResult orElse(),
   }) {
     if (success != null) {
@@ -1375,6 +1555,17 @@ class _$SincronizacionStepSuccess
 
   @override
   @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(SincronizacionStepInitial value)? initial,
+    TResult Function(SincronizacionStepInProgress value)? inProgress,
+    TResult Function(SincronizacionStepSuccess value)? success,
+    TResult Function(SincronizacionStepFailure value)? failure,
+  }) {
+    return success?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SincronizacionStepInitial value)? initial,
     TResult Function(SincronizacionStepInProgress value)? inProgress,
@@ -1390,11 +1581,11 @@ class _$SincronizacionStepSuccess
 }
 
 abstract class SincronizacionStepSuccess implements SincronizacionStepState {
-  const factory SincronizacionStepSuccess([String log]) =
+  const factory SincronizacionStepSuccess([path.String log]) =
       _$SincronizacionStepSuccess;
 
   @override
-  String get log => throw _privateConstructorUsedError;
+  path.String get log => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   $SincronizacionStepSuccessCopyWith<SincronizacionStepSuccess> get copyWith =>
@@ -1408,7 +1599,7 @@ abstract class $SincronizacionStepFailureCopyWith<$Res>
           $Res Function(SincronizacionStepFailure) then) =
       _$SincronizacionStepFailureCopyWithImpl<$Res>;
   @override
-  $Res call({String log});
+  $Res call({path.String log});
 }
 
 /// @nodoc
@@ -1431,7 +1622,7 @@ class _$SincronizacionStepFailureCopyWithImpl<$Res>
       log == freezed
           ? _value.log
           : log // ignore: cast_nullable_to_non_nullable
-              as String,
+              as path.String,
     ));
   }
 }
@@ -1445,7 +1636,7 @@ class _$SincronizacionStepFailure
 
   @JsonKey(defaultValue: "")
   @override
-  final String log;
+  final path.String log;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
@@ -1481,21 +1672,32 @@ class _$SincronizacionStepFailure
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String log) initial,
-    required TResult Function(int progress, String log) inProgress,
-    required TResult Function(String log) success,
-    required TResult Function(String log) failure,
+    required TResult Function(path.String log) initial,
+    required TResult Function(path.int progress, path.String log) inProgress,
+    required TResult Function(path.String log) success,
+    required TResult Function(path.String log) failure,
   }) {
     return failure(log);
   }
 
   @override
   @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult Function(path.String log)? initial,
+    TResult Function(path.int progress, path.String log)? inProgress,
+    TResult Function(path.String log)? success,
+    TResult Function(path.String log)? failure,
+  }) {
+    return failure?.call(log);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String log)? initial,
-    TResult Function(int progress, String log)? inProgress,
-    TResult Function(String log)? success,
-    TResult Function(String log)? failure,
+    TResult Function(path.String log)? initial,
+    TResult Function(path.int progress, path.String log)? inProgress,
+    TResult Function(path.String log)? success,
+    TResult Function(path.String log)? failure,
     required TResult orElse(),
   }) {
     if (failure != null) {
@@ -1517,6 +1719,17 @@ class _$SincronizacionStepFailure
 
   @override
   @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult Function(SincronizacionStepInitial value)? initial,
+    TResult Function(SincronizacionStepInProgress value)? inProgress,
+    TResult Function(SincronizacionStepSuccess value)? success,
+    TResult Function(SincronizacionStepFailure value)? failure,
+  }) {
+    return failure?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(SincronizacionStepInitial value)? initial,
     TResult Function(SincronizacionStepInProgress value)? inProgress,
@@ -1532,11 +1745,11 @@ class _$SincronizacionStepFailure
 }
 
 abstract class SincronizacionStepFailure implements SincronizacionStepState {
-  const factory SincronizacionStepFailure([String log]) =
+  const factory SincronizacionStepFailure([path.String log]) =
       _$SincronizacionStepFailure;
 
   @override
-  String get log => throw _privateConstructorUsedError;
+  path.String get log => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
   $SincronizacionStepFailureCopyWith<SincronizacionStepFailure> get copyWith =>

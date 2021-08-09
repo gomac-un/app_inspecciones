@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
@@ -7,20 +8,22 @@ import 'package:inspecciones/router.gr.dart';
 /// automaticamente.
 class AuthListener extends StatelessWidget {
   final Widget child;
-  final GlobalKey<NavigatorState> navigatorKey;
+  final AppRouter router;
 
-  const AuthListener({Key key, this.child, this.navigatorKey})
+  const AuthListener({Key? key, required this.child, required this.router})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (BuildContext context, state) {
-        final navState = navigatorKey.currentState;
         state.map(
-            initial: (_) => navState.pushReplacementNamed(Routes.splashPage),
+            initial: (_) => router.replace(
+                const SplashRoute()), // TODO: mirar si debe ser replace
 
             /// Si se desea cambiar la pantalla inicial que se ve al iniciar sesión, se debe reemplazar aquí
-            authenticated: (u) => u.sincronizado != null
+            authenticated: (u) => {
+              final 
+            }
                 ? navState.pushReplacementNamed(Routes.borradoresPage)
                 : navState.pushReplacementNamed(Routes.sincronizacionPage),
             unauthenticated: (_) =>

@@ -18,150 +18,145 @@ import 'presentation/pages/login_screen.dart' as _i4;
 import 'presentation/pages/sincronizacion_screen.dart' as _i8;
 import 'presentation/pages/splash_screen.dart' as _i3;
 
-class AutoRouter extends _i1.RootStackRouter {
-  AutoRouter([_i2.GlobalKey<_i2.NavigatorState>? navigatorKey])
+class AppRouter extends _i1.RootStackRouter {
+  AppRouter([_i2.GlobalKey<_i2.NavigatorState>? navigatorKey])
       : super(navigatorKey);
 
   @override
   final Map<String, _i1.PageFactory> pagesMap = {
-    SplashPageRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
+    SplashRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
         routeData: routeData,
         builder: (_) {
           return _i3.SplashPage();
         }),
-    LoginScreenRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
+    LoginRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
         routeData: routeData,
         builder: (_) {
-          return _i4.LoginScreen();
+          return const _i4.LoginPage();
         }),
-    CreacionFormPageRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
+    CreacionFormRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
         routeData: routeData,
         builder: (data) {
-          final args = data.argsAs<CreacionFormPageRouteArgs>(
-              orElse: () => const CreacionFormPageRouteArgs());
+          final args = data.argsAs<CreacionFormRouteArgs>(
+              orElse: () => const CreacionFormRouteArgs());
           return _i5.CreacionFormPage(
               key: args.key,
               cuestionario: args.cuestionario,
               cuestionarioDeModelo: args.cuestionarioDeModelo,
               bloques: args.bloques);
         }),
-    BorradoresPageRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
+    BorradoresRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
         routeData: routeData,
         builder: (_) {
           return _i6.BorradoresPage();
         }),
-    LlenadoFormPageRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
+    LlenadoFormRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
         routeData: routeData,
         builder: (data) {
-          final args = data.argsAs<LlenadoFormPageRouteArgs>(
-              orElse: () => const LlenadoFormPageRouteArgs());
+          final args = data.argsAs<LlenadoFormRouteArgs>(
+              orElse: () => const LlenadoFormRouteArgs());
           return _i7.LlenadoFormPage(
               key: args.key,
               activo: args.activo,
               cuestionarioId: args.cuestionarioId);
         }),
-    SincronizacionPageRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
+    SincronizacionRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
         routeData: routeData,
         builder: (_) {
           return _i8.SincronizacionPage();
         }),
-    CuestionariosPageRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
+    CuestionariosRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
         routeData: routeData,
         builder: (_) {
           return _i9.CuestionariosPage();
         }),
-    GruposScreenRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
+    GruposScreen.name: (routeData) => _i1.MaterialPageX<dynamic>(
         routeData: routeData,
         builder: (_) {
           return _i10.GruposScreen();
         }),
-    HistoryInspeccionesPageRoute.name: (routeData) =>
-        _i1.MaterialPageX<dynamic>(
-            routeData: routeData,
-            builder: (_) {
-              return _i11.HistoryInspeccionesPage();
-            })
+    HistoryInspeccionesRoute.name: (routeData) => _i1.MaterialPageX<dynamic>(
+        routeData: routeData,
+        builder: (_) {
+          return _i11.HistoryInspeccionesPage();
+        })
   };
 
   @override
   List<_i1.RouteConfig> get routes => [
-        _i1.RouteConfig(SplashPageRoute.name, path: '/'),
-        _i1.RouteConfig(LoginScreenRoute.name, path: '/login-screen'),
-        _i1.RouteConfig(CreacionFormPageRoute.name,
-            path: '/creacion-form-page'),
-        _i1.RouteConfig(BorradoresPageRoute.name, path: '/borradores-page'),
-        _i1.RouteConfig(LlenadoFormPageRoute.name, path: '/llenado-form-page'),
-        _i1.RouteConfig(SincronizacionPageRoute.name,
-            path: '/sincronizacion-page'),
-        _i1.RouteConfig(CuestionariosPageRoute.name,
-            path: '/cuestionarios-page'),
-        _i1.RouteConfig(GruposScreenRoute.name, path: '/grupos-screen'),
-        _i1.RouteConfig(HistoryInspeccionesPageRoute.name,
+        _i1.RouteConfig(SplashRoute.name, path: '/'),
+        _i1.RouteConfig(LoginRoute.name, path: '/login-page'),
+        _i1.RouteConfig(CreacionFormRoute.name, path: '/creacion-form-page'),
+        _i1.RouteConfig(BorradoresRoute.name, path: '/borradores-page'),
+        _i1.RouteConfig(LlenadoFormRoute.name, path: '/llenado-form-page'),
+        _i1.RouteConfig(SincronizacionRoute.name, path: '/sincronizacion-page'),
+        _i1.RouteConfig(CuestionariosRoute.name, path: '/cuestionarios-page'),
+        _i1.RouteConfig(GruposScreen.name, path: '/grupos-screen'),
+        _i1.RouteConfig(HistoryInspeccionesRoute.name,
             path: '/history-inspecciones-page')
       ];
 }
 
-class SplashPageRoute extends _i1.PageRouteInfo {
-  const SplashPageRoute() : super(name, path: '/');
+class SplashRoute extends _i1.PageRouteInfo {
+  const SplashRoute() : super(name, path: '/');
 
-  static const String name = 'SplashPageRoute';
+  static const String name = 'SplashRoute';
 }
 
-class LoginScreenRoute extends _i1.PageRouteInfo {
-  const LoginScreenRoute() : super(name, path: '/login-screen');
+class LoginRoute extends _i1.PageRouteInfo {
+  const LoginRoute() : super(name, path: '/login-page');
 
-  static const String name = 'LoginScreenRoute';
+  static const String name = 'LoginRoute';
 }
 
-class CreacionFormPageRoute
-    extends _i1.PageRouteInfo<CreacionFormPageRouteArgs> {
-  CreacionFormPageRoute(
-      {_i2.Key key,
-      dynamic cuestionario,
+class CreacionFormRoute extends _i1.PageRouteInfo<CreacionFormRouteArgs> {
+  CreacionFormRoute(
+      {_i2.Key? key,
+      _i12.Cuestionario cuestionario,
       _i12.CuestionarioConContratista cuestionarioDeModelo,
       List<_i12.IBloqueOrdenable> bloques})
       : super(name,
             path: '/creacion-form-page',
-            args: CreacionFormPageRouteArgs(
+            args: CreacionFormRouteArgs(
                 key: key,
                 cuestionario: cuestionario,
                 cuestionarioDeModelo: cuestionarioDeModelo,
                 bloques: bloques));
 
-  static const String name = 'CreacionFormPageRoute';
+  static const String name = 'CreacionFormRoute';
 }
 
-class CreacionFormPageRouteArgs {
-  const CreacionFormPageRouteArgs(
+class CreacionFormRouteArgs {
+  const CreacionFormRouteArgs(
       {this.key, this.cuestionario, this.cuestionarioDeModelo, this.bloques});
 
-  final _i2.Key key;
+  final _i2.Key? key;
 
-  final dynamic cuestionario;
+  final _i12.Cuestionario cuestionario;
 
   final _i12.CuestionarioConContratista cuestionarioDeModelo;
 
   final List<_i12.IBloqueOrdenable> bloques;
 }
 
-class BorradoresPageRoute extends _i1.PageRouteInfo {
-  const BorradoresPageRoute() : super(name, path: '/borradores-page');
+class BorradoresRoute extends _i1.PageRouteInfo {
+  const BorradoresRoute() : super(name, path: '/borradores-page');
 
-  static const String name = 'BorradoresPageRoute';
+  static const String name = 'BorradoresRoute';
 }
 
-class LlenadoFormPageRoute extends _i1.PageRouteInfo<LlenadoFormPageRouteArgs> {
-  LlenadoFormPageRoute({_i2.Key key, int activo, int cuestionarioId})
+class LlenadoFormRoute extends _i1.PageRouteInfo<LlenadoFormRouteArgs> {
+  LlenadoFormRoute({_i2.Key key, int activo, int cuestionarioId})
       : super(name,
             path: '/llenado-form-page',
-            args: LlenadoFormPageRouteArgs(
+            args: LlenadoFormRouteArgs(
                 key: key, activo: activo, cuestionarioId: cuestionarioId));
 
-  static const String name = 'LlenadoFormPageRoute';
+  static const String name = 'LlenadoFormRoute';
 }
 
-class LlenadoFormPageRouteArgs {
-  const LlenadoFormPageRouteArgs({this.key, this.activo, this.cuestionarioId});
+class LlenadoFormRouteArgs {
+  const LlenadoFormRouteArgs({this.key, this.activo, this.cuestionarioId});
 
   final _i2.Key key;
 
@@ -170,27 +165,27 @@ class LlenadoFormPageRouteArgs {
   final int cuestionarioId;
 }
 
-class SincronizacionPageRoute extends _i1.PageRouteInfo {
-  const SincronizacionPageRoute() : super(name, path: '/sincronizacion-page');
+class SincronizacionRoute extends _i1.PageRouteInfo {
+  const SincronizacionRoute() : super(name, path: '/sincronizacion-page');
 
-  static const String name = 'SincronizacionPageRoute';
+  static const String name = 'SincronizacionRoute';
 }
 
-class CuestionariosPageRoute extends _i1.PageRouteInfo {
-  const CuestionariosPageRoute() : super(name, path: '/cuestionarios-page');
+class CuestionariosRoute extends _i1.PageRouteInfo {
+  const CuestionariosRoute() : super(name, path: '/cuestionarios-page');
 
-  static const String name = 'CuestionariosPageRoute';
+  static const String name = 'CuestionariosRoute';
 }
 
-class GruposScreenRoute extends _i1.PageRouteInfo {
-  const GruposScreenRoute() : super(name, path: '/grupos-screen');
+class GruposScreen extends _i1.PageRouteInfo {
+  const GruposScreen() : super(name, path: '/grupos-screen');
 
-  static const String name = 'GruposScreenRoute';
+  static const String name = 'GruposScreen';
 }
 
-class HistoryInspeccionesPageRoute extends _i1.PageRouteInfo {
-  const HistoryInspeccionesPageRoute()
+class HistoryInspeccionesRoute extends _i1.PageRouteInfo {
+  const HistoryInspeccionesRoute()
       : super(name, path: '/history-inspecciones-page');
 
-  static const String name = 'HistoryInspeccionesPageRoute';
+  static const String name = 'HistoryInspeccionesRoute';
 }

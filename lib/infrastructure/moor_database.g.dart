@@ -7,12 +7,11 @@ part of 'moor_database.dart';
 // **************************************************************************
 
 RespuestaConOpcionesDeRespuesta2 _$RespuestaConOpcionesDeRespuesta2FromJson(
-    Map<String, dynamic> json) {
-  return RespuestaConOpcionesDeRespuesta2(
-    json['respuesta'],
-    json['opcionesDeRespuesta'] as List<dynamic>,
-  );
-}
+        Map<String, dynamic> json) =>
+    RespuestaConOpcionesDeRespuesta2(
+      json['respuesta'],
+      json['opcionesDeRespuesta'] as List<dynamic>,
+    );
 
 Map<String, dynamic> _$RespuestaConOpcionesDeRespuesta2ToJson(
         RespuestaConOpcionesDeRespuesta2 instance) =>

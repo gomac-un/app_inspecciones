@@ -178,21 +178,15 @@ class RespuestaconOpcionDeRespuestaId {
 class Borrador {
   Activo activo;
   Inspeccion inspeccion;
-  Cuestionario cuestionario;
+  late final Cuestionario cuestionario;
 
   /// [avance] y [total] son usados para mostrar el porcentaje de avance de la inspeccion en la UI
   /// Total de Preguntas respondidas (así estén incompletas, por ejemplo, que no tengan fotos o no estén reparadas)
-  int avance;
+  late final int avance;
 
   /// Total de preguntas del cuestionario
-  int total;
-  Borrador(
-    this.activo,
-    this.inspeccion,
-    this.cuestionario,
-    this.avance,
-    this.total,
-  );
+  late final int total;
+  Borrador(this.activo, this.inspeccion);
 
   /// Ver [BorradoresDao.borradores()].
   Borrador copyWith({

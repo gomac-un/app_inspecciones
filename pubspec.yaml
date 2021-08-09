@@ -25,7 +25,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  auto_route: ^2.2.0
+  auto_route: ^2.3.0
   collection: ^1.15.0
   cool_stepper: ^1.2.1
   cupertino_icons: ^1.0.3
@@ -37,7 +37,7 @@ dependencies:
   flutter_archive: ^4.0.1
   flutter_bloc: ^7.1.0
   flutter_downloader: ^1.6.1
-  freezed_annotation: ^0.14.2
+  freezed_annotation: ^0.14.3
   get_it: ^7.2.0
   grouped_list: ^4.1.0
   image_picker: ^0.8.3
@@ -64,21 +64,28 @@ dependencies:
   url_launcher: ^6.0.9
 
 dev_dependencies:
-  auto_route_generator: ^2.1.0
+  auto_route_generator: ^2.3.0
   build_runner: ^2.1.0
   flutter_launcher_icons: ^0.9.1
-  freezed: ^0.14.2
-  injectable_generator: ^1.4.1
-  json_serializable: ^4.1.4 #aumentar a 5.0.0 cuando moor_generator tenga el analyzer 2.0
-  lint: ^1.5.3
-  moor_generator: ^4.4.1
+  freezed: ^0.14.4
+  injectable_generator: #^1.4.1
+    git:
+      url: https://github.com/kodal/injectable.git
+      path: injectable_generator
+      ref: 77cdf2f
+  json_serializable: ^5.0.0 #aumentar a 5.0.0 cuando moor_generator tenga el analyzer 2.0
+  flutter_lints: ^1.0.4
+  moor_generator: #^4.4.1
+    git:
+        url: https://github.com/simolus3/moor.git
+        path: moor_generator
+        ref: 40a1c91
 
 flutter_icons:
   image_path: "assets/images/logo-gomac.png"
   android: true # can specify file name here e.g. "ic_launcher"
 
 dependency_overrides: null
-#analyzer: '0.39.14'
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 # The following section is specific to Flutter.

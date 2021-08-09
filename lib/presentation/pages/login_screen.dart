@@ -13,7 +13,9 @@ import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 /// Pantalla de inicio de sesión.
-class LoginScreen extends StatelessWidget implements AutoRouteWrapper {
+class LoginPage extends StatelessWidget implements AutoRouteWrapper {
+  const LoginPage({Key? key}) : super(key: key);
+
   @override
   Widget wrappedRoute(BuildContext context) => Provider(
         create: (ctx) => getIt<LoginControl>(),
@@ -105,10 +107,7 @@ class LoginScreen extends StatelessWidget implements AutoRouteWrapper {
                           height: orientation == Orientation.portrait
                               ? ancho * 0.1
                               : queryData.size.height * 0.1,
-                          child: OutlineButton(
-                            borderSide: BorderSide(
-                              color: Theme.of(context).accentColor,
-                            ),
+                          child: OutlinedButton(
                             onPressed:
                                 form.valid ? () => form.submit(context) : null,
                             child: Text('Entrar',
@@ -134,7 +133,7 @@ class LoginScreen extends StatelessWidget implements AutoRouteWrapper {
 class LoginControl extends FormGroup {
   final UserRepository userRepository;
 
-  LoginControl({@required this.userRepository})
+  LoginControl(this.userRepository)
       : super({
           'usuario': fb.control('', [Validators.required]),
           'password': fb.control('', [Validators.required]),
@@ -161,8 +160,8 @@ class LoginControl extends FormGroup {
               builder: (context) => AlertDialog(
                     content: const Text("Usuario o contraseña invalidos"),
                     actions: [
-                      FlatButton(
-                          onPressed: () => Navigator.of(context).pop(),
+                      TextButton(
+                          onPressed: () => context.router.pop(),
                           child: const Text("ok"))
                     ],
                   ));
@@ -204,42 +203,24 @@ class LoginControl extends FormGroup {
   /// Esta alerta Le informa al usuario
   Future problemaDialog(
       BuildContext context, AuthBloc authBloc, UserLogin login,
-      {@required String razon, UserRepository userRepository}) {
+      {required String razon, UserRepository userRepository}) {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
         content: Text(
             '$razon. Sin embargo puede realizar inspecciones y luego subirlas cuando tenga conexión'),
         actions: [
-          FlatButton(
-            onPressed: () => Navigator.of(context).pop(),
+          TextButton(
             child: const Text("Cancelar"),
+            onPressed: () => context.router
+                .pop(), //TODO: mirar si el router hace el pop correctamente o se debe usar Navigator.of(context).pop()
           ),
-          FlatButton(
+          TextButton(
+              child: const Text("Continuar"),
               onPressed: () {
-                if (userRepository?.localPreferences?.getAppId() != null) {
+                if (userRepository.getAppId() != null) {
                   authBloc.add(
-                    AuthEvent.loggingIn(
-                      usuario: Usuario(
-                        documento: login.username,
-                        password: login.password,
-                        esAdmin: login.esdAdmin ?? false,
-                      ),
-                    ),
-                  );
-                } else if (userRepository == null) {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      content: const Text(
-                          'No se pudo ingresar, por favor informe al encargado'),
-                      actions: [
-                        FlatButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text("Aceptar"),
-                        ),
-                      ],
-                    ),
+                    AuthEvent.loggingIn(loginData: login),
                   );
                 } else {
                   showDialog(
@@ -248,16 +229,14 @@ class LoginControl extends FormGroup {
                       content: const Text(
                           'Debe tener conexión a internet para ingresar por primera vez'),
                       actions: [
-                        FlatButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text("Aceptar"),
-                        ),
+                        TextButton(
+                            child: const Text("Aceptar"),
+                            onPressed: () => context.router.pop()),
                       ],
                     ),
                   );
                 }
-              },
-              child: const Text("Continuar"))
+              })
         ],
       ),
     );
