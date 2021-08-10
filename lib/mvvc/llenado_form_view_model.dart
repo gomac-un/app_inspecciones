@@ -88,6 +88,12 @@ class LlenadoFormViewModel extends ChangeNotifier {
     cargada.value = true;
   }
 
+  double get criticidadTotal => bloques.controls
+      .fold<double>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+
+  double get criticidadReparacion => bloques.controls.fold<double>(
+      0, (p, c) => p + (c as BloqueDeFormulario).criticidadReparacion);
+
   /// Guarda la inspección en la bd.
   Future guardarInspeccionEnLocal({
     @required EstadoDeInspeccion estado,

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/mvvc/llenado_validators.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -18,7 +19,7 @@ class LlenadoOpcionFormGroup extends FormGroup {
 
     final Map<String, AbstractControl<dynamic>> controles = {
       'calificacion':
-          fb.control<double>(respuesta?.calificacion?.value?.toDouble()),
+          fb.control<double>(respuesta?.calificacion?.value?.toDouble() ?? 1),
       'respuesta': fb.control<OpcionDeRespuesta>(opcion, [Validators.required]),
       'fotosBase': fb.array<File>(
           respuesta?.fotosBase?.value
@@ -48,13 +49,15 @@ class LlenadoOpcionFormGroup extends FormGroup {
   //constructor que le envia los controles a la clase padre
   LlenadoOpcionFormGroup._(Map<String, AbstractControl<dynamic>> controles,
       this.respuesta, this.opcion)
-      : super(controles);
+      : super(controles, validators: [reparacion]);
 
   /// Toma los valores introducidos en el formulario y devuelve [RespuestaConOpcionesDeRespuesta]
   RespuestaConOpcionesDeRespuesta toDB(DateTime momentoRespuesta) =>
       RespuestaConOpcionesDeRespuesta(
         respuesta?.copyWith(
-            calificacion: Value((value['calificacion'] as double)?.round()),
+            calificacion: Value(opcion.calificable
+                ? (value['calificacion'] as double)?.round()
+                : null),
             opcionDeRespuestaId:
                 Value((control('respuesta').value as OpcionDeRespuesta).id),
             fotosBase: Value((control('fotosBase') as FormArray<File>)
@@ -191,7 +194,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     final Map<String, AbstractControl<dynamic>> controles = {
       'respuestas': respuestas,
       'calificacion': fb.control<double>(
-          respuesta?.first?.respuesta?.calificacion?.value?.toDouble()),
+          respuesta?.first?.respuesta?.calificacion?.value?.toDouble() ?? 1),
       'respMultiple': respuestaMultiple,
       'fotosBase': fb.array<File>(
           respuesta?.first?.respuesta?.fotosBase?.value
@@ -233,7 +236,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     this.pregunta,
     this.respuesta, {
     this.bloque,
-  }) : super(controles) {
+  }) : super(controles, validators: [reparacion]) {
     valueChanges.listen((_) {
       _momentoRespuesta = DateTime.now();
     }); //guarda el momento de la ultima edicion
@@ -242,7 +245,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
   /// Devuelve el porcentaje que representa la calificación dada por el inspector.
   double _getPorcentaje(double calificacion) {
     double porcentaje = 1;
-    switch (calificacion?.round()) {
+    switch (calificacion.round()) {
       case 1:
         porcentaje = 0.55;
         break;
@@ -282,12 +285,13 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
               .controls
               .fold(
                   0,
-                  (p, c) =>
-                      p +
-                      ((c as LlenadoOpcionFormGroup).opcion.criticidad *
-                          _getPorcentaje((c as LlenadoOpcionFormGroup)
-                              .control('calificacion')
-                              .value as double)));
+                  (p, c) => (c as LlenadoOpcionFormGroup).opcion.calificable
+                      ? p +
+                          ((c as LlenadoOpcionFormGroup).opcion.criticidad *
+                              _getPorcentaje((c as LlenadoOpcionFormGroup)
+                                  .control('calificacion')
+                                  .value as double))
+                      : p + (c as LlenadoOpcionFormGroup).opcion.criticidad);
         } else {
           sumres = 0;
         }
@@ -295,10 +299,17 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
       case TipoDePregunta.unicaRespuesta:
         if ((control('respuestas') as FormControl<OpcionDeRespuesta>).value !=
             null) {
-          sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
+          sumres = (control('respuestas') as AbstractControl<OpcionDeRespuesta>)
                   .value
-                  .criticidad *
-              _getPorcentaje(control('calificacion').value as double);
+                  .calificable
+              ? (control('respuestas') as FormControl<OpcionDeRespuesta>)
+                      .value
+                      .criticidad *
+                  _getPorcentaje(control('calificacion').value as double)
+              : (control('respuestas') as FormControl<OpcionDeRespuesta>)
+                  .value
+                  .criticidad
+                  .toDouble();
         } else {
           sumres = 0;
         }
@@ -306,10 +317,17 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
       case TipoDePregunta.parteDeCuadriculaUnica:
         if ((control('respuestas') as FormControl<OpcionDeRespuesta>).value !=
             null) {
-          sumres = (control('respuestas') as FormControl<OpcionDeRespuesta>)
+          sumres = (control('respuestas') as AbstractControl<OpcionDeRespuesta>)
                   .value
-                  .criticidad *
-              _getPorcentaje(control('calificacion').value as double);
+                  .calificable
+              ? (control('respuestas') as FormControl<OpcionDeRespuesta>)
+                      .value
+                      .criticidad *
+                  _getPorcentaje(control('calificacion').value as double)
+              : (control('respuestas') as FormControl<OpcionDeRespuesta>)
+                  .value
+                  .criticidad
+                  .toDouble();
         } else {
           sumres = 0;
         }
@@ -322,12 +340,13 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
               .controls
               .fold(
                   0,
-                  (p, c) =>
-                      p +
-                      (c as LlenadoOpcionFormGroup).opcion.criticidad *
-                          _getPorcentaje((c as LlenadoOpcionFormGroup)
-                              .control('calificacion')
-                              .value as double));
+                  (p, c) => (c as LlenadoOpcionFormGroup).opcion.calificable
+                      ? p +
+                          ((c as LlenadoOpcionFormGroup).opcion.criticidad *
+                              _getPorcentaje((c as LlenadoOpcionFormGroup)
+                                  .control('calificacion')
+                                  .value as double))
+                      : p + (c as LlenadoOpcionFormGroup).opcion.criticidad);
         } else {
           sumres = 0;
         }
@@ -338,7 +357,7 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     }
 
     /// Redondea la criticidad
-    final mod = pow(10.0, 2);
+    final mod = pow(10.0, 1);
     return (pregunta.pregunta.criticidad * sumres * mod).round().toDouble() /
         mod;
   }
@@ -365,8 +384,8 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
       if ((control('respuestas').value as OpcionDeRespuesta) != null) {
         final calificacion =
             (control('respuestas').value as OpcionDeRespuesta).calificable
-                ? (value['calificacion'] as double).round()
-                : 0;
+                ? (value['calificacion'] as double)?.round()
+                : null;
         return [
           RespuestaConOpcionesDeRespuesta(
             respuesta?.first?.respuesta?.copyWith(

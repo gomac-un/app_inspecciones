@@ -21,18 +21,23 @@ class InspeccionesRepository {
   InspeccionesRepository(this._api, this._db, this.localPreferences);
 
   /// Despues de la descarga de una inpeccion desde el server, se tiene que consultar nuevamente de la bd
-  Future<Inspeccion> getInspeccionParaTerminar(int id) =>
-      _db.getInspeccionParaTerminar(id);
+  Future marcarInspeccionParaTerminar(int id) =>
+      _db.marcarInspeccionParaTerminar(id);
 
-  /// Descarfa desde el servidor una inspección identificadada con [id] para poder continuarla en la app.
-  Future<Either<ApiFailure, Unit>> getInspeccionServidor(int id) async {
+  /// Descarga desde el servidor una inspección identificadada con [id] para poder continuarla en la app.
+  Future<Either<ApiFailure, Map<String, dynamic>>> getInspeccionServidor(
+      int id) async {
     try {
       final endpoint = '/inspecciones/$id';
       final inspeccion = await _api.getRecurso(endpoint);
 
       /// Al descragarla, se debe guardar en la bd para poder acceder a ella
       await _db.guardarInspeccionBD(inspeccion);
-      return right(unit);
+      final dicc = {
+        'activo': inspeccion['activo'],
+        'cuestionario': inspeccion['cuestionario']
+      };
+      return right(dicc);
     } on TimeoutException {
       return const Left(ApiFailure.noHayConexionAlServidor());
     } on CredencialesException {

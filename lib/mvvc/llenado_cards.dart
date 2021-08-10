@@ -150,20 +150,10 @@ class ReparacionForm extends StatelessWidget {
           title: const Text('Reparado'),
           controlAffinity: ListTileControlAffinity.leading,
         ),
-        // Muestra las observaciones de la reparacion solo si reparado es true
-        ReactiveValueListenableBuilder(
+        ReactiveValueListenableBuilder<bool>(
           formControl: controlReparado,
-          builder: (context, AbstractControl<bool> control, child) {
+          builder: (context, control, child) {
             if (control.value) {
-              /// Si está reparado y no ha agregado observaciones y fotos.
-              final observacion = observacionControl.value;
-              if (observacion.length <= 1) {
-                observacionControl.setErrors({'required': true});
-              }
-              final fotos = fotosControl.value;
-              if (fotos.isEmpty) {
-                fotosControl.setErrors({'required': true});
-              }
               return Column(
                 children: [
                   ReactiveTextField(
@@ -192,12 +182,8 @@ class ReparacionForm extends StatelessWidget {
                   ),
                 ],
               );
-            } else {
-              /// Si habían errores y se corrigieron se remueven para que permita la finalización
-              observacionControl.removeError('required');
-              fotosControl.removeError('required');
-              return const SizedBox.shrink();
             }
+            return const SizedBox.shrink();
           },
         ),
       ],

@@ -15,8 +15,6 @@ Future<void> _initialize(Batch batch, Database db) async {
     ActivosCompanion.insert(modelo: 'sencillo-Kenworth', id: const Value(2)),
   ]);
 
-  
-
   batch.insertAll(db.sistemas, [
     SistemasCompanion.insert(id: const Value(1), nombre: "Estructura"),
     SistemasCompanion.insert(id: const Value(2), nombre: "Transmisión"),
@@ -97,7 +95,6 @@ Future<void> _initialize(Batch batch, Database db) async {
         descripcion: "",
         //sistemaId: const Value(6),
         subSistemaId: const Value(6),
-        posicion: const Value("no aplica"),
         tipo: TipoDePregunta.unicaRespuesta,
         criticidad: 3,
       ));
@@ -131,9 +128,8 @@ Future<void> _initialize(Batch batch, Database db) async {
         bloqueId: 3,
         titulo: "Estado aceite lubricante",
         descripcion: "",
-       // sistemaId: const Value(6),
+        // sistemaId: const Value(6),
         subSistemaId: const Value(6),
-        posicion: const Value("no aplica"),
         tipo: TipoDePregunta.multipleRespuesta,
         criticidad: 3,
       ));
@@ -175,9 +171,8 @@ Future<void> _initialize(Batch batch, Database db) async {
       bloqueId: 4,
       titulo: "Fugas/estado en mangueras",
       descripcion: "",
-     // sistemaId: const Value(6),
+      // sistemaId: const Value(6),
       subSistemaId: const Value(6),
-      posicion: const Value("n/a"),
       tipo: TipoDePregunta.parteDeCuadriculaUnica,
       criticidad: 3,
     ),
@@ -188,7 +183,6 @@ Future<void> _initialize(Batch batch, Database db) async {
       descripcion: "",
       //sistemaId: const Value(6),
       subSistemaId: const Value(6),
-      posicion: const Value("n/a"),
       tipo: TipoDePregunta.parteDeCuadriculaUnica,
       criticidad: 3,
     ),

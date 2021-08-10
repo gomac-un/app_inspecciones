@@ -89,25 +89,15 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                           /// Si está en reparación muestra solo aquellas preguntas con criticidad > 0.
                           : viewModel.bloques.controls
                               .where((blo) =>
-                                  (blo as BloqueDeFormulario).criticidad > 0 ||
-                                  blo is TituloFormGroup)
+                                  (blo as BloqueDeFormulario).criticidad > 0)
                               .toList();
 
                       /// Suma la criticidad de todas las preguntas y respuestas.
-                      final criticidadTotal = viewModel.bloques.controls
-                          .fold<double>(
-                              0,
-                              (p, c) =>
-                                  p + (c as BloqueDeFormulario).criticidad);
+                      final criticidadTotal = viewModel.criticidadTotal;
 
                       /// Suma la criticidad de las preguntas despues de la reparación.
-                      final criticidadReparacion = viewModel.bloques.controls
-                          .fold<double>(
-                              0,
-                              (p, c) =>
-                                  p +
-                                  (c as BloqueDeFormulario)
-                                      .criticidadReparacion);
+                      final criticidadReparacion =
+                          viewModel.criticidadReparacion;
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: PageView.builder(
@@ -399,7 +389,7 @@ class BotonesComunes extends StatelessWidget {
                           color: Colors.green[200], /* color: Colors.white, */
                         ),
                       Text(
-                        ' ${criticidadReparacion.toStringAsFixed(2)}',
+                        ' ${criticidadReparacion.toStringAsFixed(1)}',
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                     ],
@@ -448,15 +438,10 @@ class BotonesGuardado extends StatelessWidget {
               label: 'Guardar',
               onPressed: () async {
                 /// Suma criticidad de todas las preguntas y sus respuestas
-                final criticidadTotal = viewModel.bloques.controls.fold<double>(
-                    0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+                final criticidadTotal = viewModel.criticidadTotal;
 
                 /// Suma criticidad de todas las preguntas despues de la reparación.
-                final criticidadReparacion = viewModel.bloques.controls
-                    .fold<double>(
-                        0,
-                        (p, c) =>
-                            p + (c as BloqueDeFormulario).criticidadReparacion);
+                final criticidadReparacion = viewModel.criticidadReparacion;
                 LoadingDialog.show(context);
 
                 /// Guarda la inspección
@@ -649,8 +634,7 @@ class BotonesGuardado extends StatelessWidget {
         },
       );
     } else if (estado == EstadoDeInspeccion.borrador) {
-      final criticidadTotal = viewModel.bloques.controls
-          .fold<double>(0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
+      final criticidadTotal = viewModel.criticidadTotal;
 
       /// Si es borrador, pero no presentó ninguna novedad, puede finalizar
       if (criticidadTotal <= 0) {
@@ -675,10 +659,8 @@ class BotonesGuardado extends StatelessWidget {
     final viewModel = Provider.of<LlenadoFormViewModel>(context, listen: false);
     switch (estadoIns) {
       case EstadoDeInspeccion.borrador:
-        final criticidadTotal = viewModel.bloques.controls.fold<double>(
-            0, (p, c) => p + (c as BloqueDeFormulario).criticidad);
-        final criticidadReparacion = viewModel.bloques.controls.fold<double>(
-            0, (p, c) => p + (c as BloqueDeFormulario).criticidadReparacion);
+        final criticidadTotal = viewModel.criticidadTotal;
+        final criticidadReparacion = viewModel.criticidadReparacion;
         if (criticidadTotal > 0) {
           /// Si no tiene que pasar a pantalla de reparaciones, solamente se guarda y cambia de estado a reparación.
           viewModel.estado.value = EstadoDeInspeccion.enReparacion;
@@ -795,12 +777,12 @@ class AlertReparacion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Inicio reparacion"),
+      title: const Text("Inicio reparación"),
       content: const Text("Por favor realice las reparaciones necesarias"),
       actions: [
         TextButton(
             onPressed: ExtendedNavigator.of(context).pop,
-            child: const Text("ok"))
+            child: const Text("Ok"))
       ],
     );
   }

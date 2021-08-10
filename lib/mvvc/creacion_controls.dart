@@ -20,7 +20,8 @@ class CreadorTituloFormGroup extends FormGroup implements Copiable {
   CreadorTituloFormGroup({this.d})
       : super({
           'titulo': fb.control<String>(d?.titulo ?? " ", [Validators.required]),
-          'descripcion': fb.control<String>(d?.descripcion ?? "")
+          'descripcion': fb.control<String>(
+              d?.descripcion ?? "", [Validators.maxLength(1500)])
         });
 
   /// Devuelve el formGroup, haciendo uso del metodo [toDataClass()]
@@ -101,7 +102,8 @@ class CreadorPreguntaFormGroup extends FormGroup
     final Map<String, AbstractControl<dynamic>> controles = {
       'titulo':
           fb.control<String>(d?.pregunta?.titulo ?? "", [Validators.required]),
-      'descripcion': fb.control<String>(d?.pregunta?.descripcion ?? ""),
+      'descripcion': fb.control<String>(
+          d?.pregunta?.descripcion ?? "", [Validators.maxLength(1500)]),
       'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
       'eje': fb.control<String>(d?.pregunta?.eje, [Validators.required]),
@@ -595,7 +597,8 @@ class CreadorPreguntaNumericaFormGroup extends FormGroup
     final Map<String, AbstractControl<dynamic>> controles = {
       'titulo': fb
           .control<String>(d?.pregunta?.titulo ?? "  ", [Validators.required]),
-      'descripcion': fb.control<String>(d?.pregunta?.descripcion ?? ""),
+      'descripcion': fb.control<String>(
+          d?.pregunta?.descripcion ?? "", [Validators.maxLength(1500)]),
       'sistema': sistema,
       'subSistema': fb.control<SubSistema>(null, [Validators.required]),
       'eje': fb.control<String>(d?.pregunta?.eje, [Validators.required]),

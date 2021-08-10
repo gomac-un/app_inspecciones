@@ -233,15 +233,17 @@ class BotonesGuardado extends StatelessWidget {
                       content: Text(
                           "Seleccione el tipo de inspección y elija por lo menos un modelo antes de guardar el cuestionario")));
                 } else {
-                  /// Muestra que errores hay
-                  form.markAllAsTouched();
-                  await viewModel.guardarCuestionarioEnLocal(estado);
-                  //TODO: Mostrar tambien cuando hay un error.
+                  final res = await viewModel
+                      .guardarCuestionarioEnLocal(estado)
+                      .then((res) => res.fold((fail) => fail, (u) {
+                            return "exito";
+                          }));
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        content: const Text("Guardado exitoso"),
+                        content:
+                            Text(res == 'exito' ? 'Guardado exitoso' : res),
                         actions: [
                           TextButton(
                             onPressed: () {

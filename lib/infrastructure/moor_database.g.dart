@@ -1714,7 +1714,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
   final String titulo;
   final String descripcion;
   final int criticidad;
-  final String posicion;
   final String eje;
   final String posicionZ;
   final String lado;
@@ -1729,7 +1728,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       @required this.titulo,
       @required this.descripcion,
       @required this.criticidad,
-      this.posicion,
       this.eje,
       this.posicionZ,
       this.lado,
@@ -1753,8 +1751,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           .mapFromDatabaseResponse(data['${effectivePrefix}descripcion']),
       criticidad:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}criticidad']),
-      posicion: stringType
-          .mapFromDatabaseResponse(data['${effectivePrefix}posicion']),
       eje: stringType.mapFromDatabaseResponse(data['${effectivePrefix}eje']),
       posicionZ: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}posicion_z']),
@@ -1787,9 +1783,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
     }
     if (!nullToAbsent || criticidad != null) {
       map['criticidad'] = Variable<int>(criticidad);
-    }
-    if (!nullToAbsent || posicion != null) {
-      map['posicion'] = Variable<String>(posicion);
     }
     if (!nullToAbsent || eje != null) {
       map['eje'] = Variable<String>(eje);
@@ -1834,9 +1827,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       criticidad: criticidad == null && nullToAbsent
           ? const Value.absent()
           : Value(criticidad),
-      posicion: posicion == null && nullToAbsent
-          ? const Value.absent()
-          : Value(posicion),
       eje: eje == null && nullToAbsent ? const Value.absent() : Value(eje),
       posicionZ: posicionZ == null && nullToAbsent
           ? const Value.absent()
@@ -1869,7 +1859,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       titulo: serializer.fromJson<String>(json['titulo']),
       descripcion: serializer.fromJson<String>(json['descripcion']),
       criticidad: serializer.fromJson<int>(json['criticidad']),
-      posicion: serializer.fromJson<String>(json['posicion']),
       eje: serializer.fromJson<String>(json['eje']),
       posicionZ: serializer.fromJson<String>(json['posicionZ']),
       lado: serializer.fromJson<String>(json['lado']),
@@ -1889,7 +1878,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
       'titulo': serializer.toJson<String>(titulo),
       'descripcion': serializer.toJson<String>(descripcion),
       'criticidad': serializer.toJson<int>(criticidad),
-      'posicion': serializer.toJson<String>(posicion),
       'eje': serializer.toJson<String>(eje),
       'posicionZ': serializer.toJson<String>(posicionZ),
       'lado': serializer.toJson<String>(lado),
@@ -1907,7 +1895,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           String titulo,
           String descripcion,
           int criticidad,
-          String posicion,
           String eje,
           String posicionZ,
           String lado,
@@ -1922,7 +1909,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
         titulo: titulo ?? this.titulo,
         descripcion: descripcion ?? this.descripcion,
         criticidad: criticidad ?? this.criticidad,
-        posicion: posicion ?? this.posicion,
         eje: eje ?? this.eje,
         posicionZ: posicionZ ?? this.posicionZ,
         lado: lado ?? this.lado,
@@ -1940,7 +1926,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           ..write('titulo: $titulo, ')
           ..write('descripcion: $descripcion, ')
           ..write('criticidad: $criticidad, ')
-          ..write('posicion: $posicion, ')
           ..write('eje: $eje, ')
           ..write('posicionZ: $posicionZ, ')
           ..write('lado: $lado, ')
@@ -1964,23 +1949,21 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
               $mrjc(
                   criticidad.hashCode,
                   $mrjc(
-                      posicion.hashCode,
+                      eje.hashCode,
                       $mrjc(
-                          eje.hashCode,
+                          posicionZ.hashCode,
                           $mrjc(
-                              posicionZ.hashCode,
+                              lado.hashCode,
                               $mrjc(
-                                  lado.hashCode,
+                                  fotosGuia.hashCode,
                                   $mrjc(
-                                      fotosGuia.hashCode,
+                                      esCondicional.hashCode,
                                       $mrjc(
-                                          esCondicional.hashCode,
+                                          sistemaId.hashCode,
                                           $mrjc(
-                                              sistemaId.hashCode,
-                                              $mrjc(
-                                                  bloqueId.hashCode,
-                                                  $mrjc(subSistemaId.hashCode,
-                                                      tipo.hashCode))))))))))))));
+                                              bloqueId.hashCode,
+                                              $mrjc(subSistemaId.hashCode,
+                                                  tipo.hashCode)))))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -1989,7 +1972,6 @@ class Pregunta extends DataClass implements Insertable<Pregunta> {
           other.titulo == this.titulo &&
           other.descripcion == this.descripcion &&
           other.criticidad == this.criticidad &&
-          other.posicion == this.posicion &&
           other.eje == this.eje &&
           other.posicionZ == this.posicionZ &&
           other.lado == this.lado &&
@@ -2006,7 +1988,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
   final Value<String> titulo;
   final Value<String> descripcion;
   final Value<int> criticidad;
-  final Value<String> posicion;
   final Value<String> eje;
   final Value<String> posicionZ;
   final Value<String> lado;
@@ -2021,7 +2002,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     this.titulo = const Value.absent(),
     this.descripcion = const Value.absent(),
     this.criticidad = const Value.absent(),
-    this.posicion = const Value.absent(),
     this.eje = const Value.absent(),
     this.posicionZ = const Value.absent(),
     this.lado = const Value.absent(),
@@ -2037,7 +2017,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     @required String titulo,
     @required String descripcion,
     @required int criticidad,
-    this.posicion = const Value.absent(),
     this.eje = const Value.absent(),
     this.posicionZ = const Value.absent(),
     this.lado = const Value.absent(),
@@ -2057,7 +2036,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     Expression<String> titulo,
     Expression<String> descripcion,
     Expression<int> criticidad,
-    Expression<String> posicion,
     Expression<String> eje,
     Expression<String> posicionZ,
     Expression<String> lado,
@@ -2073,7 +2051,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       if (titulo != null) 'titulo': titulo,
       if (descripcion != null) 'descripcion': descripcion,
       if (criticidad != null) 'criticidad': criticidad,
-      if (posicion != null) 'posicion': posicion,
       if (eje != null) 'eje': eje,
       if (posicionZ != null) 'posicion_z': posicionZ,
       if (lado != null) 'lado': lado,
@@ -2091,7 +2068,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       Value<String> titulo,
       Value<String> descripcion,
       Value<int> criticidad,
-      Value<String> posicion,
       Value<String> eje,
       Value<String> posicionZ,
       Value<String> lado,
@@ -2106,7 +2082,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
       titulo: titulo ?? this.titulo,
       descripcion: descripcion ?? this.descripcion,
       criticidad: criticidad ?? this.criticidad,
-      posicion: posicion ?? this.posicion,
       eje: eje ?? this.eje,
       posicionZ: posicionZ ?? this.posicionZ,
       lado: lado ?? this.lado,
@@ -2133,9 +2108,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
     }
     if (criticidad.present) {
       map['criticidad'] = Variable<int>(criticidad.value);
-    }
-    if (posicion.present) {
-      map['posicion'] = Variable<String>(posicion.value);
     }
     if (eje.present) {
       map['eje'] = Variable<String>(eje.value);
@@ -2176,7 +2148,6 @@ class PreguntasCompanion extends UpdateCompanion<Pregunta> {
           ..write('titulo: $titulo, ')
           ..write('descripcion: $descripcion, ')
           ..write('criticidad: $criticidad, ')
-          ..write('posicion: $posicion, ')
           ..write('eje: $eje, ')
           ..write('posicionZ: $posicionZ, ')
           ..write('lado: $lado, ')
@@ -2235,15 +2206,6 @@ class $PreguntasTable extends Preguntas
       $tableName,
       false,
     );
-  }
-
-  final VerificationMeta _posicionMeta = const VerificationMeta('posicion');
-  GeneratedTextColumn _posicion;
-  @override
-  GeneratedTextColumn get posicion => _posicion ??= _constructPosicion();
-  GeneratedTextColumn _constructPosicion() {
-    return GeneratedTextColumn('posicion', $tableName, true,
-        minTextLength: 0, maxTextLength: 50);
   }
 
   final VerificationMeta _ejeMeta = const VerificationMeta('eje');
@@ -2340,7 +2302,6 @@ class $PreguntasTable extends Preguntas
         titulo,
         descripcion,
         criticidad,
-        posicion,
         eje,
         posicionZ,
         lado,
@@ -2386,10 +2347,6 @@ class $PreguntasTable extends Preguntas
               data['criticidad'], _criticidadMeta));
     } else if (isInserting) {
       context.missing(_criticidadMeta);
-    }
-    if (data.containsKey('posicion')) {
-      context.handle(_posicionMeta,
-          posicion.isAcceptableOrUnknown(data['posicion'], _posicionMeta));
     }
     if (data.containsKey('eje')) {
       context.handle(

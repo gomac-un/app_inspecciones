@@ -15,38 +15,6 @@ class UserDrawer extends StatelessWidget {
     final authBloc = Provider.of<AuthBloc>(context);
     final authState = authBloc.state;
 
-    /* final media = MediaQuery.of(context).size;
-    final orientacion = MediaQuery.of(context).orientation;
-    
-    double porIconSize = 0.025;
-    const porcTextSize = 0.018;
-    double porcHeight = 0.20;
-    double porcRolSize = 0.02;
-    double porcNombre = 0.015;
-    if (media.width < 600 || media.height < 600) {
-      porcHeight = 0.30;
-      porcRolSize = 0.025;
-      porcNombre = 0.02;
-      porIconSize = 0.03;
-    }
-    // Tamaños para los casos en los que el dipositivo es una tablet o un celular con más de 600 px de ancho
-    final iconSize = orientacion == Orientation.portrait
-        ? media.height * porIconSize
-        : media.width * porIconSize;
-    final textSize = orientacion == Orientation.portrait
-        ? media.height * porcTextSize
-        : media.width * porcTextSize;
-    final height = orientacion == Orientation.portrait
-        ? media.height * porcHeight
-        : media.width * porcHeight - 2;
-    final rolSize = orientacion == Orientation.portrait
-        ? media.height * porcRolSize
-        : media.width * porcRolSize;
-    final nombre = orientacion == Orientation.portrait
-        ? media.height * porcNombre
-        : media.width * porcNombre;
-    // Se modifican los valores para cuando es un dispositivo más pequeño */
-
     bool esAdmin = false;
 
     /// El usuario puede acceder desde el login aun cuando no tenga internet.
@@ -67,22 +35,15 @@ class UserDrawer extends StatelessWidget {
                   children: <Widget>[
                     Container(
                       color: Theme.of(context).primaryColor,
-                      /*   height: height, */
                       child: Padding(
                         padding: const EdgeInsets.only(top: 30.0),
                         child: UserAccountsDrawerHeader(
                           accountName: Text(
                             esAdmin ? "Administrador" : "Inspector",
-                            /* style: TextStyle(
-                              fontSize: rolSize,
-                            ), */
                           ),
                           accountEmail: Text(
                             /// Nombre de usuario
                             authState.usuario.documento,
-                            /* style: TextStyle(
-                              fontSize: nombre,
-                            ), */
                           ),
                           currentAccountPicture: CircleAvatar(
                             backgroundColor:
@@ -92,10 +53,6 @@ class UserDrawer extends StatelessWidget {
                                 authState.usuario.documento[0],
                                 style: TextStyle(
                                     fontSize: 30,
-                                    /*  fontSize:
-                                        orientacion == Orientation.portrait
-                                            ? media.height * 0.05
-                                            : media.width * 0.05, */
                                     color: Theme.of(context).accentColor),
                               ),
                             ),
@@ -129,19 +86,6 @@ class Opciones extends StatelessWidget {
   const Opciones({Key key, this.esAdmin}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    /* final media = MediaQuery.of(context).size;
-    final orientacion = MediaQuery.of(context).orientation;
-    double iconSize = orientacion == Orientation.portrait
-        ? media.height * 0.025
-        : media.width * 0.025;
-    final textSize = orientacion == Orientation.portrait
-        ? media.height * 0.018
-        : media.width * 0.018;
-    if (media.width < 600 || media.height < 600) {
-      iconSize = orientacion == Orientation.portrait
-          ? media.height * 0.03
-          : media.width * 0.03;
-    } */
     /// Si [esAdmin] muestra pagina de creación de cuestionarios y ver bases de datos
     if (esAdmin) {
       return Column(
@@ -171,14 +115,10 @@ class Opciones extends StatelessWidget {
                 selectedTileColor: Theme.of(context).accentColor,
                 title: const Text(
                   'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
-                  /* style: TextStyle(
-                    /* color: Colors.white ,*/ fontSize: textSize,
-                  ), */
                 ),
                 leading: const Icon(
                   Icons.app_registration,
                   color: Colors.black,
-                  /* size: iconSize, */ /* color: Colors.white, */
                 ),
                 onTap: () => {
                       ExtendedNavigator.of(context).pop(),
@@ -186,10 +126,7 @@ class Opciones extends StatelessWidget {
                           .push(Routes.cuestionariosPage),
                     }),
           ),
-          Borradores(
-              /* iconSize: iconSize,
-            textSize: textSize, */
-              ),
+          Borradores(),
           /*  LimpiezaBase(), */
           SincronizarConGomac(),
           /* Card(
@@ -221,7 +158,7 @@ class Opciones extends StatelessWidget {
       return Column(
         children: [
           Borradores(),
-          LimpiezaBase(),
+          /* LimpiezaBase(), */
           SincronizarConGomac(),
           LogOut(),
         ],

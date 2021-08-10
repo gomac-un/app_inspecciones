@@ -160,8 +160,8 @@ class _BotonContinuarInspeccion extends StatelessWidget {
               (form.control('codigoInsp').value as String).isNotEmpty
           ? () async {
               /// Se descarga inspección con id=[form.control('id').value ] desde el server
-              print(form.control('codigoInsp').value);
-              print('Que mas');
+              int activoId;
+              int cuestionarioId;
               final res = await repository
                   .getInspeccionServidor(
                       int.parse(form.control('codigoInsp').value as String))
@@ -176,7 +176,11 @@ class _BotonContinuarInspeccion extends StatelessWidget {
                               serverError: (msg) => "Error interno: $msg",
                               credencialesException: () =>
                                   'Error inesperado: intente inciar sesión nuevamente'),
-                          (u) async {
+                          (dic) async {
+                        activoId = dic['activo'] as int;
+                        cuestionarioId = dic['cuestionario'] as int;
+                        await repository.marcarInspeccionParaTerminar(int.parse(
+                            form.control('codigoInsp').value as String));
                         return "exito";
                       }));
 
@@ -199,14 +203,11 @@ class _BotonContinuarInspeccion extends StatelessWidget {
               } else {
                 /// En caso de exito, se debe hacer esta consulta para obtener la insp
                 /// que se descargo desde la bd
-                final inspec = await repository.getInspeccionParaTerminar(
-                    int.parse(form.control('codigoInsp').value as String));
 
                 /// Se abre la pantalla de llenado de inspección normal
                 ExtendedNavigator.of(context).pop(
                   LlenadoFormPageArguments(
-                      activo: inspec.activoId,
-                      cuestionarioId: inspec.cuestionarioId),
+                      activo: activoId, cuestionarioId: cuestionarioId),
                 );
               }
             }

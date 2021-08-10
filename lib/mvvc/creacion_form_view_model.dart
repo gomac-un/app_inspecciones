@@ -1,9 +1,11 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_validators.dart';
+import 'package:moor/moor.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 /// Carga los bloques del cuetionario
@@ -72,21 +74,24 @@ class CreacionFormViewModel extends FormGroup {
   /// Se modifica cuando se copia un bloque desde creacion_controls.dart
   Copiable bloqueCopiado;
   final ejes = [
+    "No aplica",
+    "Delante",
     "Primer eje",
-    "Segundo eje",
-    "Tercer eje",
     "Entre primer y segundo eje",
+    "Segundo eje",
     "Entre segundo y tercer eje",
-    "Adelante",
+    "Tercer eje",
+    "Entre primer y tercer eje",
+    "Tercer eje - atrás",
     "Atrás"
   ];
   final lados = [
+    "No aplica",
     'Izquierda',
-    'Centro',
+    'Medio',
     'Derecha',
   ];
-  final posZ = ['Arriba', 'Medio', 'Abajo'];
-
+  final posZ = ["No aplica", 'Arriba', 'Centro', 'Abajo', 'Todos'];
   factory CreacionFormViewModel({
     CuestionarioConContratista cuestionarioDeModelo,
     Cuestionario cuestionario,
@@ -203,7 +208,104 @@ class CreacionFormViewModel extends FormGroup {
     super.dispose();
   }
 
-  /// Cuando se presiona guardar o finalizar cuestionario.
+  Future<Either<String, Unit>> guardarCuestionarioEnLocal(
+      EstadoDeCuestionario estado) async {
+    markAllAsTouched();
+
+    /// Queda null si es un cuestionario nuevo.
+    final int cuestionarioId = cuestionario?.id;
+    final int contratistaId = (control('contratista').value as Contratista)?.id;
+
+    final String tipoDeInspeccion = control("tipoDeInspeccion").value == "Otra"
+        ? control("nuevoTipoDeInspeccion").value as String
+        : control("tipoDeInspeccion").value as String;
+
+    final Cuestionario nuevoCuestionario = Cuestionario(
+      tipoDeInspeccion: tipoDeInspeccion,
+      esLocal: null,
+      id: cuestionarioId,
+      estado: estado,
+    );
+
+    final List<CuestionarioDeModelo> nuevoscuestionariosDeModelos =
+        (control('modelos').value as List<String>)
+            .map((String modelo) => CuestionarioDeModelo(
+                modelo: modelo,
+                periodicidad: (control('periodicidad').value as double).round(),
+                contratistaId: contratistaId,
+                cuestionarioId: cuestionarioId,
+                id: null))
+            .toList();
+
+    final bloques = (control('bloques') as FormArray).controls.asMap().entries;
+
+    /// Procesamiento de todos los FormGroup en el FormArray 'bloques'.
+    final bloquesAGuardar = bloques.expand<IBloqueOrdenable>((e) {
+      final i = e.key;
+      final control = e.value;
+      final bloque =
+          Bloque(cuestionarioId: cuestionarioId, id: null, nOrden: i);
+      if (control is CreadorTituloFormGroup) {
+        return [
+          BloqueConTitulo(
+            bloque,
+            control.toDB(),
+          )
+        ];
+      }
+      if (control is CreadorPreguntaFormGroup) {
+        return [
+          BloqueConPreguntaSimple(
+            bloque,
+            control.toDB(),
+          )
+        ];
+        /* else {
+          return [
+            BloqueConCondicional(
+              bloque,
+              control.toDB(),/* 
+              control.condicionesToDB(), */
+            ),
+          ];
+        } */
+      }
+      if (control is CreadorPreguntaCuadriculaFormGroup) {
+        final cuadriculaBd = control.toDB();
+        return [
+          BloqueConCuadricula(
+              bloque,
+              CuadriculaDePreguntasConOpcionesDeRespuesta(
+                cuadriculaBd.cuadricula,
+                cuadriculaBd.opcionesDeRespuesta,
+              ),
+              preguntas: cuadriculaBd.preguntas)
+        ];
+      }
+      if (control is CreadorPreguntaNumericaFormGroup) {
+        return [
+          BloqueConPreguntaNumerica(
+            bloque,
+            control.toDB(),
+          )
+        ];
+      }
+      throw Exception("Tipo de control no reconocido");
+    }).toList();
+
+    try {
+      await _db.creacionDao.guardarCuestionario(nuevoCuestionario,
+          nuevoscuestionariosDeModelos, bloquesAGuardar, this);
+
+      return right(unit);
+    } on InvalidDataException catch (exc) {
+      return Left(exc.toString());
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  /*  /// Cuando se presiona guardar o finalizar cuestionario.
   Future guardarCuestionarioEnLocal(EstadoDeCuestionario estado) async {
     markAllAsTouched();
 
@@ -290,5 +392,5 @@ class CreacionFormViewModel extends FormGroup {
 
     await _db.creacionDao.guardarCuestionario(
         nuevoCuestionario, nuevoscuestionariosDeModelos, bloquesAGuardar, this);
-  }
+  } */
 }

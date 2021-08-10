@@ -429,7 +429,8 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         /// Se obtiene la primera respuesta que se haya hecho.
         ///
         /// En este caso no importa cual sea pues solo se necesita para obtener [idform] para dar el nombre de la carpeta de las fotos con [idform].
-        final respuesta = respuestasForm.firstWhere((resp) => resp.isNotEmpty,
+        final respuesta = respuestasForm.firstWhere(
+            (resp) => resp.isNotEmpty && resp.first != null,
             orElse: () => null);
 
         final idform =

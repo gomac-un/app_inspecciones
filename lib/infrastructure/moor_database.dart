@@ -193,15 +193,11 @@ class Database extends _$Database {
     return cuestionarioJson;
   }
 
-  /// Devuelve inspección con id = [id] cuando se descargó del server y se va a llenar desde la app
-  Future<Inspeccion> getInspeccionParaTerminar(int id) {
-    /// Se elimina momentoEnvio para que aparezca como borrador y no en el historial.
-    (update(inspecciones)..where((c) => c.id.equals(id))).write(
-        const InspeccionesCompanion(
-            momentoEnvio: Value(null), esNueva: Value(false)));
-    return (select(inspecciones)..where((ins) => ins.id.equals(id)))
-        .getSingle();
-  }
+  /// Se elimina momentoEnvio para que aparezca como borrador y no en el historial.
+  Future marcarInspeccionParaTerminar(int id) =>
+      (update(inspecciones)..where((c) => c.id.equals(id))).write(
+          const InspeccionesCompanion(
+              momentoEnvio: Value(null), esNueva: Value(false)));
 
   /// marca [cuestionario.esLocal] = false cuando [cuestionario] es subido al server
   Future marcarCuestionarioSubido(Cuestionario cuestionario) =>

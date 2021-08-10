@@ -1,12 +1,10 @@
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_cards.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
-import 'package:inspecciones/presentation/pages/ayuda_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -21,166 +19,13 @@ class CreadorCuadriculaCard extends StatelessWidget {
       : super(key: key);
   @override
   Widget build(BuildContext context) {
-    /// Formulario base
-    final viewModel = Provider.of<CreacionFormViewModel>(context);
     return PreguntaCard(
       titulo: 'Pregunta tipo cuadricula',
       child: Column(
         children: [
-          ReactiveTextField(
-            formControl: formGroup.control('titulo') as FormControl,
-            decoration: const InputDecoration(
-              labelText: 'Titulo',
-            ),
-            textCapitalization: TextCapitalization.sentences,
-            keyboardType: TextInputType.multiline,
-            minLines: 1,
-            maxLines: 2,
-          ),
-          const SizedBox(height: 10),
-          ReactiveTextField(
-            formControl: formGroup.control('descripcion') as FormControl,
-            decoration: const InputDecoration(
-              labelText: 'Descripción',
-            ),
-            keyboardType: TextInputType.multiline,
-            minLines: 1,
-            maxLines: 50,
-            textCapitalization: TextCapitalization.sentences,
-          ),
-          const SizedBox(height: 10),
-          ValueListenableBuilder<List<Sistema>>(
-            valueListenable: viewModel.sistemas,
-            builder: (context, value, child) {
-              return ReactiveDropdownField<Sistema>(
-                formControl: formGroup.control('sistema') as FormControl,
-                validationMessages: (control) =>
-                    {'required': 'Elija el sistema'},
-                items: value
-                    .map((e) => DropdownMenuItem<Sistema>(
-                          value: e,
-                          child: Text(e.nombre),
-                        ))
-                    .toList(),
-                decoration: const InputDecoration(
-                  labelText: 'Sistema',
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-          ValueListenableBuilder<List<SubSistema>>(
-              valueListenable: formGroup.subSistemas,
-              builder: (context, value, child) {
-                return ReactiveDropdownField<SubSistema>(
-                  formControl: formGroup.control('subSistema') as FormControl,
-                  validationMessages: (control) =>
-                      {'required': 'Elija el subSistema'},
-                  items: value
-                      .map((e) => DropdownMenuItem<SubSistema>(
-                            value: e,
-                            child: Text(e.nombre),
-                          ))
-                      .toList(),
-                  decoration: const InputDecoration(
-                    labelText: 'Subsistema',
-                  ),
-                  onTap: () {
-                    FocusScope.of(context)
-                        .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-                  },
-                );
-              }),
-          const SizedBox(height: 5),
-          const Divider(height: 15, color: Colors.black),
-          Row(
-            children: [
-              const Expanded(
-                flex: 3,
-                child: Text(
-                  'Posición',
-                  textAlign: TextAlign.start,
-                ),
-              ),
-              Align(
-                alignment: Alignment.bottomLeft,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) => AyudaPage()));
-                  },
-                  child: const Text(
-                    '¿Necesitas ayuda?',
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          ReactiveDropdownField<String>(
-            formControl: formGroup.control('eje') as FormControl,
-            validationMessages: (control) =>
-                {'required': 'Este valor es requerido'},
-            items: viewModel
-                .ejes //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
-                .map((e) => DropdownMenuItem<String>(
-                      value: e,
-                      child: Text(e),
-                    ))
-                .toList(),
-            decoration: const InputDecoration(
-              labelText: 'Posición Y',
-            ),
-            onTap: () {
-              FocusScope.of(context)
-                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-            },
-          ),
-          const SizedBox(height: 10),
-          ReactiveDropdownField<String>(
-            formControl: formGroup.control('lado') as FormControl,
-            validationMessages: (control) =>
-                {'required': 'Este valor es requerido'},
-            items: viewModel
-                .lados //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
-                .map((e) => DropdownMenuItem<String>(
-                      value: e,
-                      child: Text(e),
-                    ))
-                .toList(),
-            decoration: const InputDecoration(
-              labelText: 'Posición X',
-            ),
-            onTap: () {
-              FocusScope.of(context)
-                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-            },
-          ),
-          const SizedBox(height: 10),
-          ReactiveDropdownField<String>(
-            formControl: formGroup.control('posicionZ') as FormControl,
-            validationMessages: (control) =>
-                {'required': 'Este valor es requerido'},
-            items: viewModel
-                .posZ //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
-                .map((e) => DropdownMenuItem<String>(
-                      value: e,
-                      child: Text(e),
-                    ))
-                .toList(),
-            decoration: const InputDecoration(
-              labelText: 'Posición Z',
-            ),
-            onTap: () {
-              FocusScope.of(context)
-                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-            },
-          ),
-          const SizedBox(height: 10),
-          const SizedBox(height: 10),
+          CamposComunes(
+              formGroup: formGroup, subsistemas: formGroup.subSistemas),
+          const SizedBox(height: 20),
           ReactiveDropdownField<TipoDePregunta>(
             formControl: formGroup.control('tipoDePregunta') as FormControl,
             validationMessages: (control) =>

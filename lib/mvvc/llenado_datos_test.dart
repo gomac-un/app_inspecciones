@@ -6,7 +6,7 @@ final bloquesDeEjemplo = FormArray([
       bloqueId: 1,
       descripcion: "descripcion del titulazo",
       fotos: listOf(),
-      id:  1,
+      id: 1,
       titulo: 'el titulazo',
     ),
   ),
@@ -67,28 +67,27 @@ final bloquesDeEjemplo = FormArray([
       ),
       [
         PreguntaConRespuestaConOpcionesDeRespuesta(
-          Pregunta(
-            bloqueId: 3,
-            criticidad: 1,
-            descripcion: "descripcion de la pregunta de una fila de la tabla",
-            fotosGuia: listOf(),
-            id: 3,
-            posicion: "null",
-            tipo: TipoDePregunta.parteDeCuadriculaUnica,
-            titulo: "pregunta de una fila de la tabla",
-          ),
-         [ RespuestaConOpcionesDeRespuesta(
-            RespuestasCompanion.insert(inspeccionId: null, preguntaId: null),
-            
-              OpcionDeRespuesta(
-                id: 3,
-                cuadriculaId: 2,
-                texto: "texto de una columna de la tabla",
-                criticidad: 2,
+            Pregunta(
+              bloqueId: 3,
+              criticidad: 1,
+              descripcion: "descripcion de la pregunta de una fila de la tabla",
+              fotosGuia: listOf(),
+              id: 3,
+              tipo: TipoDePregunta.parteDeCuadriculaUnica,
+              titulo: "pregunta de una fila de la tabla",
+            ),
+            [
+              RespuestaConOpcionesDeRespuesta(
+                RespuestasCompanion.insert(
+                    inspeccionId: null, preguntaId: null),
+                OpcionDeRespuesta(
+                  id: 3,
+                  cuadriculaId: 2,
+                  texto: "texto de una columna de la tabla",
+                  criticidad: 2,
+                ),
               ),
-            
-          ),]
-        ),
+            ]),
         PreguntaConRespuestaConOpcionesDeRespuesta(
             Pregunta(
               bloqueId: 3,
@@ -97,7 +96,6 @@ final bloquesDeEjemplo = FormArray([
                   "descripcion2 de la pregunta de una fila de la tabla",
               fotosGuia: listOf(),
               id: 4,
-              posicion: "null",
               tipo: TipoDePregunta.parteDeCuadriculaUnica,
               titulo: "pregunta2 de una fila de la tabla",
             ),
