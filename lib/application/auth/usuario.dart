@@ -5,7 +5,7 @@ part 'usuario.g.dart';
 
 @freezed
 class Usuario with _$Usuario {
-  factory Usuario({
+  const factory Usuario.online({
     /// Nombre de usuario
     required String documento,
     required String password,
@@ -16,7 +16,16 @@ class Usuario with _$Usuario {
 
     /// True si puede crear cuestionarios.
     required bool esAdmin,
-  }) = _Usuario;
+  }) = Online;
+
+  const factory Usuario.offline({
+    /// Nombre de usuario
+    required String documento,
+    required String password,
+
+    /// True si puede crear cuestionarios.
+    @Default(false) bool esAdmin,
+  }) = Offline;
 
   /// Convierte un usuario en formato Json [json] a un objeto de tipo [Usuario]
   factory Usuario.fromJson(Map<String, dynamic> json) =>

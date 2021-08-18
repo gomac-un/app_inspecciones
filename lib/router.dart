@@ -1,10 +1,11 @@
 import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:inspecciones/mvvc/creacion_form_page.dart';
 import 'package:inspecciones/mvvc/llenado_form_page.dart';
 import 'package:inspecciones/presentation/pages/borradores_screen.dart';
 import 'package:inspecciones/presentation/pages/cuestionarios_screen.dart';
 import 'package:inspecciones/presentation/pages/history_screen.dart';
-import 'package:inspecciones/presentation/pages/login_screen.dart';
+import 'package:inspecciones/presentation/pages/login_page.dart';
 import 'package:inspecciones/presentation/pages/sincronizacion_screen.dart';
 import 'package:inspecciones/presentation/pages/splash_screen.dart';
 
@@ -16,8 +17,17 @@ import 'presentation/pages/grupos_screen.dart';
 @MaterialAutoRouter(
   replaceInRouteName: 'Page,Route',
   routes: <AutoRoute>[
+    AutoRoute(
+      path: "/",
+      page: EmptyRouterPage,
+      children: [
+        AutoRoute(path: "", page: SincronizacionPage),
+        //AutoRoute(path: "books", page: BooksListScreen),
+      ],
+    ),
+    AutoRoute(path: "/login", page: LoginPage),
     // initial route is named "/"
-    MaterialRoute(page: SplashPage, initial: true),
+    /*MaterialRoute(page: SplashPage, initial: true),
     MaterialRoute(page: LoginPage),
     MaterialRoute(page: CreacionFormPage),
     MaterialRoute(page: BorradoresPage),
@@ -25,7 +35,7 @@ import 'presentation/pages/grupos_screen.dart';
     MaterialRoute(page: SincronizacionPage),
     MaterialRoute(page: CuestionariosPage),
     MaterialRoute(page: GruposScreen),
-    MaterialRoute(page: HistoryInspeccionesPage),
+    MaterialRoute(page: HistoryInspeccionesPage),*/
   ],
 )
 class $AppRouter {}

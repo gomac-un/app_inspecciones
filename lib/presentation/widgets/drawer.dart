@@ -41,7 +41,7 @@ class OpcionesAdmin extends StatelessWidget {
           Card(
             child: ListTile(
                 focusColor: Colors.yellow,
-                selectedTileColor: Theme.of(context).accentColor,
+                selectedTileColor: Theme.of(context).colorScheme.secondary,
                 title: const Text(
                   'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
                 ),
@@ -230,11 +230,11 @@ class LogOut extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authBloc = Provider.of<AuthBloc>(context);
+    final authBloc = context.read<AuthBloc>();
 
     return Card(
       child: ListTile(
-          selectedTileColor: Theme.of(context).accentColor,
+          selectedTileColor: Theme.of(context).colorScheme.secondary,
           title: const Text(
             'Cerrar Sesión',
           ),
@@ -255,7 +255,7 @@ class Planeacion extends StatelessWidget {
     return Column(
       children: [
         ListTile(
-          selectedTileColor: Theme.of(context).accentColor,
+          selectedTileColor: Theme.of(context).colorScheme.secondary,
           title: const Text('Grupos', style: TextStyle(fontSize: 13)),
           onTap: () => context.router.popAndPush(const GruposScreen()),
         ),

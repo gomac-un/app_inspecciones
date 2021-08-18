@@ -6,7 +6,7 @@ import 'package:inspecciones/router.gr.dart';
 
 /// Escucha eventos del authbloc y realiza la navegacion (login o pantalla de usuario)
 /// automaticamente.
-class AuthListener extends StatelessWidget {
+/*class AuthListener extends StatelessWidget {
   final Widget child;
   final AppRouter router;
 
@@ -34,3 +34,4 @@ class AuthListener extends StatelessWidget {
     );
   }
 }
+*/

@@ -8,5 +8,6 @@ class AuthFailure with _$AuthFailure {
   const factory AuthFailure.noHayConexionAlServidor() = NoHayConexionAlServidor;
   const factory AuthFailure.usuarioOPasswordInvalidos() =
       UsuarioOPasswordInvalidos;
-  const factory AuthFailure.serverError() = ServerError;
+  //const factory AuthFailure.serverError() = ServerError;
+  const factory AuthFailure.unexpectedError(Object exception) = UnexpectedError;
 }

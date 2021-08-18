@@ -8,7 +8,7 @@ import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
-import 'package:inspecciones/infrastructure/repositories/api_model.dart';
+import 'package:inspecciones/infrastructure/repositories/credenciales.dart';
 import 'package:meta/meta.dart';
 
 /// Maneja la información del usuario y sirve de puente entre [AuthBloc] y [InspeccionesRemoteDataSource]
@@ -19,59 +19,59 @@ class UserRepository {
 
   UserRepository(this._api, this._localPreferences);
 
-  /// Proceso de autenticación del usuario, en el login
+  /// Construye un objeto usuario con información traida del server
   Future<Either<AuthFailure, Usuario>> authenticateUser(
-      {required UserLogin userLogin}) async {
+      {required Credenciales credenciales, bool offline = false}) async {
+    if (offline) {
+      return Right(Usuario.offline(
+        documento: credenciales.username,
+        password: credenciales.password,
+      ));
+    }
+    final hayInternet = await _hayInternet();
+    if (!hayInternet) {
+      return const Left(AuthFailure.noHayInternet());
+    }
+
     /// Usado para la autenticación en Django
     final String token;
 
     /// True si puede crear cuestionarios
     final bool esAdmin;
-    final hayInternet = await _hayInternet();
-
-    if (!hayInternet) {
-      return const Left(AuthFailure.noHayInternet());
-    }
-
     try {
-      token = await _getToken(userLogin);
+      /// genera elcódigo unico que identifica cada instalación de la app
+      /// en caso de que no exista uno ya
+      await getOrRegisterAppId();
+
+      token = await _getToken(credenciales);
+      esAdmin = await _getPermisos(credenciales, token);
     } on TimeoutException {
       return const Left(AuthFailure.noHayConexionAlServidor());
     } on CredencialesException {
       return const Left(AuthFailure.usuarioOPasswordInvalidos());
     } catch (e) {
-      return const Left(AuthFailure.serverError());
-    }
-
-    try {
-      esAdmin = await _getPermisos(userLogin, token);
-    } on TimeoutException {
-      return const Left(AuthFailure.noHayConexionAlServidor());
-    } on CredencialesException {
-      return const Left(AuthFailure.usuarioOPasswordInvalidos());
-    } catch (e) {
-      return const Left(AuthFailure.serverError());
+      return Left(AuthFailure.unexpectedError(e));
     }
 
     /// Se crea el usuario localmente con los datos obtenidos de la Api
-    final user = Usuario(
-        documento: userLogin.username,
-        password: userLogin.password,
+    final user = Usuario.online(
+        documento: credenciales.username,
+        password: credenciales.password,
         esAdmin: esAdmin,
         token: token);
     return Right(user);
   }
 
   /// Devuelve el token usado en autenticación de Django para hacer
-  Future<String> _getToken(UserLogin userLogin) async {
-    final res = await _api.getToken(userLogin.toJson());
+  Future<String> _getToken(Credenciales credenciales) async {
+    final res = await _api.getToken(credenciales.toJson());
     return res['token'] as String;
   }
 
   /// Devuelve bool que indica si puede o no crear cuestionarios.
   /// Se usa [token] para poder enviar en el header de la petición
-  Future<bool> _getPermisos(UserLogin userLogin, String token) async {
-    final res = await _api.getPermisos(userLogin.toJson(), token);
+  Future<bool> _getPermisos(Credenciales credenciales, String token) async {
+    final res = await _api.getPermisos(credenciales.toJson(), token);
     return res['esAdmin'] as bool;
   }
 
@@ -87,19 +87,24 @@ class UserRepository {
   Option<Usuario> getLocalUser() => optionOf(_localPreferences.getUser());
 
   /// Consulta si en [localPreferences] se ha guardado el appId (Código unico de instalación),
-  /// en caso de que no se hace petición a la app para obtenerlo
-  Future getAppId() async {
-    if (_localPreferences.getAppId() != null) {
-      return _localPreferences.getAppId();
+  /// en caso de que no se hace petición a gomac para obtenerlo
+  Future<Either<AuthFailure, int>> getOrRegisterAppId() async {
+    final cachedAppId = _localPreferences.getAppId();
+    if (cachedAppId != null) {
+      return Future.value(Right(cachedAppId));
     }
-
-    final res = await _api.postRecurso(
-      '/registro-app/',
-      {},
-    );
-    final appId = res['id'] as int;
-    _localPreferences.saveAppId(appId);
-    return appId;
+    try {
+      final res = await _api.postRecurso(
+        '/registro-app/',
+        {},
+      );
+      final appId = res['id'] as int;
+      _localPreferences.saveAppId(appId);
+      return Right(appId);
+    } catch (e) {
+      // TODO: manejar los errores especificos
+      return Left(AuthFailure.unexpectedError(e));
+    }
   }
 
   Future<bool> _hayInternet() async =>

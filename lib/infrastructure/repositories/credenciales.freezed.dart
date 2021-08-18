@@ -2,7 +2,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
 
-part of 'api_model.dart';
+part of 'credenciales.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -13,54 +13,55 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more informations: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
-UserLogin _$UserLoginFromJson(Map<String, dynamic> json) {
-  return _UserLogin.fromJson(json);
+Credenciales _$CredencialesFromJson(Map<String, dynamic> json) {
+  return _Credenciales.fromJson(json);
 }
 
 /// @nodoc
-class _$UserLoginTearOff {
-  const _$UserLoginTearOff();
+class _$CredencialesTearOff {
+  const _$CredencialesTearOff();
 
-  _UserLogin call({required String username, required String password}) {
-    return _UserLogin(
+  _Credenciales call({required String username, required String password}) {
+    return _Credenciales(
       username: username,
       password: password,
     );
   }
 
-  UserLogin fromJson(Map<String, Object> json) {
-    return UserLogin.fromJson(json);
+  Credenciales fromJson(Map<String, Object> json) {
+    return Credenciales.fromJson(json);
   }
 }
 
 /// @nodoc
-const $UserLogin = _$UserLoginTearOff();
+const $Credenciales = _$CredencialesTearOff();
 
 /// @nodoc
-mixin _$UserLogin {
+mixin _$Credenciales {
   String get username => throw _privateConstructorUsedError;
   String get password => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $UserLoginCopyWith<UserLogin> get copyWith =>
+  $CredencialesCopyWith<Credenciales> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $UserLoginCopyWith<$Res> {
-  factory $UserLoginCopyWith(UserLogin value, $Res Function(UserLogin) then) =
-      _$UserLoginCopyWithImpl<$Res>;
+abstract class $CredencialesCopyWith<$Res> {
+  factory $CredencialesCopyWith(
+          Credenciales value, $Res Function(Credenciales) then) =
+      _$CredencialesCopyWithImpl<$Res>;
   $Res call({String username, String password});
 }
 
 /// @nodoc
-class _$UserLoginCopyWithImpl<$Res> implements $UserLoginCopyWith<$Res> {
-  _$UserLoginCopyWithImpl(this._value, this._then);
+class _$CredencialesCopyWithImpl<$Res> implements $CredencialesCopyWith<$Res> {
+  _$CredencialesCopyWithImpl(this._value, this._then);
 
-  final UserLogin _value;
+  final Credenciales _value;
   // ignore: unused_field
-  final $Res Function(UserLogin) _then;
+  final $Res Function(Credenciales) _then;
 
   @override
   $Res call({
@@ -81,29 +82,31 @@ class _$UserLoginCopyWithImpl<$Res> implements $UserLoginCopyWith<$Res> {
 }
 
 /// @nodoc
-abstract class _$UserLoginCopyWith<$Res> implements $UserLoginCopyWith<$Res> {
-  factory _$UserLoginCopyWith(
-          _UserLogin value, $Res Function(_UserLogin) then) =
-      __$UserLoginCopyWithImpl<$Res>;
+abstract class _$CredencialesCopyWith<$Res>
+    implements $CredencialesCopyWith<$Res> {
+  factory _$CredencialesCopyWith(
+          _Credenciales value, $Res Function(_Credenciales) then) =
+      __$CredencialesCopyWithImpl<$Res>;
   @override
   $Res call({String username, String password});
 }
 
 /// @nodoc
-class __$UserLoginCopyWithImpl<$Res> extends _$UserLoginCopyWithImpl<$Res>
-    implements _$UserLoginCopyWith<$Res> {
-  __$UserLoginCopyWithImpl(_UserLogin _value, $Res Function(_UserLogin) _then)
-      : super(_value, (v) => _then(v as _UserLogin));
+class __$CredencialesCopyWithImpl<$Res> extends _$CredencialesCopyWithImpl<$Res>
+    implements _$CredencialesCopyWith<$Res> {
+  __$CredencialesCopyWithImpl(
+      _Credenciales _value, $Res Function(_Credenciales) _then)
+      : super(_value, (v) => _then(v as _Credenciales));
 
   @override
-  _UserLogin get _value => super._value as _UserLogin;
+  _Credenciales get _value => super._value as _Credenciales;
 
   @override
   $Res call({
     Object? username = freezed,
     Object? password = freezed,
   }) {
-    return _then(_UserLogin(
+    return _then(_Credenciales(
       username: username == freezed
           ? _value.username
           : username // ignore: cast_nullable_to_non_nullable
@@ -118,11 +121,11 @@ class __$UserLoginCopyWithImpl<$Res> extends _$UserLoginCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_UserLogin extends _UserLogin {
-  _$_UserLogin({required this.username, required this.password}) : super._();
+class _$_Credenciales extends _Credenciales {
+  _$_Credenciales({required this.username, required this.password}) : super._();
 
-  factory _$_UserLogin.fromJson(Map<String, dynamic> json) =>
-      _$$_UserLoginFromJson(json);
+  factory _$_Credenciales.fromJson(Map<String, dynamic> json) =>
+      _$$_CredencialesFromJson(json);
 
   @override
   final String username;
@@ -131,13 +134,13 @@ class _$_UserLogin extends _UserLogin {
 
   @override
   String toString() {
-    return 'UserLogin(username: $username, password: $password)';
+    return 'Credenciales(username: $username, password: $password)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _UserLogin &&
+        (other is _Credenciales &&
             (identical(other.username, username) ||
                 const DeepCollectionEquality()
                     .equals(other.username, username)) &&
@@ -154,22 +157,22 @@ class _$_UserLogin extends _UserLogin {
 
   @JsonKey(ignore: true)
   @override
-  _$UserLoginCopyWith<_UserLogin> get copyWith =>
-      __$UserLoginCopyWithImpl<_UserLogin>(this, _$identity);
+  _$CredencialesCopyWith<_Credenciales> get copyWith =>
+      __$CredencialesCopyWithImpl<_Credenciales>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_UserLoginToJson(this);
+    return _$$_CredencialesToJson(this);
   }
 }
 
-abstract class _UserLogin extends UserLogin {
-  factory _UserLogin({required String username, required String password}) =
-      _$_UserLogin;
-  _UserLogin._() : super._();
+abstract class _Credenciales extends Credenciales {
+  factory _Credenciales({required String username, required String password}) =
+      _$_Credenciales;
+  _Credenciales._() : super._();
 
-  factory _UserLogin.fromJson(Map<String, dynamic> json) =
-      _$_UserLogin.fromJson;
+  factory _Credenciales.fromJson(Map<String, dynamic> json) =
+      _$_Credenciales.fromJson;
 
   @override
   String get username => throw _privateConstructorUsedError;
@@ -177,6 +180,6 @@ abstract class _UserLogin extends UserLogin {
   String get password => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  _$UserLoginCopyWith<_UserLogin> get copyWith =>
+  _$CredencialesCopyWith<_Credenciales> get copyWith =>
       throw _privateConstructorUsedError;
 }

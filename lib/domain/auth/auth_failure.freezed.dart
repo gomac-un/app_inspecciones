@@ -29,8 +29,10 @@ class _$AuthFailureTearOff {
     return const UsuarioOPasswordInvalidos();
   }
 
-  ServerError serverError() {
-    return const ServerError();
+  UnexpectedError unexpectedError(Object exception) {
+    return UnexpectedError(
+      exception,
+    );
   }
 }
 
@@ -44,7 +46,7 @@ mixin _$AuthFailure {
     required TResult Function() noHayInternet,
     required TResult Function() noHayConexionAlServidor,
     required TResult Function() usuarioOPasswordInvalidos,
-    required TResult Function() serverError,
+    required TResult Function(Object exception) unexpectedError,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -52,7 +54,7 @@ mixin _$AuthFailure {
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
     TResult Function()? usuarioOPasswordInvalidos,
-    TResult Function()? serverError,
+    TResult Function(Object exception)? unexpectedError,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -60,7 +62,7 @@ mixin _$AuthFailure {
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
     TResult Function()? usuarioOPasswordInvalidos,
-    TResult Function()? serverError,
+    TResult Function(Object exception)? unexpectedError,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -71,7 +73,7 @@ mixin _$AuthFailure {
         noHayConexionAlServidor,
     required TResult Function(UsuarioOPasswordInvalidos value)
         usuarioOPasswordInvalidos,
-    required TResult Function(ServerError value) serverError,
+    required TResult Function(UnexpectedError value) unexpectedError,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -80,7 +82,7 @@ mixin _$AuthFailure {
     TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
     TResult Function(UsuarioOPasswordInvalidos value)?
         usuarioOPasswordInvalidos,
-    TResult Function(ServerError value)? serverError,
+    TResult Function(UnexpectedError value)? unexpectedError,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -89,7 +91,7 @@ mixin _$AuthFailure {
     TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
     TResult Function(UsuarioOPasswordInvalidos value)?
         usuarioOPasswordInvalidos,
-    TResult Function(ServerError value)? serverError,
+    TResult Function(UnexpectedError value)? unexpectedError,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -153,7 +155,7 @@ class _$NoHayInternet implements NoHayInternet {
     required TResult Function() noHayInternet,
     required TResult Function() noHayConexionAlServidor,
     required TResult Function() usuarioOPasswordInvalidos,
-    required TResult Function() serverError,
+    required TResult Function(Object exception) unexpectedError,
   }) {
     return noHayInternet();
   }
@@ -164,7 +166,7 @@ class _$NoHayInternet implements NoHayInternet {
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
     TResult Function()? usuarioOPasswordInvalidos,
-    TResult Function()? serverError,
+    TResult Function(Object exception)? unexpectedError,
   }) {
     return noHayInternet?.call();
   }
@@ -175,7 +177,7 @@ class _$NoHayInternet implements NoHayInternet {
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
     TResult Function()? usuarioOPasswordInvalidos,
-    TResult Function()? serverError,
+    TResult Function(Object exception)? unexpectedError,
     required TResult orElse(),
   }) {
     if (noHayInternet != null) {
@@ -192,7 +194,7 @@ class _$NoHayInternet implements NoHayInternet {
         noHayConexionAlServidor,
     required TResult Function(UsuarioOPasswordInvalidos value)
         usuarioOPasswordInvalidos,
-    required TResult Function(ServerError value) serverError,
+    required TResult Function(UnexpectedError value) unexpectedError,
   }) {
     return noHayInternet(this);
   }
@@ -204,7 +206,7 @@ class _$NoHayInternet implements NoHayInternet {
     TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
     TResult Function(UsuarioOPasswordInvalidos value)?
         usuarioOPasswordInvalidos,
-    TResult Function(ServerError value)? serverError,
+    TResult Function(UnexpectedError value)? unexpectedError,
   }) {
     return noHayInternet?.call(this);
   }
@@ -216,7 +218,7 @@ class _$NoHayInternet implements NoHayInternet {
     TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
     TResult Function(UsuarioOPasswordInvalidos value)?
         usuarioOPasswordInvalidos,
-    TResult Function(ServerError value)? serverError,
+    TResult Function(UnexpectedError value)? unexpectedError,
     required TResult orElse(),
   }) {
     if (noHayInternet != null) {
@@ -273,7 +275,7 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
     required TResult Function() noHayInternet,
     required TResult Function() noHayConexionAlServidor,
     required TResult Function() usuarioOPasswordInvalidos,
-    required TResult Function() serverError,
+    required TResult Function(Object exception) unexpectedError,
   }) {
     return noHayConexionAlServidor();
   }
@@ -284,7 +286,7 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
     TResult Function()? usuarioOPasswordInvalidos,
-    TResult Function()? serverError,
+    TResult Function(Object exception)? unexpectedError,
   }) {
     return noHayConexionAlServidor?.call();
   }
@@ -295,7 +297,7 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
     TResult Function()? usuarioOPasswordInvalidos,
-    TResult Function()? serverError,
+    TResult Function(Object exception)? unexpectedError,
     required TResult orElse(),
   }) {
     if (noHayConexionAlServidor != null) {
@@ -312,7 +314,7 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
         noHayConexionAlServidor,
     required TResult Function(UsuarioOPasswordInvalidos value)
         usuarioOPasswordInvalidos,
-    required TResult Function(ServerError value) serverError,
+    required TResult Function(UnexpectedError value) unexpectedError,
   }) {
     return noHayConexionAlServidor(this);
   }
@@ -324,7 +326,7 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
     TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
     TResult Function(UsuarioOPasswordInvalidos value)?
         usuarioOPasswordInvalidos,
-    TResult Function(ServerError value)? serverError,
+    TResult Function(UnexpectedError value)? unexpectedError,
   }) {
     return noHayConexionAlServidor?.call(this);
   }
@@ -336,7 +338,7 @@ class _$NoHayConexionAlServidor implements NoHayConexionAlServidor {
     TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
     TResult Function(UsuarioOPasswordInvalidos value)?
         usuarioOPasswordInvalidos,
-    TResult Function(ServerError value)? serverError,
+    TResult Function(UnexpectedError value)? unexpectedError,
     required TResult orElse(),
   }) {
     if (noHayConexionAlServidor != null) {
@@ -394,7 +396,7 @@ class _$UsuarioOPasswordInvalidos implements UsuarioOPasswordInvalidos {
     required TResult Function() noHayInternet,
     required TResult Function() noHayConexionAlServidor,
     required TResult Function() usuarioOPasswordInvalidos,
-    required TResult Function() serverError,
+    required TResult Function(Object exception) unexpectedError,
   }) {
     return usuarioOPasswordInvalidos();
   }
@@ -405,7 +407,7 @@ class _$UsuarioOPasswordInvalidos implements UsuarioOPasswordInvalidos {
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
     TResult Function()? usuarioOPasswordInvalidos,
-    TResult Function()? serverError,
+    TResult Function(Object exception)? unexpectedError,
   }) {
     return usuarioOPasswordInvalidos?.call();
   }
@@ -416,7 +418,7 @@ class _$UsuarioOPasswordInvalidos implements UsuarioOPasswordInvalidos {
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
     TResult Function()? usuarioOPasswordInvalidos,
-    TResult Function()? serverError,
+    TResult Function(Object exception)? unexpectedError,
     required TResult orElse(),
   }) {
     if (usuarioOPasswordInvalidos != null) {
@@ -433,7 +435,7 @@ class _$UsuarioOPasswordInvalidos implements UsuarioOPasswordInvalidos {
         noHayConexionAlServidor,
     required TResult Function(UsuarioOPasswordInvalidos value)
         usuarioOPasswordInvalidos,
-    required TResult Function(ServerError value) serverError,
+    required TResult Function(UnexpectedError value) unexpectedError,
   }) {
     return usuarioOPasswordInvalidos(this);
   }
@@ -445,7 +447,7 @@ class _$UsuarioOPasswordInvalidos implements UsuarioOPasswordInvalidos {
     TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
     TResult Function(UsuarioOPasswordInvalidos value)?
         usuarioOPasswordInvalidos,
-    TResult Function(ServerError value)? serverError,
+    TResult Function(UnexpectedError value)? unexpectedError,
   }) {
     return usuarioOPasswordInvalidos?.call(this);
   }
@@ -457,7 +459,7 @@ class _$UsuarioOPasswordInvalidos implements UsuarioOPasswordInvalidos {
     TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
     TResult Function(UsuarioOPasswordInvalidos value)?
         usuarioOPasswordInvalidos,
-    TResult Function(ServerError value)? serverError,
+    TResult Function(UnexpectedError value)? unexpectedError,
     required TResult orElse(),
   }) {
     if (usuarioOPasswordInvalidos != null) {
@@ -472,40 +474,67 @@ abstract class UsuarioOPasswordInvalidos implements AuthFailure {
 }
 
 /// @nodoc
-abstract class $ServerErrorCopyWith<$Res> {
-  factory $ServerErrorCopyWith(
-          ServerError value, $Res Function(ServerError) then) =
-      _$ServerErrorCopyWithImpl<$Res>;
+abstract class $UnexpectedErrorCopyWith<$Res> {
+  factory $UnexpectedErrorCopyWith(
+          UnexpectedError value, $Res Function(UnexpectedError) then) =
+      _$UnexpectedErrorCopyWithImpl<$Res>;
+  $Res call({Object exception});
 }
 
 /// @nodoc
-class _$ServerErrorCopyWithImpl<$Res> extends _$AuthFailureCopyWithImpl<$Res>
-    implements $ServerErrorCopyWith<$Res> {
-  _$ServerErrorCopyWithImpl(
-      ServerError _value, $Res Function(ServerError) _then)
-      : super(_value, (v) => _then(v as ServerError));
+class _$UnexpectedErrorCopyWithImpl<$Res>
+    extends _$AuthFailureCopyWithImpl<$Res>
+    implements $UnexpectedErrorCopyWith<$Res> {
+  _$UnexpectedErrorCopyWithImpl(
+      UnexpectedError _value, $Res Function(UnexpectedError) _then)
+      : super(_value, (v) => _then(v as UnexpectedError));
 
   @override
-  ServerError get _value => super._value as ServerError;
+  UnexpectedError get _value => super._value as UnexpectedError;
+
+  @override
+  $Res call({
+    Object? exception = freezed,
+  }) {
+    return _then(UnexpectedError(
+      exception == freezed
+          ? _value.exception
+          : exception // ignore: cast_nullable_to_non_nullable
+              as Object,
+    ));
+  }
 }
 
 /// @nodoc
 
-class _$ServerError implements ServerError {
-  const _$ServerError();
+class _$UnexpectedError implements UnexpectedError {
+  const _$UnexpectedError(this.exception);
+
+  @override
+  final Object exception;
 
   @override
   String toString() {
-    return 'AuthFailure.serverError()';
+    return 'AuthFailure.unexpectedError(exception: $exception)';
   }
 
   @override
   bool operator ==(dynamic other) {
-    return identical(this, other) || (other is ServerError);
+    return identical(this, other) ||
+        (other is UnexpectedError &&
+            (identical(other.exception, exception) ||
+                const DeepCollectionEquality()
+                    .equals(other.exception, exception)));
   }
 
   @override
-  int get hashCode => runtimeType.hashCode;
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(exception);
+
+  @JsonKey(ignore: true)
+  @override
+  $UnexpectedErrorCopyWith<UnexpectedError> get copyWith =>
+      _$UnexpectedErrorCopyWithImpl<UnexpectedError>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -513,9 +542,9 @@ class _$ServerError implements ServerError {
     required TResult Function() noHayInternet,
     required TResult Function() noHayConexionAlServidor,
     required TResult Function() usuarioOPasswordInvalidos,
-    required TResult Function() serverError,
+    required TResult Function(Object exception) unexpectedError,
   }) {
-    return serverError();
+    return unexpectedError(exception);
   }
 
   @override
@@ -524,9 +553,9 @@ class _$ServerError implements ServerError {
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
     TResult Function()? usuarioOPasswordInvalidos,
-    TResult Function()? serverError,
+    TResult Function(Object exception)? unexpectedError,
   }) {
-    return serverError?.call();
+    return unexpectedError?.call(exception);
   }
 
   @override
@@ -535,11 +564,11 @@ class _$ServerError implements ServerError {
     TResult Function()? noHayInternet,
     TResult Function()? noHayConexionAlServidor,
     TResult Function()? usuarioOPasswordInvalidos,
-    TResult Function()? serverError,
+    TResult Function(Object exception)? unexpectedError,
     required TResult orElse(),
   }) {
-    if (serverError != null) {
-      return serverError();
+    if (unexpectedError != null) {
+      return unexpectedError(exception);
     }
     return orElse();
   }
@@ -552,9 +581,9 @@ class _$ServerError implements ServerError {
         noHayConexionAlServidor,
     required TResult Function(UsuarioOPasswordInvalidos value)
         usuarioOPasswordInvalidos,
-    required TResult Function(ServerError value) serverError,
+    required TResult Function(UnexpectedError value) unexpectedError,
   }) {
-    return serverError(this);
+    return unexpectedError(this);
   }
 
   @override
@@ -564,9 +593,9 @@ class _$ServerError implements ServerError {
     TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
     TResult Function(UsuarioOPasswordInvalidos value)?
         usuarioOPasswordInvalidos,
-    TResult Function(ServerError value)? serverError,
+    TResult Function(UnexpectedError value)? unexpectedError,
   }) {
-    return serverError?.call(this);
+    return unexpectedError?.call(this);
   }
 
   @override
@@ -576,16 +605,21 @@ class _$ServerError implements ServerError {
     TResult Function(NoHayConexionAlServidor value)? noHayConexionAlServidor,
     TResult Function(UsuarioOPasswordInvalidos value)?
         usuarioOPasswordInvalidos,
-    TResult Function(ServerError value)? serverError,
+    TResult Function(UnexpectedError value)? unexpectedError,
     required TResult orElse(),
   }) {
-    if (serverError != null) {
-      return serverError(this);
+    if (unexpectedError != null) {
+      return unexpectedError(this);
     }
     return orElse();
   }
 }
 
-abstract class ServerError implements AuthFailure {
-  const factory ServerError() = _$ServerError;
+abstract class UnexpectedError implements AuthFailure {
+  const factory UnexpectedError(Object exception) = _$UnexpectedError;
+
+  Object get exception => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $UnexpectedErrorCopyWith<UnexpectedError> get copyWith =>
+      throw _privateConstructorUsedError;
 }
