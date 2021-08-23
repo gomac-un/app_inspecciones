@@ -1,7 +1,7 @@
 //Custom Validators
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
+import 'package:inspecciones/mvvc/creacion_form_controller.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 //FIXME: no recalcula cuando cambia el tipo de inspeccion
@@ -44,7 +44,8 @@ Future<Map<String, dynamic>> cuestionariosExistentes(
 
 /// Marca como requerido el textField de 'nuevoTipoDeInspeccion',
 /// en caso de que se haya seleccionado 'Otra' como tipo de inspeccion.
-Map<String, dynamic> nuevoTipoDeInspeccion(AbstractControl<dynamic> control) {
+Map<String, dynamic> nuevoTipoDeInspeccionValidator(
+    AbstractControl<dynamic> control) {
   final form = control as FormGroup;
 
   final tipoDeInspeccion = form.control('tipoDeInspeccion');

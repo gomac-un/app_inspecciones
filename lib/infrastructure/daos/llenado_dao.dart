@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:dartz/dartz.dart';
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:intl/intl.dart';
 import 'package:kt_dart/kt.dart';
@@ -40,7 +41,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   /// Trae una lista con todos los cuestionarios disponibles para un activo,
   /// incluyendo los cuestionarios que son asignados a todos los activos
   Future<List<Cuestionario>> cuestionariosParaActivo(int activo) async {
-    if (activo == null) return [];
+    //if (activo == null) return [];
     /*
     final query = select(activos).join([
       innerJoin(cuestionarioDeModelos,
@@ -69,10 +70,9 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     ).map((row) => Cuestionario.fromData(row.data, db)).get();
   }
 
-  /// Revisa si existe una inspeccionpara cuestionario con id=[cuestionarioId] empezada  y la devuelve
-  /// en caso de que no exista devuelve null
-  Future<Inspeccion> getInspeccion(int activoId, int cuestionarioId) {
-    if (cuestionarioId == null || activoId == null) return Future.value();
+  /// Devuelve la inspeccion empezada que no haya sido enviada para un activo
+  /// en un cuestionario. Si no existe, devuelve null
+  Future<Inspeccion?> getInspeccion(int activoId, int cuestionarioId) {
     final query = select(inspecciones)
       ..where(
         (ins) =>
@@ -81,13 +81,13 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
 
             /// Pueden haber muchas inspecciones del mismo cuestionario para el mismo activo en la bd, pero aparecen solo en el historial
             /// así que se filtra solo las que no hayan sido enviadas.
-            isNull(ins.momentoEnvio),
+            ins.momentoEnvio.isNull(),
       );
 
-    return query.getSingle();
+    return query.getSingleOrNull();
   }
 
-  /// Devuelve los titulos que pertenecen a la inspección
+  /// Devuelve los titulos que pertenecen al cuestionario
   Future<List<BloqueConTitulo>> getTitulos(int cuestionarioId) {
     final query = select(titulos).join([
       innerJoin(bloques, bloques.id.equalsExp(titulos.bloqueId)),
@@ -101,7 +101,8 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         .get();
   }
 
-  /// Devuelve las preguntas numericas de la inspección, con  la respuesta que se haya insertado y las criticidadesNumericas (rangos de criticidad)
+  /// Devuelve las preguntas numericas de la inspección, con la respuesta que
+  /// se haya insertado y las criticidadesNumericas (rangos de criticidad)
   Future<List<BloqueConPreguntaNumerica>> getPreguntaNumerica(
       int cuestionarioId,
 
@@ -121,28 +122,27 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
           (preguntas.tipo.equals(4)));
 
     final res = await query
-        .map((row) => {
-              'bloque': row.readTable(bloques),
-              'pregunta': row.readTable(preguntas),
-              'respuesta': row.readTable(respuestas),
-              'criticidades': row.readTable(criticidadesNumericas)
-            })
+        .map((row) => Tuple4(
+              row.readTable(bloques),
+              row.readTable(preguntas),
+              row.readTable(respuestas),
+              row.readTable(criticidadesNumericas),
+            ))
         .get();
 
     return Future.wait(
-      groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
+      groupBy<Tuple4<Bloque, Pregunta, Respuesta, CriticidadesNumerica>,
+          Pregunta>(res, (e) => e.value2).entries.map((entry) async {
         return BloqueConPreguntaNumerica(
-          entry.value.first['bloque'] as Bloque,
+          // todas deberian tener el mismo bloque, TODO: comprobar esto
+          entry.value.first.value1,
           PreguntaNumerica(
-            entry.key as Pregunta,
+            entry.key,
 
             /// Se cargan las criticidades para poder calcular la criticidad total de la pregunta de acuerdo a la respuesta.
-            entry.value
-                .map((item) => item['criticidades'] as CriticidadesNumerica)
-                .toList(),
+            entry.value.map((item) => item.value4).toList(),
           ),
-          respuesta: await getRespuestaDePreguntaNumerica(
-              entry.key as Pregunta, inspeccionId),
+          await getRespuestaDePreguntaNumerica(entry.key, inspeccionId),
         );
       }),
     );

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
+import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -19,9 +20,7 @@ import 'package:path/path.dart' as path;
 
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
-import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
 
 part 'sincronizacion_state.dart';
 part 'sincronizacion_cubit.freezed.dart';
@@ -40,11 +39,11 @@ class DescargaCuestionariosCubit extends SincronizacionStep {
   @override
   String get titulo => 'Descarga de cuestionarios';
 
-  final InspeccionesRepository _inspeccionesRepository;
+  final CuestionariosRepository _cuestionariosRepository;
   final String nombreArchivoDescargado;
 
   DescargaCuestionariosCubit(
-      this._inspeccionesRepository, this.nombreArchivoDescargado)
+      this._cuestionariosRepository, this.nombreArchivoDescargado)
       : super(const SincronizacionStepState.initial());
 
   @override
@@ -74,7 +73,7 @@ class DescargaCuestionariosCubit extends SincronizacionStep {
     /// Hace la petición al servidor, en caso de exito instala la bd localmente, en caso de error lanza el
     /// mensaje 'Error de descarga'
     final directorioDeDescarga = await directorioLocal();
-    await _inspeccionesRepository.descargarCuestionarios(
+    await _cuestionariosRepository.descargarCuestionarios(
         directorioDeDescarga, nombreArchivoDescargado);
 
     /// Escucha de las actualizaciones que ofrece el downloader
@@ -178,10 +177,10 @@ class DescargaFotosCubit extends SincronizacionStep {
   @override
   String get titulo => 'Descarga de fotos';
 
-  final InspeccionesRepository _inspeccionesRepository;
+  final CuestionariosRepository _cuestionariosRepository;
   final String nombreZip;
 
-  DescargaFotosCubit(this._inspeccionesRepository, this.nombreZip)
+  DescargaFotosCubit(this._cuestionariosRepository, this.nombreZip)
       : super(const SincronizacionStepState.initial());
 
   @override
@@ -201,7 +200,7 @@ class DescargaFotosCubit extends SincronizacionStep {
     );
 
     final directorioDeDescarga = await directorioLocal();
-    await _inspeccionesRepository.descargarFotos(
+    await _cuestionariosRepository.descargarFotos(
         directorioDeDescarga, nombreZip);
 
     /// Escucha de las actualizaciones que ofrece el downloader
@@ -273,16 +272,16 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
 
   /// Emite estado con fecha de la ultima descarga de datos realizada [ultimaAct]
   late final ValueNotifier<Option<DateTime>> ultimaActualizacion =
-      ValueNotifier(_userRepository.getUltimaActualizacion());
+      ValueNotifier(_userRepository.getUltimaSincronizacion());
 
   late final DescargaCuestionariosCubit descargaCuestionariosCubit =
-      DescargaCuestionariosCubit(getIt<InspeccionesRepository>(), nombreJson);
+      DescargaCuestionariosCubit(getIt<CuestionariosRepository>(), nombreJson);
 
   late final InstalarDatabaseCubit instalarDatabaseCubit =
       InstalarDatabaseCubit(nombreJson, getIt<Database>());
 
   late final DescargaFotosCubit descargaFotosCubit =
-      DescargaFotosCubit(getIt<InspeccionesRepository>(), nombreZip);
+      DescargaFotosCubit(getIt<CuestionariosRepository>(), nombreZip);
 
   late final List<SincronizacionStep> steps = [
     descargaCuestionariosCubit,
@@ -319,9 +318,9 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
     super.onChange(change);
     if (change.nextState is SincronizacionSuccess) {
       /// En caso de éxito, guarda el momento actual como fecha de la ultima actualización
-      _userRepository.saveUltimaActualizacion().then((res) {
+      _userRepository.saveUltimaSincronizacion().then((res) {
         if (res) {
-          ultimaActualizacion.value = _userRepository.getUltimaActualizacion();
+          ultimaActualizacion.value = _userRepository.getUltimaSincronizacion();
         } //TODO: que pasa si falla?
       });
     }

@@ -6,7 +6,6 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:inspecciones/application/auth/auth_bloc.dart';
-import 'package:inspecciones/mvvc/auth_listener_widget.dart';
 import 'package:inspecciones/router.gr.dart';
 
 import 'injection.dart';
@@ -45,7 +44,7 @@ class _InspeccionesAppState extends State<InspeccionesApp> {
               routes: (_) => [
                 state.map(
                   unauthenticated: (_) => const LoginRoute(),
-                  authenticated: (_) => const EmptyRouterRoute(),
+                  authenticated: (_) => const AuthenticatedRouter(),
                 )
               ],
               navigatorObservers: () => [ClearFocusOnPop()],

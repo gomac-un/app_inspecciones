@@ -13,8 +13,6 @@ import 'package:path/path.dart' as path;
 
 import 'daos/planeacion_dao.dart';
 
-export 'package:moor_flutter/moor_flutter.dart' show Value;
-
 export 'database/shared.dart';
 
 part 'datos_de_prueba.dart';
@@ -407,21 +405,6 @@ class Database extends _$Database {
       });
     });
     await customStatement('PRAGMA foreign_keys = ON');
-  }
-
-  //datos para la creacion de cuestionarios
-  /// El cuestionario trae el sistemaId [id], para poder mostrar el [Sistema] en el formulario de creación, se obtiene así
-  Future<Sistema> getSistemaPorId(int id) async {
-    if (id == null) return null;
-    final query = select(sistemas)..where((s) => s.id.equals(id));
-    return query.getSingle();
-  }
-
-  /// Cada pregunta tiene el subsitemaId [id], para poder mostrar el [SubSistema] en el formulario de creación, se obtiene así
-  Future<SubSistema> getSubSistemaPorId(int id) async {
-    if (id == null) return null;
-    final query = select(subSistemas)..where((s) => s.id.equals(id));
-    return query.getSingle();
   }
 
   /// Se usa en [BorradoresDao.borradores()]

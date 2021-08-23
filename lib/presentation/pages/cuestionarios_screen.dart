@@ -2,54 +2,41 @@ import 'package:auto_route/auto_route.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/widgets/drawer.dart';
 import 'package:inspecciones/presentation/widgets/alertas.dart';
-import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:inspecciones/router.gr.dart';
+import 'package:inspecciones/viewmodel/cuestionario_list_view_model.dart';
 import 'package:provider/provider.dart';
 import '../../infrastructure/moor_database.dart';
 
-//TODO: creacion de inpecciones con excel
 /// Pantalla que muestra la lista de cuestionarios subidos y en proceso.
 class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) {
-    final authBloc = Provider.of<AuthBloc>(context);
-    return MultiRepositoryProvider(
-      providers: [
-        RepositoryProvider(
-            create: (ctx) => getIt<InspeccionesRepository>(
-                param1: authBloc.state.maybeWhen(
-                    authenticated: (u, s) => u.token,
-                    orElse: () => throw Exception(
-                        "Error inesperado: usuario no encontrado")))),
-        RepositoryProvider(create: (_) => getIt<Database>()),
-      ],
+    return Provider(
+      //TODO: mirar si se tiene que hacer dispose al CuestionarioListViewModel
+      create: (_) => getIt<CuestionarioListViewModel>(),
       child: this,
     );
   }
 
-  const CuestionariosPage();
+  const CuestionariosPage(Key? key) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.read<CuestionarioListViewModel>();
     return Scaffold(
         appBar: AppBar(
           title: const Text('Cuestionarios'),
         ),
-        drawer: UserDrawer(),
+        drawer: const UserDrawer(),
         body: StreamBuilder<List<Cuestionario>>(
           /// Se reconstruye automaticamente con los cuestionarios que se van agregando.
-          stream: RepositoryProvider.of<Database>(context)
-              .borradoresDao
-              .getCuestionarios(),
+          stream: viewModel.getCuestionarios(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              //throw snapshot.error;
               return Text("error: ${snapshot.error}");
             }
             if (!snapshot.hasData) {
@@ -60,7 +47,7 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
             final cuestionarios = snapshot.data;
 
             /// no hay cuestionarios creados
-            if (cuestionarios.isEmpty) {
+            if (cuestionarios == null || cuestionarios.isEmpty) {
               return Center(
                   child: Text(
                 "No tiene cuestionarios por subir",
@@ -90,96 +77,40 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
                     /// Si no se ha subido apaarece la opción de subir.
                     leading: cuestionario.esLocal
                         ? IconButton(
-                            icon: Icon(Icons.cloud_upload,
-                                color: cuestionario.estado ==
-                                        EstadoDeCuestionario.finalizada
-                                    ? Theme.of(context).accentColor
-                                    : Colors.grey),
+                            icon: Icon(
+                              Icons.cloud_upload,
+                              color: cuestionario.estado ==
+                                      EstadoDeCuestionario.finalizada
+                                  ? Theme.of(context).colorScheme.secondary
+                                  : Colors.grey,
+                            ),
                             onPressed: () async {
-                              final estado = cuestionario.estado;
-
                               /// Solo permite subirlo si está finalizado.
-                              if (estado == EstadoDeCuestionario.finalizada) {
-                                final res = await RepositoryProvider.of<
-                                        InspeccionesRepository>(context)
-                                    .subirCuestionario(cuestionario)
-                                    .then((res) => res.fold(
-                                        (fail) => fail.when(
-                                            noHayConexionAlServidor: () =>
-                                                "No hay conexion al servidor",
-                                            noHayInternet: () =>
-                                                "No hay internet",
-                                            serverError: (msg) =>
-                                                "Error inesperado: $msg",
-                                            credencialesException: () =>
-                                                'Error, intente inciar sesión nuevamente',
-                                            pageNotFound: () =>
-                                                'No se pudo encontrar la página, informe al encargado'),
-                                        (u) =>
-                                            "El cuestionario ha sido enviado"));
-                                res == 'El cuestionario ha sido enviado'
-                                    ? mostrarMensaje(context, 'exito', res,
-                                        ocultar: false)
-                                    : Scaffold.of(context)
-                                        .showSnackBar(SnackBar(
-                                        content: Text(res),
-                                      ));
-                              } else {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                    title: const Text('Advertencia'),
-                                    content: const Text(
-                                        "Aún no ha finalizado este cuestionario, no puede ser enviado."),
-                                    actions: [
-                                      FlatButton(
-                                        textColor: Colors.blue,
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text("Aceptar"),
-                                      ),
-                                    ],
-                                  ),
-                                );
+                              switch (cuestionario.estado) {
+                                case EstadoDeCuestionario.finalizada:
+                                  _subirCuestionarioFinalizado(
+                                      context, viewModel, cuestionario);
+                                  break;
+                                case EstadoDeCuestionario.borrador:
+                                  _mostrarDialog(context);
+                                  break;
                               }
                             })
                         : const SizedBox.shrink(),
                     trailing: cuestionario.esLocal
+
+                        /// Los cuestionarios subidos ya no se pueden borrar
                         ? IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () =>
-                                eliminarCuestionario(cuestionario, context),
+                                _eliminarCuestionario(context, cuestionario),
                           )
                         : Icon(Icons.cloud,
-                            color: Theme.of(context).accentColor),
-
-                    /// Los cuestionarios subidos ya no se pueden borrar
+                            color: Theme.of(context).colorScheme.secondary),
                     onTap: () async {
-                      LoadingDialog.show(context);
-                      // Se está haciendo esta consulta antes de cargar la pantalla de creacion
-                      // Cuando son muchos bloques, tarda demasiado en pasar a la próxima pantalla.
-                      //TODO: mirar como refactorizar esta parte.
-                      final cuestionarioDeModelo =
-                          await RepositoryProvider.of<Database>(context)
-                              .borradoresDao
-                              .cargarCuestionarioDeModelo(cuestionario);
-                      final bloquesBD =
-                          await RepositoryProvider.of<Database>(context)
-                              .creacionDao
-                              .cargarCuestionario(cuestionario.id);
-                      LoadingDialog.hide(context);
-
-                      ExtendedNavigator.of(context).push(
-                        Routes.creacionFormPage,
-                        arguments: CreacionFormPageArguments(
-                          cuestionario: cuestionario,
-                          cuestionarioDeModelo: cuestionarioDeModelo,
-                          bloques: bloquesBD,
-                        ),
-                      );
-                    } /* => {cargarCreacionPage(cuestionario, context)}, */
-                    );
+                      context.router.push(
+                          EdicionFormRoute(cuestionarioId: cuestionario.id));
+                    });
               },
             );
           },
@@ -191,40 +122,90 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
         ));
   }
 
+  ///TODO: pensar un mejor nombre para esta funcion
+  Future<dynamic> _mostrarDialog(BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Advertencia'),
+        content: const Text(
+            "Aún no ha finalizado este cuestionario, no puede ser enviado."),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text("Aceptar"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _subirCuestionarioFinalizado(
+    BuildContext context,
+    CuestionarioListViewModel viewModel,
+    Cuestionario cuestionario,
+  ) async {
+    final subida = await viewModel.subirCuestionario(cuestionario);
+
+    subida.fold(
+      (fail) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            fail.when(
+              noHayConexionAlServidor: () => "No hay conexion al servidor",
+              noHayInternet: () => "No hay internet",
+              serverError: (msg) => "Error inesperado: $msg",
+              credencialesException: () =>
+                  'Error, intente inciar sesión nuevamente',
+              pageNotFound: () =>
+                  'No se pudo encontrar la página, informe al encargado',
+            ),
+          ),
+        ),
+      ),
+      (_) => mostrarMensaje(
+        context,
+        TipoDeMensaje.exito,
+        "El cuestionario ha sido enviado",
+        ocultar: false,
+      ),
+    );
+  }
+
   /// Elimina [cuestionario] y todas sus preguntas
-  void eliminarCuestionario(Cuestionario cuestionario, BuildContext context) {
-    // set up the buttons
-    final cancelButton = FlatButton(
-      onPressed: () => Navigator.of(context).pop(),
-      child: const Text("Cancelar"), // OJO con el context
-    );
-    final Widget continueButton = FlatButton(
-      onPressed: () async {
-        Navigator.of(context).pop();
-        await RepositoryProvider.of<Database>(context)
-            .borradoresDao
-            .eliminarCuestionario(cuestionario);
-        Scaffold.of(context).showSnackBar(const SnackBar(
-          content: Text("Cuestionario eliminado"),
-          duration: Duration(seconds: 3),
-        ));
-      },
-      child: const Text("Eliminar"),
-    );
-    // set up the AlertDialog
-    final alert = AlertDialog(
-      title: const Text("Alerta"),
-      content: const Text("¿Está seguro que desea eliminar este cuestionario?"),
-      actions: [
-        cancelButton,
-        continueButton,
-      ],
-    );
+  void _eliminarCuestionario(BuildContext context, Cuestionario cuestionario) {
+    final viewModel = context.read<CuestionarioListViewModel>();
+
     // show the dialog
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return alert;
+        return AlertDialog(
+          title: const Text("Alerta"),
+          content:
+              const Text("¿Está seguro que desea eliminar este cuestionario?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancelar"),
+            ),
+            TextButton(
+              onPressed: () async {
+                await viewModel.eliminarCuestionario(cuestionario);
+
+                /// TODO: manejo de errores
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text("Cuestionario eliminado"),
+                  duration: Duration(seconds: 3),
+                ));
+                Navigator.of(context).pop();
+              },
+              child: const Text("Eliminar"),
+            ),
+          ],
+        );
       },
     );
   }
@@ -233,17 +214,17 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
 /// Botón de creación de cuestionarios
 class FloatingActionButtonCreacionCuestionario extends StatelessWidget {
   const FloatingActionButtonCreacionCuestionario({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
       onPressed: () async {
-        final res = await ExtendedNavigator.of(context).pushCreacionFormPage();
-        // mostar el mensaje que viene desde la pantalla de llenado
+        final res = await context.router.push(const CreacionFormRoute());
+        // muestra el mensaje que viene desde la pantalla de llenado
         if (res != null) {
-          Scaffold.of(context)
+          ScaffoldMessenger.of(context)
             ..removeCurrentSnackBar()
             ..showSnackBar(SnackBar(content: Text("$res")));
         }

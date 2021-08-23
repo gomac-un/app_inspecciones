@@ -14,11 +14,11 @@ final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more informations: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 Usuario _$UsuarioFromJson(Map<String, dynamic> json) {
-  switch (json['runtimeType'] as String) {
+  switch (json['runtimeType'] as String?) {
     case 'online':
-      return Online.fromJson(json);
+      return UsuarioOnline.fromJson(json);
     case 'offline':
-      return Offline.fromJson(json);
+      return UsuarioOffline.fromJson(json);
 
     default:
       throw CheckedFromJsonException(json, 'runtimeType', 'Usuario',
@@ -30,12 +30,12 @@ Usuario _$UsuarioFromJson(Map<String, dynamic> json) {
 class _$UsuarioTearOff {
   const _$UsuarioTearOff();
 
-  Online online(
+  UsuarioOnline online(
       {required String documento,
       required String password,
       required String token,
       required bool esAdmin}) {
-    return Online(
+    return UsuarioOnline(
       documento: documento,
       password: password,
       token: token,
@@ -43,11 +43,11 @@ class _$UsuarioTearOff {
     );
   }
 
-  Offline offline(
+  UsuarioOffline offline(
       {required String documento,
       required String password,
       bool esAdmin = false}) {
-    return Offline(
+    return UsuarioOffline(
       documento: documento,
       password: password,
       esAdmin: esAdmin,
@@ -99,20 +99,20 @@ mixin _$Usuario {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(Online value) online,
-    required TResult Function(Offline value) offline,
+    required TResult Function(UsuarioOnline value) online,
+    required TResult Function(UsuarioOffline value) offline,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(Online value)? online,
-    TResult Function(Offline value)? offline,
+    TResult Function(UsuarioOnline value)? online,
+    TResult Function(UsuarioOffline value)? offline,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(Online value)? online,
-    TResult Function(Offline value)? offline,
+    TResult Function(UsuarioOnline value)? online,
+    TResult Function(UsuarioOffline value)? offline,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -160,21 +160,23 @@ class _$UsuarioCopyWithImpl<$Res> implements $UsuarioCopyWith<$Res> {
 }
 
 /// @nodoc
-abstract class $OnlineCopyWith<$Res> implements $UsuarioCopyWith<$Res> {
-  factory $OnlineCopyWith(Online value, $Res Function(Online) then) =
-      _$OnlineCopyWithImpl<$Res>;
+abstract class $UsuarioOnlineCopyWith<$Res> implements $UsuarioCopyWith<$Res> {
+  factory $UsuarioOnlineCopyWith(
+          UsuarioOnline value, $Res Function(UsuarioOnline) then) =
+      _$UsuarioOnlineCopyWithImpl<$Res>;
   @override
   $Res call({String documento, String password, String token, bool esAdmin});
 }
 
 /// @nodoc
-class _$OnlineCopyWithImpl<$Res> extends _$UsuarioCopyWithImpl<$Res>
-    implements $OnlineCopyWith<$Res> {
-  _$OnlineCopyWithImpl(Online _value, $Res Function(Online) _then)
-      : super(_value, (v) => _then(v as Online));
+class _$UsuarioOnlineCopyWithImpl<$Res> extends _$UsuarioCopyWithImpl<$Res>
+    implements $UsuarioOnlineCopyWith<$Res> {
+  _$UsuarioOnlineCopyWithImpl(
+      UsuarioOnline _value, $Res Function(UsuarioOnline) _then)
+      : super(_value, (v) => _then(v as UsuarioOnline));
 
   @override
-  Online get _value => super._value as Online;
+  UsuarioOnline get _value => super._value as UsuarioOnline;
 
   @override
   $Res call({
@@ -183,7 +185,7 @@ class _$OnlineCopyWithImpl<$Res> extends _$UsuarioCopyWithImpl<$Res>
     Object? token = freezed,
     Object? esAdmin = freezed,
   }) {
-    return _then(Online(
+    return _then(UsuarioOnline(
       documento: documento == freezed
           ? _value.documento
           : documento // ignore: cast_nullable_to_non_nullable
@@ -206,15 +208,15 @@ class _$OnlineCopyWithImpl<$Res> extends _$UsuarioCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$Online implements Online {
-  const _$Online(
+class _$UsuarioOnline implements UsuarioOnline {
+  const _$UsuarioOnline(
       {required this.documento,
       required this.password,
       required this.token,
       required this.esAdmin});
 
-  factory _$Online.fromJson(Map<String, dynamic> json) =>
-      _$$OnlineFromJson(json);
+  factory _$UsuarioOnline.fromJson(Map<String, dynamic> json) =>
+      _$$UsuarioOnlineFromJson(json);
 
   @override
 
@@ -240,7 +242,7 @@ class _$Online implements Online {
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is Online &&
+        (other is UsuarioOnline &&
             (identical(other.documento, documento) ||
                 const DeepCollectionEquality()
                     .equals(other.documento, documento)) &&
@@ -263,8 +265,8 @@ class _$Online implements Online {
 
   @JsonKey(ignore: true)
   @override
-  $OnlineCopyWith<Online> get copyWith =>
-      _$OnlineCopyWithImpl<Online>(this, _$identity);
+  $UsuarioOnlineCopyWith<UsuarioOnline> get copyWith =>
+      _$UsuarioOnlineCopyWithImpl<UsuarioOnline>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -307,8 +309,8 @@ class _$Online implements Online {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(Online value) online,
-    required TResult Function(Offline value) offline,
+    required TResult Function(UsuarioOnline value) online,
+    required TResult Function(UsuarioOffline value) offline,
   }) {
     return online(this);
   }
@@ -316,8 +318,8 @@ class _$Online implements Online {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(Online value)? online,
-    TResult Function(Offline value)? offline,
+    TResult Function(UsuarioOnline value)? online,
+    TResult Function(UsuarioOffline value)? offline,
   }) {
     return online?.call(this);
   }
@@ -325,8 +327,8 @@ class _$Online implements Online {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(Online value)? online,
-    TResult Function(Offline value)? offline,
+    TResult Function(UsuarioOnline value)? online,
+    TResult Function(UsuarioOffline value)? offline,
     required TResult orElse(),
   }) {
     if (online != null) {
@@ -337,18 +339,19 @@ class _$Online implements Online {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$OnlineToJson(this)..['runtimeType'] = 'online';
+    return _$$UsuarioOnlineToJson(this)..['runtimeType'] = 'online';
   }
 }
 
-abstract class Online implements Usuario {
-  const factory Online(
+abstract class UsuarioOnline implements Usuario {
+  const factory UsuarioOnline(
       {required String documento,
       required String password,
       required String token,
-      required bool esAdmin}) = _$Online;
+      required bool esAdmin}) = _$UsuarioOnline;
 
-  factory Online.fromJson(Map<String, dynamic> json) = _$Online.fromJson;
+  factory UsuarioOnline.fromJson(Map<String, dynamic> json) =
+      _$UsuarioOnline.fromJson;
 
   @override
 
@@ -366,25 +369,28 @@ abstract class Online implements Usuario {
   bool get esAdmin => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  $OnlineCopyWith<Online> get copyWith => throw _privateConstructorUsedError;
+  $UsuarioOnlineCopyWith<UsuarioOnline> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $OfflineCopyWith<$Res> implements $UsuarioCopyWith<$Res> {
-  factory $OfflineCopyWith(Offline value, $Res Function(Offline) then) =
-      _$OfflineCopyWithImpl<$Res>;
+abstract class $UsuarioOfflineCopyWith<$Res> implements $UsuarioCopyWith<$Res> {
+  factory $UsuarioOfflineCopyWith(
+          UsuarioOffline value, $Res Function(UsuarioOffline) then) =
+      _$UsuarioOfflineCopyWithImpl<$Res>;
   @override
   $Res call({String documento, String password, bool esAdmin});
 }
 
 /// @nodoc
-class _$OfflineCopyWithImpl<$Res> extends _$UsuarioCopyWithImpl<$Res>
-    implements $OfflineCopyWith<$Res> {
-  _$OfflineCopyWithImpl(Offline _value, $Res Function(Offline) _then)
-      : super(_value, (v) => _then(v as Offline));
+class _$UsuarioOfflineCopyWithImpl<$Res> extends _$UsuarioCopyWithImpl<$Res>
+    implements $UsuarioOfflineCopyWith<$Res> {
+  _$UsuarioOfflineCopyWithImpl(
+      UsuarioOffline _value, $Res Function(UsuarioOffline) _then)
+      : super(_value, (v) => _then(v as UsuarioOffline));
 
   @override
-  Offline get _value => super._value as Offline;
+  UsuarioOffline get _value => super._value as UsuarioOffline;
 
   @override
   $Res call({
@@ -392,7 +398,7 @@ class _$OfflineCopyWithImpl<$Res> extends _$UsuarioCopyWithImpl<$Res>
     Object? password = freezed,
     Object? esAdmin = freezed,
   }) {
-    return _then(Offline(
+    return _then(UsuarioOffline(
       documento: documento == freezed
           ? _value.documento
           : documento // ignore: cast_nullable_to_non_nullable
@@ -411,12 +417,12 @@ class _$OfflineCopyWithImpl<$Res> extends _$UsuarioCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$Offline implements Offline {
-  const _$Offline(
+class _$UsuarioOffline implements UsuarioOffline {
+  const _$UsuarioOffline(
       {required this.documento, required this.password, this.esAdmin = false});
 
-  factory _$Offline.fromJson(Map<String, dynamic> json) =>
-      _$$OfflineFromJson(json);
+  factory _$UsuarioOffline.fromJson(Map<String, dynamic> json) =>
+      _$$UsuarioOfflineFromJson(json);
 
   @override
 
@@ -438,7 +444,7 @@ class _$Offline implements Offline {
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is Offline &&
+        (other is UsuarioOffline &&
             (identical(other.documento, documento) ||
                 const DeepCollectionEquality()
                     .equals(other.documento, documento)) &&
@@ -458,8 +464,8 @@ class _$Offline implements Offline {
 
   @JsonKey(ignore: true)
   @override
-  $OfflineCopyWith<Offline> get copyWith =>
-      _$OfflineCopyWithImpl<Offline>(this, _$identity);
+  $UsuarioOfflineCopyWith<UsuarioOffline> get copyWith =>
+      _$UsuarioOfflineCopyWithImpl<UsuarioOffline>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -502,8 +508,8 @@ class _$Offline implements Offline {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(Online value) online,
-    required TResult Function(Offline value) offline,
+    required TResult Function(UsuarioOnline value) online,
+    required TResult Function(UsuarioOffline value) offline,
   }) {
     return offline(this);
   }
@@ -511,8 +517,8 @@ class _$Offline implements Offline {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(Online value)? online,
-    TResult Function(Offline value)? offline,
+    TResult Function(UsuarioOnline value)? online,
+    TResult Function(UsuarioOffline value)? offline,
   }) {
     return offline?.call(this);
   }
@@ -520,8 +526,8 @@ class _$Offline implements Offline {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(Online value)? online,
-    TResult Function(Offline value)? offline,
+    TResult Function(UsuarioOnline value)? online,
+    TResult Function(UsuarioOffline value)? offline,
     required TResult orElse(),
   }) {
     if (offline != null) {
@@ -532,17 +538,18 @@ class _$Offline implements Offline {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$OfflineToJson(this)..['runtimeType'] = 'offline';
+    return _$$UsuarioOfflineToJson(this)..['runtimeType'] = 'offline';
   }
 }
 
-abstract class Offline implements Usuario {
-  const factory Offline(
+abstract class UsuarioOffline implements Usuario {
+  const factory UsuarioOffline(
       {required String documento,
       required String password,
-      bool esAdmin}) = _$Offline;
+      bool esAdmin}) = _$UsuarioOffline;
 
-  factory Offline.fromJson(Map<String, dynamic> json) = _$Offline.fromJson;
+  factory UsuarioOffline.fromJson(Map<String, dynamic> json) =
+      _$UsuarioOffline.fromJson;
 
   @override
 
@@ -556,5 +563,6 @@ abstract class Offline implements Usuario {
   bool get esAdmin => throw _privateConstructorUsedError;
   @override
   @JsonKey(ignore: true)
-  $OfflineCopyWith<Offline> get copyWith => throw _privateConstructorUsedError;
+  $UsuarioOfflineCopyWith<UsuarioOffline> get copyWith =>
+      throw _privateConstructorUsedError;
 }

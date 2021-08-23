@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:moor/moor.dart';
 part 'borradores_dao.g.dart';
@@ -135,35 +136,5 @@ class BorradoresDao extends DatabaseAccessor<Database>
     await (delete(respuestas)
           ..where((res) => res.inspeccionId.equals(borrador.inspeccion.id)))
         .go();
-  }
-
-  /// Devuelve Stream con los cuestionarios creados que se usa en cuestionarios_screen.dart
-  Stream<List<Cuestionario>> getCuestionarios() =>
-      select(cuestionarios).watch();
-
-  /// Elimina el cuestionario con id=[cuestionario.id] y en cascada los bloques, titulos y preguntas asociadas
-  Future eliminarCuestionario(Cuestionario cuestionario) async {
-    await (delete(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
-        .go();
-  }
-
-  /// Devuelve los modelos y el contratista asociado a [cuestionario]
-  /// Se usa principalmente a la hora de cargar el borrador del cuestionario para edición
-  Future<CuestionarioConContratista> cargarCuestionarioDeModelo(
-      Cuestionario cuestionario) async {
-    final query = select(cuestionarioDeModelos).join([
-      leftOuterJoin(contratistas,
-          contratistas.id.equalsExp(cuestionarioDeModelos.contratistaId)),
-    ])
-      ..where(cuestionarioDeModelos.cuestionarioId.equals(cuestionario.id));
-
-    final res = await query
-        .map((row) =>
-            [row.readTable(cuestionarioDeModelos), row.readTable(contratistas)])
-        .get();
-
-    return CuestionarioConContratista(
-        res.map((cu) => cu[0] as CuestionarioDeModelo).toList(),
-        res.first[1] as Contratista);
   }
 }

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
-import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
+import 'package:inspecciones/mvvc/creacion_form_controller.dart';
 import 'package:inspecciones/presentation/pages/ayuda_screen.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:provider/provider.dart';

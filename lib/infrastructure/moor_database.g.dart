@@ -620,9 +620,10 @@ class CuestionariosCompanion extends UpdateCompanion<Cuestionario> {
     this.id = const Value.absent(),
     required String tipoDeInspeccion,
     required EstadoDeCuestionario estado,
-    this.esLocal = const Value.absent(),
+    required bool esLocal,
   })  : tipoDeInspeccion = Value(tipoDeInspeccion),
-        estado = Value(estado);
+        estado = Value(estado),
+        esLocal = Value(esLocal);
   static Insertable<Cuestionario> custom({
     Expression<int>? id,
     Expression<String>? tipoDeInspeccion,
@@ -706,9 +707,8 @@ class $CuestionariosTable extends Cuestionarios
   late final GeneratedColumn<bool?> esLocal = GeneratedColumn<bool?>(
       'es_local', aliasedName, false,
       typeName: 'INTEGER',
-      requiredDuringInsert: false,
-      defaultConstraints: 'CHECK (es_local IN (0, 1))',
-      defaultValue: const Constant(true));
+      requiredDuringInsert: true,
+      defaultConstraints: 'CHECK (es_local IN (0, 1))');
   @override
   List<GeneratedColumn> get $columns => [id, tipoDeInspeccion, estado, esLocal];
   @override
@@ -735,6 +735,8 @@ class $CuestionariosTable extends Cuestionarios
     if (data.containsKey('es_local')) {
       context.handle(_esLocalMeta,
           esLocal.isAcceptableOrUnknown(data['es_local']!, _esLocalMeta));
+    } else if (isInserting) {
+      context.missing(_esLocalMeta);
     }
     return context;
   }

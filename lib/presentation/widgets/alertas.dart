@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
+///TODO: plantear mejor las funciones de este archivo
+
+enum TipoDeMensaje { exito, error }
+
 /// Alerta que permite dar estilos personalizados. Se usa a la hora de
 /// creación y envío de cuestionarios
-void mostrarMensaje(BuildContext context, String tipo, String mensaje,
+void mostrarMensaje(BuildContext context, TipoDeMensaje tipo, String mensaje,
     {bool ocultar = true}) {
   Alert(
     context: context,
@@ -30,16 +34,16 @@ void mostrarMensaje(BuildContext context, String tipo, String mensaje,
         color: Colors.white,
       ),
     ),
-    type: tipo == 'exito' ? AlertType.success : AlertType.error,
-    title: tipo == 'exito' ? 'Éxito' : 'Error',
+    type: tipo == TipoDeMensaje.exito ? AlertType.success : AlertType.error,
+    title: tipo == TipoDeMensaje.exito ? 'Éxito' : 'Error',
     desc: mensaje,
     buttons: [
       DialogButton(
         onPressed: () => {
           Navigator.of(context).pop(),
-          if (ocultar == true) ExtendedNavigator.of(context).pop()
+          if (ocultar == true) Navigator.of(context).pop()
         },
-        color: Theme.of(context).accentColor,
+        color: Theme.of(context).colorScheme.secondary,
         radius: BorderRadius.circular(10.0),
         child: const Text(
           "Aceptar",
@@ -124,7 +128,7 @@ String obtenerErrores(AbstractControl<dynamic> form) {
           form.errors['nuevoTipoDeInspeccion'] != null
       ? 'Seleccione el tipo de inspección'
       : null;
-  final errorModelo = form.errors['modelos'];
+  final errorModelo = form.errors['modelos'] as Map;
 
   texto = errorTipo != null ? '- $errorTipo' : '';
   if (errorModelo != null) {
@@ -149,7 +153,7 @@ String obtenerErrores(AbstractControl<dynamic> form) {
         ? '$texto \n- ${errorContratista ?? ''}'
         : '$texto- ${errorContratista ?? ''}';
   }
-  final erroresBloques = form.errors['bloques'];
+  final erroresBloques = form.errors['bloques'] as Map?;
   if (erroresBloques != null) {
     if (texto.isNotEmpty) {
       texto = '$texto \n- Los siguientes bloques presentan algún error';

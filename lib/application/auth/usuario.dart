@@ -16,7 +16,7 @@ class Usuario with _$Usuario {
 
     /// True si puede crear cuestionarios.
     required bool esAdmin,
-  }) = Online;
+  }) = UsuarioOnline;
 
   const factory Usuario.offline({
     /// Nombre de usuario
@@ -25,7 +25,7 @@ class Usuario with _$Usuario {
 
     /// True si puede crear cuestionarios.
     @Default(false) bool esAdmin,
-  }) = Offline;
+  }) = UsuarioOffline;
 
   /// Convierte un usuario en formato Json [json] a un objeto de tipo [Usuario]
   factory Usuario.fromJson(Map<String, dynamic> json) =>

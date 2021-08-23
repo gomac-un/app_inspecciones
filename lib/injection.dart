@@ -17,7 +17,7 @@ Future configureDependencies() async => $initGetIt(getIt);
 
 // Registra en getIt [InspeccionesRemoteDataSource] para poder acceder a ella desde
 //cualquier lugar del código
-void registrarAPI(Usuario usuario) {
+void registrarAPI(UsuarioOnline usuario) {
   if (getIt.isRegistered<InspeccionesRemoteDataSource>()) {
     getIt.unregister<InspeccionesRemoteDataSource>();
   }

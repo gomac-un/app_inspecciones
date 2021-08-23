@@ -12,14 +12,14 @@ import 'package:path/path.dart' as p;
 import '../moor_database.dart';
 
 @module
-abstract class RegisterModule {
+abstract class DatabaseRegistrator {
   @lazySingleton
-  Database constructDb() {
-    final appId = getIt<ILocalPreferencesDataSource>().getAppId();
+  Database constructDb(LocalPreferencesDataSource localPreferencesDataSource) {
+    final appId = localPreferencesDataSource.getAppId();
     if (appId == null) {
       throw Exception("no se ha definido el appId antes de crear la DB");
     }
-    
+
     const logStatements = true;
     if (Platform.isIOS || Platform.isAndroid) {
       final executor = LazyDatabase(() async {

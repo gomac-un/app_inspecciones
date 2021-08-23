@@ -6,7 +6,7 @@ import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_cuadricula_card.dart';
-import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
+import 'package:inspecciones/mvvc/creacion_form_controller.dart';
 import 'package:inspecciones/mvvc/creacion_numerica_card.dart';
 import 'package:inspecciones/presentation/pages/ayuda_screen.dart';
 import 'package:inspecciones/presentation/widgets/images_picker.dart';
@@ -20,12 +20,13 @@ import 'package:simple_tooltip/simple_tooltip.dart';
 
 /// Cuando en el formulario se presiona añadir titulo, este es el widget que se muestra
 class CreadorTituloCard extends StatelessWidget {
-  final CreadorTituloFormGroup formGroup;
+  final CreadorTituloController controller;
 
   /// Numero de bloque que se muestra en PopUpMenu.
   /// Ver [BotonesDeBloque]
   final int nro;
-  const CreadorTituloCard({Key key, this.formGroup, this.nro})
+  const CreadorTituloCard(
+      {Key? key, required this.controller, required this.nro})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -41,9 +42,9 @@ class CreadorTituloCard extends StatelessWidget {
           children: [
             ReactiveTextField(
               style: Theme.of(context).textTheme.headline5,
-              formControl: formGroup.control('titulo') as FormControl,
+              formControl: controller.tituloControl,
               validationMessages: (control) =>
-                  {'required': 'El titulo no debe ser vacío'},
+                  {ValidationMessage.required: 'El titulo no debe ser vacío'},
               decoration: const InputDecoration(
                 labelText: 'Titulo de sección',
               ),
@@ -52,7 +53,7 @@ class CreadorTituloCard extends StatelessWidget {
             const SizedBox(height: 10),
             ReactiveTextField(
               style: Theme.of(context).textTheme.bodyText2,
-              formControl: formGroup.control('descripcion') as FormControl,
+              formControl: controller.descripcionControl,
               decoration: const InputDecoration(
                 labelText: 'Descripción',
               ),
@@ -674,21 +675,25 @@ class BotonesDeBloque extends StatelessWidget {
   }
 }
 
-/// Widget que elige que Card mostrar dependiendo de tipo de formGroup que sea [element]
+/// Widget que elige que Card mostrar dependiendo de tipo de formGroup que sea [controller]
 ///
 ///Se usa en la animatedList de creacion_form_page.dart.
 class ControlWidget extends StatelessWidget {
-  final AbstractControl element;
+  final CreacionController controller;
   final int index;
 
-  const ControlWidget(this.element, this.index, {Key key}) : super(key: key);
+  const ControlWidget(this.controller, this.index, {Key key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    if (element is CreadorTituloFormGroup) {
+    //TODO: hacer esta transformación sin duplicacion de codigo cuando
+    // implementen https://github.com/dart-lang/language/issues/216 en dart
+    final controller = this.controller;
+    //pendejada para que dart pueda hacer el cast con los ifs solamente
+    if (controller is CreadorTituloController) {
       return CreadorTituloCard(
-          key: ValueKey(
-              element), //Las keys hacen que flutter borre correctamente las cards
-          formGroup: element as CreadorTituloFormGroup,
+          key: ValueKey(controller),
+          //Las keys se necesitan cuando tenemos una lista dinamica de elementos del mismo tipo en flutter
+          controller: controller,
           nro: index);
     }
     if (element is CreadorPreguntaFormGroup) {
@@ -716,21 +721,21 @@ class ControlWidget extends StatelessWidget {
 class ControlWidgetAnimado extends StatelessWidget {
   final Animation<double> animation;
   final int index;
-  const ControlWidgetAnimado({
-    Key key,
-    @required this.element,
-    this.animation,
-    this.index,
-  }) : super(key: key);
+  final CreacionController controller;
 
-  final AbstractControl element;
+  const ControlWidgetAnimado({
+    Key? key,
+    required this.controller,
+    required this.animation,
+    required this.index,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SizeTransition(
       sizeFactor: animation,
       child: ControlWidget(
-        element,
+        controller,
         index,
       ),
     );

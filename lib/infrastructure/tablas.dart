@@ -54,7 +54,7 @@ class Cuestionarios extends Table {
   IntColumn get estado => intEnum<EstadoDeCuestionario>()();
 
   /// Campo usado solo en la app para identificar los cuestionarios nuevos que deben ser enviados al server.
-  BoolColumn get esLocal => boolean().withDefault(const Constant(true))();
+  BoolColumn get esLocal => boolean()();
   // List<Inspecciones>
   // List<Bloques>
   //List<CuestionariosDeModelos>
@@ -347,7 +347,7 @@ class Respuestas extends Table {
 class ListInColumnConverter extends TypeConverter<KtList<String>, String> {
   const ListInColumnConverter();
   @override
-  KtList<String> mapToDart(String fromDb) {
+  KtList<String>? mapToDart(String? fromDb) {
     if (fromDb == null) {
       return null;
     }
@@ -357,7 +357,7 @@ class ListInColumnConverter extends TypeConverter<KtList<String>, String> {
   }
 
   @override
-  String mapToSql(KtList<String> value) {
+  String? mapToSql(KtList<String>? value) {
     if (value == null) {
       return null;
     }

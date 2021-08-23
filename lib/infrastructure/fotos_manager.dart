@@ -8,11 +8,12 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 /// Clase encargada de manejar las fotos de cuestionarios e inspecciones
+/// TODO: hacer que esta clase deje de ser solo funciones estáticas
 class FotosManager {
   static Future<Iterable<String>> organizarFotos(
     KtList<String> fotos, {
-    String tipoDocumento,
-    String idDocumento,
+    required String tipoDocumento,
+    required String idDocumento,
   }) async {
     final appDir = await getApplicationDocumentsDirectory();
     return Future.wait(fotos.iter.map((pathFoto) async {
@@ -32,15 +33,18 @@ class FotosManager {
   }
 
   static Future<Iterable<File>> getFotosDeDocumento(
-      {String idDocumento, String tipoDocumento}) async {
+      {required String idDocumento, required String tipoDocumento}) async {
     final appDir = await getApplicationDocumentsDirectory();
     final docDir =
         Directory(path.join(appDir.path, tipoDocumento, idDocumento));
     return docDir.existsSync() ? docDir.listSync().whereType<File>() : [];
   }
 
-  static String convertirAUbicacionAbsoluta(
-      {String tipoDeDocumento, String idDocumento, String basename}) {
+  static String convertirAUbicacionAbsoluta({
+    required String tipoDeDocumento,
+    required String idDocumento,
+    required String basename,
+  }) {
     return path.join(getIt<DirectorioDeDatos>().path, tipoDeDocumento,
         idDocumento, basename);
   }

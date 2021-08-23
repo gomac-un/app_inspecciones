@@ -1,7 +1,7 @@
 //Custom Validators
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/mvvc/creacion_form_view_model.dart';
+import 'package:inspecciones/mvvc/creacion_form_controller.dart';
 import 'package:inspecciones/mvvc/planeacion_grupos_controls.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 

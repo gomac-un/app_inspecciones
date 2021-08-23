@@ -5,6 +5,6 @@ import 'package:http/http.dart' as http;
 @module
 abstract class ThirdPartyInjections {
   http.Client get client => http.Client();
-  InternetConnectionChecker get dataConnectionChecker =>
+  InternetConnectionChecker get internetConnectionChecker =>
       InternetConnectionChecker();
 }

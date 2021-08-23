@@ -6,27 +6,31 @@ part of 'usuario.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$Online _$$OnlineFromJson(Map<String, dynamic> json) => _$Online(
+_$UsuarioOnline _$$UsuarioOnlineFromJson(Map<String, dynamic> json) =>
+    _$UsuarioOnline(
       documento: json['documento'] as String,
       password: json['password'] as String,
       token: json['token'] as String,
       esAdmin: json['esAdmin'] as bool,
     );
 
-Map<String, dynamic> _$$OnlineToJson(_$Online instance) => <String, dynamic>{
+Map<String, dynamic> _$$UsuarioOnlineToJson(_$UsuarioOnline instance) =>
+    <String, dynamic>{
       'documento': instance.documento,
       'password': instance.password,
       'token': instance.token,
       'esAdmin': instance.esAdmin,
     };
 
-_$Offline _$$OfflineFromJson(Map<String, dynamic> json) => _$Offline(
+_$UsuarioOffline _$$UsuarioOfflineFromJson(Map<String, dynamic> json) =>
+    _$UsuarioOffline(
       documento: json['documento'] as String,
       password: json['password'] as String,
       esAdmin: json['esAdmin'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$$OfflineToJson(_$Offline instance) => <String, dynamic>{
+Map<String, dynamic> _$$UsuarioOfflineToJson(_$UsuarioOffline instance) =>
+    <String, dynamic>{
       'documento': instance.documento,
       'password': instance.password,
       'esAdmin': instance.esAdmin,

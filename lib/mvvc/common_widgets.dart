@@ -4,21 +4,22 @@ import 'package:flutter/material.dart';
 ///
 /// Si varios tipos de preguntas usan los mismos Widgets, se pueden añadir aquí
 //TODO: Refactorizar en llenado_card o creacion_card si hay algún widget que añadir
+//TODO: validar que la aceptación de nulos sea útil
 class PreguntaCard extends StatelessWidget {
   final Widget child;
-  final String titulo;
-  final String descripcion;
-  final String posicion;
+  final String? titulo;
+  final String? descripcion;
+  final String? posicion;
 
   /// Criticidad de la pregunta.
-  final double criticidad;
+  final double? criticidad;
 
   /// Para el mensaje de criticidad, puede ser total (Si la inspeccion esta finalizada) o parcial (en cualquier otro caso)
-  final String estado;
+  final String? estado;
 
   const PreguntaCard(
-      {Key key,
-      this.child,
+      {Key? key,
+      required this.child,
       this.titulo,
       this.descripcion,
       this.criticidad,
@@ -36,20 +37,20 @@ class PreguntaCard extends StatelessWidget {
           children: [
             if (titulo != null)
               Text(
-                titulo,
+                titulo!,
                 style: Theme.of(context).textTheme.headline6,
                 textAlign: TextAlign.center,
               ),
             const SizedBox(height: 5),
             if (posicion != null)
               Text(
-                posicion,
+                posicion!,
                 style: Theme.of(context).textTheme.bodyText1,
               ),
             const SizedBox(height: 5),
             if (descripcion != null)
               Text(
-                descripcion,
+                descripcion!,
                 style: Theme.of(context).textTheme.bodyText2,
               ),
             const SizedBox(height: 10),
@@ -59,10 +60,10 @@ class PreguntaCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Icon(
-                    criticidad > 0
+                    criticidad! > 0
                         ? Icons.warning_amber_rounded
                         : Icons.remove_red_eye,
-                    color: criticidad > 0 ? Colors.red : Colors.green[200],
+                    color: criticidad! > 0 ? Colors.red : Colors.green[200],
                     size: 25, /* color: Colors.white, */
                   ),
                   Text(

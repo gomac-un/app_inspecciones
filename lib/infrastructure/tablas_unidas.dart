@@ -15,25 +15,20 @@ class PreguntaNumerica {
 class GrupoXTipoInspeccion {
   final TiposDeInspeccione tipoInspeccion;
   final List<GruposInspecciones> grupos;
-  GrupoXTipoInspeccion({this.tipoInspeccion, this.grupos});
-
-  GrupoXTipoInspeccion copyWith({
-    TiposDeInspeccione tipoInspeccion,
-    List<GruposInspecciones> grupos,
-  }) {
-    return GrupoXTipoInspeccion(
-      tipoInspeccion: tipoInspeccion ?? this.tipoInspeccion,
-      grupos: grupos ?? this.grupos,
-    );
-  }
+  GrupoXTipoInspeccion(this.tipoInspeccion, this.grupos);
 }
 
 /// Reune los modelos de un cuestionario y su respectivo contratista.
-class CuestionarioConContratista {
+class CuestionarioConContratistaYModelos {
+  final Cuestionario cuestionario;
   final List<CuestionarioDeModelo> cuestionarioDeModelo;
   final Contratista contratista;
 
-  CuestionarioConContratista(this.cuestionarioDeModelo, this.contratista);
+  CuestionarioConContratistaYModelos(
+    this.cuestionario,
+    this.cuestionarioDeModelo,
+    this.contratista,
+  );
 }
 
 /// Reune [pregunta] con sus posibles respuestas.
@@ -133,7 +128,7 @@ class BloqueConPreguntaNumerica extends IBloqueOrdenable {
 
   /// En este caso, la respuesta es [respuesta.valor], por eso no se hace uso de la clase [RespuestaConOpcionesDeRespuesta]
   final RespuestasCompanion respuesta;
-  BloqueConPreguntaNumerica(Bloque bloque, this.pregunta, {this.respuesta})
+  BloqueConPreguntaNumerica(Bloque bloque, this.pregunta, this.respuesta)
       : super(bloque);
 }
 
@@ -144,7 +139,7 @@ class BloqueConPreguntaSimple extends IBloqueOrdenable {
   /// List para el caso de las multiples
   final List<RespuestaConOpcionesDeRespuesta> respuesta;
 
-  BloqueConPreguntaSimple(Bloque bloque, this.pregunta, {this.respuesta})
+  BloqueConPreguntaSimple(Bloque bloque, this.pregunta, this.respuesta)
       : super(bloque);
 }
 
@@ -154,10 +149,10 @@ class BloqueConCuadricula extends IBloqueOrdenable {
   final CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula;
 
   /// En caso de que se use al cargar una inspeccion, trae las preguntas que se han contestado con su respectiva respuesta
-  final List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas;
+  final List<PreguntaConRespuestaConOpcionesDeRespuesta>? preguntasRespondidas;
 
   /// Todas las preguntas (sin opciones de respuesta, porque ya estan en [cuadricula])
-  final List<PreguntaConOpcionesDeRespuesta> preguntas;
+  final List<PreguntaConOpcionesDeRespuesta>? preguntas;
 
   BloqueConCuadricula(
     Bloque bloque,
@@ -189,20 +184,6 @@ class Borrador {
   Borrador(this.activo, this.inspeccion);
 
   /// Ver [BorradoresDao.borradores()].
-  Borrador copyWith({
-    Activo activo,
-    Inspeccion inspeccion,
-    Cuestionario cuestionario,
-    int avance,
-    int total,
-  }) {
-    return Borrador(
-        activo ?? this.activo,
-        inspeccion ?? this.inspeccion,
-        cuestionario ?? this.cuestionario,
-        avance ?? this.avance,
-        total ?? this.total);
-  }
 
   @override
   String toString() =>
@@ -212,5 +193,5 @@ class Borrador {
 class Programacion {
   ProgramacionSistemasCompanion programacion;
   List<Sistema> sistemas;
-  Programacion({this.programacion, this.sistemas});
+  Programacion(this.programacion, this.sistemas);
 }

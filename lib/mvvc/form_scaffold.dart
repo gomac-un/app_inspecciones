@@ -4,15 +4,16 @@ import 'package:flutter/material.dart';
 class FormScaffold extends StatelessWidget {
   final Widget body;
   final Widget title;
-  final Widget floatingActionButton;
-  final List<Widget> actions;
+  final Widget? floatingActionButton;
+  final List<Widget>? actions;
 
   const FormScaffold({
-    this.body,
-    this.title,
+    Key? key,
+    required this.body,
+    required this.title,
     this.floatingActionButton,
     this.actions,
-  }) : super();
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

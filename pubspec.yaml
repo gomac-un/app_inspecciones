@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.12.0-0 <3.0.0"
+  sdk: ">=2.14.0-0 <3.0.0"
 
 dependencies:
   flutter:
@@ -29,7 +29,7 @@ dependencies:
   collection: ^1.15.0
   cool_stepper: ^1.2.1
   cupertino_icons: ^1.0.3
-  dartz: ^0.10.0-nullsafety.2
+  dartz: ^0.10.0
   datetime_picker_formfield: ^2.0.0
   dropdown_search: ^0.6.3
   editable: ^2.0.0
@@ -40,19 +40,18 @@ dependencies:
   freezed_annotation: ^0.14.3
   get_it: ^7.2.0
   grouped_list: ^4.1.0
-  image_picker: ^0.8.3
-  injectable: ^1.4.1
+  image_picker: ^0.8.3+2
+  injectable: ^1.5.0
   internet_connection_checker: ^0.0.1+2
   intl: ^0.17.0
   json_annotation: ^4.0.1
   kt_dart: ^0.9.1
-  moor: ^4.4.1
+  moor: ^4.5.0
   moor_db_viewer: ^4.3.0
   multi_select_flutter: ^4.0.0
   open_file: ^3.2.1
   path: ^1.8.0
   path_provider: ^2.0.2
-  pdf: ^3.4.2
   provider: ^5.0.0
   reactive_forms: ^10.6.0
   rflutter_alert: ^2.0.4
@@ -60,26 +59,18 @@ dependencies:
   shared_preferences: ^2.0.6
   sqlite3_flutter_libs: ^0.5.0
   timeline_tile: ^2.0.0
-  #simple_tooltip: ^0.1.16 #esperar a que suban la null safety
+  simple_tooltip: ^1.0.0
   url_launcher: ^6.0.9
 
 dev_dependencies:
   auto_route_generator: ^2.3.0
-  build_runner: ^2.1.0
+  build_runner: ^2.1.1
   flutter_launcher_icons: ^0.9.1
-  freezed: ^0.14.4
-  injectable_generator: #^1.4.1
-    git:
-      url: https://github.com/kodal/injectable.git
-      path: injectable_generator
-      ref: 77cdf2f
-  json_serializable: ^5.0.0 #aumentar a 5.0.0 cuando moor_generator tenga el analyzer 2.0
+  freezed: ^0.14.5
+  injectable_generator: ^1.5.0
+  json_serializable: ^5.0.0 
   flutter_lints: ^1.0.4
-  moor_generator: #^4.4.1
-    git:
-        url: https://github.com/simolus3/moor.git
-        path: moor_generator
-        ref: 40a1c91
+  moor_generator: ^4.5.1
 
 flutter_icons:
   image_path: "assets/images/logo-gomac.png"

@@ -14,7 +14,7 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
         child: this,
       );
 
-  const SincronizacionPage();
+  const SincronizacionPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,12 +22,12 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sincronización'),
-        actions: [
+        actions: const [
           /// Inicio de descarga de datos
           BotonDescarga(),
         ],
       ),
-      drawer: UserDrawer(),
+      drawer: const UserDrawer(),
       body: Column(
         children: [
           const SizedBox(height: 10),
@@ -115,26 +115,26 @@ class BotonDescarga extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<SincronizacionCubit>(context);
+    final bloc = context.read<SincronizacionCubit>();
     return OutlinedButton.icon(
       /*color: Theme.of(context).brightness == Brightness.light
                   ? Colors.black
                   : Colors.white,*/
       onPressed: () async {
         /// Intento de hacer manejo de errores, pero aún no sé como hacerlo con [FlutterDownloader]
-        final res = await bloc.descargarServer().then((res) => res.fold(
-                (fail) => fail.when(
-                    pageNotFound: () =>
-                        'No se pudo encontrar la página, informe al encargado',
-                    noHayConexionAlServidor: () =>
-                        "No hay conexion al servidor",
-                    noHayInternet: () => "No tiene conexión a internet",
-                    serverError: (msg) => "Error interno: $msg",
-                    credencialesException: () =>
-                        'Error inesperado: intente inciar sesión nuevamente'),
-                (u) {
-              return "exito";
-            }));
+        final descarga = await bloc.descargarServer();
+        final res = descarga.fold(
+            (fail) => fail.when(
+                pageNotFound: () =>
+                    'No se pudo encontrar la página, informe al encargado',
+                noHayConexionAlServidor: () => "No hay conexion al servidor",
+                noHayInternet: () => "No tiene conexión a internet",
+                serverError: (msg) => "Error interno: $msg",
+                credencialesException: () =>
+                    'Error inesperado: intente inciar sesión nuevamente'), (u) {
+          return "exito";
+        });
+
         if (res != 'exito') {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(res),

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
 import 'package:inspecciones/application/auth/usuario.dart';
@@ -29,15 +28,16 @@ abstract class InspeccionesRemoteDataSource {
 @LazySingleton(as: InspeccionesRemoteDataSource)
 class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   /// Ruta base del serer.
-  static const _server =
-      'https://gomac.medellin.unal.edu.co'; /* 'https://gomac.medellin.unal.edu.co' ; */
+  static const _serverScheme = 'https';
+  static const _serverHost = 'gomac.medellin.unal.edu.co';
+  /* 'https://gomac.medellin.unal.edu.co' ; */
   /* http://pruebainsgomac.duckdns.org:8000' */
   //static const _server = 'http://10.0.2.2:8000';
   /// Ruta base de la apo
-  static const _apiBase = '/inspecciones/api/v1';
+  static const _apiBase = 'inspecciones/api/v1';
 
   static const _timeLimit = Duration(seconds: 5); //TODO: ajustar el timelimit
-  final Usuario _usuario;
+  final UsuarioOnline _usuario;
   String get token => _usuario.token;
 
   DjangoJsonAPI(this._usuario);
@@ -51,11 +51,15 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   /// para que devuelva el token de autenticación (https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication)
   @override
   Future<Map<String, dynamic>> getToken(Map<String, dynamic> user) async {
-    const url = '$_server$_apiBase/api-token-auth/';
-    print("req: $url\n${jsonEncode(user)}");
+    const tokenEndpoint = 'api-token-auth';
+    final uri = Uri(
+        scheme: _serverScheme,
+        host: _serverHost,
+        pathSegments: [_apiBase, tokenEndpoint]);
+
     final http.Response response = await http
         .post(
-          url,
+          uri,
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
           },
