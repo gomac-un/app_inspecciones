@@ -5,6 +5,7 @@ import 'package:moor/moor.dart';
 
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 
 part 'creacion_dao.g.dart';
 
@@ -33,31 +34,6 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   // this constructor is required so that the main database can create an instance
   // of this object.
   CreacionDao(Database db) : super(db);
-
-  ///! prueba borrar
-  Future<bool> updateTitulo(Titulo titulo) {
-    // using replace will update all fields from the entry that are not marked as a primary key.
-    // it will also make sure that only the entry with the same primary key will be updated.
-    // Here, this means that the row that has the same id as entry will be updated to reflect
-    // the entry's title, content and category. As its where clause is set automatically, it
-    // cannot be used together with where.
-    //update(titulos).write(titulo);
-    return update(titulos).replace(titulo);
-  }
-
-  // returns the generated id
-  Future<int> addTitulo(TitulosCompanion titulo) {
-    // If a column is nullable or has a default value (this includes
-    //auto-increments), the field can be omitted. All other fields must be set
-    //and non-null. The insert method will throw otherwise.
-    return into(titulos).insert(titulo);
-  }
-
-  Future<int> upsertTitulo(Titulo titulo) {
-    return into(titulos).insertOnConflictUpdate(titulo);
-  }
-
-  ///! fin prueba
 
   //datos para la creacion de cuestionarios
   /// El cuestionario trae el sistemaId [id], para poder mostrar el [Sistema] en el formulario de creación, se obtiene así

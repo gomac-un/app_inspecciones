@@ -41,7 +41,7 @@ dependencies:
   freezed_annotation: ^0.14.3
   get_it: ^7.2.0
   grouped_list: ^4.1.0
-  image_picker: ^0.8.3+2
+  image_picker: ^0.8.3+3
   injectable: ^1.5.0
   internet_connection_checker: ^0.0.1+2
   intl: ^0.17.0

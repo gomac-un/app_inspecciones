@@ -3,26 +3,6 @@
 part of 'moor_database.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-RespuestaConOpcionesDeRespuesta2 _$RespuestaConOpcionesDeRespuesta2FromJson(
-        Map<String, dynamic> json) =>
-    RespuestaConOpcionesDeRespuesta2(
-      Respuesta.fromJson(json['respuesta'] as Map<String, dynamic>),
-      (json['opcionesDeRespuesta'] as List<dynamic>)
-          .map((e) => OpcionDeRespuesta.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-
-Map<String, dynamic> _$RespuestaConOpcionesDeRespuesta2ToJson(
-        RespuestaConOpcionesDeRespuesta2 instance) =>
-    <String, dynamic>{
-      'respuesta': instance.respuesta,
-      'opcionesDeRespuesta': instance.opcionesDeRespuesta,
-    };
-
-// **************************************************************************
 // MoorGenerator
 // **************************************************************************
 

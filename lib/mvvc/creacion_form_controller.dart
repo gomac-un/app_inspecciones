@@ -1,3 +1,5 @@
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:meta/meta.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/enums.dart';
@@ -113,6 +115,7 @@ class CreacionFormController {
   /// static factory que instancia un [CreacionFormController] de manera asíncrona
   /// ya que tiene que cargar información desde la base de datos
   @factoryMethod
+  @factory
   static Future<CreacionFormController> create(
     CuestionariosRepository repository,
     @factoryParam int? cuestionarioId,

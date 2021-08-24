@@ -11,7 +11,7 @@ import 'mvvc/creacion_form_page.dart' as _i6;
 import 'mvvc/edicion_form_page.dart' as _i7;
 import 'presentation/pages/cuestionarios_screen.dart' as _i5;
 import 'presentation/pages/login_page.dart' as _i3;
-import 'presentation/pages/sincronizacion_screen.dart' as _i4;
+import 'presentation/pages/sincronizacion_page.dart' as _i4;
 
 class AppRouter extends _i1.RootStackRouter {
   AppRouter([_i2.GlobalKey<_i2.NavigatorState>? navigatorKey])

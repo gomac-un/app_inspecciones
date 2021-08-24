@@ -6,6 +6,7 @@ import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:json_annotation/json_annotation.dart' show JsonSerializable;
 import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
@@ -18,7 +19,6 @@ export 'database/shared.dart';
 part 'datos_de_prueba.dart';
 part 'moor_database.g.dart';
 part 'tablas.dart';
-part 'tablas_unidas.dart';
 
 ///  Métodos de Database e inicialización de la DB
 @UseMoor(
@@ -458,7 +458,7 @@ class CustomSerializer extends ValueSerializer {
   @override
   T fromJson<T>(dynamic json) {
     if (json == null) {
-      return null;
+      return null as T;
     }
 
     /*if (T == KtList) {
@@ -526,4 +526,12 @@ class CustomSerializer extends ValueSerializer {
 
     return value;
   }
+}
+
+// extension method usado para obtener el valor de un atributo de un companion
+extension DefaultGetter<T> on Value<T> {
+  T valueOrDefault(T def) {
+    return present ? value : def;
+  }
+  // ···
 }

@@ -5,17 +5,14 @@ Function initialize(db) {
         batch.insertAll(db.activos, [
           ...*/
 
-dynamic Function(Batch) initialize(Database db) {
-  return (Batch batch) => _initialize(batch, db);
-}
+Future<void> Function(Batch) initialize(Database db) =>
+    (Batch batch) => _initialize(batch, db);
 
 Future<void> _initialize(Batch batch, Database db) async {
   batch.insertAll(db.activos, [
     ActivosCompanion.insert(modelo: 'DT-Kenworth', id: const Value(1)),
     ActivosCompanion.insert(modelo: 'sencillo-Kenworth', id: const Value(2)),
   ]);
-
-  
 
   batch.insertAll(db.sistemas, [
     SistemasCompanion.insert(id: const Value(1), nombre: "Estructura"),
@@ -62,6 +59,8 @@ Future<void> _initialize(Batch batch, Database db) async {
     CuestionariosCompanion.insert(
       id: const Value(1),
       tipoDeInspeccion: "preoperacional",
+      estado: EstadoDeCuestionario.finalizada,
+      esLocal: true,
     ),
   ]);
   batch.insertAll(db.cuestionarioDeModelos, [
@@ -97,7 +96,7 @@ Future<void> _initialize(Batch batch, Database db) async {
         descripcion: "",
         //sistemaId: const Value(6),
         subSistemaId: const Value(6),
-        posicion: const Value("no aplica"),
+        eje: const Value("no aplica"),
         tipo: TipoDePregunta.unicaRespuesta,
         criticidad: 3,
       ));
@@ -131,9 +130,9 @@ Future<void> _initialize(Batch batch, Database db) async {
         bloqueId: 3,
         titulo: "Estado aceite lubricante",
         descripcion: "",
-       // sistemaId: const Value(6),
+        // sistemaId: const Value(6),
         subSistemaId: const Value(6),
-        posicion: const Value("no aplica"),
+        eje: const Value("no aplica"),
         tipo: TipoDePregunta.multipleRespuesta,
         criticidad: 3,
       ));
@@ -175,9 +174,9 @@ Future<void> _initialize(Batch batch, Database db) async {
       bloqueId: 4,
       titulo: "Fugas/estado en mangueras",
       descripcion: "",
-     // sistemaId: const Value(6),
+      // sistemaId: const Value(6),
       subSistemaId: const Value(6),
-      posicion: const Value("n/a"),
+      eje: const Value("n/a"),
       tipo: TipoDePregunta.parteDeCuadriculaUnica,
       criticidad: 3,
     ),
@@ -188,7 +187,7 @@ Future<void> _initialize(Batch batch, Database db) async {
       descripcion: "",
       //sistemaId: const Value(6),
       subSistemaId: const Value(6),
-      posicion: const Value("n/a"),
+      eje: const Value("n/a"),
       tipo: TipoDePregunta.parteDeCuadriculaUnica,
       criticidad: 3,
     ),

@@ -3,12 +3,13 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:intl/intl.dart';
 import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
 
 import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 
 part 'llenado_dao.g.dart';
 

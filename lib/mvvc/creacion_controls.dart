@@ -1,10 +1,10 @@
 /// Definición de todos los Controllers de los bloques en la creación de cuestionarios
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/mvvc/creacion_validators.dart';
 import 'package:kt_dart/kt.dart';
@@ -12,6 +12,7 @@ import 'package:moor/moor.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 /// Interfaz de todos los controllers involucrados en la creación de cuestionarios
+@immutable
 abstract class CreacionController {
   /// Objeto de la librería reactive forms, por ahora todos son [FormGroup] pero
   /// de llegar el caso se puede abstraer a [AbstractControl]
@@ -48,6 +49,7 @@ abstract class ConRespuestas {
 /// Si [tituloCompanion] no es null, se insertan los valores de sus campos en el control
 /// y se guarda su id para editarlo en la db
 /// si es nulo se establecen unos valores por defecto
+
 class CreadorTituloController extends CreacionController {
   final TitulosCompanion _tituloCompanion;
 

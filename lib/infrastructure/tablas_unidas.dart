@@ -1,23 +1,28 @@
-part of 'moor_database.dart';
+import 'package:meta/meta.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:json_annotation/json_annotation.dart';
+part 'tablas_unidas.g.dart';
 
 ///Esto es una mazamorra de clases que ayudan a manejar mejor las respuestas de las consultas
 /// pero no es muy mantenible. Estoy de acuerdo
 // TODO: mirar como hacer esto mantenible
 
 /// Reune [pregunta] con sus rangos de criticidad [criticidades].
+@immutable
 class PreguntaNumerica {
   final Pregunta pregunta;
   final List<CriticidadesNumerica> criticidades;
 
-  PreguntaNumerica(this.pregunta, this.criticidades);
+  const PreguntaNumerica(this.pregunta, this.criticidades);
 }
 
 /// version con companions de la clase de arriba
+@immutable
 class PreguntaNumericaCompanion {
   final PreguntasCompanion pregunta;
   final List<CriticidadesNumericasCompanion> criticidades;
 
-  PreguntaNumericaCompanion(
+  const PreguntaNumericaCompanion(
     this.pregunta,
     this.criticidades,
   );
@@ -39,12 +44,13 @@ class PreguntaNumericaCompanion {
 }
 
 /// Reune los modelos de un cuestionario y su respectivo contratista.
+@immutable
 class CuestionarioConContratistaYModelos {
   final Cuestionario cuestionario;
   final List<CuestionarioDeModelo> cuestionarioDeModelo;
   final Contratista contratista;
 
-  CuestionarioConContratistaYModelos(
+  const CuestionarioConContratistaYModelos(
     this.cuestionario,
     this.cuestionarioDeModelo,
     this.contratista,
@@ -52,12 +58,13 @@ class CuestionarioConContratistaYModelos {
 }
 
 /// version con companions de la clase de arriba
+@immutable
 class CuestionarioConContratistaYModelosCompanion {
   final CuestionariosCompanion cuestionario;
   final List<CuestionarioDeModelosCompanion> cuestionarioDeModelo;
   final Contratista? contratista;
 
-  CuestionarioConContratistaYModelosCompanion(
+  const CuestionarioConContratistaYModelosCompanion(
     this.cuestionario,
     this.cuestionarioDeModelo,
     this.contratista,
@@ -89,22 +96,24 @@ class CuestionarioConContratistaYModelosCompanion {
 ///
 /// Usado en [creacion_dao.dart] a la hora de cargar el cuestionario para editar  y en [llenado_dao.dart] para mostrar todas las posibles opciones.
 /// Lo manejan [creacion_controls] y [llenado_controls]
+@immutable
 class PreguntaConOpcionesDeRespuesta {
   final Pregunta pregunta;
   final List<OpcionDeRespuesta> opcionesDeRespuesta;
 
-  PreguntaConOpcionesDeRespuesta(
+  const PreguntaConOpcionesDeRespuesta(
     this.pregunta,
     this.opcionesDeRespuesta,
   );
 }
 
 /// version con companions de la clase de arriba
+@immutable
 class PreguntaConOpcionesDeRespuestaCompanion {
   final PreguntasCompanion pregunta;
   final List<OpcionesDeRespuestaCompanion> opcionesDeRespuesta;
 
-  PreguntaConOpcionesDeRespuestaCompanion(
+  const PreguntaConOpcionesDeRespuestaCompanion(
     this.pregunta,
     this.opcionesDeRespuesta,
   );
@@ -177,22 +186,24 @@ class CuadriculaDePreguntasConOpcionesDeRespuesta {
 
 /// Reune [cuadricula] con sus respectivas [preguntas] (filas) y [opcionesDeRespuesta] (columnas)
 /// Se usa en el método [toDataClass()] y [toDB()] de la cuadricula en creacion_controls.
+@immutable
 class CuadriculaConPreguntasYConOpcionesDeRespuesta {
   final CuadriculaDePreguntas cuadricula;
   final List<PreguntaConOpcionesDeRespuesta> preguntas;
   final List<OpcionDeRespuesta> opcionesDeRespuesta;
 
-  CuadriculaConPreguntasYConOpcionesDeRespuesta(
+  const CuadriculaConPreguntasYConOpcionesDeRespuesta(
       this.cuadricula, this.preguntas, this.opcionesDeRespuesta);
 }
 
 /// version con companions de la clase de arriba
+@immutable
 class CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion {
   final CuadriculasDePreguntasCompanion cuadricula;
   final List<PreguntaConOpcionesDeRespuestaCompanion> preguntas;
   final List<OpcionesDeRespuestaCompanion> opcionesDeRespuesta;
 
-  CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
+  const CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
     this.cuadricula,
     this.preguntas,
     this.opcionesDeRespuesta,
@@ -227,18 +238,19 @@ class CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion {
 ///  acuerdo a [bloque.nOrden].
 /// Los campos de respuesta en cada [IBloqueOrdenable] son opcionales porque en la parte de edición de cuestionarios no
 /// existe ninguna respuesta, pero al usarlo para cargar el borrador de la inspección si se le envía el parametro [respuesta]
+@immutable
 abstract class IBloqueOrdenable {
-  Bloque bloque;
+  final Bloque bloque;
 
-  IBloqueOrdenable(this.bloque);
+  const IBloqueOrdenable(this.bloque);
 
   int get nOrden => bloque.nOrden;
 }
 
 class BloqueConTitulo extends IBloqueOrdenable {
-  Titulo titulo;
+  final Titulo titulo;
 
-  BloqueConTitulo(Bloque bloque, this.titulo) : super(bloque);
+  const BloqueConTitulo(Bloque bloque, this.titulo) : super(bloque);
 }
 
 /// Reúne la pregunta numérica [pregunta] con su respectiva respuesta
@@ -248,7 +260,8 @@ class BloqueConPreguntaNumerica extends IBloqueOrdenable {
   /// En este caso, la respuesta es [respuesta.valor], por eso no se hace uso de la clase [RespuestaConOpcionesDeRespuesta]
   /// TODO: mirar si se necesita esto (en la creacion no se necesita)
   final RespuestasCompanion? respuesta;
-  BloqueConPreguntaNumerica(Bloque bloque, this.pregunta, [this.respuesta])
+  const BloqueConPreguntaNumerica(Bloque bloque, this.pregunta,
+      [this.respuesta])
       : super(bloque);
 }
 
@@ -260,7 +273,7 @@ class BloqueConPreguntaSimple extends IBloqueOrdenable {
   /// TODO: mirar si se necesita esto (en la creacion no se necesita)
   final List<RespuestaConOpcionesDeRespuesta>? respuesta;
 
-  BloqueConPreguntaSimple(Bloque bloque, this.pregunta, [this.respuesta])
+  const BloqueConPreguntaSimple(Bloque bloque, this.pregunta, [this.respuesta])
       : super(bloque);
 }
 
@@ -275,7 +288,7 @@ class BloqueConCuadricula extends IBloqueOrdenable {
   /// En caso de que se use al cargar una inspeccion, trae las preguntas que se han contestado con su respectiva respuesta
   final List<PreguntaConRespuestaConOpcionesDeRespuesta>? preguntasRespondidas;
 
-  BloqueConCuadricula(
+  const BloqueConCuadricula(
     Bloque bloque,
     this.cuadricula,
     this.preguntas, {
@@ -294,21 +307,37 @@ class RespuestaconOpcionDeRespuestaId {
 class Borrador {
   Activo activo;
   Inspeccion inspeccion;
-  late final Cuestionario cuestionario;
+  Cuestionario? cuestionario;
 
   /// [avance] y [total] son usados para mostrar el porcentaje de avance de la inspeccion en la UI
   /// Total de Preguntas respondidas (así estén incompletas, por ejemplo, que no tengan fotos o no estén reparadas)
-  late final int avance;
+  int? avance;
 
   /// Total de preguntas del cuestionario
-  late final int total;
-  Borrador(this.activo, this.inspeccion);
+  int? total;
+  Borrador(this.activo, this.inspeccion,
+      [this.cuestionario, this.avance, this.total]);
 
   /// Ver [BorradoresDao.borradores()].
 
   @override
   String toString() =>
       'Borrador(activo: $activo, inspeccion: $inspeccion, cuestionario: $cuestionario)';
+
+  Borrador copyWith({
+    Activo? activo,
+    Inspeccion? inspeccion,
+    Cuestionario? cuestionario,
+    int? avance,
+    int? total,
+  }) =>
+      Borrador(
+        activo ?? this.activo,
+        inspeccion ?? this.inspeccion,
+        cuestionario ?? this.cuestionario,
+        avance ?? this.avance,
+        total ?? this.total,
+      );
 }
 
 class Programacion {
@@ -321,12 +350,4 @@ class GrupoXTipoInspeccion {
   final TiposDeInspeccione tipoInspeccion;
   final List<GruposInspecciones> grupos;
   GrupoXTipoInspeccion(this.tipoInspeccion, this.grupos);
-}
-
-// extension method usado para obtener el valor de un atributo de un companion
-extension DefaultGetter<T> on Value<T> {
-  T valueOrDefault(T def) {
-    return present ? value : def;
-  }
-  // ···
 }

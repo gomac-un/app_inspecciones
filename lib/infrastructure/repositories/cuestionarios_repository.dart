@@ -9,6 +9,7 @@ import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 
 @injectable
 class CuestionariosRepository {
