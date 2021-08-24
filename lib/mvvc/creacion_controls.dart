@@ -24,6 +24,9 @@ abstract class CreacionController {
 
   /// Devuelve la información obtenida en forma de un objeto que
   /// será usado para persistir la información en el repositorio local
+  /// ! Buscar la manera de definir tagged union types para que sea imposible enviar
+  /// objetos que la Database no pueda tratar, por ahora basta con fijarse que la DB
+  /// trate todos los posibles objetos retornados por los metodos [toDB].
   Object toDB();
 
   /// Libera los recursos de este control
@@ -32,6 +35,13 @@ abstract class CreacionController {
     /// este va a hacer dispose de todo (o deberia)
     control.dispose();
   }
+}
+
+abstract class ConRespuestas {
+  void agregarRespuesta();
+  void borrarRespuesta(CreacionController c);
+  List<CreadorRespuestaController> get controllersRespuestas;
+  FormArray<Map<String, dynamic>> get respuestasControl;
 }
 
 /// Crea o edita un titulo en un cuestionario
@@ -86,40 +96,6 @@ class CreadorTituloController extends CreacionController {
       descripcion: Value(descripcionControl.value!),
     );
   }
-}
-
-class PreguntaConOpcionesDeRespuestaCompanion {
-  final PreguntasCompanion pregunta;
-  final List<OpcionesDeRespuestaCompanion> opcionesDeRespuesta;
-
-  PreguntaConOpcionesDeRespuestaCompanion(
-    this.pregunta,
-    this.opcionesDeRespuesta,
-  );
-  PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(
-      PreguntaConOpcionesDeRespuesta p)
-      : pregunta = p.pregunta.toCompanion(true),
-        opcionesDeRespuesta =
-            p.opcionesDeRespuesta.map((o) => o.toCompanion(true)).toList();
-  const PreguntaConOpcionesDeRespuestaCompanion.vacio()
-      : pregunta = const PreguntasCompanion(),
-        opcionesDeRespuesta = const [];
-
-  PreguntaConOpcionesDeRespuestaCompanion copyWith({
-    PreguntasCompanion? pregunta,
-    List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
-  }) =>
-      PreguntaConOpcionesDeRespuestaCompanion(
-        pregunta ?? this.pregunta,
-        opcionesDeRespuesta ?? this.opcionesDeRespuesta,
-      );
-}
-
-extension DefaultGetter<T> on Value<T> {
-  T valueOrDefault(T def) {
-    return present ? value : def;
-  }
-  // ···
 }
 
 ///  Control encargado de manejar las preguntas de tipo selección
@@ -193,10 +169,12 @@ class CreadorPreguntaController extends CreacionController
   /// Si el bloque es nuevo, son null y se pasa un FormArray vacío.
   /// Si es bloque copiado o viene de edición se pasa un FormArray con cada
   /// una de las opciones que ya existen para la pregutna
+  @override
   late final controllersRespuestas = preguntaDesdeDB.opcionesDeRespuesta
       .map((e) => CreadorRespuestaController(e))
       .toList();
 
+  @override
   late final respuestasControl = fb.array<Map<String, dynamic>>(
     controllersRespuestas.map((e) => e.control).toList(),
 
@@ -317,6 +295,9 @@ class CreadorRespuestaController extends CreacionController {
     'calificable': calificableControl,
   });
 
+  /// controla el Tooltip con descripcion de lo que significa que una opcion de respuesta sea calificable
+  final mostrarToolTip = ValueNotifier<bool>(false);
+
   CreadorRespuestaController(
       [this._respuestaDesdeDB = const OpcionesDeRespuestaCompanion()]);
 
@@ -380,42 +361,6 @@ class CreadorCriticidadesNumericasController extends CreacionController {
       criticidad: Value(criticidadControl.value!.round()),
     );
   }
-}
-
-class CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion {
-  final CuadriculasDePreguntasCompanion cuadricula;
-  final List<PreguntaConOpcionesDeRespuestaCompanion> preguntas;
-  final List<OpcionesDeRespuestaCompanion> opcionesDeRespuesta;
-
-  CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
-    this.cuadricula,
-    this.preguntas,
-    this.opcionesDeRespuesta,
-  );
-  CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.fromDataClass(
-      CuadriculaConPreguntasYConOpcionesDeRespuesta c)
-      : cuadricula = c.cuadricula.toCompanion(true),
-        preguntas = c.preguntas
-            .map(
-                (p) => PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(p))
-            .toList(),
-        opcionesDeRespuesta =
-            c.opcionesDeRespuesta.map((o) => o.toCompanion(true)).toList();
-  const CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.vacio()
-      : cuadricula = const CuadriculasDePreguntasCompanion(),
-        preguntas = const [],
-        opcionesDeRespuesta = const [];
-
-  CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion copyWith({
-    CuadriculasDePreguntasCompanion? cuadricula,
-    List<PreguntaConOpcionesDeRespuestaCompanion>? preguntas,
-    List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
-  }) =>
-      CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
-        cuadricula ?? this.cuadricula,
-        preguntas ?? this.preguntas,
-        opcionesDeRespuesta ?? this.opcionesDeRespuesta,
-      );
 }
 
 ///TODO: reducir la duplicacion de codigo con la pregunta normal
@@ -492,10 +437,12 @@ class CreadorPreguntaCuadriculaController extends CreacionController
   /// Si el bloque es nuevo, son null y se pasa un FormArray vacío.
   /// Si es bloque copiado o viene de edición se pasa un FormArray con cada
   /// una de las opciones que ya existen para la pregutna
+  @override
   late final controllersRespuestas = datosIniciales.opcionesDeRespuesta
       .map((e) => CreadorRespuestaController(e))
       .toList();
 
+  @override
   late final respuestasControl = fb.array<Map<String, dynamic>>(
     controllersRespuestas.map((e) => e.control).toList(),
 
@@ -617,31 +564,6 @@ class CreadorPreguntaCuadriculaController extends CreacionController
     controllersPreguntas.remove(c);
     preguntasControl.remove(c.control);
   }
-}
-
-class PreguntaNumericaCompanion {
-  final PreguntasCompanion pregunta;
-  final List<CriticidadesNumericasCompanion> criticidades;
-
-  PreguntaNumericaCompanion(
-    this.pregunta,
-    this.criticidades,
-  );
-  PreguntaNumericaCompanion.fromDataClass(PreguntaNumerica p)
-      : pregunta = p.pregunta.toCompanion(true),
-        criticidades = p.criticidades.map((o) => o.toCompanion(true)).toList();
-  const PreguntaNumericaCompanion.vacio()
-      : pregunta = const PreguntasCompanion(),
-        criticidades = const [];
-
-  PreguntaNumericaCompanion copyWith({
-    PreguntasCompanion? pregunta,
-    List<CriticidadesNumericasCompanion>? criticidades,
-  }) =>
-      PreguntaNumericaCompanion(
-        pregunta ?? this.pregunta,
-        criticidades ?? this.criticidades,
-      );
 }
 
 class CreadorPreguntaNumericaController extends CreacionController {
@@ -784,10 +706,4 @@ class CreadorPreguntaNumericaController extends CreacionController {
       controllersCriticidades.map((e) => e.toDB()).toList(),
     );
   }
-}
-
-/// Usada por las preguntas de seleción y de cuadricula
-abstract class ConRespuestas {
-  void agregarRespuesta();
-  void borrarRespuesta(CreacionController c);
 }

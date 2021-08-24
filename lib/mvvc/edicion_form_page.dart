@@ -42,7 +42,8 @@ class EdicionFormPage extends StatelessWidget implements AutoRouteWrapper {
         return state.when(
           initial: () => const CircularProgressIndicator(),
           inProgress: () => const CircularProgressIndicator(),
-          success: (controller) => EdicionForm(controller),
+          success: (controller) =>
+              Provider.value(value: controller, child: const EdicionForm()),
           failure: (e) => Text("Error cargando el cuestionario: $e"),
         );
       },
@@ -51,20 +52,19 @@ class EdicionFormPage extends StatelessWidget implements AutoRouteWrapper {
 }
 
 class EdicionForm extends StatelessWidget {
-  final CreacionFormController controller;
-  const EdicionForm(
-    this.controller, {
-    Key? key,
-  }) : super(key: key);
+  const EdicionForm({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<CreacionFormController>();
     return ReactiveForm(
       formGroup: controller.control,
       child: FormScaffold(
-        title: Text(controller.estado == EstadoDeCuestionario.borrador
-            ? 'Creación de cuestionario'
-            : 'Visualización cuestionario'),
+        title: Text(
+          controller.estado == EstadoDeCuestionario.borrador
+              ? 'Creación de cuestionario'
+              : 'Visualización cuestionario',
+        ),
         body: Column(
           children: [
             PreguntaCard(
@@ -72,7 +72,7 @@ class EdicionForm extends StatelessWidget {
               child: Column(
                 children: [
                   ReactiveDropdownField<String>(
-                    formControl: controller.tipoDeInspeccion,
+                    formControl: controller.tipoDeInspeccionControl,
                     validationMessages: (control) =>
                         {ValidationMessage.required: 'Este valor es requerido'},
                     items: controller.todosLosTiposDeInspeccion
@@ -94,12 +94,13 @@ class EdicionForm extends StatelessWidget {
 
                   /// En caso de que se seleccione 'Otra', se activa textfield para que escriba el tipo de inspeccion
                   ReactiveValueListenableBuilder<String>(
-                      formControl: controller.tipoDeInspeccion,
+                      formControl: controller.tipoDeInspeccionControl,
                       builder: (context, value, child) {
                         if (value.value ==
                             CreacionFormController.otroTipoDeInspeccion) {
                           return ReactiveTextField(
-                            formControl: controller.nuevoTipoDeInspeccion,
+                            formControl:
+                                controller.nuevoTipoDeInspeccionControl,
                             decoration: const InputDecoration(
                               labelText: 'Escriba el tipo de inspeccion',
                               prefixIcon: Icon(Icons.text_fields),
@@ -114,7 +115,7 @@ class EdicionForm extends StatelessWidget {
             PreguntaCard(
               titulo: 'Modelos de vehículo',
               child: ReactiveMultiSelectDialogField(
-                  formControl: controller.modelos,
+                  formControl: controller.modelosControl,
                   items: controller.todosLosModelos
                       .map((e) => MultiSelectItem(e, e))
                       .toList(),
@@ -131,7 +132,7 @@ class EdicionForm extends StatelessWidget {
             PreguntaCard(
               titulo: 'Contratista',
               child: ReactiveDropdownField(
-                formControl: controller.contratista,
+                formControl: controller.contratistaControl,
                 validationMessages: (control) =>
                     {ValidationMessage.required: 'Seleccione un contratista'},
                 items: controller.todosLosContratistas
@@ -153,7 +154,7 @@ class EdicionForm extends StatelessWidget {
               titulo: 'Periodicidad',
               descripcion: '(en días)',
               child: ReactiveSlider(
-                formControl: controller.periodicidad,
+                formControl: controller.periodicidadControl,
                 max: 100.0,
                 divisions: 100,
                 labelBuilder: (v) => v.round().toString(),
@@ -166,10 +167,12 @@ class EdicionForm extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               initialItemCount: controller.controllersBloques.length,
               itemBuilder: (context, index, animation) {
-                return ControlWidgetAnimado(
-                  controller: controller.controllersBloques[index],
-                  index: index,
-                  animation: animation,
+                return Provider.value(
+                  value: index,
+                  child: ControlWidgetAnimado(
+                    controller: controller.controllersBloques[index],
+                    animation: animation,
+                  ),
                 );
               },
             ),
@@ -184,6 +187,7 @@ class EdicionForm extends StatelessWidget {
   }
 }
 
+/// TODO: reestructurar el flujo de estos botones
 /// Row con botón de guardar borrador y finalizar cuestionario
 class BotonesGuardado extends StatelessWidget {
   const BotonesGuardado({
@@ -194,12 +198,9 @@ class BotonesGuardado extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final form = ReactiveForm.of(context);
-    final viewModel = Provider.of<CreacionFormViewModel>(context);
+    final controller = context.watch<CreacionFormController>();
+    final form = controller.control;
 
-    /// Como este Widget se está usando como FAB, se necesita esta key para diferenciar ambos.
-    /// Si no, genera un error porque dos widgets tienen la misma HeroTag
-    final borradorKey = GlobalKey();
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -208,25 +209,20 @@ class BotonesGuardado extends StatelessWidget {
           /// Solo aparece guardar cuando no se ha finalizado el cuestionario.
           if (estado == EstadoDeCuestionario.borrador)
             ActionButton(
-              key: borradorKey,
+              key: const ObjectKey("borrador"),
               iconData: Icons.archive,
               label: 'Guardar',
               onPressed: () async {
                 /// Que haya seleccionado modelos y tipo de inspeccion
-                if ((viewModel.control('modelos') as FormControl<List<String>>)
-                        .value
-                        .isEmpty ||
-                    (viewModel.control('tipoDeInspeccion')
-                            as FormControl<String>)
-                        .value
-                        .isEmpty) {
+                if (controller.modelosControl.value!.isEmpty ||
+                    controller.tipoDeInspeccionControl.value!.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text(
                           "Seleccione el tipo de inspección y elija por lo menos un modelo antes de guardar el cuestionario")));
                 } else {
                   /// Muestra que errores hay
-                  form.markAllAsTouched();
-                  await viewModel.guardarCuestionarioEnLocal(estado);
+
+                  await controller.guardarCuestionarioEnLocal(estado);
                   //TODO: Mostrar tambien cuando hay un error.
                   showDialog(
                     context: context,
@@ -279,8 +275,7 @@ class BotonesGuardado extends StatelessWidget {
   /// Muestra alerta de finalización de cuestionario (error o éxito), o retrocede a la pantalla
   /// principal si el cuestionario ya esta finalizado.
   void finalizarCuestionario(BuildContext context) {
-    final viewModel =
-        Provider.of<CreacionFormViewModel>(context, listen: false);
+    final controller = context.read<CreacionFormController>();
     // set up the buttons
     final cancelButton = TextButton(
       onPressed: () => Navigator.of(context).pop(),
@@ -292,10 +287,11 @@ class BotonesGuardado extends StatelessWidget {
 
         if (estado == EstadoDeCuestionario.borrador) {
           LoadingDialog.show(context);
-          await viewModel
+          await controller
               .guardarCuestionarioEnLocal(EstadoDeCuestionario.finalizada);
           LoadingDialog.hide(context);
-          mostrarMensaje(context, 'exito', 'Cuestionario creado exitosamente');
+          mostrarMensaje(
+              context, TipoDeMensaje.exito, 'Cuestionario creado exitosamente');
         }
       },
       child: const Text("Aceptar"),

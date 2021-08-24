@@ -81,6 +81,9 @@ class CuestionariosRepository {
 
   /*Future<Cuestionario> getCuestionario(int cuestionarioId) =>
       _db.creacionDao.getCuestionario(cuestionarioId);*/
+  Future<List<Cuestionario>> getCuestionarios(
+          String tipoDeInspeccion, List<String> modelos) =>
+      _db.creacionDao.getCuestionarios(tipoDeInspeccion, modelos);
 
   Future<List<String>> getTiposDeInspecciones() =>
       _db.creacionDao.getTiposDeInspecciones();
@@ -98,10 +101,14 @@ class CuestionariosRepository {
   Future<List<SubSistema>> getSubSistemas(Sistema sistema) =>
       _db.creacionDao.getSubSistemas(sistema);
 
-  Future guardarCuestionario() => _db.creacionDao.guardarCuestionario(
-        nuevoCuestionario,
-        nuevoscuestionariosDeModelos,
-        bloquesAGuardar,
-        this,
+  Future guardarCuestionario(
+    CuestionariosCompanion cuestionario,
+    List<CuestionarioDeModelosCompanion> cuestionariosDeModelos,
+    List<Object> bloquesForm,
+  ) =>
+      _db.creacionDao.guardarCuestionario(
+        cuestionario,
+        cuestionariosDeModelos,
+        bloquesForm,
       );
 }

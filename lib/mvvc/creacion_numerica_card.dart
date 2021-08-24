@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
@@ -13,18 +12,20 @@ import 'package:reactive_forms/reactive_forms.dart';
 /// En este momento usado para la pregunta numerica.
 class TipoPreguntaCard extends StatelessWidget {
   /// Validaciones.
-  final CreadorPreguntaNumericaFormGroup formGroup;
+  final CreadorPreguntaNumericaController preguntaController;
 
-  const TipoPreguntaCard({Key key, this.formGroup}) : super(key: key);
+  const TipoPreguntaCard({Key? key, required this.preguntaController})
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<CreacionFormViewModel>(context);
+    /// Se accede a este provider del formulario base de creación para poder cargar los sistemas
+    final formController = context.watch<CreacionFormController>();
     return Column(
       children: [
         ReactiveTextField(
-          formControl: formGroup.control('titulo') as FormControl,
+          formControl: preguntaController.tituloControl,
           validationMessages: (control) =>
-              {'required': 'El titulo no debe estar vacío'},
+              {ValidationMessage.required: 'El titulo no debe estar vacío'},
           decoration: const InputDecoration(
             labelText: 'Titulo',
           ),
@@ -35,7 +36,7 @@ class TipoPreguntaCard extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         ReactiveTextField(
-          formControl: formGroup.control('descripcion') as FormControl,
+          formControl: preguntaController.descripcionControl,
           decoration: const InputDecoration(
             labelText: 'Descripción',
           ),
@@ -45,33 +46,28 @@ class TipoPreguntaCard extends StatelessWidget {
           textCapitalization: TextCapitalization.sentences,
         ),
         const SizedBox(height: 10),
-        ValueListenableBuilder<List<Sistema>>(
-          valueListenable: viewModel.sistemas,
-          builder: (context, value, child) {
-            return ReactiveDropdownField<Sistema>(
-              formControl: formGroup.control('sistema') as FormControl,
-              validationMessages: (control) =>
-                  {'required': 'Seleccione el sistema'},
-              items: value
-                  .map((e) => DropdownMenuItem<Sistema>(
-                        value: e,
-                        child: Text(e.nombre),
-                      ))
-                  .toList(),
-              decoration: const InputDecoration(
-                labelText: 'Sistema',
-              ),
-            );
-          },
+        ReactiveDropdownField<Sistema?>(
+          formControl: preguntaController.sistemaControl,
+          items: formController.todosLosSistemas
+              .map((e) => DropdownMenuItem<Sistema>(
+                    value: e,
+                    child: Text(e.nombre),
+                  ))
+              .toList(),
+          validationMessages: (control) =>
+              {ValidationMessage.required: 'Seleccione el sistema'},
+          decoration: const InputDecoration(
+            labelText: 'Sistema',
+          ),
         ),
         const SizedBox(height: 10),
         ValueListenableBuilder<List<SubSistema>>(
-            valueListenable: formGroup.subSistemas,
+            valueListenable: preguntaController.subSistemasDisponibles,
             builder: (context, value, child) {
-              return ReactiveDropdownField<SubSistema>(
-                formControl: formGroup.control('subSistema') as FormControl,
+              return ReactiveDropdownField<SubSistema?>(
+                formControl: preguntaController.subSistemaControl,
                 validationMessages: (control) =>
-                    {'required': 'Seleccione un subsistema'},
+                    {ValidationMessage.required: 'Seleccione un subsistema'},
                 items: value
                     .map((e) => DropdownMenuItem<SubSistema>(
                           value: e,
@@ -102,10 +98,10 @@ class TipoPreguntaCard extends StatelessWidget {
               alignment: Alignment.bottomLeft,
               child: TextButton(
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (BuildContext context) => AyudaPage()));
+                  showDialog(
+                    context: context,
+                    builder: (context) => const Dialog(child: AyudaPage()),
+                  );
                 },
                 child: const Text(
                   '¿Necesitas ayuda?',
@@ -116,12 +112,11 @@ class TipoPreguntaCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 5),
-        ReactiveDropdownField<String>(
-          formControl: formGroup.control('eje') as FormControl,
+        ReactiveDropdownField<String?>(
+          formControl: preguntaController.ejeControl,
           validationMessages: (control) =>
-              {'required': 'Este valor es requerido'},
-          items: viewModel
-              .ejes //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+              {ValidationMessage.required: 'Este valor es requerido'},
+          items: formController.ejes
               .map((e) => DropdownMenuItem<String>(
                     value: e,
                     child: Text(e),
@@ -136,12 +131,11 @@ class TipoPreguntaCard extends StatelessWidget {
           },
         ),
         const SizedBox(height: 10),
-        ReactiveDropdownField<String>(
-          formControl: formGroup.control('lado') as FormControl,
+        ReactiveDropdownField<String?>(
+          formControl: preguntaController.ladoControl,
           validationMessages: (control) =>
-              {'required': 'Este valor es requerido'},
-          items: viewModel
-              .lados //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+              {ValidationMessage.required: 'Este valor es requerido'},
+          items: formController.lados
               .map((e) => DropdownMenuItem<String>(
                     value: e,
                     child: Text(e),
@@ -156,12 +150,11 @@ class TipoPreguntaCard extends StatelessWidget {
           },
         ),
         const SizedBox(height: 10),
-        ReactiveDropdownField<String>(
-          formControl: formGroup.control('posicionZ') as FormControl,
+        ReactiveDropdownField<String?>(
+          formControl: preguntaController.posicionZControl,
           validationMessages: (control) =>
-              {'required': 'Este valor es requerido'},
-          items: viewModel
-              .posZ //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+              {ValidationMessage.required: 'Este valor es requerido'},
+          items: formController.posZ
               .map((e) => DropdownMenuItem<String>(
                     value: e,
                     child: Text(e),
@@ -180,7 +173,7 @@ class TipoPreguntaCard extends StatelessWidget {
           decoration: const InputDecoration(
               labelText: 'Criticidad de la pregunta', filled: false),
           child: ReactiveSlider(
-            formControl: formGroup.control('criticidad') as FormControl<double>,
+            formControl: preguntaController.criticidadControl,
             max: 4,
             divisions: 4,
             labelBuilder: (v) => v.round().toString(),
@@ -188,7 +181,7 @@ class TipoPreguntaCard extends StatelessWidget {
           ),
         ),
         FormBuilderImagePicker(
-          formArray: formGroup.control('fotosGuia') as FormArray<File>,
+          formArray: preguntaController.fotosGuiaControl,
           decoration: const InputDecoration(
             labelText: 'Fotos guia',
           ),
@@ -201,19 +194,21 @@ class TipoPreguntaCard extends StatelessWidget {
 /// Widget usado para añadir rangos de criticidad a las preguntas numericas
 class CriticidadCard extends StatelessWidget {
   const CriticidadCard({
-    Key key,
-    @required this.formGroup,
+    Key? key,
+    required this.preguntaController,
   }) : super(key: key);
 
-  final Numerica formGroup;
+  final CreadorPreguntaNumericaController preguntaController;
 
   @override
   Widget build(BuildContext context) {
     /// Como los rangos se van añadiendo dinámicamente, este  ReactiveValueListenableBuilder escucha, por decirlo asi,
     /// el length del 'criticidadRespuesta' respuestas [formControl], así cada que se va añadiendo una criticidad, se muestra el nuevo widget en la UI
     return ReactiveValueListenableBuilder(
-        formControl: (formGroup as FormGroup).control('criticidadRespuesta'),
+        formControl: preguntaController.criticidadesControl,
         builder: (context, control, child) {
+          final controlesCriticidades =
+              preguntaController.controllersCriticidades;
           return Column(
             children: [
               ExpansionTile(
@@ -255,23 +250,23 @@ class CriticidadCard extends StatelessWidget {
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: (control as FormArray).controls.length,
+                  itemCount: controlesCriticidades.length,
                   itemBuilder: (context, i) {
-                    final element = (control as FormArray).controls[i]
-                        as CreadorCriticidadesNumericas;
+                    final controlCriticidad = controlesCriticidades[i];
                     //Las keys sirven para que flutter maneje correctamente los widgets de la lista
                     return Column(
-                      key: ValueKey(element),
+                      key: ValueKey(controlCriticidad),
                       children: [
                         Row(
                           children: [
                             Expanded(
                               child: ReactiveTextField(
                                 keyboardType: TextInputType.number,
-                                formControl:
-                                    element.control('minimo') as FormControl,
-                                validationMessages: (control) =>
-                                    {'required': 'Este valor es requerido'},
+                                formControl: controlCriticidad.minimoControl,
+                                validationMessages: (control) => {
+                                  ValidationMessage.required:
+                                      'Este valor es requerido'
+                                },
                                 decoration: const InputDecoration(
                                   labelText: 'Valor Minimo',
                                 ),
@@ -282,10 +277,10 @@ class CriticidadCard extends StatelessWidget {
                                 padding: const EdgeInsets.only(left: 5.0),
                                 child: ReactiveTextField(
                                   keyboardType: TextInputType.number,
-                                  formControl:
-                                      element.control('maximo') as FormControl,
+                                  formControl: controlCriticidad.maximoControl,
                                   validationMessages: (control) => {
-                                    'required': 'Este valor es requerido',
+                                    ValidationMessage.required:
+                                        'Este valor es requerido',
                                     'verificarRango': 'El valor debe ser mayor'
                                   },
                                   decoration: const InputDecoration(
@@ -301,8 +296,8 @@ class CriticidadCard extends StatelessWidget {
                             Expanded(
                               flex: 5,
                               child: ReactiveSlider(
-                                formControl: element.control('criticidad')
-                                    as FormControl<double>,
+                                formControl:
+                                    controlCriticidad.criticidadControl,
                                 max: 4,
                                 divisions: 4,
                                 labelBuilder: (v) => v.round().toString(),
@@ -312,8 +307,8 @@ class CriticidadCard extends StatelessWidget {
                             IconButton(
                               icon: const Icon(Icons.delete),
                               tooltip: 'Borrar respuesta',
-                              onPressed: () =>
-                                  formGroup.borrarCriticidad(element),
+                              onPressed: () => preguntaController
+                                  .borrarCriticidad(controlCriticidad),
                             ),
                           ],
                         ),
@@ -321,11 +316,8 @@ class CriticidadCard extends StatelessWidget {
                     );
                   },
                 ),
-              OutlineButton(
-                onPressed: () {
-                  formGroup.agregarCriticidad();
-                  control.markAsTouched();
-                },
+              OutlinedButton(
+                onPressed: preguntaController.agregarCriticidad,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: const [

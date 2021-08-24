@@ -12,10 +12,30 @@ class PreguntaNumerica {
   PreguntaNumerica(this.pregunta, this.criticidades);
 }
 
-class GrupoXTipoInspeccion {
-  final TiposDeInspeccione tipoInspeccion;
-  final List<GruposInspecciones> grupos;
-  GrupoXTipoInspeccion(this.tipoInspeccion, this.grupos);
+/// version con companions de la clase de arriba
+class PreguntaNumericaCompanion {
+  final PreguntasCompanion pregunta;
+  final List<CriticidadesNumericasCompanion> criticidades;
+
+  PreguntaNumericaCompanion(
+    this.pregunta,
+    this.criticidades,
+  );
+  PreguntaNumericaCompanion.fromDataClass(PreguntaNumerica p)
+      : pregunta = p.pregunta.toCompanion(true),
+        criticidades = p.criticidades.map((o) => o.toCompanion(true)).toList();
+  const PreguntaNumericaCompanion.vacio()
+      : pregunta = const PreguntasCompanion(),
+        criticidades = const [];
+
+  PreguntaNumericaCompanion copyWith({
+    PreguntasCompanion? pregunta,
+    List<CriticidadesNumericasCompanion>? criticidades,
+  }) =>
+      PreguntaNumericaCompanion(
+        pregunta ?? this.pregunta,
+        criticidades ?? this.criticidades,
+      );
 }
 
 /// Reune los modelos de un cuestionario y su respectivo contratista.
@@ -31,6 +51,40 @@ class CuestionarioConContratistaYModelos {
   );
 }
 
+/// version con companions de la clase de arriba
+class CuestionarioConContratistaYModelosCompanion {
+  final CuestionariosCompanion cuestionario;
+  final List<CuestionarioDeModelosCompanion> cuestionarioDeModelo;
+  final Contratista? contratista;
+
+  CuestionarioConContratistaYModelosCompanion(
+    this.cuestionario,
+    this.cuestionarioDeModelo,
+    this.contratista,
+  );
+  CuestionarioConContratistaYModelosCompanion.fromDataClass(
+      CuestionarioConContratistaYModelos e)
+      : cuestionario = e.cuestionario.toCompanion(true),
+        cuestionarioDeModelo =
+            e.cuestionarioDeModelo.map((o) => o.toCompanion(true)).toList(),
+        contratista = e.contratista;
+  const CuestionarioConContratistaYModelosCompanion.vacio()
+      : cuestionario = const CuestionariosCompanion(),
+        cuestionarioDeModelo = const [],
+        contratista = null;
+
+  CuestionarioConContratistaYModelosCompanion copyWith({
+    CuestionariosCompanion? cuestionario,
+    List<CuestionarioDeModelosCompanion>? cuestionarioDeModelo,
+    Contratista? contratista,
+  }) =>
+      CuestionarioConContratistaYModelosCompanion(
+        cuestionario ?? this.cuestionario,
+        cuestionarioDeModelo ?? this.cuestionarioDeModelo,
+        contratista ?? this.contratista,
+      );
+}
+
 /// Reune [pregunta] con sus posibles respuestas.
 ///
 /// Usado en [creacion_dao.dart] a la hora de cargar el cuestionario para editar  y en [llenado_dao.dart] para mostrar todas las posibles opciones.
@@ -43,6 +97,34 @@ class PreguntaConOpcionesDeRespuesta {
     this.pregunta,
     this.opcionesDeRespuesta,
   );
+}
+
+/// version con companions de la clase de arriba
+class PreguntaConOpcionesDeRespuestaCompanion {
+  final PreguntasCompanion pregunta;
+  final List<OpcionesDeRespuestaCompanion> opcionesDeRespuesta;
+
+  PreguntaConOpcionesDeRespuestaCompanion(
+    this.pregunta,
+    this.opcionesDeRespuesta,
+  );
+  PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(
+      PreguntaConOpcionesDeRespuesta p)
+      : pregunta = p.pregunta.toCompanion(true),
+        opcionesDeRespuesta =
+            p.opcionesDeRespuesta.map((o) => o.toCompanion(true)).toList();
+  const PreguntaConOpcionesDeRespuestaCompanion.vacio()
+      : pregunta = const PreguntasCompanion(),
+        opcionesDeRespuesta = const [];
+
+  PreguntaConOpcionesDeRespuestaCompanion copyWith({
+    PreguntasCompanion? pregunta,
+    List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
+  }) =>
+      PreguntaConOpcionesDeRespuestaCompanion(
+        pregunta ?? this.pregunta,
+        opcionesDeRespuesta ?? this.opcionesDeRespuesta,
+      );
 }
 
 //TODO: Refactorizar a RespuestaCompanionConOpcionesDeRespuesta
@@ -102,6 +184,43 @@ class CuadriculaConPreguntasYConOpcionesDeRespuesta {
 
   CuadriculaConPreguntasYConOpcionesDeRespuesta(
       this.cuadricula, this.preguntas, this.opcionesDeRespuesta);
+}
+
+/// version con companions de la clase de arriba
+class CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion {
+  final CuadriculasDePreguntasCompanion cuadricula;
+  final List<PreguntaConOpcionesDeRespuestaCompanion> preguntas;
+  final List<OpcionesDeRespuestaCompanion> opcionesDeRespuesta;
+
+  CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
+    this.cuadricula,
+    this.preguntas,
+    this.opcionesDeRespuesta,
+  );
+  CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.fromDataClass(
+      CuadriculaConPreguntasYConOpcionesDeRespuesta c)
+      : cuadricula = c.cuadricula.toCompanion(true),
+        preguntas = c.preguntas
+            .map(
+                (p) => PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(p))
+            .toList(),
+        opcionesDeRespuesta =
+            c.opcionesDeRespuesta.map((o) => o.toCompanion(true)).toList();
+  const CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.vacio()
+      : cuadricula = const CuadriculasDePreguntasCompanion(),
+        preguntas = const [],
+        opcionesDeRespuesta = const [];
+
+  CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion copyWith({
+    CuadriculasDePreguntasCompanion? cuadricula,
+    List<PreguntaConOpcionesDeRespuestaCompanion>? preguntas,
+    List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
+  }) =>
+      CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
+        cuadricula ?? this.cuadricula,
+        preguntas ?? this.preguntas,
+        opcionesDeRespuesta ?? this.opcionesDeRespuesta,
+      );
 }
 
 /// Hace que todos los tipos de bloque (con titulo, con pregunta numerica, simple o cuadricula) se puedan ordenar de
@@ -194,4 +313,18 @@ class Programacion {
   ProgramacionSistemasCompanion programacion;
   List<Sistema> sistemas;
   Programacion(this.programacion, this.sistemas);
+}
+
+class GrupoXTipoInspeccion {
+  final TiposDeInspeccione tipoInspeccion;
+  final List<GruposInspecciones> grupos;
+  GrupoXTipoInspeccion(this.tipoInspeccion, this.grupos);
+}
+
+// extension method usado para obtener el valor de un atributo de un companion
+extension DefaultGetter<T> on Value<T> {
+  T valueOrDefault(T def) {
+    return present ? value : def;
+  }
+  // ···
 }

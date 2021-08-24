@@ -3,6 +3,8 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
+import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_cuadricula_card.dart';
@@ -22,11 +24,7 @@ import 'package:simple_tooltip/simple_tooltip.dart';
 class CreadorTituloCard extends StatelessWidget {
   final CreadorTituloController controller;
 
-  /// Numero de bloque que se muestra en PopUpMenu.
-  /// Ver [BotonesDeBloque]
-  final int nro;
-  const CreadorTituloCard(
-      {Key? key, required this.controller, required this.nro})
+  const CreadorTituloCard({Key? key, required this.controller})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -64,10 +62,7 @@ class CreadorTituloCard extends StatelessWidget {
             ),
 
             /// Row con widgets que permiten añadir o pegar otro bloque debajo del actual.
-            BotonesDeBloque(
-              formGroup: formGroup,
-              nro: nro,
-            ),
+            BotonesDeBloque(controllerActual: controller),
           ],
         ),
       ),
@@ -77,13 +72,11 @@ class CreadorTituloCard extends StatelessWidget {
 
 //TODO: Unificar las cosas en común de los dos tipos de pregunta: las de seleccion y la numéricas.
 /// Widget usado para la creación de preguntas numericas
+
 class CreadorNumericaCard extends StatelessWidget {
-  final CreadorPreguntaNumericaFormGroup formGroup;
+  final CreadorPreguntaNumericaController preguntaController;
 
-  /// Numero de bloque
-  final int nro;
-
-  const CreadorNumericaCard({Key key, this.formGroup, this.nro})
+  const CreadorNumericaCard({Key? key, required this.preguntaController})
       : super(key: key);
 
   @override
@@ -93,15 +86,17 @@ class CreadorNumericaCard extends StatelessWidget {
         child: Column(
           children: [
             /// Intento de unificar los widgets de cada pregunta
-            TipoPreguntaCard(formGroup: formGroup),
+            /// Para poder hacer la unificacion exitosa hay que crear una
+            /// interfaz o clase padre que implementen todos los tipos de pregunta
+            TipoPreguntaCard(preguntaController: preguntaController),
             const SizedBox(height: 20),
 
             /// Widget para añadir los rangos y su respectiva criticidad
-            CriticidadCard(formGroup: formGroup),
+            CriticidadCard(preguntaController: preguntaController),
             const SizedBox(height: 20),
 
             /// Row con widgets que permiten añadir o pegar otro bloque debajo del actual.
-            BotonesDeBloque(formGroup: formGroup, nro: nro),
+            BotonesDeBloque(controllerActual: preguntaController),
           ],
         ));
   }
@@ -110,22 +105,20 @@ class CreadorNumericaCard extends StatelessWidget {
 /// Widget  usado en la creación de preguntas de selección
 class CreadorSeleccionSimpleCard extends StatelessWidget {
   /// Validaciones y métodos utiles
-  final CreadorPreguntaFormGroup formGroup;
+  final CreadorPreguntaController controller;
 
-  /// Numero de bloque
-  final int nro;
-
-  const CreadorSeleccionSimpleCard({Key key, this.formGroup, this.nro})
+  const CreadorSeleccionSimpleCard({Key? key, required this.controller})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    /// Se accede a este provider del formulario base de creación para poder cargar los subsistemas de acuerdo al sistema elegido
-    final viewModel = Provider.of<CreacionFormViewModel>(context);
+    /// Se accede a este provider del formulario base de creación para poder cargar los sistemas
+    final formController = context.watch<CreacionFormController>();
 
     /// Como es de selección, se asegura que los unicos tipos de pregunta que pueda seleccionar el creador
     /// sean de unica o multiple respuesta
-    final List<TipoDePregunta> itemsTipoPregunta = formGroup.parteDeCuadricula
+    /// TODO: reestructurar estos estados
+    final List<TipoDePregunta> itemsTipoPregunta = controller.parteDeCuadricula
         ? [
             TipoDePregunta.parteDeCuadriculaUnica,
             TipoDePregunta.parteDeCuadriculaMultiple
@@ -136,9 +129,9 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
       child: Column(
         children: [
           ReactiveTextField(
-            formControl: formGroup.control('titulo') as FormControl,
+            formControl: controller.tituloControl,
             validationMessages: (control) =>
-                {'required': 'El titulo no debe estar vacío'},
+                {ValidationMessage.required: 'El titulo no debe estar vacío'},
             decoration: const InputDecoration(
               labelText: 'Título',
             ),
@@ -149,7 +142,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           ReactiveTextField(
-            formControl: formGroup.control('descripcion') as FormControl,
+            formControl: controller.descripcionControl,
             decoration: const InputDecoration(
               labelText: 'Descripción',
             ),
@@ -161,31 +154,29 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           const SizedBox(height: 10),
 
           /// Se puede elegir a que sistema está asociado la pregunta, dependiendo de ese sistema elegido, se cargan los subsistemas
-          ValueListenableBuilder<List<Sistema>>(
-            valueListenable: viewModel.sistemas,
-            builder: (context, value, child) {
-              return ReactiveDropdownField<Sistema>(
-                formControl: formGroup.control('sistema') as FormControl,
-                items: value
-                    .map((e) => DropdownMenuItem<Sistema>(
-                          value: e,
-                          child: Text(e.nombre),
-                        ))
-                    .toList(),
-                decoration: const InputDecoration(
-                  labelText: 'Sistema',
-                ),
-              );
-            },
+          ReactiveDropdownField<Sistema?>(
+            formControl: controller.sistemaControl,
+            items: formController.todosLosSistemas
+                .map((e) => DropdownMenuItem<Sistema>(
+                      value: e,
+                      child: Text(e.nombre),
+                    ))
+                .toList(),
+            validationMessages: (control) =>
+                {ValidationMessage.required: 'Seleccione el sistema'},
+            decoration: const InputDecoration(
+              labelText: 'Sistema',
+            ),
           ),
+
           const SizedBox(height: 10),
           ValueListenableBuilder<List<SubSistema>>(
-              valueListenable: formGroup.subSistemas,
+              valueListenable: controller.subSistemasDisponibles,
               builder: (context, value, child) {
-                return ReactiveDropdownField<SubSistema>(
-                  formControl: formGroup.control('subSistema') as FormControl,
+                return ReactiveDropdownField<SubSistema?>(
+                  formControl: controller.subSistemaControl,
                   validationMessages: (control) =>
-                      {'required': 'Seleccione el subsistema'},
+                      {ValidationMessage.required: 'Seleccione el subsistema'},
                   items: value
                       .map((e) => DropdownMenuItem<SubSistema>(
                             value: e,
@@ -216,10 +207,10 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
                 alignment: Alignment.bottomLeft,
                 child: TextButton(
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) => AyudaPage()));
+                    showDialog(
+                      context: context,
+                      builder: (context) => const Dialog(child: AyudaPage()),
+                    );
                   },
                   child: const Text(
                     '¿Necesitas ayuda?',
@@ -231,12 +222,11 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           ),
 
           const SizedBox(height: 5),
-          ReactiveDropdownField<String>(
-            formControl: formGroup.control('eje') as FormControl,
+          ReactiveDropdownField<String?>(
+            formControl: controller.ejeControl,
             validationMessages: (control) =>
-                {'required': 'Este valor es requerido'},
-            items: viewModel
-                .ejes //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+                {ValidationMessage.required: 'Este valor es requerido'},
+            items: formController.ejes
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),
@@ -251,12 +241,11 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             },
           ),
           const SizedBox(height: 10),
-          ReactiveDropdownField<String>(
-            formControl: formGroup.control('lado') as FormControl,
+          ReactiveDropdownField<String?>(
+            formControl: controller.ladoControl,
             validationMessages: (control) =>
-                {'required': 'Este valor es requerido'},
-            items: viewModel
-                .lados //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+                {ValidationMessage.required: 'Este valor es requerido'},
+            items: formController.lados
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),
@@ -271,12 +260,11 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             },
           ),
           const SizedBox(height: 10),
-          ReactiveDropdownField<String>(
-            formControl: formGroup.control('posicionZ') as FormControl,
+          ReactiveDropdownField<String?>(
+            formControl: controller.posicionZControl,
             validationMessages: (control) =>
-                {'required': 'Este valor es requerido'},
-            items: viewModel
-                .posZ //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+                {ValidationMessage.required: 'Este valor es requerido'},
+            items: formController.posZ
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),
@@ -296,8 +284,7 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             decoration: const InputDecoration(
                 labelText: 'Criticidad de la pregunta', filled: false),
             child: ReactiveSlider(
-              formControl:
-                  formGroup.control('criticidad') as FormControl<double>,
+              formControl: controller.criticidadControl,
               max: 4,
               divisions: 4,
               labelBuilder: (v) => v.round().toString(),
@@ -305,16 +292,16 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
             ),
           ),
           FormBuilderImagePicker(
-            formArray: formGroup.control('fotosGuia') as FormArray<File>,
+            formArray: controller.fotosGuiaControl,
             decoration: const InputDecoration(
               labelText: 'Fotos guía',
             ),
           ),
           const SizedBox(height: 10),
           ReactiveDropdownField<TipoDePregunta>(
-            formControl: formGroup.control('tipoDePregunta') as FormControl,
+            formControl: controller.tipoDePreguntaControl,
             validationMessages: (control) =>
-                {'required': 'Seleccione el tipo de pregunta'},
+                {ValidationMessage.required: 'Seleccione el tipo de pregunta'},
             items: itemsTipoPregunta
                 .map((e) => DropdownMenuItem<TipoDePregunta>(
                       value: e,
@@ -335,11 +322,11 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           /// Este widget ([CreadorSeleccionSimpleCard]) también es usado cuando se añade una pregunta (fila) a una cuadricula
           /// para añadir los detalles (fotosGuia, descripcion...) por lo cual hay que hacer está validación
           /// para que al ser parte de cuadricula no de la opción de añadir respuestas o más bloques.
-          if (!formGroup.parteDeCuadricula)
+          if (!controller.parteDeCuadricula)
             Column(
               children: [
-                WidgetRespuestas(formGroup: formGroup),
-                BotonesDeBloque(formGroup: formGroup, nro: nro),
+                WidgetRespuestas(controlPregunta: controller),
+                BotonesDeBloque(controllerActual: controller),
               ],
             )
         ],
@@ -351,22 +338,20 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
 /// Widget usado para añadir las opciones de respuesta a las preguntas de cuadricula o de selección
 class WidgetRespuestas extends StatelessWidget {
   const WidgetRespuestas({
-    Key key,
-    @required this.formGroup,
+    Key? key,
+    required this.controlPregunta,
   }) : super(key: key);
 
-  final ConRespuestas formGroup;
+  final ConRespuestas controlPregunta;
 
   @override
   Widget build(BuildContext context) {
-    /// mostrar Tooltip con descripcion de lo que significa que una opcion de respuesta sea calificable
-    final mostrarToolTip = ValueNotifier<bool>(false);
-
     /// Como las respuestas se van añadiendo dinámicamente, este  ReactiveValueListenableBuilder escucha, por decirlo asi,
     /// el length del control respuestas [formControl], así cada que se va añadiendo una opción, se muestra el nuevo widget en la UI
     return ReactiveValueListenableBuilder(
-        formControl: (formGroup as FormGroup).control('respuestas'),
-        builder: (context, control, child) {
+        formControl: controlPregunta.respuestasControl,
+        builder: (context, formControl, child) {
+          final controlesRespuestas = controlPregunta.controllersRespuestas;
           return Column(
             children: [
               Text(
@@ -375,32 +360,34 @@ class WidgetRespuestas extends StatelessWidget {
               ),
 
               /// Si no se ha añadido ninguna opción de respuesta
-              if (control.invalid &&
-                  control.errors.entries.first.key == 'minLength')
+              if (formControl.invalid &&
+                  formControl.errors.entries.first.key == 'minLength')
                 const Text(
                   'Agregue una opción de respuesta',
                   style: TextStyle(color: Colors.red),
                 ),
               const SizedBox(height: 10),
-              if ((control as FormArray).controls.isNotEmpty)
+              if (controlesRespuestas.isNotEmpty)
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: (control as FormArray).controls.length,
+                  itemCount: controlesRespuestas.length,
                   itemBuilder: (context, i) {
-                    final element = (control as FormArray).controls[i]
-                        as CreadorRespuestaFormGroup; //Las keys sirven para que flutter maneje correctamente los widgets de la lista
+                    final controlRespuesta = controlesRespuestas[i];
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      key: ValueKey(element),
+                      //Las keys sirven para que flutter maneje correctamente los widgets de la lista
+                      key: ValueKey(controlRespuesta),
                       children: [
                         Row(
                           children: [
                             ValueListenableBuilder<bool>(
-                              builder:
-                                  (BuildContext context, value, Widget child) {
+                              valueListenable: controlRespuesta.mostrarToolTip,
+                              builder: (BuildContext context, mostrarToolTip,
+                                  child) {
                                 return SimpleTooltip(
-                                  show: value,
+                                  show: mostrarToolTip,
                                   tooltipDirection: TooltipDirection.right,
                                   content: Text(
                                     "Seleccione si el inspector puede asignar una criticidad propia al elegir esta respuesta",
@@ -415,18 +402,17 @@ class WidgetRespuestas extends StatelessWidget {
                                       icon: const Icon(
                                         Icons.info,
                                       ),
-                                      onPressed: () =>
-                                          mostrarToolTip.value == true
-                                              ? mostrarToolTip.value = false
-                                              : mostrarToolTip.value = true),
+                                      onPressed: () => controlRespuesta
+                                              .mostrarToolTip.value =
+                                          !controlRespuesta
+                                              .mostrarToolTip.value),
                                 );
                               },
-                              valueListenable: mostrarToolTip,
                             ),
                             Flexible(
                               child: ReactiveCheckboxListTile(
-                                formControl: element.control('calificable')
-                                    as FormControl,
+                                formControl:
+                                    controlRespuesta.calificableControl,
                                 title: const Text('Calificable'),
                                 controlAffinity:
                                     ListTileControlAffinity.leading,
@@ -438,10 +424,11 @@ class WidgetRespuestas extends StatelessWidget {
                           children: [
                             Expanded(
                               child: ReactiveTextField(
-                                formControl:
-                                    element.control('texto') as FormControl,
-                                validationMessages: (control) =>
-                                    {'required': 'Este valor es requerido'},
+                                formControl: controlRespuesta.textoControl,
+                                validationMessages: (control) => {
+                                  ValidationMessage.required:
+                                      'Este valor es requerido'
+                                },
                                 decoration: const InputDecoration(
                                   labelText: 'Respuesta',
                                 ),
@@ -455,14 +442,13 @@ class WidgetRespuestas extends StatelessWidget {
                             IconButton(
                               icon: const Icon(Icons.delete),
                               tooltip: 'Borrar respuesta',
-                              onPressed: () =>
-                                  formGroup.borrarRespuesta(element),
+                              onPressed: () => controlPregunta
+                                  .borrarRespuesta(controlRespuesta),
                             ),
                           ],
                         ),
                         ReactiveSlider(
-                          formControl: element.control('criticidad')
-                              as FormControl<double>,
+                          formControl: controlRespuesta.criticidadControl,
                           max: 4,
                           divisions: 4,
                           labelBuilder: (v) => v.round().toString(),
@@ -476,13 +462,10 @@ class WidgetRespuestas extends StatelessWidget {
                   },
                 ),
 
-              /// Se muestra este botón por defecto, al presionarlo se añade un nuevo control al FormArray [formGroup.control('respuestas')]
-              /// Y así se va actualizando la lista
-              OutlineButton(
-                onPressed: () {
-                  formGroup.agregarRespuesta();
-                  control.markAsTouched();
-                },
+              /// Se muestra este botón por defecto, al presionarlo se añade un
+              ///  nuevo control al FormArray [controlesRespuestas]
+              OutlinedButton(
+                onPressed: () => controlPregunta.agregarRespuesta(),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: const [
@@ -499,14 +482,15 @@ class WidgetRespuestas extends StatelessWidget {
 
 /// Reúne todas las acciones comunes a todos los bloques, incluye agregar nuevo tipo de pregunta, agregar titulo, copiar y pegar bloque
 class BotonesDeBloque extends StatelessWidget {
-  /// Numero de bloque
-  final int nro;
-  const BotonesDeBloque({Key key, this.formGroup, this.nro}) : super(key: key);
+  const BotonesDeBloque({Key? key, required this.controllerActual})
+      : super(key: key);
 
-  final AbstractControl formGroup;
+  final CreacionController controllerActual;
 
   @override
   Widget build(BuildContext context) {
+    final formController = context.read<CreacionFormController>();
+    final animatedList = AnimatedList.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -514,30 +498,47 @@ class BotonesDeBloque extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.add_circle),
           tooltip: 'Pregunta de selección',
-          onPressed: () => agregarBloque(context, CreadorPreguntaFormGroup()),
+          onPressed: () => agregarBloque(
+            formController,
+            animatedList,
+            CreadorPreguntaController(
+                getIt<CuestionariosRepository>(), null, null),
+          ),
         ),
 
         /// Añade control [CreadorPreguntaNumericaFormGroup()] al control 'bloques' del cuestionario y muestra widget [CreadorNumericaCard]
         IconButton(
           icon: const Icon(Icons.calculate),
           tooltip: 'Pregunta Númerica',
-          onPressed: () =>
-              agregarBloque(context, CreadorPreguntaNumericaFormGroup()),
+          onPressed: () => agregarBloque(
+            formController,
+            animatedList,
+            CreadorPreguntaCuadriculaController(
+                getIt<CuestionariosRepository>(), null, null),
+          ),
         ),
 
         /// Añade control [CreadorPreguntaCuadriculaFormGroup()] al control 'bloques' del cuestionario y muestra widget [CreadorCuadriculaCard]
         IconButton(
           icon: const Icon(Icons.view_module),
           tooltip: 'Agregar cuadricula',
-          onPressed: () =>
-              agregarBloque(context, CreadorPreguntaCuadriculaFormGroup()),
+          onPressed: () => agregarBloque(
+            formController,
+            animatedList,
+            CreadorPreguntaNumericaController(
+                getIt<CuestionariosRepository>(), null, null),
+          ),
         ),
 
         /// Añade control [CreadorTituloFormGroup()] al control 'bloques' del cuestionario y muestra widget [CreadorTituloCard]
         IconButton(
           icon: const Icon(Icons.format_size),
           tooltip: 'Agregar titulo',
-          onPressed: () => agregarBloque(context, CreadorTituloFormGroup()),
+          onPressed: () => agregarBloque(
+            formController,
+            animatedList,
+            CreadorTituloController(),
+          ),
         ),
 
         /// Muestra numero de bloque y las opciones de copiar, pegar y borrar bloque
@@ -549,10 +550,14 @@ class BotonesDeBloque extends StatelessWidget {
               child: ListTile(
                 /* 
                 leading: const Icon(Icons.copy), */
-                title: Text('Bloque número ${nro + 1}',
+                title: Consumer<int>(
+                  builder: (context, value, child) => Text(
+                    'Bloque número ${value + 1}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                    )),
+                    ),
+                  ),
+                ),
                 selected: true,
                 onTap: () => {},
               ),
@@ -562,14 +567,14 @@ class BotonesDeBloque extends StatelessWidget {
               child: ListTile(
                 leading: Icon(
                   Icons.copy,
-                  color: Theme.of(context).accentColor,
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
                 title: Text('Copiar bloque',
                     style: TextStyle(color: Colors.grey[800])),
                 selected: true,
                 onTap: () => {
-                  copiarBloque(context),
-                  Scaffold.of(context).showSnackBar(
+                  copiarBloque(formController),
+                  ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Bloque Copiado'),
                     ),
@@ -583,14 +588,14 @@ class BotonesDeBloque extends StatelessWidget {
               child: ListTile(
                 leading: Icon(
                   Icons.paste,
-                  color: Theme.of(context).accentColor,
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
                 title: Text('Pegar bloque',
                     style: TextStyle(color: Colors.grey[800])),
                 selected: true,
                 onTap: () => {
-                  pegarBloque(context),
-                  Scaffold.of(context).showSnackBar(
+                  pegarBloque(formController, animatedList),
+                  ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Bloque Pegado'),
                     ),
@@ -604,14 +609,14 @@ class BotonesDeBloque extends StatelessWidget {
               child: ListTile(
                   leading: Icon(
                     Icons.delete,
-                    color: Theme.of(context).accentColor,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                   selected: true,
                   title: Text('Borrar bloque',
                       style: TextStyle(color: Colors.grey[800])),
                   onTap: () => {
-                        borrarBloque(context),
-                        Scaffold.of(context).showSnackBar(
+                        borrarBloque(formController, animatedList),
+                        ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Bloque eliminado'),
                           ),
@@ -627,51 +632,52 @@ class BotonesDeBloque extends StatelessWidget {
 
   /// Estos metodos son usados para mostrar en la UI, pero tambien acceden a los controles de [viewModel]
   /// Copia bloque.
-  void copiarBloque(BuildContext context) {
-    final viewModel =
-        Provider.of<CreacionFormViewModel>(context, listen: false);
-    viewModel.bloqueCopiado = formGroup as Copiable;
+  void copiarBloque(CreacionFormController formController) {
+    formController.bloqueCopiado = controllerActual;
   }
 
   /// Pega bloque despues del bloque actual [formGroup]
-  Future<void> pegarBloque(BuildContext context) async {
-    final viewModel =
-        Provider.of<CreacionFormViewModel>(context, listen: false);
-    agregarBloque(context, await viewModel.bloqueCopiado.copiar());
+  Future<void> pegarBloque(CreacionFormController formController,
+      AnimatedListState animatedList) async {
+    final bloqueCopiado = formController.bloqueCopiado;
+    if (bloqueCopiado != null) {
+      agregarBloque(formController, animatedList, bloqueCopiado.copy());
+    }
   }
 
   /// Borra el bloque seleccionado [formGroup]
-  void borrarBloque(BuildContext context) {
-    final viewModel =
-        Provider.of<CreacionFormViewModel>(context, listen: false);
-
-    final index = (formGroup.parent as FormArray).controls.indexOf(formGroup);
+  void borrarBloque(
+      CreacionFormController formController, AnimatedListState animatedList) {
+    final index = formController.controllersBloques.indexOf(controllerActual);
     if (index == 0) return; //no borre el primer titulo
     /// Elimina de la lista en la pantalla
-    AnimatedList.of(context).removeItem(
+    animatedList.removeItem(
       index,
       (context, animation) => ControlWidgetAnimado(
-        element: formGroup,
-        index: index,
+        controller: controllerActual,
         animation: animation,
       ),
     );
 
     /// Elimina el control de los bloques de [viewModel]
-    viewModel.borrarBloque(formGroup);
+    formController.borrarBloque(controllerActual);
   }
 
   /// Agrega un bloque despues del seleccionado
-  void agregarBloque(BuildContext context, AbstractControl nuevo) {
-    final viewModel =
-        Provider.of<CreacionFormViewModel>(context, listen: false);
-
+  void agregarBloque(
+    CreacionFormController formController,
+    AnimatedListState animatedList,
+    CreacionController nuevo,
+  ) {
     /// Lo inserta en la lista de la UI
-    AnimatedList.of(context).insertItem(
-        (formGroup.parent as FormArray).controls.indexOf(formGroup) + 1);
+    animatedList.insertItem(
+        formController.controllersBloques.indexOf(controllerActual) + 1);
 
-    /// Lo elimina de los controles de [viewModel]
-    viewModel.agregarBloqueDespuesDe(bloque: nuevo, despuesDe: formGroup);
+    /// Lo elimina de los controles de [formController]
+    formController.agregarBloqueDespuesDe(
+      bloque: nuevo,
+      despuesDe: controllerActual,
+    );
   }
 }
 
@@ -680,9 +686,8 @@ class BotonesDeBloque extends StatelessWidget {
 ///Se usa en la animatedList de creacion_form_page.dart.
 class ControlWidget extends StatelessWidget {
   final CreacionController controller;
-  final int index;
 
-  const ControlWidget(this.controller, this.index, {Key key}) : super(key: key);
+  const ControlWidget(this.controller, {Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     //TODO: hacer esta transformación sin duplicacion de codigo cuando
@@ -691,53 +696,42 @@ class ControlWidget extends StatelessWidget {
     //pendejada para que dart pueda hacer el cast con los ifs solamente
     if (controller is CreadorTituloController) {
       return CreadorTituloCard(
-          key: ValueKey(controller),
           //Las keys se necesitan cuando tenemos una lista dinamica de elementos del mismo tipo en flutter
-          controller: controller,
-          nro: index);
+          key: ValueKey(controller),
+          controller: controller);
     }
-    if (element is CreadorPreguntaFormGroup) {
+    if (controller is CreadorPreguntaController) {
       return CreadorSeleccionSimpleCard(
-          key: ValueKey(element),
-          formGroup: element as CreadorPreguntaFormGroup,
-          nro: index);
+          key: ValueKey(controller), controller: controller);
     }
-    if (element is CreadorPreguntaCuadriculaFormGroup) {
+    if (controller is CreadorPreguntaCuadriculaController) {
       return CreadorCuadriculaCard(
-          key: ValueKey(element),
-          formGroup: element as CreadorPreguntaCuadriculaFormGroup,
-          nro: index);
+          key: ValueKey(controller), controller: controller);
     }
-    if (element is CreadorPreguntaNumericaFormGroup) {
+    if (controller is CreadorPreguntaNumericaController) {
       return CreadorNumericaCard(
-        formGroup: element as CreadorPreguntaNumericaFormGroup,
-        nro: index,
-      );
+          key: ValueKey(controller), preguntaController: controller);
     }
-    return Text("error: el bloque $index no tiene una card que lo renderice");
+    return Text(
+        "error: el bloque $controller no tiene una card que lo renderice, por favor informe de este error");
   }
 }
 
 class ControlWidgetAnimado extends StatelessWidget {
   final Animation<double> animation;
-  final int index;
   final CreacionController controller;
 
   const ControlWidgetAnimado({
     Key? key,
     required this.controller,
     required this.animation,
-    required this.index,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SizeTransition(
       sizeFactor: animation,
-      child: ControlWidget(
-        controller,
-        index,
-      ),
+      child: ControlWidget(controller),
     );
   }
 }

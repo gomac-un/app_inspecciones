@@ -374,11 +374,12 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
 
   /// Guarda o crea un cuestionario con sus respectivas preguntas.
   Future<void> guardarCuestionario(
-      Cuestionario cuestionario,
+    CuestionariosCompanion cuestionarioForm,
 
-      /// Información sobre los modelos a los que aplica [cuestionario], periodicidad y contratista
-      List<CuestionarioDeModelo> cuestionariosDeModelo,
-      List<IBloqueOrdenable> bloquesAGuardar) async {
+    /// Información sobre los modelos a los que aplica [cuestionario], periodicidad y contratista
+    List<CuestionarioDeModelosCompanion> cuestionariosDeModelosForm,
+    List<Object> bloquesForm,
+  ) async {
     return transaction(
       () async {
         /// Obtiene el cuestionario existente o null si es nuevo
@@ -413,7 +414,21 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
         /// Id de los bloques que se van a guardar, para saber cuales se deben borrar
         /// (Los que en una versión anterior del cuestionario existían y fueron borrados desde el form)
         final List<int> bloquesId = [];
-        await Future.forEach<IBloqueOrdenable>(bloquesAGuardar, (e) async {
+        await Future.forEach<MapEntry<int, Object>>(bloquesForm.asMap().entries,
+            (entry) async {
+          final i = entry.key;
+          final element = entry.value;
+          //!asdasd
+
+          if (element is TitulosCompanion) {}
+
+          if (element is PreguntaConOpcionesDeRespuestaCompanion) {}
+          if (element
+              is CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion) {}
+          if (element is PreguntaNumericaCompanion) {}
+          throw UnimplementedError("Tipo de elemento no reconocido");
+
+          //!asdas
           /// Asignación de [cuesti] como cuestionario del bloque
           final bloque = e.bloque
               .toCompanion(true)

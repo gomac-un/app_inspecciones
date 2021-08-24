@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Pantalla con lista de todas las inspecciones pendientes por subir.
+//TODO: mirar si se debe convertir esto en un popup
 class AyudaPage extends StatelessWidget {
+  const AyudaPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);

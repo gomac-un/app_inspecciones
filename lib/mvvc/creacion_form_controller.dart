@@ -1,49 +1,17 @@
 import 'package:enum_to_string/enum_to_string.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
-import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_validators.dart';
+import 'package:moor/moor.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-
-class CuestionarioConContratistaYModelosCompanion {
-  final CuestionariosCompanion cuestionario;
-  final List<CuestionarioDeModelosCompanion> cuestionarioDeModelo;
-  final Contratista? contratista;
-
-  CuestionarioConContratistaYModelosCompanion(
-    this.cuestionario,
-    this.cuestionarioDeModelo,
-    this.contratista,
-  );
-  CuestionarioConContratistaYModelosCompanion.fromDataClass(
-      CuestionarioConContratistaYModelos e)
-      : cuestionario = e.cuestionario.toCompanion(true),
-        cuestionarioDeModelo =
-            e.cuestionarioDeModelo.map((o) => o.toCompanion(true)).toList(),
-        contratista = e.contratista;
-  const CuestionarioConContratistaYModelosCompanion.vacio()
-      : cuestionario = const CuestionariosCompanion(),
-        cuestionarioDeModelo = const [],
-        contratista = null;
-
-  CuestionarioConContratistaYModelosCompanion copyWith({
-    CuestionariosCompanion? cuestionario,
-    List<CuestionarioDeModelosCompanion>? cuestionarioDeModelo,
-    Contratista? contratista,
-  }) =>
-      CuestionarioConContratistaYModelosCompanion(
-        cuestionario ?? this.cuestionario,
-        cuestionarioDeModelo ?? this.cuestionarioDeModelo,
-        contratista ?? this.contratista,
-      );
-}
 
 @injectable
 class CreacionFormController {
+  final CuestionariosRepository _repository;
+
   ///constantes
   static const otroTipoDeInspeccion = "Otra";
   static const todosLosModelosValue = "Todos";
@@ -92,8 +60,18 @@ class CreacionFormController {
       'modelos': modelosControl,
       'bloques': bloquesControl,
     },
-    asyncValidators: [cuestionariosExistentes],
-    validators: [nuevoTipoDeInspeccionValidator],
+    asyncValidators: [
+      cuestionariosExistentes(
+          datosIniciales.cuestionario.id.present
+              ? datosIniciales.cuestionario.id.value
+              : null,
+          tipoDeInspeccionControl,
+          modelosControl)
+    ],
+    validators: [
+      nuevoTipoDeInspeccionValidator(
+          tipoDeInspeccionControl, nuevoTipoDeInspeccionControl)
+    ],
   );
 
   /// Informacion traida desde la base de datos
@@ -103,9 +81,10 @@ class CreacionFormController {
   final List<Contratista> todosLosContratistas;
 
   /// Si cuestionario es nuevo, se le asigna borrador.
-  late final estado = datosIniciales.cuestionario.tipoDeInspeccion
-      .valueOrDefault(
-          EnumToString.convertToString(EstadoDeCuestionario.borrador));
+  late final estado = EnumToString.fromString(
+      EstadoDeCuestionario.values,
+      datosIniciales.cuestionario.tipoDeInspeccion.valueOrDefault(
+          EnumToString.convertToString(EstadoDeCuestionario.borrador)));
 
   /// Se modifica cuando se copia un bloque desde creacion_controls.dart
   CreacionController? bloqueCopiado;
@@ -149,6 +128,7 @@ class CreacionFormController {
 
     if (cuestionarioId == null) {
       return CreacionFormController._(
+        repository,
         todosLosContratistas,
         todosLosModelos,
         todosLosSistemas,
@@ -168,6 +148,7 @@ class CreacionFormController {
         repository, datosIniciales.cuestionario, bloquesBD);
 
     return CreacionFormController._(
+      repository,
       todosLosContratistas,
       todosLosModelos,
       todosLosSistemas,
@@ -180,6 +161,7 @@ class CreacionFormController {
 
   /// TODO: reducir el numero de argumentos agrupandolos de alguna manera
   CreacionFormController._(
+    this._repository,
     this.todosLosContratistas,
     this.todosLosModelos,
     this.todosLosSistemas,
@@ -207,7 +189,7 @@ class CreacionFormController {
     ///Ordenamiento y creacion de los controles dependiendo del tipo de elemento
     return Stream.fromIterable((bloquesBD
           ..sort(
-            (a, b) => a.nOrden.compareTo(b.bloque.nOrden),
+            (a, b) => a.nOrden.compareTo(b.nOrden),
           )))
         .asyncMap<CreacionController>((e) async {
       ///! aca pueden haber errores de tiempo de ejecucion si el bloque no tiene al
@@ -276,6 +258,9 @@ class CreacionFormController {
   }
 
   /// Cuando se presiona guardar o finalizar cuestionario.
+  /// Se realizan muchas excepciones al null safety pero estas deben ser evitadas
+  /// con los validators, si no se hace esta función tirará errores en tiempo
+  /// de ejecución
   Future guardarCuestionarioEnLocal(EstadoDeCuestionario estado) async {
     control.markAllAsTouched();
 
@@ -283,75 +268,30 @@ class CreacionFormController {
         contratistaControl.value!.id; // Validado en el control
 
     final String tipoDeInspeccion =
-        control("tipoDeInspeccion").value == otroTipoDeInspeccion
-            ? control("nuevoTipoDeInspeccion").value as String
-            : control("tipoDeInspeccion").value as String;
+        tipoDeInspeccionControl.value! == otroTipoDeInspeccion
+            ? nuevoTipoDeInspeccionControl.value!
+            : tipoDeInspeccionControl.value!;
 
-    final CuestionariosCompanion nuevoCuestionario =
-        CuestionariosCompanion.insert(
-      tipoDeInspeccion: tipoDeInspeccion,
-      id: cuestionarioId,
-      estado: estado,
+    final CuestionariosCompanion cuestionario =
+        datosIniciales.cuestionario.copyWith(
+      tipoDeInspeccion: Value(tipoDeInspeccion),
+      estado: Value(estado),
+      esLocal: const Value(true),
     );
 
-    final List<CuestionarioDeModelo> nuevoscuestionariosDeModelos =
-        (control('modelos').value as List<String>)
-            .map((String modelo) => CuestionarioDeModelo(
-                modelo: modelo,
-                periodicidad: (control('periodicidad').value as double).round(),
-                contratistaId: contratistaId,
-                cuestionarioId: cuestionarioId,
-                id: null))
+    final List<CuestionarioDeModelosCompanion> cuestionariosDeModelos =
+        modelosControl.value!
+            .map((modelo) => CuestionarioDeModelosCompanion(
+                  modelo: Value(modelo),
+                  periodicidad: Value(periodicidadControl.value!.round()),
+                  contratistaId: Value(contratistaId),
+                ))
             .toList();
 
-    final bloques = (control('bloques') as FormArray).controls.asMap().entries;
+    final bloquesForm = controllersBloques.map((e) => e.toDB()).toList();
 
-    /// Procesamiento de todos los FormGroup en el FormArray 'bloques'.
-    final bloquesAGuardar = bloques.expand<IBloqueOrdenable>((e) {
-      final i = e.key;
-      final control = e.value;
-      final bloque =
-          Bloque(cuestionarioId: cuestionarioId, id: null, nOrden: i);
-      if (control is CreadorTituloFormGroup) {
-        return [
-          BloqueConTitulo(
-            bloque,
-            control.toDB(),
-          )
-        ];
-      }
-      if (control is CreadorPreguntaFormGroup) {
-        return [
-          BloqueConPreguntaSimple(
-            bloque,
-            control.toDB(),
-          )
-        ];
-      }
-      if (control is CreadorPreguntaCuadriculaFormGroup) {
-        final cuadriculaBd = control.toDB();
-        return [
-          BloqueConCuadricula(
-              bloque,
-              CuadriculaDePreguntasConOpcionesDeRespuesta(
-                cuadriculaBd.cuadricula,
-                cuadriculaBd.opcionesDeRespuesta,
-              ),
-              preguntas: cuadriculaBd.preguntas)
-        ];
-      }
-      if (control is CreadorPreguntaNumericaFormGroup) {
-        return [
-          BloqueConPreguntaNumerica(
-            bloque,
-            control.toDB(),
-          )
-        ];
-      }
-      throw UnimplementedError("Tipo de control no reconocido");
-    }).toList();
-
-    await _db.creacionDao.guardarCuestionario(
-        nuevoCuestionario, nuevoscuestionariosDeModelos, bloquesAGuardar, this);
+    // TODO: si se vuelve muy lento, usar un bloc y/o un isolate
+    await _repository.guardarCuestionario(
+        cuestionario, cuestionariosDeModelos, bloquesForm);
   }
 }

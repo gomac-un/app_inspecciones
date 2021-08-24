@@ -10,25 +10,24 @@ import 'package:inspecciones/presentation/pages/ayuda_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
+/// !SUPER TODO!!
+/// TODO: evitar la duplicacion de codigo con [CreadorSeleccionSimpleCard]
 class CreadorCuadriculaCard extends StatelessWidget {
   /// Validaciones
-  final CreadorPreguntaCuadriculaFormGroup formGroup;
+  final CreadorPreguntaCuadriculaController controller;
 
-  /// Numero de bloque
-  final int nro;
-
-  const CreadorCuadriculaCard({Key key, this.formGroup, this.nro})
+  const CreadorCuadriculaCard({Key? key, required this.controller})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
     /// Formulario base
-    final viewModel = Provider.of<CreacionFormViewModel>(context);
+    final formController = context.watch<CreacionFormController>();
     return PreguntaCard(
       titulo: 'Pregunta tipo cuadricula',
       child: Column(
         children: [
           ReactiveTextField(
-            formControl: formGroup.control('titulo') as FormControl,
+            formControl: controller.tituloControl,
             decoration: const InputDecoration(
               labelText: 'Titulo',
             ),
@@ -39,7 +38,7 @@ class CreadorCuadriculaCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           ReactiveTextField(
-            formControl: formGroup.control('descripcion') as FormControl,
+            formControl: controller.descripcionControl,
             decoration: const InputDecoration(
               labelText: 'Descripción',
             ),
@@ -49,33 +48,26 @@ class CreadorCuadriculaCard extends StatelessWidget {
             textCapitalization: TextCapitalization.sentences,
           ),
           const SizedBox(height: 10),
-          ValueListenableBuilder<List<Sistema>>(
-            valueListenable: viewModel.sistemas,
-            builder: (context, value, child) {
-              return ReactiveDropdownField<Sistema>(
-                formControl: formGroup.control('sistema') as FormControl,
-                validationMessages: (control) =>
-                    {'required': 'Elija el sistema'},
-                items: value
-                    .map((e) => DropdownMenuItem<Sistema>(
-                          value: e,
-                          child: Text(e.nombre),
-                        ))
-                    .toList(),
-                decoration: const InputDecoration(
-                  labelText: 'Sistema',
-                ),
-              );
-            },
+          ReactiveDropdownField<Sistema?>(
+            formControl: controller.sistemaControl,
+            items: formController.todosLosSistemas
+                .map((e) => DropdownMenuItem<Sistema>(
+                      value: e,
+                      child: Text(e.nombre),
+                    ))
+                .toList(),
+            decoration: const InputDecoration(
+              labelText: 'Sistema',
+            ),
           ),
           const SizedBox(height: 10),
           ValueListenableBuilder<List<SubSistema>>(
-              valueListenable: formGroup.subSistemas,
+              valueListenable: controller.subSistemasDisponibles,
               builder: (context, value, child) {
-                return ReactiveDropdownField<SubSistema>(
-                  formControl: formGroup.control('subSistema') as FormControl,
+                return ReactiveDropdownField<SubSistema?>(
+                  formControl: controller.subSistemaControl,
                   validationMessages: (control) =>
-                      {'required': 'Elija el subSistema'},
+                      {ValidationMessage.required: 'Elija el subSistema'},
                   items: value
                       .map((e) => DropdownMenuItem<SubSistema>(
                             value: e,
@@ -106,10 +98,10 @@ class CreadorCuadriculaCard extends StatelessWidget {
                 alignment: Alignment.bottomLeft,
                 child: TextButton(
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) => AyudaPage()));
+                    showDialog(
+                      context: context,
+                      builder: (context) => const Dialog(child: AyudaPage()),
+                    );
                   },
                   child: const Text(
                     '¿Necesitas ayuda?',
@@ -120,12 +112,11 @@ class CreadorCuadriculaCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 5),
-          ReactiveDropdownField<String>(
-            formControl: formGroup.control('eje') as FormControl,
+          ReactiveDropdownField<String?>(
+            formControl: controller.ejeControl,
             validationMessages: (control) =>
-                {'required': 'Este valor es requerido'},
-            items: viewModel
-                .ejes //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+                {ValidationMessage.required: 'Este valor es requerido'},
+            items: formController.ejes
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),
@@ -140,12 +131,11 @@ class CreadorCuadriculaCard extends StatelessWidget {
             },
           ),
           const SizedBox(height: 10),
-          ReactiveDropdownField<String>(
-            formControl: formGroup.control('lado') as FormControl,
+          ReactiveDropdownField<String?>(
+            formControl: controller.ladoControl,
             validationMessages: (control) =>
-                {'required': 'Este valor es requerido'},
-            items: viewModel
-                .lados //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+                {ValidationMessage.required: 'Este valor es requerido'},
+            items: formController.lados
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),
@@ -160,12 +150,11 @@ class CreadorCuadriculaCard extends StatelessWidget {
             },
           ),
           const SizedBox(height: 10),
-          ReactiveDropdownField<String>(
-            formControl: formGroup.control('posicionZ') as FormControl,
+          ReactiveDropdownField<String?>(
+            formControl: controller.posicionZControl,
             validationMessages: (control) =>
-                {'required': 'Este valor es requerido'},
-            items: viewModel
-                .posZ //TODO: definir si quemar estas opciones aqui o dejarlas en la DB
+                {ValidationMessage.required: 'Este valor es requerido'},
+            items: formController.posZ
                 .map((e) => DropdownMenuItem<String>(
                       value: e,
                       child: Text(e),
@@ -182,9 +171,9 @@ class CreadorCuadriculaCard extends StatelessWidget {
           const SizedBox(height: 10),
           const SizedBox(height: 10),
           ReactiveDropdownField<TipoDePregunta>(
-            formControl: formGroup.control('tipoDePregunta') as FormControl,
+            formControl: controller.tipoDePreguntaControl,
             validationMessages: (control) =>
-                {'required': 'Seleccione el tipo de pregunta'},
+                {ValidationMessage.required: 'Seleccione el tipo de pregunta'},
             items: [
               TipoDePregunta.parteDeCuadriculaUnica,
               TipoDePregunta.parteDeCuadriculaMultiple,
@@ -204,9 +193,9 @@ class CreadorCuadriculaCard extends StatelessWidget {
             },
           ),
           const SizedBox(height: 10),
-          WidgetPreguntas(formGroup: formGroup),
-          WidgetRespuestas(formGroup: formGroup),
-          BotonesDeBloque(formGroup: formGroup, nro: nro),
+          WidgetPreguntas(controlCuadricula: controller),
+          WidgetRespuestas(controlPregunta: controller),
+          BotonesDeBloque(controllerActual: controller),
         ],
       ),
     );
@@ -216,12 +205,12 @@ class CreadorCuadriculaCard extends StatelessWidget {
 /// Widget usado para añadir las preguntas de cuadricula
 class WidgetPreguntas extends StatelessWidget {
   const WidgetPreguntas({
-    Key key,
-    @required this.formGroup,
+    Key? key,
+    required this.controlCuadricula,
   }) : super(key: key);
 
   /// Validaciones
-  final CreadorPreguntaCuadriculaFormGroup formGroup;
+  final CreadorPreguntaCuadriculaController controlCuadricula;
 
   @override
   Widget build(BuildContext context) {
@@ -230,8 +219,9 @@ class WidgetPreguntas extends StatelessWidget {
     /// Como las preguntas se van añadiendo dinámicamente, este  ReactiveValueListenableBuilder escucha, por decirlo asi,
     /// el length del control 'preguntas' [formControl], así cada que se va añadiendo una opción, se muestra el nuevo widget en la UI
     return ReactiveValueListenableBuilder(
-        formControl: formGroup.control('preguntas'),
+        formControl: controlCuadricula.preguntasControl,
         builder: (context, control, child) {
+          final controllersPreguntas = controlCuadricula.controllersPreguntas;
           return Column(
             children: [
               Text(
@@ -239,17 +229,16 @@ class WidgetPreguntas extends StatelessWidget {
                 style: Theme.of(context).textTheme.headline6,
               ),
               const SizedBox(height: 10),
-              if ((control as FormArray).controls.isNotEmpty)
+              if (controllersPreguntas.isNotEmpty)
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: (control as FormArray).controls.length,
+                  itemCount: controllersPreguntas.length,
                   itemBuilder: (context, i) {
-                    final element = (control as FormArray).controls[i]
-                        as CreadorPreguntaFormGroup;
+                    final controllerPregunta = controllersPreguntas[i];
                     //Las keys sirven para que flutter maneje correctamente los widgets de la lista
                     return Column(
-                      key: ValueKey(element),
+                      key: ValueKey(controllerPregunta),
                       children: [
                         Row(
                           children: [
@@ -257,10 +246,12 @@ class WidgetPreguntas extends StatelessWidget {
                               child: Column(
                                 children: [
                                   ReactiveTextField(
-                                    formControl: element.control('titulo')
-                                        as FormControl,
-                                    validationMessages: (control) =>
-                                        {'required': 'Escriba el titulo'},
+                                    formControl:
+                                        controllerPregunta.tituloControl,
+                                    validationMessages: (control) => {
+                                      ValidationMessage.required:
+                                          'Escriba el titulo'
+                                    },
                                     decoration: const InputDecoration(
                                       labelText: 'Titulo',
                                     ),
@@ -284,20 +275,20 @@ class WidgetPreguntas extends StatelessWidget {
                                       context: maincontext,
                                       builder: (context) => AlertDialog(
                                         content: SingleChildScrollView(
-                                            child: Provider(
-                                          create: (_) => Provider.of<
-                                                  CreacionFormViewModel>(
-                                              maincontext),
+                                            child: Provider.value(
+                                          // se vuelve a proveer el control del formulario principal ya que el nuevo contexto no tiene acceso, supongo
+                                          value: maincontext
+                                              .watch<CreacionFormController>(),
                                           // ignore: sized_box_for_whitespace
                                           child: SizedBox(
                                             width: media.width * 0.7,
                                             child: CreadorSeleccionSimpleCard(
-                                              formGroup: element,
+                                              controller: controllerPregunta,
                                             ),
                                           ),
                                         )),
                                         actions: [
-                                          OutlineButton(
+                                          OutlinedButton(
                                             onPressed: () =>
                                                 Navigator.of(context).pop(),
                                             child: const Text("Ok"),
@@ -310,16 +301,15 @@ class WidgetPreguntas extends StatelessWidget {
                                 IconButton(
                                   icon: const Icon(Icons.delete),
                                   tooltip: 'Borrar pregunta',
-                                  onPressed: () =>
-                                      formGroup.borrarPregunta(element),
+                                  onPressed: () => controlCuadricula
+                                      .borrarPregunta(controllerPregunta),
                                 ),
                               ],
                             ),
                           ],
                         ),
                         ReactiveSlider(
-                          formControl: element.control('criticidad')
-                              as FormControl<double>,
+                          formControl: controllerPregunta.criticidadControl,
                           max: 4,
                           divisions: 4,
                           labelBuilder: (v) => v.round().toString(),
@@ -332,8 +322,8 @@ class WidgetPreguntas extends StatelessWidget {
 
               /// Se muestra este botón por defecto, al presionarlo se añade un nuevo control al FormArray [formGroup.control('preguntas')]
               /// Y así se va actualizando la lista
-              OutlineButton(
-                onPressed: formGroup.agregarPregunta,
+              OutlinedButton(
+                onPressed: controlCuadricula.agregarPregunta,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: const [
