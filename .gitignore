@@ -1,4 +1,8 @@
 pubspec.lock
+# Generated Dart files  
+**/*.g.dart
+**/*.gr.dart
+**/*.freezed.dart
 # Miscellaneous
 *.class
 *.log
