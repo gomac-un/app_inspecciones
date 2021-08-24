@@ -37,9 +37,13 @@ class CreacionFormController {
     [Validators.required],
   );
   late final modelosControl = fb.control<List<String>>(
-    datosIniciales.cuestionarioDeModelo
-        .map((e) => e.modelo.valueOrDefault('ERROR'))
-        .toList(),
+    datosIniciales.cuestionarioDeModelo.map((e) {
+      if (!e.modelo.present) {
+        throw Exception(
+            'El cuestionario ${datosIniciales.cuestionario.id} tiene un modelo inválido');
+      }
+      return e.modelo.value;
+    }).toList(),
     [Validators.minLength(1)],
   );
 
@@ -180,7 +184,7 @@ class CreacionFormController {
       CuestionariosRepository repository,
       Cuestionario? cuestionario,
       List<IBloqueOrdenable>? bloquesBD) async {
-    if (!(cuestionario != null && bloquesBD != null)) {
+    if (cuestionario == null || bloquesBD == null) {
       /// Si se está creando el cuestionario, se agrega un titulo por defecto como bloque inicial
       return [CreadorTituloController()];
     }
@@ -212,13 +216,13 @@ class CreacionFormController {
         return CreadorPreguntaCuadriculaController(
           repository,
           await repository
-              .getSistemaPorId(e.preguntas!.first.pregunta.sistemaId!),
+              .getSistemaPorId(e.preguntas.first.pregunta.sistemaId!),
           await repository
-              .getSubSistemaPorId(e.preguntas!.first.pregunta.subSistemaId!),
+              .getSubSistemaPorId(e.preguntas.first.pregunta.subSistemaId!),
           datosIniciales: CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion
               .fromDataClass(CuadriculaConPreguntasYConOpcionesDeRespuesta(
             e.cuadricula.cuadricula,
-            e.preguntas!,
+            e.preguntas,
             e.cuadricula.opcionesDeRespuesta,
           )),
         );

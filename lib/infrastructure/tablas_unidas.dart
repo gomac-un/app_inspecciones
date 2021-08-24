@@ -246,8 +246,9 @@ class BloqueConPreguntaNumerica extends IBloqueOrdenable {
   final PreguntaNumerica pregunta;
 
   /// En este caso, la respuesta es [respuesta.valor], por eso no se hace uso de la clase [RespuestaConOpcionesDeRespuesta]
-  final RespuestasCompanion respuesta;
-  BloqueConPreguntaNumerica(Bloque bloque, this.pregunta, this.respuesta)
+  /// TODO: mirar si se necesita esto (en la creacion no se necesita)
+  final RespuestasCompanion? respuesta;
+  BloqueConPreguntaNumerica(Bloque bloque, this.pregunta, [this.respuesta])
       : super(bloque);
 }
 
@@ -256,9 +257,10 @@ class BloqueConPreguntaSimple extends IBloqueOrdenable {
   final PreguntaConOpcionesDeRespuesta pregunta;
 
   /// List para el caso de las multiples
-  final List<RespuestaConOpcionesDeRespuesta> respuesta;
+  /// TODO: mirar si se necesita esto (en la creacion no se necesita)
+  final List<RespuestaConOpcionesDeRespuesta>? respuesta;
 
-  BloqueConPreguntaSimple(Bloque bloque, this.pregunta, this.respuesta)
+  BloqueConPreguntaSimple(Bloque bloque, this.pregunta, [this.respuesta])
       : super(bloque);
 }
 
@@ -267,17 +269,17 @@ class BloqueConCuadricula extends IBloqueOrdenable {
   /// Cuadricula y sus posibles opciones de respuesta (filas)
   final CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula;
 
+  /// Todas las preguntas (sin opciones de respuesta, porque ya estan en [cuadricula])
+  final List<PreguntaConOpcionesDeRespuesta> preguntas;
+
   /// En caso de que se use al cargar una inspeccion, trae las preguntas que se han contestado con su respectiva respuesta
   final List<PreguntaConRespuestaConOpcionesDeRespuesta>? preguntasRespondidas;
 
-  /// Todas las preguntas (sin opciones de respuesta, porque ya estan en [cuadricula])
-  final List<PreguntaConOpcionesDeRespuesta>? preguntas;
-
   BloqueConCuadricula(
     Bloque bloque,
-    this.cuadricula, {
+    this.cuadricula,
+    this.preguntas, {
     this.preguntasRespondidas,
-    this.preguntas,
   }) : super(bloque);
 }
 
