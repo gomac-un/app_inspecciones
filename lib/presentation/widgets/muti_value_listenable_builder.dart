@@ -6,9 +6,9 @@ class MultiValueListenableBuilder<A, B> extends StatelessWidget {
   const MultiValueListenableBuilder(
     this.first,
     this.second, {
-    Key key,
-    this.builder,
-    this.child,
+    Key? key,
+    required this.builder,
+    this.child = const SizedBox.shrink(), //TODO: revisar esto del child
   }) : super(key: key);
 
   final ValueNotifier<A> first;

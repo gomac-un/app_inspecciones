@@ -140,8 +140,7 @@ class CuadriculasDePreguntas extends Table {
 
 ///Las preguntas de tipo seleccion unica o multiple pueden ser reunidas
 ///directamente con el bloque
-///Las preguntas de tipo cuadricula deben ser
-//TODO: agrupadas por el bloque
+///Las preguntas de tipo cuadricula deben ser agrupadas por el bloque
 /// a este bloque del grupo se le asocia tambien el CuadriculasDePreguntas que
 ///tiene (por medio de join) las opciones de respuesta para el grupo de preguntas
 
@@ -162,7 +161,9 @@ class Preguntas extends Table {
 
   TextColumn get fotosGuia => text()
       .map(const ListInColumnConverter())
-      .withDefault(const Constant("[]"))();
+      .withDefault(
+        const Constant("[]"),
+      )(); // en la dataclass es una IList<String> para mantener la igualdad por valor
 
   /// Campo usado paraa preguntas que activan otras dependiendo de laa respuesta.
   //TODO: implementar
@@ -344,26 +345,24 @@ class Respuestas extends Table {
   //List<OpcionDeRespuesta>
 }
 
-class ListInColumnConverter extends TypeConverter<KtList<String>, String> {
+class ListInColumnConverter extends TypeConverter<IList<String>, String> {
   const ListInColumnConverter();
   @override
-  KtList<String>? mapToDart(String? fromDb) {
+  ListPathFotos? mapToDart(String? fromDb) {
     if (fromDb == null) {
       return null;
     }
-    return (jsonDecode(fromDb) as List)
-        .map((e) => e as String)
-        .toImmutableList();
+    return IList.from(jsonDecode(fromDb) as List<String>);
   }
 
   @override
-  String? mapToSql(KtList<String>? value) {
+  String? mapToSql(ListPathFotos? value) {
     if (value == null) {
       return null;
     }
-    if (value.size == 0) return "[]";
+    if (value.length() == 0) return "[]";
 
-    final str = value.fold<String>("[", (acc, val) => '$acc"$val",');
+    final str = value.foldLeft<String>("[", (acc, val) => '$acc"$val",');
     return str.replaceRange(str.length - 1, str.length, ']');
   }
 }

@@ -7,12 +7,10 @@ import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
 import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/mvvc/reactive_multiselect_dialog_field.dart';
-import 'package:inspecciones/presentation/widgets/image_shower.dart';
-import 'package:inspecciones/presentation/widgets/images_picker.dart';
-import 'package:kt_dart/kt.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:reactive_multi_image_picker/reactive_multi_image_picker.dart';
 
 /// Cuando se selecciona una respuesta a la que se le pueda asignar una gravedad propia
 /// Se muestra esta Card
@@ -21,7 +19,7 @@ class CalificacionCard extends StatelessWidget {
   final FormControl<double> controlCalificacion;
 
   const CalificacionCard(
-      {Key key, this.controlRespuesta, this.controlCalificacion})
+      {Key? key, this.controlRespuesta, this.controlCalificacion})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -93,7 +91,8 @@ class RespuestaBaseForm extends StatelessWidget {
   final FormControl<String> controlObservacion;
   final FormArray<File> fotosControl;
 
-  const RespuestaBaseForm({Key key, this.controlObservacion, this.fotosControl})
+  const RespuestaBaseForm(
+      {Key? key, this.controlObservacion, this.fotosControl})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -117,8 +116,8 @@ class RespuestaBaseForm extends StatelessWidget {
         const SizedBox(height: 10),
         //TODO: mostrar los botones de agregar imagenes y el checkbox de
         //reparación de una manera mas optima, no uno en cada fila
-        FormBuilderImagePicker(
-          formArray: fotosControl,
+        ReactiveMultiImagePicker(
+          formControl: fotosControl,
           decoration: const InputDecoration(
             labelText: 'Fotos base',
           ),
@@ -135,7 +134,7 @@ class ReparacionForm extends StatelessWidget {
   final FormControl<String> observacionControl;
   final FormArray<File> fotosControl;
   const ReparacionForm(
-      {Key key,
+      {Key? key,
       this.controlReparado,
       this.observacionControl,
       this.fotosControl})
@@ -183,8 +182,8 @@ class ReparacionForm extends StatelessWidget {
                   const SizedBox(
                     height: 20,
                   ),
-                  FormBuilderImagePicker(
-                    formArray: fotosControl,
+                  ReactiveMultiImagePicker(
+                    formControl: fotosControl,
                     /* formGroup.control('fotosReparacion') as FormArray<File>, */
                     decoration: const InputDecoration(
                       labelText: 'Fotos de la reparación',
@@ -211,7 +210,7 @@ class TituloCard extends StatelessWidget {
   final TituloFormGroup formGroup;
 
   const TituloCard({
-    Key key,
+    Key? key,
     this.formGroup,
   }) : super(key: key);
   @override
@@ -249,7 +248,7 @@ class NumericaCard extends StatelessWidget {
   /// Validación.
   final RespuestaNumericaFormGroup formGroup;
   final bool readOnly;
-  const NumericaCard({Key key, this.formGroup, this.readOnly = false})
+  const NumericaCard({Key? key, this.formGroup, this.readOnly = false})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -274,8 +273,8 @@ class NumericaCard extends StatelessWidget {
       child: Column(
         children: [
           if (formGroup.pregunta.fotosGuia.size > 0)
-            ImageShower(
-              imagenes: formGroup.pregunta.fotosGuia
+            ImagesPreviewer(
+              items: formGroup.pregunta.fotosGuia
                   .map((e) => File(e))
                   .iter
                   .toList(),
@@ -325,7 +324,7 @@ class SeleccionSimpleCard extends StatelessWidget {
   final bool readOnly;
 
   const SeleccionSimpleCard({
-    Key key,
+    Key? key,
     this.formGroup,
     this.readOnly,
   }) : super(key: key);
@@ -383,15 +382,11 @@ class SeleccionSimpleCard extends StatelessWidget {
                 ReactiveValueListenableBuilder<OpcionDeRespuesta>(
                   formControl: formGroup.control('respuestas')
                       as AbstractControl<OpcionDeRespuesta>,
-                  builder: (BuildContext context,
-                      AbstractControl<OpcionDeRespuesta> control,
-                      Widget child) {
-                    return CalificacionCard(
-                      controlRespuesta: control?.value?.calificable ?? false,
-                      controlCalificacion: formGroup.control('calificacion')
-                          as FormControl<double>,
-                    );
-                  },
+                  builder: (context, control, child) => CalificacionCard(
+                    controlRespuesta: control.value?.calificable ?? false,
+                    controlCalificacion: formGroup.control('calificacion')
+                        as FormControl<double>,
+                  ),
                 ),
                 RespuestaBaseForm(
                   controlObservacion:
@@ -523,7 +518,7 @@ class CuadriculaCard extends StatelessWidget {
   final RespuestaCuadriculaFormArray formArray;
   final bool readOnly;
 
-  const CuadriculaCard({Key key, this.formArray, this.readOnly})
+  const CuadriculaCard({Key? key, this.formArray, this.readOnly})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -638,7 +633,7 @@ class CuadriculaCard extends StatelessWidget {
 class WidgetSeleccion extends StatefulWidget {
   final RespuestaSeleccionSimpleFormGroup pregunta;
   final OpcionDeRespuesta opcion;
-  const WidgetSeleccion({Key key, this.pregunta, this.opcion})
+  const WidgetSeleccion({Key? key, this.pregunta, this.opcion})
       : super(key: key);
 
   @override
@@ -659,7 +654,7 @@ class _WidgetSeleccionState extends State<WidgetSeleccion> {
       _isSelected = control?.contains(widget.opcion) ?? false;
       return Checkbox(
         value: _isSelected,
-        onChanged: (bool newValue) {
+        onChanged: (newValue) {
           setState(() {
             _isSelected = newValue;
           });

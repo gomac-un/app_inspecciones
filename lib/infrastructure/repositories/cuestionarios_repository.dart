@@ -27,7 +27,7 @@ class CuestionariosRepository {
   Future<Either<ApiFailure, Unit>> subirCuestionario(
       Cuestionario cuestionario) async {
     /// Json con info de [cuestionario] y sus respectivos bloques.
-    final cues = await _db.getCuestionarioCompleto(cuestionario);
+    final cues = await _db.getCuestionarioCompletoAsJson(cuestionario);
     log(jsonEncode(cues));
     try {
       log(jsonEncode(cues));

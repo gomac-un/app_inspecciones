@@ -1,11 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/creacion_controls.dart';
 import 'package:inspecciones/mvvc/creacion_form_controller.dart';
 import 'package:inspecciones/presentation/pages/ayuda_screen.dart';
-import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:reactive_multi_image_picker/reactive_multi_image_picker.dart';
 
 /// Intento de unificar los campos de las preguntas numericas y de selección.
 ///
@@ -180,10 +182,11 @@ class TipoPreguntaCard extends StatelessWidget {
             activeColor: Colors.red,
           ),
         ),
-        FormBuilderImagePicker(
-          formArray: preguntaController.fotosGuiaControl,
+        ReactiveMultiImagePicker<String, File>(
+          formControl: preguntaController.fotosGuiaControl,
+          maxImages: 3,
           decoration: const InputDecoration(
-            labelText: 'Fotos guia',
+            labelText: 'Fotos guía',
           ),
         ),
       ],

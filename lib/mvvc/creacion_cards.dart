@@ -11,9 +11,9 @@ import 'package:inspecciones/mvvc/creacion_cuadricula_card.dart';
 import 'package:inspecciones/mvvc/creacion_form_controller.dart';
 import 'package:inspecciones/mvvc/creacion_numerica_card.dart';
 import 'package:inspecciones/presentation/pages/ayuda_screen.dart';
-import 'package:inspecciones/presentation/widgets/images_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:reactive_multi_image_picker/reactive_multi_image_picker.dart';
 import 'package:simple_tooltip/simple_tooltip.dart';
 
 /// Definición de los Widgets usados en los bloques de la creación de cuestionarios.
@@ -291,8 +291,9 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
               activeColor: Colors.red,
             ),
           ),
-          FormBuilderImagePicker(
-            formArray: controller.fotosGuiaControl,
+          ReactiveMultiImagePicker<String, File>(
+            formControl: controller.fotosGuiaControl,
+            maxImages: 3,
             decoration: const InputDecoration(
               labelText: 'Fotos guía',
             ),

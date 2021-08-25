@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/mvvc/muti_value_listenable_builder.dart';
+import 'package:inspecciones/presentation/widgets/muti_value_listenable_builder.dart';
 import 'package:inspecciones/mvvc/planeacion_grupos_cards.dart';
 import 'package:inspecciones/mvvc/planeacion_sistemas_control.dart';
 import 'package:inspecciones/mvvc/reactive_multiselect_dialog_field.dart';

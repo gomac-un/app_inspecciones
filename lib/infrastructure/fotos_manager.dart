@@ -3,20 +3,22 @@ import 'dart:io';
 
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/injection.dart';
-import 'package:kt_dart/kt.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 
 /// Clase encargada de manejar las fotos de cuestionarios e inspecciones
 /// TODO: hacer que esta clase deje de ser solo funciones estáticas
 class FotosManager {
+  /// mueve las fotos de su ubicacion temporal a la carpeta designada para el
+  /// cuestionario o inspeccion
   static Future<Iterable<String>> organizarFotos(
-    KtList<String> fotos, {
+    ListPathFotos fotos, {
     required String tipoDocumento,
     required String idDocumento,
   }) async {
     final appDir = await getApplicationDocumentsDirectory();
-    return Future.wait(fotos.iter.map((pathFoto) async {
+    return Future.wait(fotos.toList().map((pathFoto) async {
       final dir = path.join(appDir.path, tipoDocumento, idDocumento);
       if (path.isWithin(dir, pathFoto)) {
         /// la imagen ya esta en la carpeta de datos

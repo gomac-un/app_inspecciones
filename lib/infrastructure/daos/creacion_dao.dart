@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:kt_dart/kt.dart';
+
 import 'package:moor/moor.dart';
 
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
@@ -458,14 +458,14 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     List<CriticidadesNumericasCompanion>? criticidades,
   }) async {
     final fotosGuiaProcesadas = await FotosManager.organizarFotos(
-      preguntaCompanion.fotosGuia.valueOrDefault(<String>[].toImmutableList()),
+      preguntaCompanion.fotosGuia.valueOrDefault(const Nil()),
       tipoDocumento: "cuestionarios",
       idDocumento: cuestionario.id.toString(),
     );
 
     final preguntaAInsertar = preguntaCompanion.copyWith(
       bloqueId: Value(bloque.id),
-      fotosGuia: Value(fotosGuiaProcesadas.toImmutableList()),
+      fotosGuia: Value(IList.from(fotosGuiaProcesadas)),
     );
 
     final pregunta = await upsertPregunta(preguntaAInsertar);

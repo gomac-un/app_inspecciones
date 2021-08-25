@@ -1,13 +1,12 @@
 /// Definición de todos los Controllers de los bloques en la creación de cuestionarios
-import 'dart:io';
 
+import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/mvvc/creacion_validators.dart';
-import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -85,12 +84,11 @@ class CreadorTituloController extends CreacionController {
   /// En caso de que ya exista, se actualiza con los nuevos valores introducidos
   /// en el formulario, (Como ya tenemos un titulo, se actualiza en la bd)
   /// Este método es usado a la hora de guardar el cuestionario en la bd.
-  /// Si es para insertar debe devolver un [TitulosCompanion] usando el constructor
+  /// Devuelve un [TitulosCompanion] usando el constructor
   /// [TitulosCompanion.insert] pero como no sabemos el bloqueId todavia se debe usar
   /// el constructor normal de companion, pero para insertar mas adelante se deberia
   /// usar el constructor [TitulosCompanion.insert] para asegurarse que todo esté bien.
-  /// Si es para editar tenemos el id con el que podemos generar
-  /// la dataclass entera, ie la unica diferencia es que no tenemos el id
+
   @override
   TitulosCompanion toDB() {
     return _tituloCompanion.copyWith(
@@ -153,12 +151,9 @@ class CreadorPreguntaController extends CreacionController
   );
   late final criticidadControl = fb.control<double>(
       preguntaDesdeDB.pregunta.criticidad.valueOrDefault(0).toDouble());
-  late final fotosGuiaControl = fb.array<File>(
-    preguntaDesdeDB.pregunta.fotosGuia
-        .valueOrDefault(const KtList.empty())
-        .iter
-        .map((e) => File(e))
-        .toList(),
+
+  late final fotosGuiaControl = fb.control<List<String>>(
+    preguntaDesdeDB.pregunta.fotosGuia.valueOrDefault(const Nil()).toList(),
   );
 
   /// Si es de cuadricula, no se debe requerir que elija el tipo e pregunta
@@ -249,9 +244,7 @@ class CreadorPreguntaController extends CreacionController
         lado: Value(ladoControl.value),
         posicionZ: Value(posicionZControl.value),
         criticidad: Value(criticidadControl.value!.round()),
-        fotosGuia: Value(fotosGuiaControl.controls
-            .map((e) => e.value!.path)
-            .toImmutableList()),
+        fotosGuia: Value(IList.from(fotosGuiaControl.value!)),
         tipo: Value(tipoDePreguntaControl.value!),
       ),
       controllersRespuestas.map((e) => e.toDB()).toList(),
@@ -611,12 +604,8 @@ class CreadorPreguntaNumericaController extends CreacionController {
   );
   late final criticidadControl = fb.control<double>(
       datosIniciales.pregunta.criticidad.valueOrDefault(0).toDouble());
-  late final fotosGuiaControl = fb.array<File>(
-    datosIniciales.pregunta.fotosGuia
-        .valueOrDefault(const KtList.empty())
-        .iter
-        .map((e) => File(e))
-        .toList(),
+  late final fotosGuiaControl = fb.control<List<String>>(
+    datosIniciales.pregunta.fotosGuia.valueOrDefault(const Nil()).toList(),
   );
 
   /// Rangos de criticidad
@@ -700,9 +689,7 @@ class CreadorPreguntaNumericaController extends CreacionController {
         lado: Value(ladoControl.value),
         posicionZ: Value(posicionZControl.value),
         criticidad: Value(criticidadControl.value!.round()),
-        fotosGuia: Value(fotosGuiaControl.controls
-            .map((e) => e.value!.path)
-            .toImmutableList()),
+        fotosGuia: Value(IList.from(fotosGuiaControl.value!)),
         tipo: const Value(TipoDePregunta.numerica),
       ),
       controllersCriticidades.map((e) => e.toDB()).toList(),

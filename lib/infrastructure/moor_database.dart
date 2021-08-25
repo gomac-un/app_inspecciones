@@ -1,14 +1,13 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:dartz/dartz.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
-import 'package:json_annotation/json_annotation.dart' show JsonSerializable;
-import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
 import 'package:path/path.dart' as path;
 
@@ -98,17 +97,17 @@ class Database extends _$Database {
   }
 
   /// Obtiene el [cuestionario] completo con sus bloques para subir al server
-  Future<Map<String, dynamic>> getCuestionarioCompleto(
+  Future<Map<String, dynamic>> getCuestionarioCompletoAsJson(
       Cuestionario cuestionario) async {
     /// Modelos a los que aplica
     final modelosCuest = await (select(cuestionarioDeModelos)
           ..where((cm) => cm.cuestionarioId.equals(cuestionario.id)))
         .get();
 
-    // Este es un ejemplo de consultas complejas si el agrupador de collections
+    // Este es un ejemplo de consultas complejas sin el agrupador de collections
     // puede ser mas lenta porque se multiplica la cantidad de consultas
     // pero es mas limpia y entendible y consume un poco menos de memoria
-    //Tradeof de ineficiencia vs entendibilidad
+    // Tradeof de ineficiencia vs entendibilidad
     final bloquesCuest = await (select(bloques)
           ..where((b) => b.cuestionarioId.equals(cuestionario.id)))
         .get();
@@ -121,28 +120,26 @@ class Database extends _$Database {
       //TODO: ¿No se puede más bien buscar cada pregunta, titulo y cuadricula del cuestionario y procesarla?
       final tituloBloque = await (select(titulos)
             ..where((t) => t.bloqueId.equals(b.id)))
-          .getSingle();
+          .getSingleOrNull();
       //el titulo está listo
       final cuadriculaBloque = await (select(cuadriculasDePreguntas)
             ..where((c) => c.bloqueId.equals(b.id)))
-          .getSingle();
-
-      List<OpcionDeRespuesta> opcionesDeLaCuadricula;
+          .getSingleOrNull();
 
       final preguntasBloque = await (select(preguntas)
             ..where((p) => p.bloqueId.equals(b.id)))
           .get();
 
       /// En caso de que sea un bloque de cuadricula extender las cuadriculas y las preguntas con sus respectivas opciones
-      if (cuadriculaBloque != null) {
-        opcionesDeLaCuadricula = await (select(opcionesDeRespuesta)
-              ..where((op) => op.cuadriculaId.equals(cuadriculaBloque.id)))
-            .get();
-      }
+      final opcionesDeLaCuadricula = cuadriculaBloque != null
+          ? await (select(opcionesDeRespuesta)
+                ..where((op) => op.cuadriculaId.equals(cuadriculaBloque.id)))
+              .get()
+          : <OpcionDeRespuesta>[];
 
       /// En caso de que sea un bloque de pregunta
       final preguntasConOpciones =
-          await Future.wait(preguntasBloque?.map((p) async {
+          await Future.wait(preguntasBloque.map((p) async {
         final opcionesDeLaPregunta = await (select(opcionesDeRespuesta)
               ..where((op) => op.preguntaId.equals(p.id)))
             .get();
@@ -172,7 +169,7 @@ class Database extends _$Database {
           cuadriculaBloque?.toJson(serializer: const CustomSerializer());
       if (cuadriculaJson != null) {
         cuadriculaJson['opciones_de_respuesta'] =
-            opcionesDeLaCuadricula?.map((op) => op.toJson())?.toList();
+            opcionesDeLaCuadricula.map((op) => op.toJson()).toList();
       }
 
       bloqueJson['cuadricula'] = cuadriculaJson;
@@ -220,12 +217,14 @@ class Database extends _$Database {
     ])
       ..where(respuestas.inspeccionId.equals(inspeccion.id));
     final res = await queryRes
-        .map((row) => RespuestaconOpcionDeRespuestaId(
-            row.readTable(respuestas), row.readTable(opcionesDeRespuesta)?.id))
+        .map((row) => Tuple2(
+            row.readTable(respuestas), row.readTable(opcionesDeRespuesta).id))
         .get();
 
-    final resAgrupadas = groupBy<RespuestaconOpcionDeRespuestaId, Respuesta>(
-        res, (e) => e.respuesta).entries.map((entry) {
+    final resAgrupadas =
+        groupBy<Tuple2<Respuesta, int>, Respuesta>(res, (e) => e.value1)
+            .entries
+            .map((entry) {
       //solo enviar el filename al server
       final respuesta = entry.key.copyWith(
           fotosBase: entry.key.fotosBase.map((s) => path.basename(s)),
@@ -258,7 +257,7 @@ class Database extends _$Database {
                   tipoDeDocumento: 'inspecciones',
                   idDocumento: (json['id'] as int).toString(),
                   basename: e)),
-          fotosReparacion: respuesta?.fotosReparacion?.map((e) =>
+          fotosReparacion: respuesta.fotosReparacion.map((e) =>
               FotosManager.convertirAUbicacionAbsoluta(
                   tipoDeDocumento: 'inspecciones',
                   idDocumento: (json['id'] as int).toString(),
@@ -435,7 +434,7 @@ class Database extends _$Database {
   /// local al servidor
   Future exportarInspeccion() async {
     // TODO: WIP
-    // ignore: unused_local_variable
+
     final ins = await (select(inspecciones)
           ..where(
             (e) => e.id.equals(1),
@@ -461,16 +460,16 @@ class CustomSerializer extends ValueSerializer {
       return null as T;
     }
 
-    /*if (T == KtList) {
-      return (json as List<String>).toImmutableList() as T;
-    }*/
+    if (T == ListPathFotos) {
+      return IList.from(json as List<String>) as T;
+    } /*
     if (json is List) {
       // https://stackoverflow.com/questions/50188729/checking-what-type-is-passed-into-a-generic-method
-      // machetazo que convierte todas las listas a KtList<String> dado que no
-      // se puede preguntar por T == KtList<String>, puede que se pueda arreglar
+      // machetazo que convierte todas las listas a IListString dado que no
+      // se puede preguntar por T == IListString, puede que se pueda arreglar
       // cuando los de dart implementen los alias de tipos https://github.com/dart-lang/language/issues/65
-      return json.cast<String>().toImmutableList() as T;
-    }
+      return IList.from(json.cast<String>()) as T;
+    }*/
 
     if (T == TipoDePregunta) {
       return tipoPreguntaConverter.mapToDart(json as int) as T;
@@ -520,8 +519,8 @@ class CustomSerializer extends ValueSerializer {
       return estadoDeCuestionarioConverter.mapToSql(value);
     }
 
-    if (value is KtList) {
-      return value.iter.toList();
+    if (value is IList) {
+      return value.toList();
     }
 
     return value;
@@ -535,3 +534,5 @@ extension DefaultGetter<T> on Value<T> {
   }
   // ···
 }
+
+typedef ListPathFotos = IList<String>;
