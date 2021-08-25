@@ -10,6 +10,7 @@ import 'package:inspecciones/infrastructure/repositories/credenciales.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:meta/meta.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -82,6 +83,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
             /// Guarda los datos del usuario, para que no tenga que iniciar sesión la próxima vez
             _userRepository.saveLocalUser(user: usuario);
+            Sentry.configureScope(
+              (scope) => scope.user = SentryUser(id: usuario.documento),
+            );
             return AuthState.authenticated(
               loading: false,
               failure: const None(),
@@ -98,6 +102,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         /// Se borra la info del usuario, lo que hace que deba iniciar sesión la próxima vez
         await _userRepository.deleteLocalUser();
+        Sentry.configureScope(
+          (scope) =>
+              scope.user = scope.user?.copyWith(extras: {'logged_out': true}),
+        );
         yield const AuthState.unauthenticated(loading: false, failure: None());
       },
     );

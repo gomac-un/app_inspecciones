@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,17 +9,31 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/router.gr.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'injection.dart';
 
 Future main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(() async {
+    // Configurar sentry para el reporte de errores
+    // Sentry should be init. within the 'runZonedGuarded' that 'runApp' is run,
+    // so WidgetsFlutterBinding.ensureInitialized() is called correctly.
+    // See here that we don't pass the 'appRunner' arg, so you must run 'runApp' yourself.
+    await SentryFlutter.init(
+      (options) {
+        options.dsn =
+            'https://febb546f37d34fa6ac06e65f03f32ba2@o973604.ingest.sentry.io/5925032';
+      },
+    );
 
-  /// Inicializa el service locator.
-  await configureDependencies();
-  await FlutterDownloader.initialize();
+    /// Inicializa el service locator.
+    await configureDependencies();
+    await FlutterDownloader.initialize();
 
-  runApp(const InspeccionesApp());
+    runApp(const InspeccionesApp());
+  }, (exception, stackTrace) async {
+    await Sentry.captureException(exception, stackTrace: stackTrace);
+  });
 }
 
 class InspeccionesApp extends StatefulWidget {
@@ -47,7 +63,10 @@ class _InspeccionesAppState extends State<InspeccionesApp> {
                   authenticated: (_) => const AuthenticatedRouter(),
                 )
               ],
-              navigatorObservers: () => [ClearFocusOnPop()],
+              navigatorObservers: () => [
+                ClearFocusOnPop(),
+                SentryNavigatorObserver(),
+              ],
             ),
             routeInformationParser: _appRouter.defaultRouteParser(),
 
