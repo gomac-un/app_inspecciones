@@ -1,9 +1,10 @@
 import 'package:dartz/dartz.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:inspecciones/injection.dart';
 
 import 'package:moor/moor.dart';
 
-import 'package:inspecciones/infrastructure/fotos_manager.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 
@@ -457,7 +458,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
     List<CriticidadesNumericasCompanion>? criticidades,
   }) async {
-    final fotosGuiaProcesadas = await FotosManager.organizarFotos(
+    final fotosManager = getIt<FotosRepository>();
+    final fotosGuiaProcesadas = await fotosManager.organizarFotos(
       preguntaCompanion.fotosGuia.valueOrDefault(const Nil()),
       tipoDocumento: "cuestionarios",
       idDocumento: cuestionario.id.toString(),
@@ -465,7 +467,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
 
     final preguntaAInsertar = preguntaCompanion.copyWith(
       bloqueId: Value(bloque.id),
-      fotosGuia: Value(IList.from(fotosGuiaProcesadas)),
+      fotosGuia: Value(fotosGuiaProcesadas),
     );
 
     final pregunta = await upsertPregunta(preguntaAInsertar);

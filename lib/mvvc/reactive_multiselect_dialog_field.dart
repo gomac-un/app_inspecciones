@@ -12,7 +12,7 @@ class ReactiveMultiSelectDialogField<V> extends ReactiveFormField<List<V>> {
     String formControlName,
     FormControl formControl,
     ValidationMessagesFunction validationMessages,
-    @required this.items,
+    required this.items,
     this.buttonText,
     void Function() onTap,
   }) : super(

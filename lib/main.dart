@@ -16,6 +16,7 @@ import 'injection.dart';
 Future main() async {
   runZonedGuarded(() async {
     // Configurar sentry para el reporte de errores
+    // ver https://docs.sentry.io/platforms/flutter/
     // Sentry should be init. within the 'runZonedGuarded' that 'runApp' is run,
     // so WidgetsFlutterBinding.ensureInitialized() is called correctly.
     // See here that we don't pass the 'appRunner' arg, so you must run 'runApp' yourself.

@@ -7,7 +7,7 @@ import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
-import 'package:inspecciones/infrastructure/fotos_manager.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 
@@ -15,8 +15,9 @@ import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 class CuestionariosRepository {
   final InspeccionesRemoteDataSource _api;
   final Database _db;
+  final FotosRepository _fotos_repository;
 
-  CuestionariosRepository(this._db, this._api);
+  CuestionariosRepository(this._db, this._api, this._fotos_repository);
 
   Future<Either<ApiFailure, Unit>> subirCuestionariosPendientes() async {
     //TODO: subir cada uno, o todos a la vez para mas eficiencia
@@ -40,7 +41,7 @@ class CuestionariosRepository {
       /// Usado para el nombre de la carpeta de las fotos
       final idDocumento = cues['id'].toString();
       const tipoDocumento = 'cuestionarios';
-      final fotos = await FotosManager.getFotosDeDocumento(
+      final fotos = await _fotos_repository.getFotosDeDocumento(
           idDocumento: idDocumento, tipoDocumento: tipoDocumento);
       await _api.subirFotos(fotos, idDocumento, tipoDocumento);
       return right(unit);

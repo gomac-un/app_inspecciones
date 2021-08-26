@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:injectable/injectable.dart';
-import 'package:inspecciones/application/auth/usuario.dart';
+import 'package:inspecciones/core/entities/usuario.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';

@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
-import 'package:inspecciones/infrastructure/fotos_manager.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:intl/intl.dart';
 import 'package:kt_dart/kt.dart';
@@ -439,12 +439,14 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
         await Future.forEach<RespuestaConOpcionesDeRespuesta>(resp, (e) async {
           if (e != null) {
             final fotosBaseProc = idform != null
-                ? await FotosManager.organizarFotos(e.respuesta.fotosBase.value,
-                    tipoDocumento: "inspecciones", idDocumento: idform)
+                ? await FotosRepository.organizarFotos(
+                    e.respuesta.fotosBase.value,
+                    tipoDocumento: "inspecciones",
+                    idDocumento: idform)
                 : null;
 
             final fotosRepProc = idform != null
-                ? await FotosManager.organizarFotos(
+                ? await FotosRepository.organizarFotos(
                     e.respuesta.fotosReparacion.value,
                     tipoDocumento: "inspecciones",
                     idDocumento: idform)

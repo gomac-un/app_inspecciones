@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:enum_to_string/enum_to_string.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
@@ -291,12 +293,19 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
               activeColor: Colors.red,
             ),
           ),
-          ReactiveMultiImagePicker<String, File>(
+
+          ReactiveMultiImagePicker<AppImage, AppImage>(
             formControl: controller.fotosGuiaControl,
+            //valueAccessor: FileValueAccessor(),
+            decoration: const InputDecoration(labelText: 'Fotos guía'),
             maxImages: 3,
-            decoration: const InputDecoration(
-              labelText: 'Fotos guía',
+            imageBuilder: (image) => image.when(
+              remote: (url) => Image.network(url),
+              mobile: (path) => Image.file(File(path)),
+              web: (path) => Image.network(path),
             ),
+            xFileConverter: (file) =>
+                kIsWeb ? AppImage.web(file.path) : AppImage.mobile(file.path),
           ),
           const SizedBox(height: 10),
           ReactiveDropdownField<TipoDePregunta>(

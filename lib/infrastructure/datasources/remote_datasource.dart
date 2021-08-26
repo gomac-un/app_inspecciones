@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
-import 'package:inspecciones/application/auth/usuario.dart';
+import 'package:inspecciones/core/entities/usuario.dart';
 import 'package:path/path.dart' as path;
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';

@@ -57,6 +57,7 @@ dependencies:
   reactive_multi_image_picker:
     git:
       url: https://github.com/victorcatn/reactive_multi_image_picker.git
+      ref: multi_platform_support
   rflutter_alert: ^2.0.4
   sentry_flutter: ^5.1.0
   share_plus: ^2.1.4

@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
-import 'package:inspecciones/infrastructure/fotos_manager.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
+import 'package:inspecciones/injection.dart';
 import 'package:moor/moor.dart';
 import 'package:path/path.dart' as path;
 
@@ -151,8 +153,9 @@ class Database extends _$Database {
 
         //enviar solo el basename al server
         /// Se usa [CustomSerializer] para que no genere error por las fotos y las fechas.
-        final pregunta =
-            p.copyWith(fotosGuia: p.fotosGuia.map((f) => path.basename(f)));
+        final pregunta = p.copyWith(
+          fotosGuia: p.fotosGuia.map(_soloBasename),
+        );
         final preguntaJson =
             pregunta.toJson(serializer: const CustomSerializer());
         preguntaJson["opciones_de_respuesta"] =
@@ -227,9 +230,8 @@ class Database extends _$Database {
             .map((entry) {
       //solo enviar el filename al server
       final respuesta = entry.key.copyWith(
-          fotosBase: entry.key.fotosBase.map((s) => path.basename(s)),
-          fotosReparacion:
-              entry.key.fotosReparacion.map((s) => path.basename(s)));
+          fotosBase: entry.key.fotosBase.map(_soloBasename),
+          fotosReparacion: entry.key.fotosReparacion.map(_soloBasename));
 
       final respuestaJson =
           respuesta.toJson(serializer: const CustomSerializer());
@@ -249,19 +251,20 @@ class Database extends _$Database {
         p as Map<String, dynamic>,
         serializer: const CustomSerializer(),
       );
+      final fotosManager = getIt<FotosRepository>();
       return respuesta.copyWith(
 
           /// se hace este proceso para agregarle el path completo a las fotos
           fotosBase: respuesta.fotosBase.map((e) =>
-              FotosManager.convertirAUbicacionAbsoluta(
+              fotosManager.convertirAUbicacionAbsolutaAppImage(
                   tipoDeDocumento: 'inspecciones',
                   idDocumento: (json['id'] as int).toString(),
-                  basename: e)),
+                  foto: e)),
           fotosReparacion: respuesta.fotosReparacion.map((e) =>
-              FotosManager.convertirAUbicacionAbsoluta(
+              fotosManager.convertirAUbicacionAbsolutaAppImage(
                   tipoDeDocumento: 'inspecciones',
                   idDocumento: (json['id'] as int).toString(),
-                  basename: e)));
+                  foto: e)));
     }).toList();
 
     /// Así queda solo los campos de la inspección y se puede dar [inspeccionParseadas]
@@ -350,14 +353,15 @@ class Database extends _$Database {
         p as Map<String, dynamic>,
         serializer: const CustomSerializer(),
       );
+      final fotosManager = getIt<FotosRepository>();
       return pregunta.copyWith(
           fotosGuia: pregunta.fotosGuia.map((e) =>
-              FotosManager.convertirAUbicacionAbsoluta(
+              fotosManager.convertirAUbicacionAbsolutaAppImage(
                   tipoDeDocumento: 'cuestionarios',
                   idDocumento:
                       ((p as Map<String, dynamic>)['cuestionario'] as int)
                           .toString(),
-                  basename: e)));
+                  foto: e)));
     }).toList();
 
     final opcionesDeRespuestaParseados = (json["OpcionDeRespuesta"] as List)
@@ -460,8 +464,12 @@ class CustomSerializer extends ValueSerializer {
       return null as T;
     }
 
-    if (T == ListPathFotos) {
-      return IList.from(json as List<String>) as T;
+    /// TODO: revisar si aca pueden llegar imagenes de web
+    if (T == ListImages) {
+      return IList.from(json as List<String>).map((path) =>
+          path.startsWith('http')
+              ? AppImage.remote(path)
+              : AppImage.mobile(path)) as T;
     } /*
     if (json is List) {
       // https://stackoverflow.com/questions/50188729/checking-what-type-is-passed-into-a-generic-method
@@ -535,4 +543,8 @@ extension DefaultGetter<T> on Value<T> {
   // ···
 }
 
-typedef ListPathFotos = IList<String>;
+AppImage _soloBasename(AppImage f) => f.map(
+      remote: id,
+      mobile: (e) => e.copyWith(path: path.basename(e.path)),
+      web: throw UnimplementedError("subida de imagenes web"),
+    );

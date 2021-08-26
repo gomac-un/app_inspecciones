@@ -112,7 +112,7 @@ class Titulos extends Table {
 
   /// Este campo no es usado actualmente para los titulos
   TextColumn get fotos => text()
-      .map(const ListInColumnConverter())
+      .map(const ListOfImagesInColumnConverter())
       .withDefault(const Constant("[]"))();
 
   @JsonKey('bloque')
@@ -160,7 +160,7 @@ class Preguntas extends Table {
   TextColumn get lado => text().nullable().withLength(min: 0, max: 50)();
 
   TextColumn get fotosGuia => text()
-      .map(const ListInColumnConverter())
+      .map(const ListOfImagesInColumnConverter())
       .withDefault(
         const Constant("[]"),
       )(); // en la dataclass es una IList<String> para mantener la igualdad por valor
@@ -302,11 +302,11 @@ class Respuestas extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   TextColumn get fotosBase => text()
-      .map(const ListInColumnConverter())
+      .map(const ListOfImagesInColumnConverter())
       .withDefault(const Constant("[]"))();
 
   TextColumn get fotosReparacion => text()
-      .map(const ListInColumnConverter())
+      .map(const ListOfImagesInColumnConverter())
       .withDefault(const Constant("[]"))();
 
   TextColumn get observacion => text().withDefault(const Constant(""))();
@@ -345,24 +345,31 @@ class Respuestas extends Table {
   //List<OpcionDeRespuesta>
 }
 
-class ListInColumnConverter extends TypeConverter<IList<String>, String> {
-  const ListInColumnConverter();
+class ListOfImagesInColumnConverter extends TypeConverter<ListImages, String> {
+  const ListOfImagesInColumnConverter();
   @override
-  ListPathFotos? mapToDart(String? fromDb) {
+  ListImages? mapToDart(fromDb) {
     if (fromDb == null) {
       return null;
     }
-    return IList.from(jsonDecode(fromDb) as List<String>);
+
+    /// Como es DB entonces es mobil, y si empieza por http es remota
+    /// TODO: hacerlo mas robusto
+    return IList.from(jsonDecode(fromDb) as List<String>).map((path) =>
+        path.startsWith('http')
+            ? AppImage.remote(path)
+            : AppImage.mobile(path));
   }
 
   @override
-  String? mapToSql(ListPathFotos? value) {
+  String? mapToSql(value) {
     if (value == null) {
       return null;
     }
     if (value.length() == 0) return "[]";
 
-    final str = value.foldLeft<String>("[", (acc, val) => '$acc"$val",');
+    final str = value.foldLeft<String>("[",
+        (acc, val) => acc + val.when(remote: id, mobile: id, web: id) + ",");
     return str.replaceRange(str.length - 1, str.length, ']');
   }
 }

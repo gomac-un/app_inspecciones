@@ -7,7 +7,7 @@ import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
-import 'package:inspecciones/infrastructure/fotos_manager.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 
 /// Contiene los metodos encargados de subir cuestionarios e inspecciones al server y descargar inspecciones.
@@ -68,7 +68,7 @@ class InspeccionesRepository {
       /// Usado para el nombre de la carpeta de las fotos
       final idDocumento = ins['id'].toString();
       const tipoDocumento = 'inspecciones';
-      final fotos = await FotosManager.getFotosDeDocumento(
+      final fotos = await FotosRepository.getFotosDeDocumento(
           idDocumento: idDocumento, tipoDocumento: tipoDocumento);
       await _api.subirFotos(fotos, idDocumento, tipoDocumento);
 

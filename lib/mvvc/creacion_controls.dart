@@ -2,6 +2,7 @@
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
+import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
@@ -152,7 +153,7 @@ class CreadorPreguntaController extends CreacionController
   late final criticidadControl = fb.control<double>(
       preguntaDesdeDB.pregunta.criticidad.valueOrDefault(0).toDouble());
 
-  late final fotosGuiaControl = fb.control<List<String>>(
+  late final fotosGuiaControl = fb.control<List<AppImage>>(
     preguntaDesdeDB.pregunta.fotosGuia.valueOrDefault(const Nil()).toList(),
   );
 
@@ -604,7 +605,7 @@ class CreadorPreguntaNumericaController extends CreacionController {
   );
   late final criticidadControl = fb.control<double>(
       datosIniciales.pregunta.criticidad.valueOrDefault(0).toDouble());
-  late final fotosGuiaControl = fb.control<List<String>>(
+  late final fotosGuiaControl = fb.control<List<AppImage>>(
     datosIniciales.pregunta.fotosGuia.valueOrDefault(const Nil()).toList(),
   );
 
