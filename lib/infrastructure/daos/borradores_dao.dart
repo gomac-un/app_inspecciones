@@ -41,6 +41,43 @@ class BorradoresDao extends DatabaseAccessor<Database>
     return query.length;
   }
 
+  Future<int> getUltimoBloque(int inspeccionId, {bool reparacion}) async {
+    Respuesta ultimaRespuesta;
+    if (reparacion) {
+      ultimaRespuesta = await (select(respuestas)
+            ..where(
+                (re) => re.inspeccionId.equals(inspeccionId) & (re.reparado))
+            ..orderBy([
+              (re) => OrderingTerm(
+                  expression: re.momentoRespuesta, mode: OrderingMode.desc)
+            ])
+            ..limit(1))
+          .getSingle();
+    } else {
+      ultimaRespuesta = await (select(respuestas)
+            ..where((re) => re.inspeccionId.equals(inspeccionId))
+            ..orderBy([
+              (re) => OrderingTerm(
+                  expression: re.momentoRespuesta, mode: OrderingMode.desc)
+            ])
+            ..limit(1))
+          .getSingle();
+    }
+    if (ultimaRespuesta != null) {
+      final ultimoBloque = selectOnly(bloques, distinct: true).join(
+          [innerJoin(preguntas, preguntas.bloqueId.equalsExp(bloques.id))])
+        ..where(preguntas.id.equals(ultimaRespuesta.preguntaId))
+        ..addColumns([bloques.nOrden]);
+      final nOrden =
+          await ultimoBloque.map((row) => row.read(bloques.nOrden)).getSingle();
+
+      // Devuelve solo la cantidad
+      return nOrden;
+    }
+
+    return 0;
+  }
+
   /// Devuelve [List<Borrador>] con todas las inspecciones que han sido guardadas
   /// para mostrar en la UI en borradores_screen.dart
   Stream<List<Borrador>> borradores() {
@@ -81,7 +118,8 @@ class BorradoresDao extends DatabaseAccessor<Database>
     final query = select(inspecciones).join([
       innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
     ])
-    /// Se filtran los que tengan momentoEnvio No nulo
+
+      /// Se filtran los que tengan momentoEnvio No nulo
       ..where(isNotNull(inspecciones.momentoEnvio));
 
     /// Agrupación del resultado de la consulta en la clase Borrador para manejarlo mejor en la UI

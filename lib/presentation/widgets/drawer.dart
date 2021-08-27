@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
-import 'package:moor_db_viewer/moor_db_viewer.dart';
 import 'package:provider/provider.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -127,9 +126,9 @@ class Opciones extends StatelessWidget {
                     }),
           ),
           Borradores(),
-          /*  LimpiezaBase(), */
+          /* LimpiezaBase(), */
           SincronizarConGomac(),
-          /* Card(
+          /*  Card(
             child: ListTile(
               title: const Text('Ver base de datos',
                   style: TextStyle(
@@ -159,6 +158,7 @@ class Opciones extends StatelessWidget {
         children: [
           Borradores(),
           /* LimpiezaBase(), */
+
           SincronizarConGomac(),
           LogOut(),
         ],

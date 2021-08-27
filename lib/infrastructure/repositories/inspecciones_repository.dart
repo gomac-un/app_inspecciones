@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-
+import 'dart:io';
 import 'package:dartz/dartz.dart';
+import 'package:flutter_archive/flutter_archive.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
@@ -10,6 +11,8 @@ import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
 import 'package:inspecciones/infrastructure/fotos_manager.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 /// Contiene los metodos encargados de subir cuestionarios e inspecciones al server y descargar inspecciones.
 @injectable
@@ -30,6 +33,20 @@ class InspeccionesRepository {
     try {
       final endpoint = '/inspecciones/$id';
       final inspeccion = await _api.getRecurso(endpoint);
+      final dir = await _localPath;
+      await descargarFotos(
+          '/media/fotos-app-inspecciones/inspecciones/$id/$id.zip',
+          dir,
+          '$id.zip');
+      final zipFile = File(path.join(dir, '$id.zip'));
+      final destinationDir = Directory(path.join(dir, 'inspecciones/$id'));
+      try {
+        await ZipFile.extractToDirectory(
+            zipFile: zipFile, destinationDir: destinationDir);
+      } catch (e) {
+        return const Left(ApiFailure.serverError(
+            'Error en la descarga de fotos, intente nuevamente.'));
+      }
 
       /// Al descragarla, se debe guardar en la bd para poder acceder a ella
       await _db.guardarInspeccionBD(inspeccion);
@@ -37,6 +54,7 @@ class InspeccionesRepository {
         'activo': inspeccion['activo'],
         'cuestionario': inspeccion['cuestionario']
       };
+
       return right(dicc);
     } on TimeoutException {
       return const Left(ApiFailure.noHayConexionAlServidor());
@@ -53,6 +71,14 @@ class InspeccionesRepository {
     }
   }
 
+  Future eliminarInfoInspeccion(Borrador borrador) async {
+    _db.borradoresDao.eliminarRespuestas(borrador);
+    final idDocumento = borrador.inspeccion.id.toString();
+    const tipoDocumento = 'inspecciones';
+    await FotosManager.deleteFotosDeDocumento(
+        idDocumento: idDocumento, tipoDocumento: tipoDocumento);
+  }
+
   /// Envia [inspeccion] al server
   Future<Either<ApiFailure, Unit>> subirInspeccion(
       Inspeccion inspeccion) async {
@@ -60,6 +86,11 @@ class InspeccionesRepository {
     /// Se obtiene un json con la info de la inspeción y sus respectivas respuestas
     final ins = await _db.getInspeccionConRespuestas(inspeccion);
     try {
+      final idDocumento = ins['id'].toString();
+      const tipoDocumento = 'inspecciones';
+      final fotos = await FotosManager.getFotosDeDocumento(
+          idDocumento: idDocumento, tipoDocumento: tipoDocumento);
+      await _api.subirFotos(fotos, idDocumento, tipoDocumento);
       const _urlInsp = '/inspecciones/';
 
       /// [inspeccion.esNueva] es un campo usado localmente para saber si fue creada o se descaargó desde el server.
@@ -73,11 +104,6 @@ class InspeccionesRepository {
           : await _api.putRecurso('$_urlInsp${inspeccion.id}/', ins);
 
       /// Usado para el nombre de la carpeta de las fotos
-      final idDocumento = ins['id'].toString();
-      const tipoDocumento = 'inspecciones';
-      final fotos = await FotosManager.getFotosDeDocumento(
-          idDocumento: idDocumento, tipoDocumento: tipoDocumento);
-      await _api.subirFotos(fotos, idDocumento, tipoDocumento);
 
       return right(unit);
     } on TimeoutException {
@@ -138,8 +164,12 @@ class InspeccionesRepository {
   }
 
   /// Descarga todas las fotos de todos los cuestionarios
-  Future descargarFotos(String savedir, String nombreZip) async {
-    _api.descargaFlutterDownloader(
-        '/media/fotos-app-inspecciones/cuestionarios.zip', savedir, nombreZip);
+  Future descargarFotos(String url, String savedir, String nombreZip) async {
+    _api.descargaFlutterDownloader(url, savedir, nombreZip);
+  }
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
   }
 }

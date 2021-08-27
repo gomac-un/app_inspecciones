@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
 import 'package:inspecciones/injection.dart';
+import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -162,6 +163,7 @@ class _BotonContinuarInspeccion extends StatelessWidget {
               /// Se descarga inspección con id=[form.control('id').value ] desde el server
               int activoId;
               int cuestionarioId;
+              LoadingDialog.show(context);
               final res = await repository
                   .getInspeccionServidor(
                       int.parse(form.control('codigoInsp').value as String))
@@ -183,6 +185,7 @@ class _BotonContinuarInspeccion extends StatelessWidget {
                             form.control('codigoInsp').value as String));
                         return "exito";
                       }));
+              LoadingDialog.hide(context);
 
               /// Si hay un error muestra alerta.
               if (res != 'exito') {

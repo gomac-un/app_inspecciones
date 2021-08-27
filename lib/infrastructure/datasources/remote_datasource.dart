@@ -94,6 +94,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     final http.Response response = await http.get(
       url,
       headers: {
+        HttpHeaders.contentTypeHeader: 'application/json',
         if (token != null) HttpHeaders.authorizationHeader: "Token $token"
       },
     ).timeout(_timeLimit);
@@ -247,7 +248,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
 
     log(response.body);
     if (response.statusCode > 299) {
-      throw Exception("error del servidor");
+      throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
 
     //<input type="file" id="files" name="file_fields" multiple>

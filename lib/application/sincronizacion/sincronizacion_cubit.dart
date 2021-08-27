@@ -199,7 +199,8 @@ class SincronizacionCubit extends Cubit<SincronizacionState> {
       3: 'Descargando fotos'
     }));
     final dir = await _localPath;
-    await _inspeccionesRepository.descargarFotos(dir, nombreZip);
+    await _inspeccionesRepository.descargarFotos(
+        '/media/fotos-app-inspecciones/cuestionarios.zip', dir, nombreZip);
     // Escucha de las actualizaciones que ofrece el downloader
     StreamSubscription<dynamic> streamSubs2;
     streamSubs2 = _portStream.listen((data) {

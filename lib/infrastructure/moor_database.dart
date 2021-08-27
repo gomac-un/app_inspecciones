@@ -248,7 +248,12 @@ class Database extends _$Database {
         p as Map<String, dynamic>,
         serializer: const CustomSerializer(),
       );
+      // El Content-Type de la petición no está funcionando, los textos con tildes, venian con carácteres raros.
+      final obs = utf8.decode(respuesta.observacion.codeUnits);
+      final obsRep = utf8.decode(respuesta.observacionReparacion.codeUnits);
       return respuesta.copyWith(
+          observacion: obs,
+          observacionReparacion: obsRep,
 
           /// se hace este proceso para agregarle el path completo a las fotos
           fotosBase: respuesta.fotosBase.map((e) =>
@@ -303,10 +308,6 @@ class Database extends _$Database {
 
     final sistemasParseados = (json["Sistema"] as List)
         .map((e) => Sistema.fromJson(e as Map<String, dynamic>))
-        .toList();
-
-    final tipoInspeccionParseados = (json["TipoInspeccion"] as List)
-        .map((e) => TiposDeInspeccione.fromJson(e as Map<String, dynamic>))
         .toList();
 
     final subSistemasParseados = (json["Subsistema"] as List)
@@ -399,7 +400,6 @@ class Database extends _$Database {
         b.insertAll(preguntas, preguntasParseados);
         b.insertAll(opcionesDeRespuesta, opcionesDeRespuestaParseados);
         b.insertAll(criticidadesNumericas, criticidadesNumericasParseadas);
-        b.insertAll(tiposDeInspecciones, tipoInspeccionParseados);
       });
     });
     await customStatement('PRAGMA foreign_keys = ON');

@@ -40,78 +40,19 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
 
   @override
   Widget build(BuildContext context) {
-    /* final media = MediaQuery.of(context);
-    double scaffoldTtitleSize = media.orientation == Orientation.portrait
-        ? media.size.height * 0.02
-        : media.size.width * 0.02;
-    if (media.size.width < 600 || media.size.height < 600) {
-      scaffoldTtitleSize = media.orientation == Orientation.portrait
-          ? media.size.height * 0.028
-          : media.size.width * 0.028;
-    } */
     final db = RepositoryProvider.of<Database>(context);
     return Scaffold(
       appBar: AppBar(
-        /* toolbarHeight: media.orientation == Orientation.portrait
-            ? media.size.height * 0.07
-            : media.size.width * 0.07, */
         title: const Text(
           'Inspecciones',
-          /* style: TextStyle(
-              fontSize: scaffoldTtitleSize,
-            ) */
         ),
         actions: [
-          // ExtendedNavigator.of(context)
-          //     .push(Routes.llenadoFormPage, arguments: res)
           IconButton(
               icon: const Icon(Icons.history),
               onPressed: () {
                 ExtendedNavigator.of(context)
                     .push(Routes.historyInspeccionesPage);
               }),
-          /* IconButton(
-            onPressed: () {
-              //TODO: implementar el historial
-              showDialog(
-                  context: context,
-                  builder: (_) => AlertDialog(
-                        title: Text("Historial",
-                            style: TextStyle(
-                                color: Theme.of(context).accentColor)),
-                        content: SingleChildScrollView(
-                          child: Column(children: [
-                            for (var i = 0; i < 1000; i += 1) Text(i.toString())
-                          ]),
-                        ),
-                        actions: <Widget>[
-                          FlatButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('Borrar',
-                                style: TextStyle(
-                                    color: Theme.of(context).accentColor)),
-                          ),
-                          FlatButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('Cerrar',
-                                style: TextStyle(
-                                    color: Theme.of(context).accentColor)),
-                          ),
-                        ],
-                      ));
-            },
-            icon: const Icon(
-              Icons.history,
-            ),
-            tooltip: "Historial",
-          ),
-          const SizedBox(
-            width: 5,
-          ), */
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.asset(
@@ -124,9 +65,6 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
         ],
       ),
       drawer: UserDrawer(),
-      /* media.size.width <= 600 || media.size.height <= 600
-          ? UserDrawer()
-          : null, */
       body: Consumer<List<Borrador>>(
         // Toco usar un proviedr porque estaba creando el stream en cada rebuild
         //stream: Provider.of<Stream<List<Borrador>>>(context),
@@ -161,7 +99,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                   borrador.inspeccion.estado == EstadoDeInspeccion.finalizada
                       ? 'Criticidad total inicial: '
                       : 'Criticidad parcial inicial: ';
-
+              bool loading = true;
               return ListTile(
                 tileColor: Theme.of(context).cardColor,
                 title: Text(
@@ -196,72 +134,98 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                 ),
 
                 /// Solo se puede subir al server si está finalizado o enReparacion
-                leading: [
-                  EstadoDeInspeccion.finalizada,
-                  EstadoDeInspeccion.enReparacion
-                ].contains(borrador.inspeccion.estado)
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.cloud_upload,
-                          color: Theme.of(context).accentColor,
-                        ),
-                        onPressed: () async {
-                          final res = await RepositoryProvider.of<
-                                  InspeccionesRepository>(context)
-                              .subirInspeccion(borrador.inspeccion)
-                              .then((res) => res.fold(
-                                      (fail) => fail.when(
-                                          pageNotFound: () =>
-                                              'No se pudo encontrar la página, informe al encargado',
-                                          noHayConexionAlServidor: () =>
-                                              "No hay conexión al servidor",
-                                          noHayInternet: () =>
-                                              "No tiene conexión a internet",
-                                          serverError: (msg) =>
-                                              "Error interno: $msg",
-                                          credencialesException: () =>
-                                              'Error inesperado: intente inciar sesión nuevamente'),
-                                      (u) {
-                                    db.borradoresDao
-                                        .eliminarRespuestas(borrador);
-                                    return "exito";
-                                  }));
-                          res == 'exito'
-                              ? showDialog(
-                                  context: context,
-                                  barrierColor:
-                                      Theme.of(context).primaryColorLight,
-                                  barrierDismissible: false,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      contentTextStyle:
-                                          Theme.of(context).textTheme.headline5,
-                                      title: const Icon(Icons.done_sharp,
-                                          size: 100, color: Colors.green),
-                                      actions: [
-                                        Center(
-                                          child: RaisedButton(
-                                            color:
-                                                Theme.of(context).accentColor,
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: const Text('Aceptar'),
-                                          ),
-                                        )
-                                      ],
-                                      content: const Text(
-                                        'Inspección enviada correctamente',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    );
+                leading: IconButton(
+                    icon: Icon(
+                      Icons.cloud_upload,
+                      color: Theme.of(context).accentColor,
+                    ),
+                    onPressed: () async {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          loading = true;
+                          return AlertDialog(
+                            content: Row(
+                              children: const [
+                                CircularProgressIndicator(),
+                                SizedBox(
+                                  width: 20,
+                                ),
+                                Text("Enviando")
+                              ],
+                            ),
+                            actions: [
+                              Center(
+                                child: RaisedButton(
+                                  onPressed: () {
+                                    loading = false;
+                                    Navigator.of(context).pop();
                                   },
-                                )
-                              : Scaffold.of(context).showSnackBar(SnackBar(
-                                  content: Text(res),
-                                ));
-                        })
-                    : const SizedBox(),
+                                  child: const Text('Ocultar'),
+                                ),
+                              )
+                            ],
+                          );
+                        },
+                      );
+                      final res = await RepositoryProvider.of<
+                              InspeccionesRepository>(context)
+                          .subirInspeccion(borrador.inspeccion)
+                          .then((res) => res.fold(
+                                  (fail) => fail.when(
+                                      pageNotFound: () =>
+                                          'No se pudo encontrar la página, informe al encargado',
+                                      noHayConexionAlServidor: () =>
+                                          "No hay conexión al servidor",
+                                      noHayInternet: () =>
+                                          "No tiene conexión a internet",
+                                      serverError: (msg) =>
+                                          "Error interno: $msg",
+                                      credencialesException: () =>
+                                          'Error inesperado: intente inciar sesión nuevamente'),
+                                  (u) {
+                                RepositoryProvider.of<InspeccionesRepository>(
+                                        context)
+                                    .eliminarInfoInspeccion(borrador);
+                                return "exito";
+                              }));
+                      if (loading) {
+                        Navigator.of(context).pop();
+                      }
+                      res == 'exito'
+                          ? showDialog(
+                              context: context,
+                              barrierColor: Theme.of(context).primaryColorLight,
+                              barrierDismissible: false,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  contentTextStyle:
+                                      Theme.of(context).textTheme.headline5,
+                                  title: const Icon(Icons.done_sharp,
+                                      size: 100, color: Colors.green),
+                                  actions: [
+                                    Center(
+                                      child: RaisedButton(
+                                        color: Theme.of(context).accentColor,
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('Aceptar'),
+                                      ),
+                                    )
+                                  ],
+                                  content: const Text(
+                                    'Inspección enviada correctamente',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              },
+                            )
+                          : Scaffold.of(context).showSnackBar(SnackBar(
+                              content: Text(res),
+                            ));
+                    }),
+
                 trailing: borrador.inspeccion.esNueva
                     ? IconButton(
                         icon: const Icon(Icons.delete),

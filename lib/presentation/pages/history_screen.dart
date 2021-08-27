@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/application/auth/auth_bloc.dart';
@@ -86,6 +87,10 @@ class HistoryInspeccionesPage extends StatelessWidget
                 children: [
                   const SizedBox(
                     height: 5,
+                  ),
+                  Text(
+                    "Estado: ${EnumToString.convertToString(borrador.inspeccion.estado, camelCase: true)}",
+                    style: textTheme.subtitle1,
                   ),
                   Text(
                     _dateSend == null

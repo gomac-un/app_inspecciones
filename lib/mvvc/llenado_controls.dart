@@ -21,13 +21,11 @@ class LlenadoOpcionFormGroup extends FormGroup {
       'calificacion':
           fb.control<double>(respuesta?.calificacion?.value?.toDouble() ?? 1),
       'respuesta': fb.control<OpcionDeRespuesta>(opcion, [Validators.required]),
-      'fotosBase': fb.array<File>(
-          respuesta?.fotosBase?.value
-                  ?.map((e) => FormControl(value: File(e)))
-                  ?.iter
-                  ?.toList() ??
-              [],
-          [Validators.minLength(1)]),
+      'fotosBase': fb.array<File>(respuesta?.fotosBase?.value
+              ?.map((e) => FormControl(value: File(e)))
+              ?.iter
+              ?.toList() ??
+          []),
       'fotosReparacion': fb.array<File>(
         respuesta?.fotosReparacion?.value
                 ?.map((e) => FormControl(value: File(e)))
@@ -84,6 +82,7 @@ class LlenadoOpcionFormGroup extends FormGroup {
 /// FormGroup de respuestas de selección.
 class RespuestaSeleccionSimpleFormGroup extends FormGroup
     implements BloqueDeFormulario {
+  @override
   final Bloque bloque;
   final PreguntaConOpcionesDeRespuesta pregunta;
   final List<RespuestaConOpcionesDeRespuesta> respuesta;
@@ -129,10 +128,16 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
 
       /// Este es un FormArray que se usa para permitir que cada opción elegida pueda ser un propio FormGroup
       /// con sus respectivos controles.
-      respuestaMultiple = fb.array<Map<String, dynamic>>(opcionesElegidas
-          .map((e) => LlenadoOpcionFormGroup(
-              opcion: e.opcionesDeRespuesta, respuesta: e.respuesta))
-          .toList());
+      respuestaMultiple = fb.array<Map<String, dynamic>>(
+          opcionesElegidas
+              .map((e) => LlenadoOpcionFormGroup(
+                  opcion: e.opcionesDeRespuesta, respuesta: e.respuesta))
+              .toList(),
+          [
+            if (pregunta.pregunta.tipo ==
+                TipoDePregunta.parteDeCuadriculaMultiple)
+              Validators.minLength(1)
+          ]);
     }
     if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta ||
         pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaUnica) {
@@ -197,16 +202,17 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
           respuesta?.first?.respuesta?.calificacion?.value?.toDouble() ?? 1),
       'respMultiple': respuestaMultiple,
       'fotosBase': fb.array<File>(
-          respuesta?.first?.respuesta?.fotosBase?.value
-                  ?.map((e) => FormControl(value: File(e)))
-                  ?.iter
-                  ?.toList() ??
-              [],
-          [
+        respuesta?.first?.respuesta?.fotosBase?.value
+                ?.map((e) => FormControl(value: File(e)))
+                ?.iter
+                ?.toList() ??
+            [],
+        /* [
             if (pregunta.pregunta.tipo == TipoDePregunta.unicaRespuesta ||
                 pregunta.pregunta.tipo == TipoDePregunta.parteDeCuadriculaUnica)
               Validators.minLength(1)
-          ]),
+          ] */
+      ),
       'fotosReparacion': fb.array<File>(
         respuesta?.first?.respuesta?.fotosReparacion?.value
                 ?.map((e) => FormControl(value: File(e)))
@@ -240,6 +246,35 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
     valueChanges.listen((_) {
       _momentoRespuesta = DateTime.now();
     }); //guarda el momento de la ultima edicion
+  }
+
+  /// Usado para manejar las cuadriculas de tipo múltiple.
+  void agregarRespuesta(OpcionDeRespuesta opcion) {
+    final controlRespuesta =
+        (control('respuestas') as FormControl<List<OpcionDeRespuesta>>).value;
+    final controlRespMultiple = control('respMultiple') as FormArray;
+    if (controlRespuesta != null && !controlRespuesta.contains(opcion)) {
+      controlRespuesta.add(opcion);
+    }
+    controlRespMultiple.add(
+      LlenadoOpcionFormGroup(
+          opcion: opcion,
+          respuesta: respuesta
+              ?.firstWhere((x) => x.opcionesDeRespuesta == opcion,
+                  orElse: () => RespuestaConOpcionesDeRespuesta(
+                      crearRespuestaPorDefecto(pregunta.pregunta.id), null))
+              ?.respuesta),
+    );
+  }
+
+  void eliminarRespuesta(OpcionDeRespuesta opcion) {
+    final controlRespuesta =
+        (control('respuestas') as FormControl<List<OpcionDeRespuesta>>).value;
+    final controlRespMultiple = control('respMultiple') as FormArray;
+    controlRespuesta.remove(opcion);
+    final indexOf = controlRespMultiple.controls
+        .indexWhere((x) => (x as LlenadoOpcionFormGroup).opcion == opcion);
+    controlRespMultiple.removeAt(indexOf);
   }
 
   /// Devuelve el porcentaje que representa la calificación dada por el inspector.
@@ -420,13 +455,18 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
 /// Form Group llenado de preguntas numericas.
 class RespuestaNumericaFormGroup extends FormGroup
     implements BloqueDeFormulario {
+  @override
+  final Bloque bloque;
   final Pregunta pregunta;
   RespuestasCompanion respuesta;
   List<CriticidadesNumerica> criticidades;
   DateTime _momentoRespuesta;
 
-  factory RespuestaNumericaFormGroup(Pregunta pregunta,
-      RespuestasCompanion respuesta, List<CriticidadesNumerica> criticidades) {
+  factory RespuestaNumericaFormGroup(
+      Pregunta pregunta,
+      RespuestasCompanion respuesta,
+      List<CriticidadesNumerica> criticidades,
+      Bloque bloque) {
     // La idea era que los companions devolvieran los valores por defecto pero no es asi
     // https://github.com/simolus3/moor/issues/960
     // entonces aca se asignan definen nuevo los valores por defecto que son usados
@@ -443,11 +483,12 @@ class RespuestaNumericaFormGroup extends FormGroup
       'valor': fb.control<double>(respuesta.valor.value, [Validators.required]),
       'observacion': fb.control<String>(respuesta.observacion.value),
       'fotosBase': fb.array<File>(
-          respuesta.fotosBase.value
-              .map((e) => FormControl(value: File(e)))
-              .iter
-              .toList(),
-          [Validators.minLength(1)]),
+        respuesta.fotosBase.value
+            .map((e) => FormControl(value: File(e)))
+            .iter
+            .toList(),
+        /*  [Validators.minLength(1)] */
+      ),
       'reparado': fb.control<bool>(respuesta.reparado.value),
       'observacionReparacion':
           fb.control<String>(respuesta.observacionReparacion.value),
@@ -464,11 +505,12 @@ class RespuestaNumericaFormGroup extends FormGroup
       pregunta,
       respuesta,
       criticidades,
+      bloque,
     );
   }
   //constructor que le envia los controles a la clase padre
   RespuestaNumericaFormGroup._(Map<String, AbstractControl> controles,
-      this.pregunta, this.respuesta, this.criticidades)
+      this.pregunta, this.respuesta, this.criticidades, this.bloque)
       : super(controles) {
     valueChanges.listen((_) => _momentoRespuesta =
         DateTime.now()); //guarda el momento de la ultima edicion
@@ -538,10 +580,13 @@ class RespuestaCuadriculaFormArray extends FormArray
     implements BloqueDeFormulario {
   final CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula;
   final List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas;
+  @override
+  final Bloque bloque;
 
   factory RespuestaCuadriculaFormArray(
     CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula,
     List<PreguntaConRespuestaConOpcionesDeRespuesta> preguntasRespondidas,
+    Bloque bloque,
   ) {
     for (final e in preguntasRespondidas) {
       e.respuesta.map(
@@ -562,10 +607,11 @@ class RespuestaCuadriculaFormArray extends FormArray
       controles,
       cuadricula,
       preguntasRespondidas,
+      bloque,
     );
   }
   RespuestaCuadriculaFormArray._(List<AbstractControl> controles,
-      this.cuadricula, this.preguntasRespondidas)
+      this.cuadricula, this.preguntasRespondidas, this.bloque)
       : super(controles);
 
   List<List<RespuestaConOpcionesDeRespuesta>> toDB([int inspeccionId]) {
@@ -633,8 +679,9 @@ class RespuestaCuadriculaFormArray extends FormArray
 /// La criticidad es 0
 class TituloFormGroup extends FormGroup implements BloqueDeFormulario {
   final Titulo titulo;
-
-  TituloFormGroup(this.titulo) : super({});
+  @override
+  final Bloque bloque;
+  TituloFormGroup(this.titulo, this.bloque) : super({});
 
   @override
   double get criticidad => 0;
@@ -655,6 +702,9 @@ RespuestasCompanion crearRespuestaPorDefecto(int preguntaId) =>
     );
 
 abstract class BloqueDeFormulario {
+  final Bloque bloque;
+
+  BloqueDeFormulario(this.bloque);
   double get criticidad;
   double get criticidadReparacion;
 }

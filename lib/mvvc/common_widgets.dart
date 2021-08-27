@@ -44,16 +44,25 @@ class PreguntaCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (titulo != null)
-              Text(
-                titulo,
-                style: Theme.of(context).textTheme.headline6,
-                textAlign: TextAlign.center,
+              Column(
+                children: [
+                  Text(
+                    titulo,
+                    style: Theme.of(context).textTheme.headline6,
+                    textAlign: TextAlign.center,
+                  ),
+                  const Divider(
+                    height: 10,
+                    color: Colors.black,
+                  ),
+                ],
               ),
             const SizedBox(height: 5),
             if (posicion != null)
               Text(
                 posicion,
-                style: Theme.of(context).textTheme.bodyText1,
+                style: const TextStyle(
+                    fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
               ),
             const SizedBox(height: 5),
             if (descripcion != null)

@@ -1,7 +1,7 @@
-part of 'llenado_form_view_model.dart';
+/* part of 'llenado_form_view_model.dart';
 
 final bloquesDeEjemplo = FormArray([
-  TituloFormGroup(
+  /* TituloFormGroup(
     Titulo(
       bloqueId: 1,
       descripcion: "descripcion del titulazo",
@@ -9,7 +9,7 @@ final bloquesDeEjemplo = FormArray([
       id: 1,
       titulo: 'el titulazo',
     ),
-  ),
+  ), */
   /* RespuestaSeleccionSimpleFormGroup(
     PreguntaConOpcionesDeRespuesta(
       Pregunta(
@@ -102,3 +102,4 @@ final bloquesDeEjemplo = FormArray([
             [RespuestaConOpcionesDeRespuesta(null, null)]),
       ]),
 ]);
+ */

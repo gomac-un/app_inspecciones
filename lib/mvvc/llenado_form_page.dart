@@ -11,7 +11,6 @@ import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:rflutter_alert/rflutter_alert.dart';
 
 /// Pantalla que se muestra al iniciar una nueva inspección.
 class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
@@ -81,7 +80,6 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
                       if (!cargada) {
                         return const CircularProgressIndicator();
                       }
-                      final controller = PageController();
                       final bloques = estado == EstadoDeInspeccion.borrador ||
                               estado == EstadoDeInspeccion.finalizada
                           ? viewModel.bloques.controls
@@ -94,152 +92,191 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
 
                       /// Suma la criticidad de todas las preguntas y respuestas.
                       final criticidadTotal = viewModel.criticidadTotal;
+                      final controller =
+                          PageController(initialPage: viewModel.avance);
 
                       /// Suma la criticidad de las preguntas despues de la reparación.
                       final criticidadReparacion =
                           viewModel.criticidadReparacion;
                       return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: PageView.builder(
-                            physics: const NeverScrollableScrollPhysics(),
-                            controller: controller,
-                            itemCount: bloques.length,
-                            itemBuilder: (context, i) {
-                              final element = bloques[i] as BloqueDeFormulario;
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                controller: viewModel.scrollController,
+                                child: ValueListenableBuilder<int>(
+                                  builder:
+                                      (BuildContext context, valor, child) {
+                                    return Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        for (int i = 0; i < bloques.length; i++)
+                                          if (i == valor)
+                                            WidgetNumero(
+                                              isActive: true,
+                                              error: bloques[i].hasErrors,
+                                              nBloque: (bloques[i]
+                                                      as BloqueDeFormulario)
+                                                  .bloque
+                                                  .nOrden,
+                                              index: i,
+                                              controller: controller,
+                                            )
+                                          else
+                                            WidgetNumero(
+                                              nBloque: (bloques[i]
+                                                      as BloqueDeFormulario)
+                                                  .bloque
+                                                  .nOrden,
+                                              error: bloques[i].hasErrors,
+                                              isActive: false,
+                                              index: i,
+                                              controller: controller,
+                                            )
+                                      ],
+                                    );
+                                  },
+                                  valueListenable: viewModel.page,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Expanded(
+                                child: PageView.builder(
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    controller: controller,
+                                    itemCount: bloques.length,
+                                    itemBuilder: (context, i) {
+                                      final element =
+                                          bloques[i] as BloqueDeFormulario;
 
-                              /// Procesamiento de cada bloque.
-                              /// Devuelve la card correspondiente a cada FormGroup.
-                              if (element is TituloFormGroup) {
-                                return Center(
-                                  child: Column(
-                                    children: [
-                                      TituloCard(formGroup: element),
-                                      const SizedBox(
-                                        height: 20,
-                                      ),
-                                      BotonesComunes(
-                                        totalBloques: bloques.length,
-                                        estado: estado,
-                                        esTitulo: true,
-                                        criticidadTotal: criticidadTotal,
-                                        titulo: titulo,
-                                        criticidadReparacion:
-                                            criticidadReparacion,
-                                        titulo1: titulo1,
-                                        controller: controller,
-                                        i: i,
-                                      )
-                                    ],
-                                  ),
-                                );
-                              }
-                              if (element
-                                  is RespuestaSeleccionSimpleFormGroup) {
-                                return SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: LinearProgressIndicator(
-                                          value: (i + 1) / bloques.length,
-                                          minHeight: 5,
-                                        ),
-                                      ),
-                                      SeleccionSimpleCard(
-                                        formGroup: element,
-                                        readOnly: readOnly,
-                                      ),
-                                      const SizedBox(
-                                        height: 20,
-                                      ),
-                                      BotonesComunes(
-                                        totalBloques: bloques.length,
-                                        estado: estado,
-                                        esTitulo: false,
-                                        criticidadTotal: criticidadTotal,
-                                        titulo: titulo,
-                                        criticidadReparacion:
-                                            criticidadReparacion,
-                                        titulo1: titulo1,
-                                        controller: controller,
-                                        i: i,
-                                      )
-                                    ],
-                                  ),
-                                );
-                              }
-                              if (element is RespuestaCuadriculaFormArray) {
-                                return SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: LinearProgressIndicator(
-                                          value: (i + 1) / bloques.length,
-                                          minHeight: 5,
-                                        ),
-                                      ),
-                                      CuadriculaCard(
-                                        formArray: element,
-                                        readOnly: readOnly,
-                                      ),
-                                      const SizedBox(
-                                        height: 20,
-                                      ),
-                                      BotonesComunes(
-                                        totalBloques: bloques.length,
-                                        estado: estado,
-                                        esTitulo: false,
-                                        criticidadTotal: criticidadTotal,
-                                        titulo: titulo,
-                                        criticidadReparacion:
-                                            criticidadReparacion,
-                                        titulo1: titulo1,
-                                        controller: controller,
-                                        i: i,
-                                      )
-                                    ],
-                                  ),
-                                );
-                              }
-                              if (element is RespuestaNumericaFormGroup) {
-                                return SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: LinearProgressIndicator(
-                                          value: (i + 1) / bloques.length,
-                                          minHeight: 5,
-                                        ),
-                                      ),
-                                      NumericaCard(
-                                        formGroup: element,
-                                        readOnly: readOnly,
-                                      ),
-                                      const SizedBox(
-                                        height: 20,
-                                      ),
-                                      BotonesComunes(
-                                        totalBloques: bloques.length,
-                                        estado: estado,
-                                        esTitulo: false,
-                                        criticidadTotal: criticidadTotal,
-                                        titulo: titulo,
-                                        criticidadReparacion:
-                                            criticidadReparacion,
-                                        titulo1: titulo1,
-                                        controller: controller,
-                                        i: i,
-                                      )
-                                    ],
-                                  ),
-                                );
-                              }
-                              return Text(
-                                  "error: el bloque $i no tiene una card que lo renderice");
-                            }),
-                      );
+                                      /// Procesamiento de cada bloque.
+                                      /// Devuelve la card correspondiente a cada FormGroup.
+                                      if (element is TituloFormGroup) {
+                                        return Center(
+                                          child: Column(
+                                            children: [
+                                              TituloCard(formGroup: element),
+                                              const SizedBox(
+                                                height: 20,
+                                              ),
+                                              BotonesComunes(
+                                                totalBloques: bloques.length,
+                                                estado: estado,
+                                                esTitulo: true,
+                                                criticidadTotal:
+                                                    criticidadTotal,
+                                                titulo: titulo,
+                                                criticidadReparacion:
+                                                    criticidadReparacion,
+                                                titulo1: titulo1,
+                                                i: i,
+                                                controller: controller,
+                                              )
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                      if (element
+                                          is RespuestaSeleccionSimpleFormGroup) {
+                                        return SingleChildScrollView(
+                                          child: Column(
+                                            children: [
+                                              SeleccionSimpleCard(
+                                                formGroup: element,
+                                                readOnly: readOnly,
+                                              ),
+                                              const SizedBox(
+                                                height: 20,
+                                              ),
+                                              BotonesComunes(
+                                                totalBloques: bloques.length,
+                                                estado: estado,
+                                                esTitulo: false,
+                                                criticidadTotal:
+                                                    criticidadTotal,
+                                                titulo: titulo,
+                                                criticidadReparacion:
+                                                    criticidadReparacion,
+                                                titulo1: titulo1,
+                                                i: i,
+                                                controller: controller,
+                                              )
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                      if (element
+                                          is RespuestaCuadriculaFormArray) {
+                                        return SingleChildScrollView(
+                                          child: Column(
+                                            children: [
+                                              CuadriculaCard(
+                                                formArray: element,
+                                                readOnly: readOnly,
+                                              ),
+                                              const SizedBox(
+                                                height: 20,
+                                              ),
+                                              BotonesComunes(
+                                                totalBloques: bloques.length,
+                                                estado: estado,
+                                                esTitulo: false,
+                                                criticidadTotal:
+                                                    criticidadTotal,
+                                                titulo: titulo,
+                                                criticidadReparacion:
+                                                    criticidadReparacion,
+                                                titulo1: titulo1,
+                                                i: i,
+                                                controller: controller,
+                                              )
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                      if (element
+                                          is RespuestaNumericaFormGroup) {
+                                        return SingleChildScrollView(
+                                          child: Column(
+                                            children: [
+                                              NumericaCard(
+                                                formGroup: element,
+                                                readOnly: readOnly,
+                                              ),
+                                              const SizedBox(
+                                                height: 20,
+                                              ),
+                                              BotonesComunes(
+                                                totalBloques: bloques.length,
+                                                estado: estado,
+                                                esTitulo: false,
+                                                criticidadTotal:
+                                                    criticidadTotal,
+                                                titulo: titulo,
+                                                criticidadReparacion:
+                                                    criticidadReparacion,
+                                                titulo1: titulo1,
+                                                i: i,
+                                                controller: controller,
+                                              )
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                      return Text(
+                                          "error: el bloque $i no tiene una card que lo renderice");
+                                    }),
+                              ),
+
+                              /* Visibility(...) */
+                            ],
+                          ));
                     }),
               ),
               floatingActionButtonLocation:
@@ -251,6 +288,65 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
               ),
             );
           }),
+    );
+  }
+}
+
+class WidgetNumero extends StatelessWidget {
+  final bool isActive;
+  final int index;
+  final int nBloque;
+  final PageController controller;
+  final bool error;
+  const WidgetNumero(
+      {Key key,
+      this.isActive,
+      this.index,
+      this.controller,
+      this.error,
+      this.nBloque})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = Provider.of<LlenadoFormViewModel>(context);
+    final color = isActive
+        ? Colors.white
+        : error &&
+                (index <= controller.initialPage ||
+                    index <= viewModel.page.value)
+            ? const Color.fromRGBO(245, 127, 93, 0.8)
+            : Colors.transparent;
+    return GestureDetector(
+      onTap: () {
+        controller.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.linear,
+        );
+        viewModel.page.value = index;
+      },
+      child: Stack(
+        alignment: AlignmentDirectional.center,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            margin: const EdgeInsets.symmetric(horizontal: 5),
+            height: isActive ? 40 : 25,
+            width: isActive ? 40 : 25,
+            decoration: BoxDecoration(
+                color: color,
+                borderRadius: const BorderRadius.all(Radius.circular(50))),
+          ),
+          if (nBloque != 0)
+            Text(
+              '$nBloque',
+              style: TextStyle(
+                fontSize: isActive ? 15 : 12,
+              ),
+            )
+        ],
+      ),
     );
   }
 }
@@ -267,9 +363,9 @@ class BotonesComunes extends StatelessWidget {
 
   final double criticidadReparacion;
   final int i;
-  final PageController controller;
 
   final bool esTitulo;
+  final PageController controller;
 
   const BotonesComunes({
     Key key,
@@ -278,10 +374,10 @@ class BotonesComunes extends StatelessWidget {
     @required this.titulo1,
     @required this.criticidadReparacion,
     @required this.i,
-    @required this.controller,
     @required this.esTitulo,
     @required this.estado,
     @required this.totalBloques,
+    @required this.controller,
   }) : super(key: key);
 
   @override
@@ -303,9 +399,14 @@ class BotonesComunes extends StatelessWidget {
                     FloatingActionButton(
                       heroTag: 'atras',
                       onPressed: () {
+                        if (i <= totalBloques - 3) {
+                          viewModel.moveScroll(avanzar: false);
+                        }
+
+                        viewModel.page.value = i - 1;
                         controller.animateToPage(
                           i - 1,
-                          duration: const Duration(milliseconds: 300),
+                          duration: const Duration(milliseconds: 150),
                           curve: Curves.linear,
                         );
                       },
@@ -320,9 +421,14 @@ class BotonesComunes extends StatelessWidget {
                     FloatingActionButton(
                       heroTag: 'adelante',
                       onPressed: () {
+                        if (i >= 2) {
+                          viewModel.moveScroll();
+                        }
+
+                        viewModel.page.value = i + 1;
                         controller.animateToPage(
                           i + 1,
-                          duration: const Duration(milliseconds: 300),
+                          duration: const Duration(milliseconds: 150),
                           curve: Curves.linear,
                         );
                       },
@@ -342,7 +448,7 @@ class BotonesComunes extends StatelessWidget {
                     children: [
                       Text(
                         titulo,
-                        style: Theme.of(context).textTheme.headline6,
+                        style: Theme.of(context).textTheme.bodyText1,
                       ),
                       if (criticidadTotal > 0)
                         const Icon(
@@ -356,7 +462,7 @@ class BotonesComunes extends StatelessWidget {
                           color: Colors.green[200], /* color: Colors.white, */
                         ),
                       Text(
-                        ' ${criticidadTotal.toString()}',
+                        ' ${criticidadTotal.toStringAsFixed(1)}',
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                     ],
@@ -375,7 +481,7 @@ class BotonesComunes extends StatelessWidget {
                     children: [
                       Text(
                         titulo1,
-                        style: Theme.of(context).textTheme.headline6,
+                        style: Theme.of(context).textTheme.bodyText1,
                       ),
                       if (criticidadTotal > 0)
                         const Icon(
@@ -505,11 +611,10 @@ class BotonesGuardado extends StatelessWidget {
                                       ),
                                     ],
                                     title: const Text("Errores:"),
-                                    content: Text(
-                                        /*JsonEncoder.withIndent('  ')
-                                          .convert(json.encode(form.errors)),*/
-                                        /* form.errors.values.toString(), */
-                                        _obtenerErrores(form, estado: estado)),
+                                    content: SingleChildScrollView(
+                                      child: Text(_obtenerErrores(form,
+                                          estado: estado)),
+                                    ),
                                   ),
                                 );
                               },
@@ -557,7 +662,7 @@ class BotonesGuardado extends StatelessWidget {
     errores.forEach((key, value) {
       textoApoyo = estado == EstadoDeInspeccion.enReparacion
           ? '- Pregunta $key: asegúrese de haber incluido observaciones y fotos de la reparación.'
-          : '- Pregunta $key: asegúrese de responder la pregunta y tomar las fotos base.';
+          : '- Pregunta $key: asegúrese de responder la pregunta.';
       texto = '$texto \n$textoApoyo';
     });
     return texto;
@@ -713,62 +818,31 @@ class BotonesGuardado extends StatelessWidget {
 
   /// Muestra mensaje de finalización.
   void mostrarMensaje(BuildContext context, String mensaje) {
-    Alert(
+    showDialog(
       context: context,
-      style: AlertStyle(
-        overlayColor: Colors.blueAccent[100],
-        animationType: AnimationType.fromTop,
-        isCloseButton: false,
-        isOverlayTapDismiss: false,
-        descStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
-        ),
-        animationDuration: const Duration(milliseconds: 400),
-        alertBorder: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0),
-          side: const BorderSide(
-            color: Colors.grey,
+      barrierColor: Theme.of(context).primaryColorLight,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          contentTextStyle: Theme.of(context).textTheme.headline5,
+          title: const Icon(Icons.done_sharp, size: 100, color: Colors.green),
+          actions: [
+            Center(
+              child: RaisedButton(
+                color: Theme.of(context).accentColor,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Aceptar'),
+              ),
+            )
+          ],
+          content: Text(
+            mensaje,
+            textAlign: TextAlign.center,
           ),
-        ),
-        titleStyle: const TextStyle(
-          color: Colors.white,
-        ),
-      ),
-      type: AlertType.success,
-      title: 'Éxito',
-      desc: mensaje,
-      buttons: [
-        DialogButton(
-          onPressed: () async =>
-
-              /// Guarda la inspección con estado finalizado.
-              {Navigator.pop(context), await guardarYSalir(context)},
-          color: Theme.of(context).accentColor,
-          radius: BorderRadius.circular(10.0),
-          child: const Text(
-            "Aceptar",
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-        ),
-      ],
-    ).show();
-  }
-}
-
-class ErroresDialog extends StatelessWidget {
-  final AbstractControl form;
-
-  const ErroresDialog({Key key, this.form}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text("Errores: "),
-      content: Text(
-        /*JsonEncoder.withIndent('  ')
-        .convert(json.encode(form.errors)),*/
-        form.errors['bloques'].toString(), //TODO: darle un formato adecuado
-      ),
+        );
+      },
     );
   }
 }

@@ -1,22 +1,24 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
-import 'package:kt_dart/collection.dart';
-import 'package:kt_dart/kt.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-part 'llenado_datos_test.dart';
+/* part 'llenado_datos_test.dart'; */
 
 /// Validaciones para el llenado de inspección.
 class LlenadoFormViewModel extends ChangeNotifier {
   final _db = getIt<Database>();
+  int avance = 0;
 
   /// Evita un error porque se tienen que cargar los bloques.
   final ValueNotifier<bool> cargada = ValueNotifier(false);
+  final ValueNotifier<int> page = ValueNotifier(0);
   final ValueNotifier<EstadoDeInspeccion> estado =
       ValueNotifier(EstadoDeInspeccion.borrador);
+  final scrollController = ScrollController();
 
   /// Por defecto es una inspección desde 0.
   final esNueva = ValueNotifier<bool>(true);
@@ -44,10 +46,17 @@ class LlenadoFormViewModel extends ChangeNotifier {
     /// Se usa para instanciar los valores de [fueGuardado], [estado] y [esNueva].
     final inspeccion =
         await _db.llenadoDao.getInspeccion(_activo, cuestionarioId);
+
     if (inspeccion?.momentoBorradorGuardado != null) {
       fueGuardado.value = true;
     }
     estado.value = inspeccion?.estado ?? EstadoDeInspeccion.borrador;
+
+    if (inspeccion != null) {
+      avance = await _db.borradoresDao.getUltimoBloque(inspeccion.id,
+          reparacion: estado.value == EstadoDeInspeccion.enReparacion);
+      page.value = avance ?? 0;
+    }
 
     /// Si es false, los textFields tienen readOnly =  True.
     esNueva.value = inspeccion?.esNueva ?? true;
@@ -61,22 +70,23 @@ class LlenadoFormViewModel extends ChangeNotifier {
               (a, b) => a.nOrden.compareTo(b.bloque.nOrden),
             ))
           .map<AbstractControl>((e) {
-        if (e is BloqueConTitulo) return TituloFormGroup(e.titulo);
+        if (e is BloqueConTitulo) return TituloFormGroup(e.titulo, e.bloque);
         /*   if (e is BloqueConCondicional) {
           esCondicional.value = true;
           return RespuestaSeleccionSimpleFormGroup(e.pregunta, e.respuesta,
               condiciones: e.condiciones, bloque: e.bloque);
         } */
         if (e is BloqueConPreguntaSimple) {
-          return RespuestaSeleccionSimpleFormGroup(e.pregunta, e.respuesta);
+          return RespuestaSeleccionSimpleFormGroup(e.pregunta, e.respuesta,
+              bloque: e.bloque);
         }
         if (e is BloqueConCuadricula) {
           return RespuestaCuadriculaFormArray(
-              e.cuadricula, e.preguntasRespondidas);
+              e.cuadricula, e.preguntasRespondidas, e.bloque);
         }
         if (e is BloqueConPreguntaNumerica) {
-          return RespuestaNumericaFormGroup(
-              e.pregunta.pregunta, e.respuesta, e.pregunta.criticidades);
+          return RespuestaNumericaFormGroup(e.pregunta.pregunta, e.respuesta,
+              e.pregunta.criticidades, e.bloque);
         }
         throw Exception("Tipo de bloque no reconocido");
       }).toList(),
@@ -86,6 +96,17 @@ class LlenadoFormViewModel extends ChangeNotifier {
       'bloques': bloques,
     });
     cargada.value = true;
+  }
+
+  void moveScroll({bool avanzar = true}) {
+    scrollController.animateTo(
+      // NEW
+      avanzar
+          ? scrollController.position.pixels + 50
+          : scrollController.position.pixels - 50, // NEW
+      duration: const Duration(milliseconds: 150), // NEW
+      curve: Curves.ease, // NEW
+    );
   }
 
   double get criticidadTotal => bloques.controls
@@ -125,6 +146,8 @@ class LlenadoFormViewModel extends ChangeNotifier {
     cargada.dispose();
     estado.dispose();
     form.dispose();
+    page.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 }

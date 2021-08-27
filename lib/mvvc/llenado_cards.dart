@@ -218,10 +218,13 @@ class TituloCard extends StatelessWidget {
                 formGroup.titulo.titulo,
                 style: Theme.of(context).textTheme.headline5,
               ),
-              Text(
-                formGroup.titulo.descripcion,
-                style: Theme.of(context).textTheme.bodyText2,
+              const Divider(
+                height: 25,
+                color: Colors.black,
               ),
+              const SizedBox(height: 10),
+              Text(formGroup.titulo.descripcion,
+                  style: TextStyle(fontSize: 15)),
             ],
           ),
         ),
@@ -255,7 +258,7 @@ class NumericaCard extends StatelessWidget {
       descripcion: formGroup.pregunta.descripcion,
       criticidad: criticidad.toDouble(),
       posicion:
-          '${formGroup.pregunta.eje}, ${formGroup.pregunta.lado}, ${formGroup.pregunta.posicionZ}',
+          '${formGroup.pregunta.eje} / ${formGroup.pregunta.lado} / ${formGroup.pregunta.posicionZ}',
       estado: mensajeCriticidad,
       child: Column(
         children: [
@@ -333,7 +336,7 @@ class SeleccionSimpleCard extends StatelessWidget {
       descripcion: formGroup.pregunta.pregunta.descripcion,
       criticidad: criticidad.toDouble(),
       posicion:
-          '${formGroup.pregunta.pregunta.eje}, ${formGroup.pregunta.pregunta.lado}, ${formGroup.pregunta.pregunta.posicionZ}',
+          '${formGroup.pregunta.pregunta.eje} / ${formGroup.pregunta.pregunta.lado} / ${formGroup.pregunta.pregunta.posicionZ}',
       estado: mensajeCriticidad,
       child: Builder(
         builder: (BuildContext context) {
@@ -516,9 +519,14 @@ class CuadriculaCard extends StatelessWidget {
     final viewModel = Provider.of<LlenadoFormViewModel>(context);
     final numeroDeColumnas = formArray.cuadricula.opcionesDeRespuesta.length;
     final media = MediaQuery.of(context).size;
+    final firstQuestion =
+        formArray.controls.first as RespuestaSeleccionSimpleFormGroup;
+
     return PreguntaCard(
       titulo: formArray.cuadricula.cuadricula.titulo,
       descripcion: formArray.cuadricula.cuadricula.descripcion,
+      posicion:
+          '${firstQuestion.pregunta.pregunta.eje} / ${firstQuestion.pregunta.pregunta.lado} / ${firstQuestion.pregunta.pregunta.posicionZ}',
       child: Column(
         children: [
           Table(
@@ -544,13 +552,18 @@ class CuadriculaCard extends StatelessWidget {
               ),
               ...formArray.controls.map((d) {
                 final e = d as RespuestaSeleccionSimpleFormGroup;
+                final invalido = ValueNotifier<bool>(e.hasErrors);
                 /*final ctrlPregunta =
                     e.control('respuestas') ;*/
                 final reparacion = e.control('reparado') as FormControl<bool>;
+
                 Widget icon;
                 if (viewModel.estado.value != EstadoDeInspeccion.borrador &&
                     e.criticidad > 0) {
-                  if (e.errors.isNotEmpty) {
+                  if (e.errors.isNotEmpty ||
+                      (e.control('fotosBase') as FormArray<File>)
+                          .value
+                          .isEmpty) {
                     icon = const Icon(Icons.assignment_late_rounded,
                         color: Colors.red);
                   } else {
@@ -563,20 +576,24 @@ class CuadriculaCard extends StatelessWidget {
                             : Colors.green);
                   }
                 } else {
-                  if (e.errors.isNotEmpty) {
-                    icon = const Icon(
-                      Icons.remove_red_eye,
-                      color: Colors.red,
-                    );
-                  } else {
-                    icon = const Icon(Icons.remove_red_eye);
-                  }
+                  icon = ValueListenableBuilder<bool>(
+                      valueListenable: invalido,
+                      builder: (context, value, child) {
+                        if (value) {
+                          return const Icon(
+                            Icons.remove_red_eye,
+                            color: Colors.red,
+                          );
+                        }
+                        return const Icon(Icons.remove_red_eye);
+                      });
                 }
                 return TableRow(
                   children: [
                     Text(e.pregunta.pregunta.titulo),
                     ...formArray.cuadricula.opcionesDeRespuesta
-                        .map((res) => WidgetSeleccion(pregunta: e, opcion: res))
+                        .map((res) => WidgetSeleccion(
+                            pregunta: e, opcion: res, error: invalido))
                         .toList(),
 
                     IconButton(
@@ -624,7 +641,8 @@ class CuadriculaCard extends StatelessWidget {
 class WidgetSeleccion extends StatefulWidget {
   final RespuestaSeleccionSimpleFormGroup pregunta;
   final OpcionDeRespuesta opcion;
-  const WidgetSeleccion({Key key, this.pregunta, this.opcion})
+  final ValueNotifier<bool> error;
+  const WidgetSeleccion({Key key, this.pregunta, this.opcion, this.error})
       : super(key: key);
 
   @override
@@ -654,42 +672,11 @@ class _WidgetSeleccionState extends State<WidgetSeleccion> {
           /// Se agrega al nuevo control para mostrar.
           /// Ademas se agrega a los controles, para poder tener registro de los datos.
           if (newValue) {
-            if (!control?.contains(widget.opcion) ?? false) {
-              control.add(widget.opcion);
-            }
-            controlito.add(
-              LlenadoOpcionFormGroup(
-                  opcion: widget.opcion,
-                  respuesta: widget.pregunta.respuesta
-                      ?.firstWhere(
-                          (x) => x.opcionesDeRespuesta == widget.opcion,
-                          orElse: () => RespuestaConOpcionesDeRespuesta(
-                              crearRespuestaPorDefecto(
-                                  widget.pregunta.pregunta.pregunta.id),
-                              null))
-                      ?.respuesta),
-            );
+            widget.pregunta.agregarRespuesta(widget.opcion);
           } else {
-            (widget.pregunta.control('respuestas')
-                    as FormControl<List<OpcionDeRespuesta>>)
-                .value
-                .remove(widget.opcion);
-            controlito.clear();
-            controlito.addAll(control
-                .map(
-                  (e) => LlenadoOpcionFormGroup(
-                      opcion: e,
-                      respuesta: widget.pregunta.respuesta
-                          ?.firstWhere(
-                              (x) => x.opcionesDeRespuesta == widget.opcion,
-                              orElse: () => RespuestaConOpcionesDeRespuesta(
-                                  crearRespuestaPorDefecto(
-                                      widget.pregunta.pregunta.pregunta.id),
-                                  null))
-                          ?.respuesta),
-                )
-                .toList());
+            widget.pregunta.eliminarRespuesta(widget.opcion);
           }
+          widget.error.value = widget.pregunta.hasErrors;
         },
       );
     } else {

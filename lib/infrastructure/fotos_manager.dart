@@ -39,6 +39,16 @@ class FotosManager {
     return docDir.existsSync() ? docDir.listSync().whereType<File>() : [];
   }
 
+  static Future deleteFotosDeDocumento(
+      {String idDocumento, String tipoDocumento}) async {
+    final appDir = await getApplicationDocumentsDirectory();
+    final docDir =
+        Directory(path.join(appDir.path, tipoDocumento, idDocumento));
+    if (docDir.existsSync()) {
+      docDir.deleteSync(recursive: true);
+    }
+  }
+
   static String convertirAUbicacionAbsoluta(
       {String tipoDeDocumento, String idDocumento, String basename}) {
     return path.join(getIt<DirectorioDeDatos>().path, tipoDeDocumento,

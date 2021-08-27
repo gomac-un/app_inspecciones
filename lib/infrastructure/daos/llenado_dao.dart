@@ -53,13 +53,44 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     return query.map((row) {
       return row.readTable(cuestionarios);
     }).get();*/
+    final ids = [
+      400000000000054,
+      400000000000053,
+      400000000000052,
+      400000000000050,
+      400000000000049,
+      400000000000046,
+      400000000000045,
+      400000000000042,
+      400000000000041,
+      400000000000040,
+      400000000000039,
+      400000000000038,
+      400000000000037,
+      400000000000019,
+      400000000000012
+    ];
 
     return customSelect(
       '''
       SELECT cuestionarios.* FROM activos
       INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.modelo = activos.modelo
       INNER JOIN cuestionarios ON cuestionarios.id = cuestionario_de_modelos.cuestionario_id
-      WHERE activos.id = $activo
+      WHERE activos.id = $activo AND cuestionarios.id NOT IN (400000000000054,
+      400000000000053,
+      400000000000052,
+      400000000000050,
+      400000000000049,
+      400000000000046,
+      400000000000045,
+      400000000000042,
+      400000000000041,
+      400000000000040,
+      400000000000039,
+      400000000000038,
+      400000000000037,
+      400000000000019,
+      400000000000012)
       UNION
       SELECT cuestionarios.* FROM cuestionarios
       INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.cuestionario_id = cuestionarios.id
