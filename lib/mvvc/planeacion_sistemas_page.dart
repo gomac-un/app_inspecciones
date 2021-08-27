@@ -7,6 +7,7 @@ import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/widgets/muti_value_listenable_builder.dart';
 import 'package:inspecciones/mvvc/planeacion_grupos_cards.dart';
 import 'package:inspecciones/mvvc/planeacion_sistemas_control.dart';
+import 'package:inspecciones/presentation/widgets/reactive_filter_chip_selection.dart';
 import 'package:inspecciones/presentation/widgets/reactive_multiselect_dialog_field.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
@@ -265,27 +266,18 @@ class DetailSitemasPage extends StatelessWidget {
                           Text('Sistemas Asignados',
                               style: Theme.of(context).textTheme.headline6),
                           const Divider(),
-                          ReactiveMultiSelectDialogField<Sistema>(
-                            buttonText:
-                                const Text('Seleccione entre las opciones'),
-                            items: sistemas
-                                .map((e) => MultiSelectItem(e, e.nombre))
-                                .toList(),
+                          ReactiveFilterChipSelection<Sistema, Sistema>(
+                            decoration: const InputDecoration(
+                              labelText: 'Seleccione entre las opciones',
+                            ),
+                            posibleItems: sistemas,
                             formControl: formGroup.control('asignados')
                                 as FormControl<List<Sistema>>,
-                            onTap: () => FocusScope.of(context).unfocus(),
+                            labelAccesor: (sistema) => sistema.nombre,
                             validationMessages: (control) => {
                               'repetido':
                                   'Seleccionó algún sistema que ya pertenece a otro grupo'
                             },
-                            /* onChanged: (value) {
-                            if (formGroup.pregunta.pregunta.esCondicional == true) {
-                              viewModel.borrarBloque(
-                                formGroup.bloque.nOrden,
-                                formGroup.seccion,
-                              );
-                            }
-                          }, */
                           ),
                         ],
                       ),
@@ -295,27 +287,18 @@ class DetailSitemasPage extends StatelessWidget {
                           Text('Sistemas no asignados',
                               style: Theme.of(context).textTheme.headline6),
                           const Divider(),
-                          ReactiveMultiSelectDialogField<Sistema>(
-                            buttonText:
-                                const Text('Seleccione entre las opciones'),
-                            items: sistemas
-                                .map((e) => MultiSelectItem(e, e.nombre))
-                                .toList(),
+                          ReactiveFilterChipSelection<Sistema, Sistema>(
+                            decoration: const InputDecoration(
+                              labelText: 'Seleccione entre las opciones',
+                            ),
+                            posibleItems: sistemas,
                             formControl: formGroup.control('noAsignados')
                                 as FormControl<List<Sistema>>,
-                            onTap: () => FocusScope.of(context).unfocus(),
+                            labelAccesor: (sistema) => sistema.nombre,
                             validationMessages: (control) => {
                               'repetido':
                                   'Seleccionó algún sistema que ya pertenece a otro grupo'
                             },
-                            /* onChanged: (value) {
-                        if (formGroup.pregunta.pregunta.esCondicional == true) {
-                          viewModel.borrarBloque(
-                            formGroup.bloque.nOrden,
-                            formGroup.seccion,
-                          );
-                        }
-                  }, */
                           ),
                         ],
                       ),
@@ -325,27 +308,18 @@ class DetailSitemasPage extends StatelessWidget {
                           Text('Sistemas que no aplican',
                               style: Theme.of(context).textTheme.headline6),
                           const Divider(),
-                          ReactiveMultiSelectDialogField<Sistema>(
-                            buttonText:
-                                const Text('Seleccione entre las opciones'),
-                            items: sistemas
-                                .map((e) => MultiSelectItem(e, e.nombre))
-                                .toList(),
+                          ReactiveFilterChipSelection<Sistema, Sistema>(
+                            decoration: const InputDecoration(
+                              labelText: 'Seleccione entre las opciones',
+                            ),
+                            posibleItems: sistemas,
                             formControl: formGroup.control('noAplica')
                                 as FormControl<List<Sistema>>,
-                            onTap: () => FocusScope.of(context).unfocus(),
+                            labelAccesor: (sistema) => sistema.nombre,
                             validationMessages: (control) => {
                               'repetido':
                                   'Seleccionó algún sistema que ya pertenece a otro grupo'
                             },
-                            /* onChanged: (value) {
-                        if (formGroup.pregunta.pregunta.esCondicional == true) {
-                          viewModel.borrarBloque(
-                            formGroup.bloque.nOrden,
-                            formGroup.seccion,
-                          );
-                        }
-                  }, */
                           ),
                         ],
                       ),

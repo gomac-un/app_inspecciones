@@ -61,6 +61,7 @@ class Cuestionarios extends Table {
 }
 
 ///Tabla para asignar cuestionarios a modelos y a contratistas.
+///TODO: renombrar a ModelosDeCuestionario
 class CuestionarioDeModelos extends Table {
   IntColumn get id => integer().autoIncrement()();
 

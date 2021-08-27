@@ -6,6 +6,7 @@ import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
 import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
+import 'package:inspecciones/presentation/widgets/reactive_filter_chip_selection.dart';
 import 'package:inspecciones/presentation/widgets/reactive_multiselect_dialog_field.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
@@ -412,20 +413,22 @@ class SeleccionSimpleCard extends StatelessWidget {
             children: [
               if (formGroup.pregunta.pregunta.tipo ==
                   TipoDePregunta.multipleRespuesta)
-                ReactiveMultiSelectDialogField<OpcionDeRespuesta>(
+                ReactiveFilterChipSelection<OpcionDeRespuesta,
+                    OpcionDeRespuesta>(
                   validationMessages: (control) =>
                       {'minLength': 'Elija una opción'},
-                  buttonText: const Text('Seleccione entre las opciones'),
-                  items: formGroup.pregunta.opcionesDeRespuesta
-                      .map((e) => MultiSelectItem(e, e.texto))
-                      .toList(),
+
+                  decoration: const InputDecoration(
+                    labelText: 'Seleccione entre las opciones',
+                  ),
+                  posibleItems: formGroup.pregunta.opcionesDeRespuesta,
+                  labelAccesor: (opcion) => opcion.texto,
 
                   /// Se usa el control 'respuestas', solo para mostrarlos en los chips.
                   /// De aquí en adelante, se usa respMultiple para poder manejar como
                   /// respuestas independientes, con sus respectivas fotos y observaciones.
                   formControl: formGroup.control('respuestas')
                       as FormControl<List<OpcionDeRespuesta>>,
-                  onTap: () => FocusScope.of(context).unfocus(),
                 ),
               ReactiveValueListenableBuilder(
                 formControl: formGroup.control('respMultiple'),

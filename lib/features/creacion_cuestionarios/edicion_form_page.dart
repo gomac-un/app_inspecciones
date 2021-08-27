@@ -1,13 +1,13 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:inspecciones/presentation/widgets/reactive_filter_chip_selection.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'package:inspecciones/mvvc/form_scaffold.dart';
-import 'package:inspecciones/presentation/widgets/reactive_multiselect_dialog_field.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
 import 'package:inspecciones/presentation/widgets/alertas.dart';
 import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
@@ -116,19 +116,19 @@ class EdicionForm extends StatelessWidget {
             ),
             PreguntaCard(
               titulo: 'Modelos de vehículo',
-              child: ReactiveMultiSelectDialogField(
-                  formControl: controller.modelosControl,
-                  items: controller.todosLosModelos
-                      .map((e) => MultiSelectItem(e, e))
-                      .toList(),
-                  buttonText:
-                      const Text('Modelos a los que aplica esta inspección'),
-                  validationMessages: (control) => {
-                        ValidationMessage.minLength:
-                            'Seleccione al menos un modelo',
-                        'yaExiste':
-                            'Ya existe un cuestionario de este tipo para este modelo'
-                      }),
+              child: ReactiveFilterChipSelection(
+                formControl: controller.modelosControl,
+                posibleItems: controller.todosLosModelos,
+                decoration: const InputDecoration(
+                  labelText: 'Modelos a los que aplica esta inspección',
+                ),
+                labelAccesor: id,
+                validationMessages: (control) => {
+                  ValidationMessage.minLength: 'Seleccione al menos un modelo',
+                  'yaExiste':
+                      'Ya existe un cuestionario de este tipo para este modelo'
+                },
+              ),
             ),
 
             PreguntaCard(

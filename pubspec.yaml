@@ -32,7 +32,6 @@ dependencies:
   cupertino_icons: ^1.0.3
   dartz: ^0.10.0
   datetime_picker_formfield: ^2.0.0
-  dropdown_search: ^0.6.3
   editable: ^2.0.0
   enum_to_string: ^2.0.1
   flutter_archive: ^4.0.1
@@ -48,7 +47,6 @@ dependencies:
   json_annotation: ^4.0.1
   moor: ^4.5.0
   moor_db_viewer: ^4.3.0
-  multi_select_flutter: ^4.0.0
   open_file: ^3.2.1
   path: ^1.8.0
   path_provider: ^2.0.2
