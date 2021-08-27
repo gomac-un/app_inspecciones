@@ -5,7 +5,6 @@ import 'package:dartz/dartz.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:intl/intl.dart';
-import 'package:kt_dart/kt.dart';
 import 'package:moor/moor.dart';
 
 import 'package:inspecciones/core/enums.dart';

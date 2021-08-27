@@ -1,21 +1,23 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:inspecciones/application/creacion/creacion_form_controller_cubit.dart';
-import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/mvvc/common_widgets.dart';
-import 'package:inspecciones/mvvc/creacion_cards.dart';
-import 'package:inspecciones/mvvc/creacion_form_controller.dart';
-import 'package:inspecciones/mvvc/form_scaffold.dart';
-import 'package:inspecciones/mvvc/reactive_multiselect_dialog_field.dart';
-import 'package:inspecciones/presentation/widgets/action_button.dart';
-import 'package:inspecciones/presentation/widgets/alertas.dart';
-import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+
+import 'package:inspecciones/mvvc/form_scaffold.dart';
+import 'package:inspecciones/presentation/widgets/reactive_multiselect_dialog_field.dart';
+import 'package:inspecciones/presentation/widgets/action_button.dart';
+import 'package:inspecciones/presentation/widgets/alertas.dart';
+import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
+import 'package:inspecciones/application/creacion/creacion_form_controller_cubit.dart';
+import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/injection.dart';
+import 'package:inspecciones/mvvc/common_widgets.dart';
+
+import 'creacion_form_controller.dart';
+import 'creacion_widgets.dart';
 
 /// pantalla de edicion de un cuestionario
 /// TODO: opcion para la creacion de cuestionarios con excel

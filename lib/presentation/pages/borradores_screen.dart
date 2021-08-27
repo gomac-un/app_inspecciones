@@ -2,99 +2,67 @@ import 'package:auto_route/auto_route.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:inspecciones/application/auth/auth_bloc.dart';
+import 'package:provider/provider.dart';
+import 'package:reactive_forms/reactive_forms.dart';
+
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/pages/inicio_inspeccion_form_widget.dart';
 import 'package:inspecciones/presentation/widgets/drawer.dart';
 import 'package:inspecciones/router.gr.dart';
-import 'package:provider/provider.dart';
-import 'package:reactive_forms/reactive_forms.dart';
 
-//TODO: creacion de inpecciones con excel
 //TODO: A futuro, Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 /// Pantalla con lista de todas las inspecciones pendientes por subir.
 class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) {
-    final authBloc = Provider.of<AuthBloc>(context);
     return MultiProvider(
       providers: [
-        RepositoryProvider(
-            create: (ctx) => getIt<InspeccionesRepository>(
-                param1: authBloc.state.maybeWhen(
-                    authenticated: (u, s) => u.token,
-                    orElse: () => throw Exception(
-                        "Error inesperado: usuario no encontrado")))),
-        RepositoryProvider(create: (_) => getIt<Database>()),
+        Provider(create: (ctx) => getIt<InspeccionesRepository>()),
         StreamProvider(
-            create: (_) => getIt<Database>().borradoresDao.borradores()),
+          create: (ctx) => getIt<InspeccionesRepository>().getBorradores(),
+          initialData: const <Borrador>[],
+        )
       ],
       child: this,
     );
   }
 
-  const BorradoresPage();
+  const BorradoresPage(Key? key) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    /* final media = MediaQuery.of(context);
-    double scaffoldTtitleSize = media.orientation == Orientation.portrait
-        ? media.size.height * 0.02
-        : media.size.width * 0.02;
-    if (media.size.width < 600 || media.size.height < 600) {
-      scaffoldTtitleSize = media.orientation == Orientation.portrait
-          ? media.size.height * 0.028
-          : media.size.width * 0.028;
-    } */
-    final db = RepositoryProvider.of<Database>(context);
+    final repo = context.read<InspeccionesRepository>();
     return Scaffold(
       appBar: AppBar(
-        /* toolbarHeight: media.orientation == Orientation.portrait
-            ? media.size.height * 0.07
-            : media.size.width * 0.07, */
-        title: const Text(
-          'Inspecciones',
-          /* style: TextStyle(
-              fontSize: scaffoldTtitleSize,
-            ) */
-        ),
+        title: const Text('Inspecciones'),
         actions: [
-          // ExtendedNavigator.of(context)
-          //     .push(Routes.llenadoFormPage, arguments: res)
           IconButton(
               icon: const Icon(Icons.history),
               onPressed: () {
-                ExtendedNavigator.of(context)
-                    .push(Routes.historyInspeccionesPage);
+                //context.router.push(const HistoryRoute());
               }),
-
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.asset(
               "assets/images/logo-gomac.png",
-              /* width: media.orientation == Orientation.portrait
-                  ? media.size.width * 0.06
-                  : media.size.height * 0.06, */
             ),
           ),
         ],
       ),
-      drawer: UserDrawer(),
-      /* media.size.width <= 600 || media.size.height <= 600
-          ? UserDrawer()
-          : null, */
-      body: Consumer<List<Borrador>>(
+      drawer: const UserDrawer(),
+      body: StreamBuilder<List<Borrador>>(
         // Toco usar un proviedr porque estaba creando el stream en cada rebuild
-        //stream: Provider.of<Stream<List<Borrador>>>(context),
-        builder: (context, borradores, child) {
-          /*
-                if (snapshot.hasError) {
-                  //throw snapshot.error;
-                  return Text("error: ${snapshot.error}");
-                }*/
+        stream: context.watch<Stream<List<Borrador>>>(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            //throw snapshot.error;
+            return Text("error: ${snapshot.error}");
+          }
+          final borradores = snapshot.data;
           if (borradores == null) {
             return const Align(
               child: CircularProgressIndicator(),
@@ -122,6 +90,11 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                       : 'Criticidad parcial inicial: ';
 
               return ListTile(
+                //TODO: arreglar el llenado de inspecciones
+                /*onTap: () => context.router.push(LlenadoFormRoute(
+                    activoId: borrador.activo.id,
+                    cuestionarioId: borrador.inspeccion.cuestionarioId)),*/
+
                 tileColor: Theme.of(context).cardColor,
                 title: Text(
                     "${borrador.activo.id} - ${borrador.activo.modelo} (${borrador.cuestionario.tipoDeInspeccion})",
@@ -162,30 +135,29 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                     ? IconButton(
                         icon: Icon(
                           Icons.cloud_upload,
-                          color: Theme.of(context).accentColor,
+                          color: Theme.of(context).colorScheme.secondary,
                         ),
                         onPressed: () async {
-                          final res = await RepositoryProvider.of<
-                                  InspeccionesRepository>(context)
-                              .subirInspeccion(borrador.inspeccion)
-                              .then((res) => res.fold(
-                                      (fail) => fail.when(
-                                          pageNotFound: () =>
-                                              'No se pudo encontrar la página, informe al encargado',
-                                          noHayConexionAlServidor: () =>
-                                              "No hay conexión al servidor",
-                                          noHayInternet: () =>
-                                              "No tiene conexión a internet",
-                                          serverError: (msg) =>
-                                              "Error interno: $msg",
-                                          credencialesException: () =>
-                                              'Error inesperado: intente inciar sesión nuevamente'),
-                                      (u) {
-                                    db.borradoresDao
-                                        .eliminarRespuestas(borrador);
-                                    return "exito";
-                                  }));
-                          res == 'exito'
+                          //TODO: eliminar esta duplicacion de codigo
+                          final res =
+                              await repo.subirInspeccion(borrador.inspeccion);
+                          final restxt = res.fold(
+                              (fail) => fail.when(
+                                  pageNotFound: () =>
+                                      'No se pudo encontrar la página, informe al encargado',
+                                  noHayConexionAlServidor: () =>
+                                      "No hay conexión al servidor",
+                                  noHayInternet: () =>
+                                      "No tiene conexión a internet",
+                                  serverError: (msg) => "Error interno: $msg",
+                                  credencialesException: () =>
+                                      'Error inesperado: intente inciar sesión nuevamente'),
+                              (u) {
+                            repo.eliminarRespuestas(borrador);
+
+                            return "exito";
+                          });
+                          restxt == 'exito'
                               ? showDialog(
                                   context: context,
                                   barrierColor:
@@ -199,9 +171,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                                           size: 100, color: Colors.green),
                                       actions: [
                                         Center(
-                                          child: RaisedButton(
-                                            color:
-                                                Theme.of(context).accentColor,
+                                          child: ElevatedButton(
                                             onPressed: () {
                                               Navigator.of(context).pop();
                                             },
@@ -216,24 +186,19 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                                     );
                                   },
                                 )
-                              : Scaffold.of(context).showSnackBar(SnackBar(
-                                  content: Text(res),
+                              : ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                  content: Text(restxt),
                                 ));
                         })
                     : const SizedBox(),
                 trailing: borrador.inspeccion.esNueva
                     ? IconButton(
                         icon: const Icon(Icons.delete),
-                        onPressed: () => eliminarBorrador(borrador, context),
+                        onPressed: () =>
+                            eliminarBorrador(borrador, context, repo),
                       )
                     : const SizedBox.shrink(),
-                onTap: () => ExtendedNavigator.of(context).push(
-                  Routes.llenadoFormPage,
-                  arguments: LlenadoFormPageArguments(
-                    activo: borrador.activo.id,
-                    cuestionarioId: borrador.inspeccion.cuestionarioId,
-                  ),
-                ),
               );
             },
           );
@@ -244,39 +209,40 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
   }
 
   ///Elimia [borrador].
-  void eliminarBorrador(Borrador borrador, BuildContext context) {
-    // set up the buttons
-    final cancelButton = FlatButton(
-      onPressed: () => Navigator.of(context).pop(),
-      child: const Text("Cancelar"), // OJO con el context
-    );
-    final Widget continueButton = FlatButton(
-      onPressed: () async {
-        Navigator.of(context).pop();
-        await RepositoryProvider.of<Database>(context)
-            .borradoresDao
-            .eliminarBorrador(borrador);
-        Scaffold.of(context).showSnackBar(const SnackBar(
-          content: Text("Borrador eliminado"),
-          duration: Duration(seconds: 3),
-        ));
-      },
-      child: const Text("Eliminar"),
-    );
-    // set up the AlertDialog
-    final alert = AlertDialog(
-      title: const Text("Alerta"),
-      content: const Text("¿Está seguro que desea eliminar este borrador?"),
-      actions: [
-        cancelButton,
-        continueButton,
-      ],
-    );
-    // show the dialog
+  void eliminarBorrador(
+      Borrador borrador, BuildContext context, InspeccionesRepository repo) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return alert;
+        return AlertDialog(
+          title: const Text("Alerta"),
+          content: const Text("¿Está seguro que desea eliminar este borrador?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancelar"), // OJO con el context
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  await repo.eliminarBorrador(borrador);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text("Borrador eliminado"),
+                    duration: Duration(seconds: 3),
+                  ));
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text("Error eliminando borrador"),
+                    duration: Duration(seconds: 3),
+                  ));
+                }
+              },
+              child: const Text("Eliminar"),
+            ),
+          ],
+        );
+        ;
       },
     );
   }
@@ -285,63 +251,43 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
 /// Botón de creación de inspecciones
 class FloatingActionButtonInicioInspeccion extends StatelessWidget {
   const FloatingActionButtonInicioInspeccion({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context).size;
-    final orientacion = MediaQuery.of(context).orientation;
-    double textSize = orientacion == Orientation.portrait
-        ? media.width * 0.02
-        : media.height * 0.03;
-    double iconSize = orientacion == Orientation.portrait
-        ? media.width * 0.04
-        : media.height * 0.04;
-    if (media.width < 600 || media.height < 600) {
-      textSize = orientacion == Orientation.portrait
-          ? media.width * 0.04
-          : media.height * 0.04;
-      iconSize = orientacion == Orientation.portrait
-          ? media.width * 0.05
-          : media.height * 0.05;
-    }
     final form = FormGroup(
       {'mostrar': FormControl<bool>(value: false)},
     );
     return FloatingActionButton.extended(
       onPressed: () async {
-        final repository =
-            RepositoryProvider.of<InspeccionesRepository>(context);
-        final res = await showDialog<LlenadoFormPageArguments>(
+        final res = await showDialog<ArgumentosLlenado>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text(
-              'Inicio de inspección',
-            ),
-            content: InicioInspeccionForm(repository),
+          builder: (context) => const AlertDialog(
+            title: Text('Inicio de inspección'),
+            content: InicioInspeccionForm(),
           ),
         );
 
         if (res != null) {
-          final mensajeLlenado = await ExtendedNavigator.of(context)
+          // llenar inspeccion
+          //TODO: arreglar el llenado de inspecciones
+          /*context.router.push(LlenadoFormRoute(
+                    activoId: res.activo,
+                    cuestionarioId: res.cuestionarioId));*/
+
+          /*final mensajeLlenado = await ExtendedNavigator.of(context)
               .push(Routes.llenadoFormPage, arguments: res);
           // mostar el mensaje que viene desde la pantalla de llenado
           if (mensajeLlenado != null) {
-            Scaffold.of(context)
+            ScaffoldMessenger.of(context)
               ..removeCurrentSnackBar()
               ..showSnackBar(SnackBar(content: Text("$mensajeLlenado")));
-          }
+          }*/
         }
       },
-      icon: Icon(
-        Icons.add,
-        size: iconSize,
-      ),
-      label: Text("Inspección",
-          style: TextStyle(
-            fontSize: textSize,
-          )),
+      icon: const Icon(Icons.add),
+      label: const Text("Inspección"),
     );
   }
 }

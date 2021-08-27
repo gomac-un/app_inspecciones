@@ -1,17 +1,11 @@
 import 'package:auto_route/annotations.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:inspecciones/mvvc/edicion_form_page.dart';
-import 'package:inspecciones/mvvc/llenado_form_page.dart';
 import 'package:inspecciones/presentation/pages/borradores_screen.dart';
-import 'package:inspecciones/presentation/pages/cuestionarios_screen.dart';
-import 'package:inspecciones/presentation/pages/history_screen.dart';
-import 'package:inspecciones/presentation/pages/login_page.dart';
-import 'package:inspecciones/presentation/pages/sincronizacion_page.dart';
-import 'package:inspecciones/presentation/pages/splash_screen.dart';
-
-import 'mvvc/creacion_form_page.dart';
-import 'mvvc/edicion_form_page.dart';
-import 'presentation/pages/grupos_screen.dart';
+import 'features/creacion_cuestionarios/creacion_form_page.dart';
+import 'features/creacion_cuestionarios/edicion_form_page.dart';
+import 'presentation/pages/cuestionarios_screen.dart';
+import 'presentation/pages/login_page.dart';
+import 'presentation/pages/sincronizacion_page.dart';
 
 /// Definición de todas las rutas de la app.
 ///
@@ -38,6 +32,7 @@ import 'presentation/pages/grupos_screen.dart';
             RedirectRoute(path: '*', redirectTo: ''),
           ],
         ),
+        AutoRoute(path: "borradores", page: BorradoresPage),
       ],
     ),
     AutoRoute(path: "/login", page: LoginPage),

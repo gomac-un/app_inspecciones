@@ -305,18 +305,20 @@ class RespuestaconOpcionDeRespuestaId {
 
 /// Inspecciones empezadas a llenar localmente, se usan en [borrador_screen.dart]
 class Borrador {
-  Activo activo;
-  Inspeccion inspeccion;
-  Cuestionario? cuestionario;
+  final Activo activo;
+  final Inspeccion inspeccion;
+  late final Cuestionario cuestionario;
 
   /// [avance] y [total] son usados para mostrar el porcentaje de avance de la inspeccion en la UI
   /// Total de Preguntas respondidas (así estén incompletas, por ejemplo, que no tengan fotos o no estén reparadas)
-  int? avance;
+  late final int avance;
 
   /// Total de preguntas del cuestionario
-  int? total;
-  Borrador(this.activo, this.inspeccion,
-      [this.cuestionario, this.avance, this.total]);
+  late final int total;
+  Borrador(this.activo, this.inspeccion);
+
+  Borrador._copy(
+      this.activo, this.inspeccion, this.cuestionario, this.avance, this.total);
 
   /// Ver [BorradoresDao.borradores()].
 
@@ -331,7 +333,7 @@ class Borrador {
     int? avance,
     int? total,
   }) =>
-      Borrador(
+      Borrador._copy(
         activo ?? this.activo,
         inspeccion ?? this.inspeccion,
         cuestionario ?? this.cuestionario,

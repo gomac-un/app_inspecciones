@@ -1,8 +1,10 @@
 //Custom Validators
+import 'package:reactive_forms/reactive_forms.dart';
+
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/mvvc/creacion_form_controller.dart';
-import 'package:reactive_forms/reactive_forms.dart';
+
+import 'creacion_form_controller.dart';
 
 //FIXME: no recalcula cuando cambia el tipo de inspeccion
 /// Cuando se crea un cuestionario

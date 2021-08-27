@@ -1,14 +1,17 @@
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:meta/meta.dart';
+
+import 'package:moor/moor.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:injectable/injectable.dart';
+
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
-import 'package:inspecciones/mvvc/creacion_controls.dart';
-import 'package:inspecciones/mvvc/creacion_validators.dart';
-import 'package:moor/moor.dart';
-import 'package:reactive_forms/reactive_forms.dart';
+
+import 'creacion_controls.dart';
+import 'creacion_validators.dart';
 
 @injectable
 class CreacionFormController {
@@ -211,7 +214,7 @@ class CreacionFormController {
           await repository.getSistemaPorId(e.pregunta.pregunta.sistemaId!),
           await repository
               .getSubSistemaPorId(e.pregunta.pregunta.subSistemaId!),
-          preguntaDesdeDB:
+          datosIniciales:
               PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(e.pregunta),
         );
       }

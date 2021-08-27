@@ -7,16 +7,18 @@ import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 
 /// Contiene los metodos encargados de subir cuestionarios e inspecciones al server y descargar inspecciones.
 @injectable
 class InspeccionesRepository {
   final InspeccionesRemoteDataSource _api;
   final Database _db;
+  final FotosRepository _fotosRepository;
 
-  InspeccionesRepository(this._api, this._db);
+  InspeccionesRepository(this._api, this._db, this._fotosRepository);
 
   /// Despues de la descarga de una inpeccion desde el server, se tiene que consultar nuevamente de la bd
   Future<Inspeccion> getInspeccionParaTerminar(int id) =>
@@ -68,7 +70,7 @@ class InspeccionesRepository {
       /// Usado para el nombre de la carpeta de las fotos
       final idDocumento = ins['id'].toString();
       const tipoDocumento = 'inspecciones';
-      final fotos = await FotosRepository.getFotosDeDocumento(
+      final fotos = await _fotosRepository.getFotosDeDocumento(
           idDocumento: idDocumento, tipoDocumento: tipoDocumento);
       await _api.subirFotos(fotos, idDocumento, tipoDocumento);
 
@@ -87,4 +89,12 @@ class InspeccionesRepository {
       return Left(ApiFailure.serverError(e.toString()));
     }
   }
+
+  Stream<List<Borrador>> getBorradores() => _db.borradoresDao.borradores();
+  Future eliminarRespuestas(Borrador borrador) =>
+      _db.borradoresDao.eliminarRespuestas(borrador); //TODO que devuelve?
+  Future<List<Cuestionario>> cuestionariosParaActivo(int activo) =>
+      _db.llenadoDao.cuestionariosParaActivo(activo);
+  Future eliminarBorrador(Borrador borrador) =>
+      _db.borradoresDao.eliminarBorrador(borrador); //TODO que devuelve?
 }

@@ -1,14 +1,15 @@
-import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
-import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/mvvc/common_widgets.dart';
-import 'package:inspecciones/mvvc/creacion_cards.dart';
-import 'package:inspecciones/mvvc/creacion_controls.dart';
-import 'package:inspecciones/mvvc/creacion_form_controller.dart';
-import 'package:inspecciones/presentation/pages/ayuda_screen.dart';
+
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+
+import 'package:inspecciones/mvvc/common_widgets.dart';
+
+import 'creacion_controls.dart';
+import 'creacion_form_controller.dart';
+import 'creacion_widgets.dart';
+import 'creador_seleccion_simple_card.dart';
+import 'widget_respuestas.dart';
 
 /// !SUPER TODO!!
 /// TODO: evitar la duplicacion de codigo con [CreadorSeleccionSimpleCard]
@@ -20,177 +21,12 @@ class CreadorCuadriculaCard extends StatelessWidget {
       : super(key: key);
   @override
   Widget build(BuildContext context) {
-    /// Formulario base
-    final formController = context.watch<CreacionFormController>();
     return PreguntaCard(
       titulo: 'Pregunta tipo cuadricula',
       child: Column(
         children: [
-          ReactiveTextField(
-            formControl: controller.tituloControl,
-            decoration: const InputDecoration(
-              labelText: 'Titulo',
-            ),
-            textCapitalization: TextCapitalization.sentences,
-            keyboardType: TextInputType.multiline,
-            minLines: 1,
-            maxLines: 2,
-          ),
-          const SizedBox(height: 10),
-          ReactiveTextField(
-            formControl: controller.descripcionControl,
-            decoration: const InputDecoration(
-              labelText: 'Descripción',
-            ),
-            keyboardType: TextInputType.multiline,
-            minLines: 1,
-            maxLines: 50,
-            textCapitalization: TextCapitalization.sentences,
-          ),
-          const SizedBox(height: 10),
-          ReactiveDropdownField<Sistema?>(
-            formControl: controller.sistemaControl,
-            items: formController.todosLosSistemas
-                .map((e) => DropdownMenuItem<Sistema>(
-                      value: e,
-                      child: Text(e.nombre),
-                    ))
-                .toList(),
-            decoration: const InputDecoration(
-              labelText: 'Sistema',
-            ),
-          ),
-          const SizedBox(height: 10),
-          ValueListenableBuilder<List<SubSistema>>(
-              valueListenable: controller.subSistemasDisponibles,
-              builder: (context, value, child) {
-                return ReactiveDropdownField<SubSistema?>(
-                  formControl: controller.subSistemaControl,
-                  validationMessages: (control) =>
-                      {ValidationMessage.required: 'Elija el subSistema'},
-                  items: value
-                      .map((e) => DropdownMenuItem<SubSistema>(
-                            value: e,
-                            child: Text(e.nombre),
-                          ))
-                      .toList(),
-                  decoration: const InputDecoration(
-                    labelText: 'Subsistema',
-                  ),
-                  onTap: () {
-                    FocusScope.of(context)
-                        .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-                  },
-                );
-              }),
-          const SizedBox(height: 5),
-          const Divider(height: 15, color: Colors.black),
-          Row(
-            children: [
-              const Expanded(
-                flex: 3,
-                child: Text(
-                  'Posición',
-                  textAlign: TextAlign.start,
-                ),
-              ),
-              Align(
-                alignment: Alignment.bottomLeft,
-                child: TextButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const Dialog(child: AyudaPage()),
-                    );
-                  },
-                  child: const Text(
-                    '¿Necesitas ayuda?',
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          ReactiveDropdownField<String?>(
-            formControl: controller.ejeControl,
-            validationMessages: (control) =>
-                {ValidationMessage.required: 'Este valor es requerido'},
-            items: formController.ejes
-                .map((e) => DropdownMenuItem<String>(
-                      value: e,
-                      child: Text(e),
-                    ))
-                .toList(),
-            decoration: const InputDecoration(
-              labelText: 'Posición Y',
-            ),
-            onTap: () {
-              FocusScope.of(context)
-                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-            },
-          ),
-          const SizedBox(height: 10),
-          ReactiveDropdownField<String?>(
-            formControl: controller.ladoControl,
-            validationMessages: (control) =>
-                {ValidationMessage.required: 'Este valor es requerido'},
-            items: formController.lados
-                .map((e) => DropdownMenuItem<String>(
-                      value: e,
-                      child: Text(e),
-                    ))
-                .toList(),
-            decoration: const InputDecoration(
-              labelText: 'Posición X',
-            ),
-            onTap: () {
-              FocusScope.of(context)
-                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-            },
-          ),
-          const SizedBox(height: 10),
-          ReactiveDropdownField<String?>(
-            formControl: controller.posicionZControl,
-            validationMessages: (control) =>
-                {ValidationMessage.required: 'Este valor es requerido'},
-            items: formController.posZ
-                .map((e) => DropdownMenuItem<String>(
-                      value: e,
-                      child: Text(e),
-                    ))
-                .toList(),
-            decoration: const InputDecoration(
-              labelText: 'Posición Z',
-            ),
-            onTap: () {
-              FocusScope.of(context)
-                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-            },
-          ),
-          const SizedBox(height: 10),
-          const SizedBox(height: 10),
-          ReactiveDropdownField<TipoDePregunta>(
-            formControl: controller.tipoDePreguntaControl,
-            validationMessages: (control) =>
-                {ValidationMessage.required: 'Seleccione el tipo de pregunta'},
-            items: [
-              TipoDePregunta.parteDeCuadriculaUnica,
-              TipoDePregunta.parteDeCuadriculaMultiple,
-            ]
-                .map((e) => DropdownMenuItem<TipoDePregunta>(
-                      value: e,
-                      child: Text(
-                          EnumToString.convertToString(e, camelCase: true)),
-                    ))
-                .toList(),
-            decoration: const InputDecoration(
-              labelText: 'Tipo de pregunta',
-            ),
-            onTap: () {
-              FocusScope.of(context)
-                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-            },
+          CamposGenerales(
+            controller: controller.controllerCamposGenerales,
           ),
           const SizedBox(height: 10),
           WidgetPreguntas(controlCuadricula: controller),
@@ -246,8 +82,9 @@ class WidgetPreguntas extends StatelessWidget {
                               child: Column(
                                 children: [
                                   ReactiveTextField(
-                                    formControl:
-                                        controllerPregunta.tituloControl,
+                                    formControl: controllerPregunta
+                                        .controllerCamposGenerales
+                                        .tituloControl,
                                     validationMessages: (control) => {
                                       ValidationMessage.required:
                                           'Escriba el titulo'

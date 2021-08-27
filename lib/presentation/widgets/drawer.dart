@@ -172,17 +172,15 @@ class Borradores extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        selectedTileColor: Theme.of(context).accentColor,
+        selectedTileColor: Theme.of(context).colorScheme.secondary,
         title: const Text(
           'Inspecciones', //TODO: mostrar el numero de  inspecciones creadas pendientes por subir
-          /* style: TextStyle(/* color: Colors.white ,*/ fontSize: textSize) */
         ),
         leading: const Icon(
           Icons.list_alt,
           color: Colors.black,
-          /* size: iconSize, */ /* color: Colors.white, */
         ),
-        onTap: () => context.router.popAndPush(const BorradoresRoute()),
+        onTap: () => context.router.navigate(const BorradoresRoute()),
       ),
     );
   }
@@ -257,7 +255,7 @@ class Planeacion extends StatelessWidget {
         ListTile(
           selectedTileColor: Theme.of(context).colorScheme.secondary,
           title: const Text('Grupos', style: TextStyle(fontSize: 13)),
-          onTap: () => context.router.popAndPush(const GruposScreen()),
+          onTap: null, //() => context.router.popAndPush(const GruposScreen()),
         ),
         /*  ListTile(
           selectedTileColor: Theme.of(context).accentColor,

@@ -62,55 +62,54 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
               itemBuilder: (context, index) {
                 final cuestionario = cuestionarios[index];
                 return ListTile(
-                    tileColor: Theme.of(context).cardColor,
-                    title: Text(cuestionario.tipoDeInspeccion),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Código: ${cuestionario.id}'),
-                        Text(cuestionario.esLocal
-                            ? 'Sin subir \nEstado: ${EnumToString.convertToString(cuestionario.estado)}'
-                            : 'Subido \nEstado: ${EnumToString.convertToString(cuestionario.estado)}'),
-                      ],
-                    ),
+                  onTap: () => context.router
+                      .push(EdicionFormRoute(cuestionarioId: cuestionario.id)),
+                  tileColor: Theme.of(context).cardColor,
+                  title: Text(cuestionario.tipoDeInspeccion),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Código: ${cuestionario.id}'),
+                      Text(cuestionario.esLocal
+                          ? 'Sin subir \nEstado: ${EnumToString.convertToString(cuestionario.estado)}'
+                          : 'Subido \nEstado: ${EnumToString.convertToString(cuestionario.estado)}'),
+                    ],
+                  ),
 
-                    /// Si no se ha subido apaarece la opción de subir.
-                    leading: cuestionario.esLocal
-                        ? IconButton(
-                            icon: Icon(
-                              Icons.cloud_upload,
-                              color: cuestionario.estado ==
-                                      EstadoDeCuestionario.finalizada
-                                  ? Theme.of(context).colorScheme.secondary
-                                  : Colors.grey,
-                            ),
-                            onPressed: () async {
-                              /// Solo permite subirlo si está finalizado.
-                              switch (cuestionario.estado) {
-                                case EstadoDeCuestionario.finalizada:
-                                  _subirCuestionarioFinalizado(
-                                      context, viewModel, cuestionario);
-                                  break;
-                                case EstadoDeCuestionario.borrador:
-                                  _mostrarDialog(context);
-                                  break;
-                              }
-                            })
-                        : const SizedBox.shrink(),
-                    trailing: cuestionario.esLocal
+                  /// Si no se ha subido apaarece la opción de subir.
+                  leading: cuestionario.esLocal
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.cloud_upload,
+                            color: cuestionario.estado ==
+                                    EstadoDeCuestionario.finalizada
+                                ? Theme.of(context).colorScheme.secondary
+                                : Colors.grey,
+                          ),
+                          onPressed: () async {
+                            /// Solo permite subirlo si está finalizado.
+                            switch (cuestionario.estado) {
+                              case EstadoDeCuestionario.finalizada:
+                                _subirCuestionarioFinalizado(
+                                    context, viewModel, cuestionario);
+                                break;
+                              case EstadoDeCuestionario.borrador:
+                                _mostrarDialog(context);
+                                break;
+                            }
+                          })
+                      : const SizedBox.shrink(),
+                  trailing: cuestionario.esLocal
 
-                        /// Los cuestionarios subidos ya no se pueden borrar
-                        ? IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () =>
-                                _eliminarCuestionario(context, cuestionario),
-                          )
-                        : Icon(Icons.cloud,
-                            color: Theme.of(context).colorScheme.secondary),
-                    onTap: () async {
-                      context.router.push(
-                          EdicionFormRoute(cuestionarioId: cuestionario.id));
-                    });
+                      /// Los cuestionarios subidos ya no se pueden borrar
+                      ? IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () =>
+                              _eliminarCuestionario(context, cuestionario),
+                        )
+                      : Icon(Icons.cloud,
+                          color: Theme.of(context).colorScheme.secondary),
+                );
               },
             );
           },
