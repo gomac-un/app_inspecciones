@@ -19,9 +19,9 @@ class LlenadoFormPage extends StatelessWidget implements AutoRouteWrapper {
   final int cuestionarioId;
 
   const LlenadoFormPage({
-    Key key,
-    this.activo,
-    this.cuestionarioId,
+    Key? key,
+    @pathParam required this.activo,
+    @pathParam required this.cuestionarioId,
   }) : super(key: key);
 
   @override

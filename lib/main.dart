@@ -69,7 +69,8 @@ class _InspeccionesAppState extends State<InspeccionesApp> {
                 SentryNavigatorObserver(),
               ],
             ),
-            routeInformationParser: _appRouter.defaultRouteParser(),
+            routeInformationParser:
+                _appRouter.defaultRouteParser(includePrefixMatches: true),
 
             /// Permite 'internacionalizar' la app. Se usa para poder cambiar el idioma del calendario en
             /// planeacion_grupos_cards.dart

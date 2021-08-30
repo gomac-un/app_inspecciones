@@ -540,7 +540,10 @@ extension DefaultGetter<T> on Value<T> {
   T valueOrDefault(T def) {
     return present ? value : def;
   }
-  // ···
+
+  T? valueOrNull() {
+    return present ? value : null;
+  }
 }
 
 AppImage _soloBasename(AppImage f) => f.map(

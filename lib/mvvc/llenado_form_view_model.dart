@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
-import 'package:kt_dart/collection.dart';
-import 'package:kt_dart/kt.dart';
+
 import 'package:reactive_forms/reactive_forms.dart';
 
 part 'llenado_datos_test.dart';

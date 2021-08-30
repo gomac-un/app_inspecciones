@@ -1,11 +1,19 @@
+import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:moor/moor.dart';
 part 'tablas_unidas.g.dart';
 
-///Esto es una mazamorra de clases que ayudan a manejar mejor las respuestas de las consultas
-/// pero no es muy mantenible. Estoy de acuerdo
-// TODO: mirar como hacer esto mantenible
+/// Clases que agrupan [Dataclass]es de moor que están relacionadas
+/// Las que tienen sufijo Companion, contienen tipos [UpdateCompanion], los
+/// cuales se suelen usar para información editable que puede estar en un estado
+///  parcial, mientras que las [Dataclass]es normales son útiles para
+/// información traída de la BD que está completa y que no se va a editar.
+///
+/// Por ahora los companions (compuestos) definidos aquí, no implementan el
+/// ==, es decir no se pueden comparar por valor, de ser necesario se puede
+/// implementar facilmente
 
 /// Reune [pregunta] con sus rangos de criticidad [criticidades].
 @immutable
@@ -94,7 +102,8 @@ class CuestionarioConContratistaYModelosCompanion {
 
 /// Reune [pregunta] con sus posibles respuestas.
 ///
-/// Usado en [creacion_dao.dart] a la hora de cargar el cuestionario para editar  y en [llenado_dao.dart] para mostrar todas las posibles opciones.
+/// Usado en [creacion_dao.dart] a la hora de cargar el cuestionario para editar
+///  y en [llenado_dao.dart] para mostrar todas las posibles opciones.
 /// Lo manejan [creacion_controls] y [llenado_controls]
 @immutable
 class PreguntaConOpcionesDeRespuesta {
@@ -136,21 +145,66 @@ class PreguntaConOpcionesDeRespuestaCompanion {
       );
 }
 
-//TODO: Refactorizar a RespuestaCompanionConOpcionesDeRespuesta
-// El enredo con los companions es porque al insertar la primera vez es mas
-// comodo trabajar con el companion pero luego, al traerlos de la bd es mejor trabajar con la dataclass
-// la clase RespuestaConOpcionesDeRespuesta2 en este momento maneja la dataclass en lugar del compnaion
+/// Usada para el llenado de preguntas de seleccion Múltiple, donde cada
+/// [OpcionDeRespuesta] de la pregunta debe tener una [respuesta] la cual
+/// es companion porque es editable
 
-class RespuestaConOpcionesDeRespuesta {
+@immutable
+class RespuestaCompanionConOpcionDeRespuesta {
   /// Guarda información sobre las observaciones, fotos y reparaciones.
-  RespuestasCompanion respuesta;
+  final RespuestasCompanion respuesta;
 
   /// Respuesta seleccionada.
-  OpcionDeRespuesta opcionesDeRespuesta;
+  final OpcionDeRespuesta opcionDeRespuesta;
 
-  RespuestaConOpcionesDeRespuesta(this.respuesta, this.opcionesDeRespuesta);
+  const RespuestaCompanionConOpcionDeRespuesta(
+      this.respuesta, this.opcionDeRespuesta);
 }
 
+/// Usada para preguntas de seleccion única, [respuesta] es companion porque es
+/// editable
+@immutable
+class RespuestaConOpcionDeRespuestaCompanion {
+  /// Guarda información sobre las observaciones, fotos y reparaciones.
+  final RespuestasCompanion respuesta;
+
+  /// Respuesta seleccionada.
+  final Value<OpcionDeRespuesta> opcionDeRespuesta;
+
+  const RespuestaConOpcionDeRespuestaCompanion(
+      this.respuesta, this.opcionDeRespuesta);
+  const RespuestaConOpcionDeRespuestaCompanion.vacio()
+      : respuesta = const RespuestasCompanion(),
+        opcionDeRespuesta = const Value.absent();
+}
+
+/*
+/// Usada para preguntas de seleccion múltiple, [respuesta] es companion porque es
+/// editable
+@immutable
+class RespuestaConOpcionesDeRespuestaCompanion {
+  /// Guarda información sobre las observaciones, fotos y reparaciones.
+  final RespuestasCompanion respuesta;
+
+  /// Respuestas seleccionada.
+  final List<OpcionDeRespuesta> opcionesDeRespuesta;
+
+  const RespuestaConOpcionesDeRespuestaCompanion(
+      this.respuesta, this.opcionesDeRespuesta);
+  const RespuestaConOpcionesDeRespuestaCompanion.vacio()
+      : respuesta = const RespuestasCompanion(),
+        opcionesDeRespuesta = const [];
+  RespuestaConOpcionesDeRespuestaCompanion copyWith({
+    RespuestasCompanion? respuesta,
+    List<OpcionDeRespuesta>? opcionesDeRespuesta,
+  }) {
+    return RespuestaConOpcionesDeRespuestaCompanion(
+      respuesta ?? this.respuesta,
+      opcionesDeRespuesta ?? this.opcionesDeRespuesta,
+    );
+  }
+}
+*/
 @JsonSerializable()
 class RespuestaConOpcionesDeRespuesta2 {
   Respuesta respuesta;
@@ -258,7 +312,7 @@ class BloqueConPreguntaNumerica extends IBloqueOrdenable {
   final PreguntaNumerica pregunta;
 
   /// En este caso, la respuesta es [respuesta.valor], por eso no se hace uso de la clase [RespuestaConOpcionesDeRespuesta]
-  /// TODO: mirar si se necesita esto (en la creacion no se necesita)
+
   final RespuestasCompanion? respuesta;
   const BloqueConPreguntaNumerica(Bloque bloque, this.pregunta,
       [this.respuesta])

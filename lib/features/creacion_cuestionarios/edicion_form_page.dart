@@ -24,7 +24,7 @@ import 'creacion_widgets.dart';
 class EdicionFormPage extends StatelessWidget implements AutoRouteWrapper {
   final int? cuestionarioId;
 
-  const EdicionFormPage({Key? key, @PathParam() this.cuestionarioId})
+  const EdicionFormPage({Key? key, @pathParam this.cuestionarioId})
       : super(key: key);
 
   /// Definición del provider, para poder acceder a [CreacionFormViewModel]

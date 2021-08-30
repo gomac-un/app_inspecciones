@@ -188,6 +188,10 @@ class Preguntas extends Table {
   //List<OpcionesDeRespuesta>
 }
 
+/// Opcion de respuesta asociada a una pregunta de seleccion ya sea simple o
+/// multiple. Si pertenece a una pregunta de tipo [CuadriculaDePreguntas], debe
+/// referenciar a la cuadricula por medio de [cuadriculaId], si pertenece a
+/// una pregunta de seleccion, debe tener [preguntaId] no nulo.
 @DataClassName('OpcionDeRespuesta')
 class OpcionesDeRespuesta extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -203,7 +207,6 @@ class OpcionesDeRespuesta extends Table {
 
   /// Si el inspector puede asignar un nivel de gravedad a la respuesta
   BoolColumn get calificable => boolean().withDefault(const Constant(false))();
-  //.customConstraint('REFERENCES cuadriculas_de_preguntas(id) ')();
 
   TextColumn get texto => text().withLength(min: 1, max: 100)();
 
@@ -261,6 +264,66 @@ class CriticidadesNumericas extends Table {
       .customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
 }
 
+class Respuestas extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  TextColumn get fotosBase => text()
+      .map(const ListOfImagesInColumnConverter())
+      .withDefault(const Constant("[]"))();
+
+  TextColumn get fotosReparacion => text()
+      .map(const ListOfImagesInColumnConverter())
+      .withDefault(const Constant("[]"))();
+
+  TextColumn get observacion => text().withDefault(const Constant(""))();
+
+  BoolColumn get reparado => boolean().withDefault(const Constant(false))();
+
+  TextColumn get observacionReparacion =>
+      text().withDefault(const Constant(""))();
+
+  /// Momento de la ultima edición de la respuesta
+  DateTimeColumn get momentoRespuesta => dateTime().nullable()();
+
+  @JsonKey('inspeccion')
+  IntColumn get inspeccionId => integer()
+      .customConstraint('REFERENCES inspecciones(id) ON DELETE CASCADE')();
+
+  @JsonKey('pregunta')
+  IntColumn get preguntaId => integer()
+      .customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
+
+  /// no se restringe a tener una respuesta por pregunta (por inspeccion)
+  /// debido a que las de seleccion multiple deben guardar toda la información
+  /// de una respuesta para cada opción seleccionada y se deben agrupar por
+  /// preguntaXinspeccion
+  ///
+  /// Código eliminado:
+  /// Si la pregunta asociada es de tipo [TipoDePregunta.multipleRespuesta
+  /// Esta respuesta está referenciada por 0 o mas [OpcionDeRespuesta]s
+  //List<OpcionDeRespuesta>
+  //@override
+  //List<String> get customConstraints => ['UNIQUE (inspeccionId, preguntaId)'];
+
+  ///! Campos especiales
+
+  /// Solo usado en caso de que la pregunta sea calificable
+  IntColumn get calificacion => integer().nullable()();
+
+  /// Si la pregunta asociada es de tipo [TipoDePregunta.unicaRespuesta] o
+  /// [TipoDePregunta.unicaRespuesta] o sus respectivas versiones de cuadricula,
+  /// este campo es no nulo y referencia a la [OpcionDeRespuesta] seleccionada.
+  @JsonKey('opcionDeRespuesta')
+  IntColumn get opcionDeRespuestaId => integer()
+      .customConstraint(
+          'REFERENCES opciones_de_respuesta(id) ON DELETE CASCADE')
+      .nullable()();
+
+  /// Si la pregunta asociada es de tipo [TipoDePregunta.numerica], este campo
+  /// es no nulo e indica el valor numerico reportado
+  RealColumn get valor => real().nullable()();
+}
+
 class GruposInspeccioness extends Table {
   IntColumn get id => integer().autoIncrement()();
 
@@ -297,53 +360,6 @@ class ProgramacionSistemasXActivo extends Table {
   @JsonKey('sistema')
   IntColumn get sistemaId =>
       integer().customConstraint('REFERENCES sistemas(id) ON DELETE CASCADE')();
-}
-
-class Respuestas extends Table {
-  IntColumn get id => integer().autoIncrement()();
-
-  TextColumn get fotosBase => text()
-      .map(const ListOfImagesInColumnConverter())
-      .withDefault(const Constant("[]"))();
-
-  TextColumn get fotosReparacion => text()
-      .map(const ListOfImagesInColumnConverter())
-      .withDefault(const Constant("[]"))();
-
-  TextColumn get observacion => text().withDefault(const Constant(""))();
-
-  BoolColumn get reparado => boolean().withDefault(const Constant(false))();
-
-  /// Solo usado si la pregunta es de tipo numérica
-  RealColumn get valor => real().nullable()();
-
-  TextColumn get observacionReparacion =>
-      text().withDefault(const Constant(""))();
-
-  /// Solo usado en caso de que la pregunta sea calificable
-  IntColumn get calificacion => integer().nullable()();
-
-  /// Momento de la ultima edición de la respuesta
-  DateTimeColumn get momentoRespuesta => dateTime().nullable()();
-
-  @JsonKey('inspeccion')
-  IntColumn get inspeccionId => integer()
-      .customConstraint('REFERENCES inspecciones(id) ON DELETE CASCADE')();
-
-  @JsonKey('pregunta')
-  IntColumn get preguntaId => integer()
-      .customConstraint('REFERENCES preguntas(id) ON DELETE CASCADE')();
-
-  //TODO: verificar que el par inpeccionId-preguntaId sea unico
-  /// En este caso no sé que puede pasar si no es único, para el caso de las multiples se
-  /// está dando el caso sin generar problema hasta ahora
-  @JsonKey('opcionDeRespuesta')
-  IntColumn get opcionDeRespuestaId => integer()
-      .customConstraint(
-          'REFERENCES opciones_de_respuesta(id) ON DELETE CASCADE')
-      .nullable()();
-
-  //List<OpcionDeRespuesta>
 }
 
 class ListOfImagesInColumnConverter extends TypeConverter<ListImages, String> {

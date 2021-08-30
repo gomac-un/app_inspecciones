@@ -1,8 +1,12 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:dartz/dartz.dart';
+import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:kt_dart/kt.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:moor/moor.dart';
+
 import 'package:reactive_forms/reactive_forms.dart';
 
 /// FormGroup para la respuesta de preguntas multiples.
@@ -78,7 +82,209 @@ class LlenadoOpcionFormGroup extends FormGroup {
 }
 
 //TODO: implementar estos controles como sealed classes
-/// FormGroup de respuestas de selección.
+/// Controller de respuestas de selección unica.
+class LlenadoSeleccionUnicaController {
+  //final PreguntaConOpcionesDeRespuesta datosCuestionario;
+  /// TODO: proveerle los [datosCuestionario] a la UI y a la DB desde otro lado
+  final RespuestaConOpcionDeRespuestaCompanion respuesta;
+
+  late final respuestaControl = fb.control<OpcionDeRespuesta?>(
+    respuesta.opcionDeRespuesta.valueOrNull(),
+    [Validators.required], // TODO: probar que realmente verifique no sea null
+  );
+
+  late final calificacionControl = fb.control<double?>(
+      respuesta.respuesta.calificacion.valueOrNull()?.toDouble());
+
+  late final fotosBaseControl = fb.control<List<AppImage>>(
+    respuesta.respuesta.fotosBase.valueOrDefault(const Nil()).toList(),
+  );
+
+  late final fotosReparacionControl = fb.control<List<AppImage>>(
+    respuesta.respuesta.fotosReparacion.valueOrDefault(const Nil()).toList(),
+  );
+
+  late final observacionControl =
+      fb.control<String>(respuesta.respuesta.observacion.valueOrDefault(''));
+
+  late final reparadoControl =
+      fb.control(respuesta.respuesta.reparado.valueOrDefault(false));
+
+  late final observacionReparacionControl = fb.control<String>(
+      respuesta.respuesta.observacionReparacion.valueOrDefault(''));
+
+  late final control = fb.group({
+    'respuesta': respuestaControl,
+    'calificacion': calificacionControl,
+    'fotosBase': fotosBaseControl,
+    'fotosReparacion': fotosReparacionControl,
+    'observacion': observacionControl,
+    'reparado': reparadoControl,
+    'observacionReparacion': observacionReparacionControl,
+  })
+    ..valueChanges.listen((_) {
+      // TODO: probar que esto si se llama cada que se modifica algun campo del
+      // formgroup
+      _momentoRespuesta = DateTime.now();
+    });
+
+  DateTime? _momentoRespuesta;
+
+  LlenadoSeleccionUnicaController([
+    this.respuesta = const RespuestaConOpcionDeRespuestaCompanion.vacio(),
+  ]);
+
+  RespuestasCompanion toDB() {
+    return respuesta.respuesta.copyWith(
+      opcionDeRespuestaId: Value.ofNullable(respuestaControl.value?.id),
+      calificacion: Value.ofNullable(calificacionControl.value?.round()),
+      fotosBase: Value(IList.from(fotosBaseControl.value!)),
+      fotosReparacion: Value(IList.from(fotosReparacionControl.value!)),
+      observacion: Value(observacionControl.value!),
+      reparado: Value(reparadoControl.value!),
+      observacionReparacion: Value(observacionReparacionControl.value!),
+      momentoRespuesta: Value.ofNullable(_momentoRespuesta),
+    );
+  }
+
+  double get criticidad {
+    // si no ha seleccionado una respuesta se deja con criticidad 0 para que no
+    //moleste, sin embargo para poder enviarlo, está el validator que hará que
+    //esto deje de ser null
+    final criticiadRespuesta = respuestaControl.value?.criticidad ?? 0;
+
+    final sumres =
+        criticiadRespuesta * _getPorcentaje(calificacionControl.value ?? 1);
+  }
+}
+
+class DetallesOpcionSeleccionMultipleController {
+  //final PreguntaConOpcionesDeRespuesta datosCuestionario;
+  /// TODO: proveerle los [datosCuestionario] a la UI y a la DB desde otro lado
+  final RespuestaCompanionConOpcionDeRespuesta respuesta;
+
+  late final calificacionControl = fb.control<double?>(
+      respuesta.respuesta.calificacion.valueOrNull()?.toDouble());
+
+  late final fotosBaseControl = fb.control<List<AppImage>>(
+    respuesta.respuesta.fotosBase.valueOrDefault(const Nil()).toList(),
+  );
+
+  late final fotosReparacionControl = fb.control<List<AppImage>>(
+    respuesta.respuesta.fotosReparacion.valueOrDefault(const Nil()).toList(),
+  );
+
+  late final observacionControl =
+      fb.control<String>(respuesta.respuesta.observacion.valueOrDefault(''));
+
+  late final reparadoControl =
+      fb.control(respuesta.respuesta.reparado.valueOrDefault(false));
+
+  late final observacionReparacionControl = fb.control<String>(
+      respuesta.respuesta.observacionReparacion.valueOrDefault(''));
+
+  late final control = fb.group({
+    'calificacion': calificacionControl,
+    'fotosBase': fotosBaseControl,
+    'fotosReparacion': fotosReparacionControl,
+    'observacion': observacionControl,
+    'reparado': reparadoControl,
+    'observacionReparacion': observacionReparacionControl,
+  })
+    ..valueChanges.listen((_) {
+      // TODO: probar que esto si se llama cada que se modifica algun campo del
+      // formgroup
+      _momentoRespuesta = DateTime.now();
+    });
+
+  DateTime? _momentoRespuesta;
+
+  DetallesOpcionSeleccionMultipleController(this.respuesta);
+
+  RespuestasCompanion toDB() {
+    return respuesta.respuesta.copyWith(
+      opcionDeRespuestaId: Value(respuesta.opcionDeRespuesta.id),
+      calificacion: Value.ofNullable(calificacionControl.value?.round()),
+      fotosBase: Value(IList.from(fotosBaseControl.value!)),
+      fotosReparacion: Value(IList.from(fotosReparacionControl.value!)),
+      observacion: Value(observacionControl.value!),
+      reparado: Value(reparadoControl.value!),
+      observacionReparacion: Value(observacionReparacionControl.value!),
+      momentoRespuesta: Value.ofNullable(_momentoRespuesta),
+    );
+  }
+}
+
+class LlenadoSeleccionMultipleController {
+  //final PreguntaConOpcionesDeRespuesta datosCuestionario;
+  /// TODO: proveerle los [datosCuestionario] a la UI y a la DB desde otro lado
+  final List<RespuestaCompanionConOpcionDeRespuesta> respuestasIniciales;
+
+  late final controllersRespuestas = respuestasIniciales
+      .map((e) => DetallesOpcionSeleccionMultipleController(e))
+      .toList();
+
+  late final respuestasControl = fb.array<Map<String, dynamic>>(
+    controllersRespuestas.map((e) => e.control).toList(),
+  );
+
+  late final control = fb.group({
+    'respuestas': respuestasControl,
+  })
+    ..valueChanges.listen((_) {
+      // TODO: probar que esto si se llama cada que se modifica algun campo del
+      // formgroup
+      _momentoRespuesta = DateTime.now();
+    });
+
+  DateTime? _momentoRespuesta;
+
+  LlenadoSeleccionMultipleController([
+    this.respuestasIniciales = const [],
+  ]);
+
+  List<RespuestasCompanion> toDB() {
+    return controllersRespuestas.map((e) => e.toDB()).toList();
+  }
+
+  /// Devuelve la criticidad total de la pregunta sin reparación. criticidad pregunta * criticidad respuesta.
+
+  double get criticidad {
+    /*TODO: calcular la criticidad de las multiples con las reglas de
+      * Sebastian o hacerlo en la bd dejando esta criticidad como auxiliar 
+      * solo para la pantalla de arreglos
+      */
+    /// Suma de la criticidad de las respuestas, incluye la dada por el creador del cuestionario
+    /// más la calificación del inspector.
+
+    final sumres = controllersRespuestas.fold<double>(
+      0,
+      (ac, e) =>
+          ac +
+          e.respuesta.opcionDeRespuesta.criticidad *
+              _getPorcentaje(e.calificacionControl.value ?? 1),
+    );
+
+    /// Redondea la criticidad
+    final mod = pow(10.0, 2);
+
+    /// TODO: mirar si depender de la pregunta o delegarle esta operacion a la
+    /// clase superior
+    return (pregunta.pregunta.criticidad * sumres * mod).round().toDouble() /
+        mod;
+  }
+
+  /// Devuelve la criticidad después de la reparación. Si fue reparado es 0.
+  /// TODO: moverlo a la clase superior
+  double get criticidadReparacion {
+    if (controllersRespuestas.any((e) => e.reparadoControl.value)) {
+      return 0;
+    } else {
+      return criticidad;
+    }
+  }
+}
+
 class RespuestaSeleccionSimpleFormGroup extends FormGroup
     implements BloqueDeFormulario {
   final Bloque bloque;
@@ -88,12 +294,10 @@ class RespuestaSeleccionSimpleFormGroup extends FormGroup
 
   factory RespuestaSeleccionSimpleFormGroup(
     PreguntaConOpcionesDeRespuesta pregunta,
-    List<RespuestaConOpcionesDeRespuesta> respuesta, {
+    List<RespuestaConOpcionesDeRespuesta> respuesta,
     Bloque bloque,
-  }) {
-    // La idea era que los companions devolvieran los valores por defecto pero no es asi
-    // https://github.com/simolus3/moor/issues/960
-    // entonces aca se asignan definen nuevo los valores por defecto que son usados
+  ) {
+    // aca se asignan definen nuevo los valores por defecto que son usados
     // cuando se inicia una nueva inspeccion
     respuesta.forEach((resp) =>
         resp.respuesta ??= crearRespuestaPorDefecto(pregunta.pregunta.id));
@@ -638,4 +842,24 @@ RespuestasCompanion crearRespuestaPorDefecto(int preguntaId) =>
 abstract class BloqueDeFormulario {
   double get criticidad;
   double get criticidadReparacion;
+}
+
+/// Devuelve el porcentaje que representa la calificación dada por el inspector.
+double _getPorcentaje(double calificacion) {
+  double porcentaje = 1;
+  switch (calificacion.round()) {
+    case 1:
+      porcentaje = 0.55;
+      break;
+    case 2:
+      porcentaje = 0.70;
+      break;
+    case 3:
+      porcentaje = 0.85;
+      break;
+    case 4:
+      porcentaje = 1;
+      break;
+  }
+  return porcentaje;
 }

@@ -217,9 +217,9 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   Future<List<RespuestaConOpcionesDeRespuesta>> getRespuestaDePregunta(
       Pregunta pregunta, int inspeccionId) async {
     //TODO: mirar el caso donde se presenten varias respuestas a una preguntaXinspeccion
-    // Hasta el momento se está dando el caso para las preguntas de tipo multiple, en donde el par preguntaId-inspeccionId
+    // Hasta el momento se está dando el caso para las preguntas de tipo multiple,
+    // en donde el par preguntaId-inspeccionId
     // No es único, hasta el momento no genera ningún problema, pero
-
     ///Si la inspeccion es nueva entonces no existe una respuesta y se envia nulo
     ///para que el control cree una por defecto
     if (inspeccionId == null) {
@@ -313,15 +313,19 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
   Future<List<IBloqueOrdenable>> cargarInspeccion(
       int cuestionarioId, int activoId) async {
     final inspeccion = await (select(inspecciones)
-          ..where((tbl) =>
-              tbl.cuestionarioId.equals(cuestionarioId) &
-              tbl.activoId.equals(activoId) &
+          ..where(
+            (inspeccion) =>
+                inspeccion.cuestionarioId.equals(cuestionarioId) &
+                inspeccion.activoId.equals(activoId) &
 
-              /// Para no cargar las que están en el historial
-              isNull(tbl.momentoEnvio)))
-        .getSingle();
+                /// Para no cargar las que están en el historial
+                inspeccion.momentoEnvio.isNull(),
+          ))
+        .getSingleOrNull();
 
-    final inspeccionId = inspeccion?.id;
+    //! if(inspeccion==null){???}
+
+    final inspeccionId = inspeccion.id;
 
     final List<BloqueConTitulo> titulos = await getTitulos(cuestionarioId);
 
@@ -340,7 +344,6 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       ...preguntasSimples,
       ...cuadriculas,
       ...numerica,
-      /* ...preguntasCondicionales */
     ];
   }
 
