@@ -1,4 +1,3 @@
-import 'package:cross_file/cross_file.dart';
 import 'package:dartz/dartz.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 export 'package:flutter/foundation.dart' show kIsWeb;

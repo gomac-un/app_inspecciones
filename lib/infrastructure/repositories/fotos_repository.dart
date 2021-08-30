@@ -1,35 +1,39 @@
 import 'dart:async';
-import 'dart:io';
-
 import 'package:dartz/dartz.dart';
+import 'package:file/file.dart';
 import 'package:injectable/injectable.dart';
-import 'package:inspecciones/core/entities/app_image.dart';
-import 'package:inspecciones/injection.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:cross_file/cross_file.dart';
 
-/// Clase encargada de manejar las fotos de cuestionarios e inspecciones
+import 'package:inspecciones/core/entities/app_image.dart';
+import 'package:inspecciones/infrastructure/core/directorio_de_datos.dart';
+
+enum Categoria { cuestionario, inspeccion }
 
 @injectable
 class FotosRepository {
-  const FotosRepository();
+  final FileSystem _fileSystem;
+  final DirectorioDeDatos _directorio;
+
+  FotosRepository(
+    this._fileSystem,
+    this._directorio,
+  );
 
   /// mueve las fotos de su ubicacion temporal a la carpeta designada para el
   /// cuestionario o inspeccion
   Future<IList<AppImage>> organizarFotos(
-    IList<AppImage> fotos, {
-    required String tipoDocumento,
-    required String idDocumento,
+    IList<AppImage> fotos,
+    Categoria categoria, {
+    required String identificador,
   }) async {
     return IList.from(await Future.wait(fotos
         .map((foto) => foto.map(
               remote: (e) => Future.value(e),
               mobile: (im) => _procesarFoto(
                 im.path,
-                tipoDocumento: tipoDocumento,
-                idDocumento: idDocumento,
+                categoria,
+                identificador: identificador,
               ),
               web: (im) => throw UnsupportedError(
                   "Las imagenes web no se pueden procesar en el sistema de archivos"),
@@ -38,71 +42,73 @@ class FotosRepository {
   }
 
   Future<MobileImage> _procesarFoto(
-    String filePath, {
-    required String tipoDocumento,
-    required String idDocumento,
+    String filePath,
+    Categoria categoria, {
+    required String identificador,
   }) async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final dir = path.join(appDir.path, tipoDocumento, idDocumento);
+    final subcarpeta = _categoriaToSubcarpeta(categoria);
+
+    final dir = path.join(_directorio.path, subcarpeta, identificador);
     if (path.isWithin(dir, filePath)) {
-      /// la imagen ya esta en la carpeta de datos
+      // optimizacion
+      /// la imagen ya esta en la carpeta de designada
       return MobileImage(filePath);
-    } else {
-      ///mover la foto a la carpeta de datos
-      final fileName = path.basename(filePath);
-      final newPath = path.join(dir, fileName);
-      await File(newPath).create(recursive: true);
-      final savedImage = await File(filePath).copy(newPath);
-      return MobileImage(savedImage.path);
     }
+
+    ///mover la foto a la carpeta designada
+    final fileName = path.basename(filePath);
+    final newPath = path.join(dir, fileName);
+    await _fileSystem.file(newPath).create(recursive: true);
+    final savedImage = await _fileSystem.file(filePath).copy(newPath);
+    return MobileImage(savedImage.path);
   }
 
-  Future<Iterable<File>> getFotosDeDocumento(
-      {required String idDocumento, required String tipoDocumento}) async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final docDir =
-        Directory(path.join(appDir.path, tipoDocumento, idDocumento));
-    return docDir.existsSync() ? docDir.listSync().whereType<File>() : [];
+  Future<List<File>> getFotosDeDocumento(
+    Categoria categoria, {
+    required String identificador,
+  }) async {
+    final subcarpeta = _categoriaToSubcarpeta(categoria);
+    final docDir = _fileSystem
+        .directory(path.join(_directorio.path, subcarpeta, identificador));
+    final existe = await docDir.exists();
+    if (!existe) return [];
+    return docDir.list().where((e) => e is File).cast<File>().toList();
   }
 
-  String convertirAUbicacionAbsoluta({
-    required String tipoDeDocumento,
-    required String idDocumento,
+  String _convertirAUbicacionAbsoluta(
+    Categoria categoria, {
+    required String identificador,
     required String basename,
   }) {
-    return path.join(getIt<DirectorioDeDatos>().path, tipoDeDocumento,
-        idDocumento, basename);
+    return path.join(_directorio.path, _categoriaToSubcarpeta(categoria),
+        identificador, basename);
   }
 
-  AppImage convertirAUbicacionAbsolutaAppImage({
-    required String tipoDeDocumento,
-    required String idDocumento,
-    required AppImage foto,
+  AppImage convertirAUbicacionAbsolutaAppImage(
+    AppImage foto,
+    Categoria categoria, {
+    required String identificador,
   }) {
     return foto.map(
       remote: id,
       mobile: (e) => e.copyWith(
-          path: convertirAUbicacionAbsoluta(
-        tipoDeDocumento: tipoDeDocumento,
-        idDocumento: idDocumento,
-        basename: e.path,
-      )),
+        path: _convertirAUbicacionAbsoluta(
+          categoria,
+          identificador: identificador,
+          basename: e.path,
+        ),
+      ),
       web: (e) => throw UnsupportedError(
           "Las imagenes web no se pueden procesar en el sistema de archivos"),
     );
   }
-}
 
-class DirectorioDeDatos {
-  final Directory dir;
-  String get path => dir.path;
-  DirectorioDeDatos(this.dir);
-}
-
-//TODO: usar esta injeccion en todos los lugares de la app para obtener el getApplicationDocumentsDirectory de manera sincrona
-@module
-abstract class DirectorioDeDatosInjection {
-  @preResolve
-  Future<DirectorioDeDatos> get dirDatos async =>
-      DirectorioDeDatos(await getApplicationDocumentsDirectory());
+  String _categoriaToSubcarpeta(Categoria categoria) {
+    switch (categoria) {
+      case Categoria.cuestionario:
+        return "cuestionarios";
+      case Categoria.inspeccion:
+        return "inspecciones";
+    }
+  }
 }

@@ -1,7 +1,12 @@
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/entities/usuario.dart';
+import 'package:inspecciones/infrastructure/core/directorio_de_datos.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'injection.config.dart';
 
 final getIt = GetIt.instance;
@@ -14,6 +19,21 @@ final getIt = GetIt.instance;
 
 /// Inicia el getIt.
 Future configureDependencies() async => $initGetIt(getIt);
+
+/// registro de dependencias externas del proyecto
+@module
+abstract class ThirdPartyInjections {
+  http.Client get client => http.Client();
+  InternetConnectionChecker get internetConnectionChecker =>
+      InternetConnectionChecker();
+  @preResolve
+  Future<SharedPreferences> get prefs => SharedPreferences.getInstance();
+  @preResolve
+  Future<DirectorioDeDatos> get dirDatos async {
+    final dir = await getApplicationDocumentsDirectory();
+    return DirectorioDeDatos(dir.path);
+  }
+}
 
 // Registra en getIt [InspeccionesRemoteDataSource] para poder acceder a ella desde
 //cualquier lugar del código
