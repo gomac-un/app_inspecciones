@@ -3,12 +3,11 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:file/memory.dart';
 import 'package:file_testing/file_testing.dart';
-import 'package:test/test.dart';
-import 'package:path/path.dart' as p;
-
 import 'package:inspecciones/core/entities/app_image.dart';
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/core/directorio_de_datos.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
+import 'package:path/path.dart' as p;
+import 'package:test/test.dart';
 
 void main() {
   late FotosRepository repository;

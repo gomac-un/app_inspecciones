@@ -40,9 +40,11 @@ class CuestionariosRepository {
 
       /// Usado para el nombre de la carpeta de las fotos
       final idDocumento = cues['id'].toString();
-      const tipoDocumento = 'cuestionarios';
+
       final fotos = await _fotos_repository.getFotosDeDocumento(
-          idDocumento: idDocumento, tipoDocumento: tipoDocumento);
+        Categoria.cuestionario,
+        identificador: idDocumento,
+      );
       await _api.subirFotos(fotos, idDocumento, tipoDocumento);
       return right(unit);
     } on TimeoutException {

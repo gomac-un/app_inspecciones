@@ -66,11 +66,10 @@ dev_dependencies:
   flutter_lints: ^1.0.4
   flutter_test: # tests
     sdk: flutter
-  integration_test:
-    sdk: flutter
   test: ^1.17.10
   mockito: ^5.0.15
   file_testing: ^3.0.0
+  bloc_test: ^8.1.0
   
 
 flutter_icons:

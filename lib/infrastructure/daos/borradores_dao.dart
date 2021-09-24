@@ -139,3 +139,11 @@ class BorradoresDao extends DatabaseAccessor<Database>
         .go();
   }
 }
+
+/// TODO: probar esta extension
+extension AsyncMappings<E> on Iterable<E> {
+  //Iterable<T> map<T>(T toElement(E e)) => MappedIterable<E, T>(this, toElement);
+  Future<Iterable<T>> asyncMap<T>(Future<T> Function(E e) toElement) {
+    return Future.wait(map((e) => toElement(e)));
+  }
+}

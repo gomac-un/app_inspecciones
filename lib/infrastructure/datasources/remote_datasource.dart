@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
+import 'package:file/file.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
-import 'package:inspecciones/core/entities/usuario.dart';
 import 'package:path/path.dart' as path;
 import 'package:injectable/injectable.dart';
+
 import 'package:inspecciones/core/error/exceptions.dart';
+import 'package:inspecciones/core/entities/usuario.dart';
 
 ///Permite la comunicación de la app con el server (consume Api)
 abstract class InspeccionesRemoteDataSource {
@@ -33,7 +34,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   /* 'https://gomac.medellin.unal.edu.co' ; */
   /* http://pruebainsgomac.duckdns.org:8000' */
   //static const _server = 'http://10.0.2.2:8000';
-  /// Ruta base de la apo
+
   static const _apiBase = 'inspecciones/api/v1';
 
   static const _timeLimit = Duration(seconds: 5); //TODO: ajustar el timelimit

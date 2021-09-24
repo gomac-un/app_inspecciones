@@ -1,12 +1,11 @@
 /// Definición de todos los Controllers de los bloques en la creación de cuestionarios
-
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:moor/moor.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -322,6 +321,12 @@ class CreadorCriticidadesNumericasController extends CreacionController {
   }
 }
 
+extension PreguntaPorDefecto on List<PreguntaConOpcionesDeRespuestaCompanion> {
+  PreguntaConOpcionesDeRespuestaCompanion get firstOrDefault =>
+      firstWhere((_) => true,
+          orElse: () => const PreguntaConOpcionesDeRespuestaCompanion.vacio());
+}
+
 ///TODO: reducir la duplicacion de codigo con la pregunta normal
 class CreadorPreguntaCuadriculaController extends CreacionController
     with ConRespuestas {
@@ -389,10 +394,11 @@ class CreadorPreguntaCuadriculaController extends CreacionController
           _subSistemaInicial,
           tituloInicial: datosIniciales.cuadricula.titulo,
           descripcionInicial: datosIniciales.cuadricula.descripcion,
-          ejeInicial: datosIniciales.preguntas.first.pregunta.eje,
-          ladoInicial: datosIniciales.preguntas.first.pregunta.lado,
-          posicionZInicial: datosIniciales.preguntas.first.pregunta.posicionZ,
-          tipoIncial: datosIniciales.preguntas.first.pregunta.tipo,
+          ejeInicial: datosIniciales.preguntas.firstOrDefault.pregunta.eje,
+          ladoInicial: datosIniciales.preguntas.firstOrDefault.pregunta.lado,
+          posicionZInicial:
+              datosIniciales.preguntas.firstOrDefault.pregunta.posicionZ,
+          tipoIncial: datosIniciales.preguntas.firstOrDefault.pregunta.tipo,
           parteDeCuadricula: true,
         );
 
@@ -609,7 +615,7 @@ class CamposGeneralesPreguntaController {
   late final sistemaControl = fb.control<Sistema?>(
     _sistemaInicial,
     [Validators.required],
-  )..valueChanges.asBroadcastStream().listen((sistema) async {
+  )..valueChanges.listen((sistema) async {
       subSistemasDisponibles.value =
           sistema == null ? [] : await _repository.getSubSistemas(sistema);
     });
