@@ -78,12 +78,8 @@ flutter_icons:
   image_path: "assets/images/logo-gomac.png"
   android: true # can specify file name here e.g. "ic_launcher"
 
-dependency_overrides: null
-
 flutter:
-
   uses-material-design: true
-
   assets:
     - assets/images/logo-gomac.png
     - assets/images/logo-gomac-texto.png
