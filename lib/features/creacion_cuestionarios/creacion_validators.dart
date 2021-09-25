@@ -58,7 +58,7 @@ ValidatorFunction nuevoTipoDeInspeccionValidator(
 
       final error = {ValidationMessage.required: true};
 
-      if (ti == CreacionFormController.otroTipoDeInspeccion &&
+      if (ti == CreacionFormController.otroTipoDeInspeccion ||
           nti.trim().isEmpty) {
         nuevoTipoDeInspeccionControl.setErrors(error);
         //nuevoTipoDeinspeccion.markAsTouched();
@@ -73,11 +73,9 @@ ValidatorFunction nuevoTipoDeInspeccionValidator(
 ValidatorFunction verificarRango(String controlMinimo, String controlMaximo) =>
     (AbstractControl<dynamic> control) {
       final form = control as FormGroup;
-
       final valorMinimo = form.control(controlMinimo);
       final valorMaximo = form.control(controlMaximo);
-      if (double.parse(valorMinimo.value.toString()) >=
-          double.parse(valorMaximo.value.toString())) {
+      if (valorMinimo.value >= valorMaximo.value) {
         valorMaximo.setErrors({'verificarRango': true});
       } else {
         valorMaximo.removeError('verificarRango');

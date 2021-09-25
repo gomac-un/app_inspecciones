@@ -233,9 +233,9 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
 
 /// Control encargado de manejar la creación de opciones de respuesta en preguntas de selección o de cuadricula
 class CreadorRespuestaController extends CreacionController {
-  /// Si se llama al agregar criticidad (desde la cración de pregunta numerica), [respuestaDesdeDB] es null,
-  /// Cuando se va a editar, [respuestaDesdeDB] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
-  /// Cuando se usa copiar, [respuestaDesdeDB] se obtiene desde el método [toDataClass()]
+  /// Si se llama al agregar criticidad (desde la cración de pregunta numerica), [_respuestaDesdeDB] es null,
+  /// Cuando se va a editar, [_respuestaDesdeDB] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
+  /// Cuando se usa copiar, [_respuestaDesdeDB] se obtiene desde el método [toDataClass()]
   final OpcionesDeRespuestaCompanion _respuestaDesdeDB;
 
   late final textoControl = fb.control<String>(
@@ -293,13 +293,13 @@ class CreadorCriticidadesNumericasController extends CreacionController {
 
   @override
   late final control = fb.group({
-    'minimo': maximoControl,
-    'maximo': minimoControl,
+    'minimo': minimoControl,
+    'maximo': maximoControl,
     'criticidad': criticidadControl,
   }, [
     /// Que el valor mínimo sea menor que el introducido en máximo
     //TODO: validación para que no se entrecrucen los rangos
-    verificarRango('minimo', 'maximo'),
+    verificarRango('minimo', 'maximo')
   ]);
 
   CreadorCriticidadesNumericasController(
@@ -390,7 +390,10 @@ class CreadorPreguntaCuadriculaController extends CreacionController
           tituloInicial: datosIniciales.cuadricula.titulo,
           descripcionInicial: datosIniciales.cuadricula.descripcion,
           ejeInicial: datosIniciales.preguntas.first.pregunta.eje,
-          ladoInicial: datosIniciales.preguntas.first.pregunta.lado,
+          ladoInicial: datosIniciales.preguntas
+              .firstWhere((element) => false)
+              .pregunta
+              .lado,
           posicionZInicial: datosIniciales.preguntas.first.pregunta.posicionZ,
           tipoIncial: datosIniciales.preguntas.first.pregunta.tipo,
           parteDeCuadricula: true,
@@ -609,7 +612,7 @@ class CamposGeneralesPreguntaController {
   late final sistemaControl = fb.control<Sistema?>(
     _sistemaInicial,
     [Validators.required],
-  )..valueChanges.asBroadcastStream().listen((sistema) async {
+  )..valueChanges.listen((sistema) async {
       subSistemasDisponibles.value =
           sistema == null ? [] : await _repository.getSubSistemas(sistema);
     });

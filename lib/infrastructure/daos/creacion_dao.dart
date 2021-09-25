@@ -461,8 +461,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     final fotosManager = getIt<FotosRepository>();
     final fotosGuiaProcesadas = await fotosManager.organizarFotos(
       preguntaCompanion.fotosGuia.valueOrDefault(const Nil()),
-      tipoDocumento: "cuestionarios",
-      idDocumento: cuestionario.id.toString(),
+      Categoria.cuestionario,
+      identificador: cuestionario.id.toString(),
     );
 
     final preguntaAInsertar = preguntaCompanion.copyWith(

@@ -107,7 +107,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       int cuestionarioId,
 
       /// Usada para obtener las respuestas del inspector a la pregunta
-      [int inspeccionId]) async {
+      [int? inspeccionId]) async {
     final respuesta = alias(respuestas, 'res');
     final query = select(preguntas).join([
       innerJoin(
@@ -150,7 +150,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
 
   /// Devuelve la respuesta a [pregunta] de tipo numerica.
   Future<RespuestasCompanion> getRespuestaDePreguntaNumerica(
-      Pregunta pregunta, int inspeccionId) async {
+      Pregunta pregunta, int? inspeccionId) async {
     ///Si la inspeccion es nueva entonces no existe una respuesta y se envia nulo
     ///para que el control cree una por defecto
     if (inspeccionId == null) return null;

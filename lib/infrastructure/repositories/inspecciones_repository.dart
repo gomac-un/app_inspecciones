@@ -71,7 +71,9 @@ class InspeccionesRepository {
       final idDocumento = ins['id'].toString();
       const tipoDocumento = 'inspecciones';
       final fotos = await _fotosRepository.getFotosDeDocumento(
-          idDocumento: idDocumento, tipoDocumento: tipoDocumento);
+        Categoria.inspeccion,
+        identificador: idDocumento,
+      );
       await _api.subirFotos(fotos, idDocumento, tipoDocumento);
 
       return right(unit);
@@ -93,8 +95,8 @@ class InspeccionesRepository {
   Stream<List<Borrador>> getBorradores() => _db.borradoresDao.borradores();
   Future eliminarRespuestas(Borrador borrador) =>
       _db.borradoresDao.eliminarRespuestas(borrador); //TODO que devuelve?
-  Future<List<Cuestionario>> cuestionariosParaActivo(int activo) =>
-      _db.llenadoDao.cuestionariosParaActivo(activo);
+  /* Future<List<Cuestionario>> cuestionariosParaActivo(int activo) =>
+      _db.llenadoDao.cuestionariosParaActivo(activo); */
   Future eliminarBorrador(Borrador borrador) =>
       _db.borradoresDao.eliminarBorrador(borrador); //TODO que devuelve?
 }

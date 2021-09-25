@@ -21,10 +21,10 @@ class InicioInspeccionController {
             tiposDeInspeccionDisponibles.value = [];
             return;
           }
-          final res = await repository.cuestionariosParaActivo(activoParsed);
-          tiposDeInspeccionDisponibles.value = res;
+          /* final res = await repository.cuestionariosParaActivo(activoParsed);
+          tiposDeInspeccionDisponibles.value = res; */
 
-          tipoInspeccionControl.value = res.isNotEmpty ? res.first : null;
+          /* tipoInspeccionControl.value = res.isNotEmpty ? res.first : null; */
         });
   final tipoInspeccionControl =
       fb.control<Cuestionario?>(null, [Validators.required]);

@@ -36,9 +36,12 @@ class CreacionFormController {
     [Validators.required],
   );
   late final periodicidadControl = fb.control<double>(
-    datosIniciales.cuestionarioDeModelo.first.periodicidad
-        .valueOrDefault(0)
-        .toDouble(),
+    //Test genera error cuando esta lista está vacía.
+    datosIniciales.cuestionarioDeModelo.isNotEmpty
+        ? datosIniciales.cuestionarioDeModelo.first.periodicidad
+            .valueOrDefault(0)
+            .toDouble()
+        : 0,
     [Validators.required],
   );
   late final modelosControl = fb.control<List<String>>(
