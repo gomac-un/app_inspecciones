@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:reactive_forms/reactive_forms.dart';
 
 /// seleccion multiple usando [FilterChip]s
@@ -39,20 +38,22 @@ class ReactiveFilterChipSelection<ModelDataType, ViewDataType>
                   spacing: 10,
                   runSpacing: 10,
                   children: posibleItems
-                      .map((e) => FilterChip(
-                            showCheckmark: false,
-                            label: Text(labelAccesor(e)),
-                            selected: selectedItems.contains(e),
-                            onSelected: (selected) {
-                              if (selected) {
-                                field.didChange([...?field.value, e]);
-                              } else {
-                                field.didChange(
-                                  [...?field.value]..remove(e),
-                                );
-                              }
-                            },
-                          ))
+                      .map(
+                        (e) => FilterChip(
+                          showCheckmark: false,
+                          label: Text(labelAccesor(e)),
+                          selected: selectedItems.contains(e),
+                          onSelected: (selected) {
+                            if (selected) {
+                              field.didChange([...?field.value, e]);
+                            } else {
+                              field.didChange(
+                                [...?field.value]..remove(e),
+                              );
+                            }
+                          },
+                        ),
+                      )
                       .toList(),
                 ),
               );

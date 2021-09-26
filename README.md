@@ -1,6 +1,6 @@
-# bloc_example
+# Inspecciones
 
-A new Flutter project.
+Aplicacion escrita en Flutter para la creación de cuestionarios y el llenado de inspeciones con el fin de recolectar información durante la inspeccion de activos.
 
 ## Getting Started
 

@@ -533,6 +533,8 @@ class CuadriculaCard extends StatelessWidget {
       descripcion: formArray.cuadricula.cuadricula.descripcion,
       child: Column(
         children: [
+          //TODO: el ancho minimo de cada columna debe ser el ancho de la palabra
+          //mas larga del titulo de la pregunta para evitar que se corten
           Table(
             border: const TableBorder(
                 horizontalInside: BorderSide(color: Colors.black26)),

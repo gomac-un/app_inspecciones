@@ -1,12 +1,11 @@
 /// Definición de todos los Controllers de los bloques en la creación de cuestionarios
-
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:moor/moor.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -233,9 +232,9 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
 
 /// Control encargado de manejar la creación de opciones de respuesta en preguntas de selección o de cuadricula
 class CreadorRespuestaController extends CreacionController {
-  /// Si se llama al agregar criticidad (desde la cración de pregunta numerica), [_respuestaDesdeDB] es null,
-  /// Cuando se va a editar, [_respuestaDesdeDB] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
-  /// Cuando se usa copiar, [_respuestaDesdeDB] se obtiene desde el método [toDataClass()]
+  /// Si se llama al agregar criticidad (desde la cración de pregunta numerica), [respuestaDesdeDB] es null,
+  /// Cuando se va a editar, [respuestaDesdeDB] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
+  /// Cuando se usa copiar, [respuestaDesdeDB] se obtiene desde el método [toDataClass()]
   final OpcionesDeRespuestaCompanion _respuestaDesdeDB;
 
   late final textoControl = fb.control<String>(
@@ -293,13 +292,13 @@ class CreadorCriticidadesNumericasController extends CreacionController {
 
   @override
   late final control = fb.group({
-    'minimo': minimoControl,
-    'maximo': maximoControl,
+    'minimo': maximoControl,
+    'maximo': minimoControl,
     'criticidad': criticidadControl,
   }, [
     /// Que el valor mínimo sea menor que el introducido en máximo
     //TODO: validación para que no se entrecrucen los rangos
-    verificarRango('minimo', 'maximo')
+    verificarRango('minimo', 'maximo'),
   ]);
 
   CreadorCriticidadesNumericasController(
@@ -320,6 +319,12 @@ class CreadorCriticidadesNumericasController extends CreacionController {
       criticidad: Value(criticidadControl.value!.round()),
     );
   }
+}
+
+extension PreguntaPorDefecto on List<PreguntaConOpcionesDeRespuestaCompanion> {
+  PreguntaConOpcionesDeRespuestaCompanion get firstOrDefault =>
+      firstWhere((_) => true,
+          orElse: () => const PreguntaConOpcionesDeRespuestaCompanion.vacio());
 }
 
 ///TODO: reducir la duplicacion de codigo con la pregunta normal
@@ -389,13 +394,11 @@ class CreadorPreguntaCuadriculaController extends CreacionController
           _subSistemaInicial,
           tituloInicial: datosIniciales.cuadricula.titulo,
           descripcionInicial: datosIniciales.cuadricula.descripcion,
-          ejeInicial: datosIniciales.preguntas.first.pregunta.eje,
-          ladoInicial: datosIniciales.preguntas
-              .firstWhere((element) => false)
-              .pregunta
-              .lado,
-          posicionZInicial: datosIniciales.preguntas.first.pregunta.posicionZ,
-          tipoIncial: datosIniciales.preguntas.first.pregunta.tipo,
+          ejeInicial: datosIniciales.preguntas.firstOrDefault.pregunta.eje,
+          ladoInicial: datosIniciales.preguntas.firstOrDefault.pregunta.lado,
+          posicionZInicial:
+              datosIniciales.preguntas.firstOrDefault.pregunta.posicionZ,
+          tipoIncial: datosIniciales.preguntas.firstOrDefault.pregunta.tipo,
           parteDeCuadricula: true,
         );
 

@@ -1,0 +1,56 @@
+{
+    "respuestas": [
+        {
+            //"tipo": "preguntaDeSeleccionUnica",
+            "opcionSeleccionada": 1,
+            "respuesta": {
+                "observacion": "prueba",
+                "fotosObservacion": [
+                    "1.jpg"
+                ],
+                "reparado": true,
+                "observacionReparacion": "prueba1"
+            }
+        },
+        {
+            //"tipo": "preguntaDeSeleccionMultiple",
+            "opcionesSeleccionadas": [
+                1,
+                2
+            ],
+            "respuesta": {
+                "observacion": "prueba",
+                "fotosObservacion": [
+                    "1.jpg"
+                ],
+                "reparado": true,
+                "observacionReparacion": "prueba1"
+            }
+        },
+        {
+            //"tipo": "cuadriculaSeleccionUnica",
+            "respuestas": [
+                {
+                    //"tipo": "preguntaDeSeleccionUnica",
+                    "opcionSeleccionada": 1,
+                    "respuesta": {
+                        "observacion": "prueba",
+                        "fotosObservacion": [
+                            "1.jpg"
+                        ],
+                        "reparado": true,
+                        "observacionReparacion": "prueba1"
+                    }
+                }
+            ],
+            "respuesta": {
+                "observacion": "prueba",
+                "fotosObservacion": [
+                    "1.jpg"
+                ],
+                "reparado": true,
+                "observacionReparacion": "prueba1"
+            }
+        }
+    ]
+}

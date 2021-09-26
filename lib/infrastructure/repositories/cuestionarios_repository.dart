@@ -40,7 +40,7 @@ class CuestionariosRepository {
 
       /// Usado para el nombre de la carpeta de las fotos
       final idDocumento = cues['id'].toString();
-      const tipoDocumento = 'cuestionarios';
+
       final fotos = await _fotos_repository.getFotosDeDocumento(
         Categoria.cuestionario,
         identificador: idDocumento,

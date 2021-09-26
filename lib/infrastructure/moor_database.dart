@@ -1,17 +1,18 @@
 import 'dart:convert';
-
 import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:moor/moor.dart';
+import 'package:path/path.dart' as path;
+
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
+import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/injection.dart';
-import 'package:moor/moor.dart';
-import 'package:path/path.dart' as path;
 
+import 'daos/planeacion_dao.dart';
 export 'database/shared.dart';
 
 part 'datos_de_prueba.dart';
@@ -41,10 +42,7 @@ part 'tablas.dart';
     ProgramacionSistemasXActivo,
     TiposDeInspecciones,
   ],
-  daos: [
-    /* LlenadoDao, */ CreacionDao,
-    BorradoresDao, /* PlaneacionDao */
-  ],
+  daos: [LlenadoDao, CreacionDao, BorradoresDao, PlaneacionDao],
 )
 class Database extends _$Database {
   final int _appId;
@@ -253,20 +251,22 @@ class Database extends _$Database {
       );
       final fotosManager = getIt<FotosRepository>();
       return respuesta.copyWith(
-
-          /// se hace este proceso para agregarle el path completo a las fotos
-          fotosBase: respuesta.fotosBase
-              .map((e) => fotosManager.convertirAUbicacionAbsolutaAppImage(
-                    e,
-                    Categoria.inspeccion,
-                    identificador: (json['id'] as int).toString(),
-                  )),
-          fotosReparacion: respuesta.fotosReparacion
-              .map((e) => fotosManager.convertirAUbicacionAbsolutaAppImage(
-                    e,
-                    Categoria.inspeccion,
-                    identificador: (json['id'] as int).toString(),
-                  )));
+        /// se hace este proceso para agregarle el path completo a las fotos
+        fotosBase: respuesta.fotosBase.map(
+          (e) => fotosManager.convertirAUbicacionAbsolutaAppImage(
+            e,
+            Categoria.inspeccion,
+            identificador: (json['id'] as int).toString(),
+          ),
+        ),
+        fotosReparacion: respuesta.fotosReparacion.map(
+          (e) => fotosManager.convertirAUbicacionAbsolutaAppImage(
+            e,
+            Categoria.inspeccion,
+            identificador: (json['id'] as int).toString(),
+          ),
+        ),
+      );
     }).toList();
 
     /// Así queda solo los campos de la inspección y se puede dar [inspeccionParseadas]
@@ -357,12 +357,15 @@ class Database extends _$Database {
       );
       final fotosManager = getIt<FotosRepository>();
       return pregunta.copyWith(
-          fotosGuia: pregunta.fotosGuia
-              .map((e) => fotosManager.convertirAUbicacionAbsolutaAppImage(
-                    e,
-                    Categoria.cuestionario,
-                    identificador: (p['cuestionario'] as int).toString(),
-                  )));
+        fotosGuia: pregunta.fotosGuia.map(
+          (e) => fotosManager.convertirAUbicacionAbsolutaAppImage(
+            e,
+            Categoria.cuestionario,
+            identificador:
+                ((p as Map<String, dynamic>)['cuestionario'] as int).toString(),
+          ),
+        ),
+      );
     }).toList();
 
     final opcionesDeRespuestaParseados = (json["OpcionDeRespuesta"] as List)

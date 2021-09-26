@@ -1,3 +1,5 @@
+import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/entities/usuario.dart';
@@ -18,21 +20,28 @@ final getIt = GetIt.instance;
 )
 
 /// Inicia el getIt.
-Future configureDependencies() async => $initGetIt(getIt);
+Future<GetIt> configureDependencies() async => $initGetIt(getIt);
 
 /// registro de dependencias externas del proyecto
 @module
 abstract class ThirdPartyInjections {
   http.Client get client => http.Client();
+
   InternetConnectionChecker get internetConnectionChecker =>
       InternetConnectionChecker();
+
   @preResolve
   Future<SharedPreferences> get prefs => SharedPreferences.getInstance();
+
   @preResolve
   Future<DirectorioDeDatos> get dirDatos async {
     final dir = await getApplicationDocumentsDirectory();
     return DirectorioDeDatos(dir.path);
   }
+
+  @Singleton(as: FileSystem)
+  LocalFileSystem get fileSystem =>
+      const LocalFileSystem(); //TODO: mirar si se puede usar un memoryFileSystem para web
 }
 
 // Registra en getIt [InspeccionesRemoteDataSource] para poder acceder a ella desde

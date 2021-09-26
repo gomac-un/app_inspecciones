@@ -3,6 +3,7 @@ pubspec.lock
 **/*.g.dart
 **/*.gr.dart
 **/*.freezed.dart
+**/*.mocks.dart
 **/injection.config.dart
 # Miscellaneous
 *.class
