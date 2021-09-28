@@ -45,7 +45,7 @@ class CuestionariosRepository {
         Categoria.cuestionario,
         identificador: idDocumento,
       );
-      await _api.subirFotos(fotos, idDocumento, tipoDocumento);
+      await _api.subirFotos(fotos, idDocumento, Categoria.cuestionario);
       return right(unit);
     } on TimeoutException {
       return const Left(ApiFailure.noHayConexionAlServidor());

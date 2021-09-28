@@ -68,7 +68,7 @@ void mostrarInvalido(BuildContext context) => mostrarError(
       actions: [
         Consumer(builder: (context, ref, _) {
           return TextButton(
-            child: const Text("ok"),
+            child: const Text("Ok"),
             onPressed: () {
               ref.read(filtroPreguntasProvider).state =
                   FiltroPreguntas.invalidas;

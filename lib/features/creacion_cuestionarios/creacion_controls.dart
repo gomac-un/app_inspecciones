@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:moor/moor.dart';
@@ -232,9 +233,9 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
 
 /// Control encargado de manejar la creación de opciones de respuesta en preguntas de selección o de cuadricula
 class CreadorRespuestaController extends CreacionController {
-  /// Si se llama al agregar criticidad (desde la cración de pregunta numerica), [respuestaDesdeDB] es null,
-  /// Cuando se va a editar, [respuestaDesdeDB] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
-  /// Cuando se usa copiar, [respuestaDesdeDB] se obtiene desde el método [toDataClass()]
+  /// Si se llama al agregar criticidad (desde la cración de pregunta numerica), [_respuestaDesdeDB] es null,
+  /// Cuando se va a editar, [_respuestaDesdeDB] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
+  /// Cuando se usa copiar, [_respuestaDesdeDB] se obtiene desde el método [toDataClass()]
   final OpcionesDeRespuestaCompanion _respuestaDesdeDB;
 
   late final textoControl = fb.control<String>(
@@ -292,13 +293,13 @@ class CreadorCriticidadesNumericasController extends CreacionController {
 
   @override
   late final control = fb.group({
-    'minimo': maximoControl,
-    'maximo': minimoControl,
+    'minimo': minimoControl,
+    'maximo': maximoControl,
     'criticidad': criticidadControl,
   }, [
     /// Que el valor mínimo sea menor que el introducido en máximo
     //TODO: validación para que no se entrecrucen los rangos
-    verificarRango('minimo', 'maximo'),
+    verificarRango('minimo', 'maximo')
   ]);
 
   CreadorCriticidadesNumericasController(

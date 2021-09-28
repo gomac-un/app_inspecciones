@@ -59,19 +59,19 @@ class InspeccionPage extends ConsumerWidget {
                   LlenadoAppBarButton(
                     action: control.guardarInspeccion,
                     icon: const Icon(Icons.save),
-                    tooltip: "guardar borrador",
+                    tooltip: "Guardar borrador",
                   ),
                   IconButton(
                     onPressed: () => control.iniciarReparaciones(
                       onInvalid: () => mostrarInvalido(context),
                     ),
                     icon: const Icon(Icons.home_repair_service),
-                    tooltip: "iniciar reparaciones",
+                    tooltip: "Iniciar reparaciones",
                   ),
                   IconButton(
                     onPressed: control.finalizar,
                     icon: const Icon(Icons.done),
-                    tooltip: "finalizar",
+                    tooltip: "Finalizar",
                   ),
                 ]
               ],

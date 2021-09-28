@@ -7,8 +7,6 @@ import 'package:inspecciones/mvvc/common_widgets.dart';
 import 'package:inspecciones/mvvc/llenado_controls.dart';
 import 'package:inspecciones/mvvc/llenado_form_view_model.dart';
 import 'package:inspecciones/presentation/widgets/reactive_filter_chip_selection.dart';
-import 'package:inspecciones/presentation/widgets/reactive_multiselect_dialog_field.dart';
-import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:reactive_multi_image_picker/reactive_multi_image_picker.dart';

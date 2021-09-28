@@ -69,7 +69,7 @@ class InspeccionesRepository {
 
       /// Usado para el nombre de la carpeta de las fotos
       final idDocumento = ins['id'].toString();
-      const tipoDocumento = 'inspecciones';
+      const tipoDocumento = Categoria.inspeccion;
       final fotos = await _fotosRepository.getFotosDeDocumento(
         Categoria.inspeccion,
         identificador: idDocumento,
