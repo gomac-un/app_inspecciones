@@ -215,7 +215,7 @@ class OpcionesDeRespuesta extends Table {
 
 @DataClassName('Inspeccion')
 class Inspecciones extends Table {
-  /// Este id tiene el formato: yymmddhhmm(activoId) ver [Database.generarId()]
+  /// Este id tiene el formato: yymmddhhmmss(activoId) ver [Database.generarId()]
   IntColumn get id => integer()();
 
   IntColumn get estado => intEnum<EstadoDeInspeccion>()();
@@ -232,7 +232,7 @@ class Inspecciones extends Table {
 
   /// Se marca solo cuando se presiona finalizar y el estado de la inspeccion es reparacion
   DateTimeColumn get momentoFinalizacion => dateTime().nullable()();
-  //TODO: Verificar  como es que funcionan estas fechas.
+
   /// Nulo hasta que se envia la inspección al server
   DateTimeColumn get momentoEnvio => dateTime().nullable()();
 

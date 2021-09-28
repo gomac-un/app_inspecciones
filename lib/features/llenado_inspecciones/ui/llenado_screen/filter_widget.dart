@@ -21,7 +21,7 @@ class FilterWidget extends ConsumerWidget {
             .state
             .map((e) => DropdownMenuItem(
                   value: e,
-                  child: Text(EnumToString.convertToString(e)),
+                  child: Text(EnumToString.convertToString(e, camelCase: true)),
                 ))
             .toList(),
         selectedItemBuilder: (_) => ref
@@ -29,7 +29,7 @@ class FilterWidget extends ConsumerWidget {
             .state
             .map((e) => Center(
                   child: Text(
-                    EnumToString.convertToString(e),
+                    EnumToString.convertToString(e, camelCase: true),
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.onPrimary),
                   ),

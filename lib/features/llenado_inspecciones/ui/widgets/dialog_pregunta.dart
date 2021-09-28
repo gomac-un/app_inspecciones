@@ -28,7 +28,7 @@ class IconDialogPregunta extends ConsumerWidget {
     final Color? color;
     final IconData icon;
     switch (estadoDeInspeccion) {
-      case EstadoDeInspeccion.enBorrador:
+      case EstadoDeInspeccion.borrador:
         color = !controlValido ? Colors.red : null;
         icon = Icons.remove_red_eye_outlined;
         break;

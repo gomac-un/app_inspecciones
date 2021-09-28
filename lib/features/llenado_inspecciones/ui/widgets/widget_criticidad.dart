@@ -19,7 +19,7 @@ class WidgetCriticidad extends ConsumerWidget {
     final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider).state;
     final criticidadCalculada = ref.watch(criticidadCalculadaProvider(control));
 
-    return estadoDeInspeccion == EstadoDeInspeccion.enBorrador
+    return estadoDeInspeccion == EstadoDeInspeccion.borrador
         ? _WidgetCriticidad.borrador(
             criticidadPregunta: control.criticidadPregunta)
         : _WidgetCriticidad.noBorrador(

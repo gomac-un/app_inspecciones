@@ -16,7 +16,7 @@ class Inspeccion {
 }
 
 enum EstadoDeInspeccion {
-  enBorrador,
+  borrador,
   enReparacion,
   finalizada,
 }

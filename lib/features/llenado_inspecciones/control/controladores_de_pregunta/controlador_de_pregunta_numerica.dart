@@ -24,9 +24,9 @@ class ControladorDePreguntaNumerica
               exception: Exception('rangos incompletos'),
               library: 'inspecciones',
               context: ErrorDescription(
-                  'rangos de criticidad incompletos, usando criticidad 1 por defecto'),
+                  'rangos de criticidad incompletos, usando criticidad 0 por defecto'),
             ));
-            return RangoDeCriticidad(0, 0, 1);
+            return RangoDeCriticidad(0, 0, 0);
           },
         ).criticidad;
 

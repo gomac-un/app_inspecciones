@@ -1,14 +1,18 @@
 import 'dart:math';
-
+import 'package:inspecciones/features/llenado_inspecciones/domain/respuesta.dart'
+    as dom;
 import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:intl/intl.dart';
 import 'package:moor/moor.dart';
-
+import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/preguntas/opcion_de_respuesta.dart'
+    as dominio;
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+
+import '../../injection.dart';
 
 part 'llenado_dao.g.dart';
 
@@ -107,7 +111,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       int cuestionarioId,
 
       /// Usada para obtener las respuestas del inspector a la pregunta
-      [int inspeccionId]) async {
+      [int? inspeccionId]) async {
     final respuesta = alias(respuestas, 'res');
     final query = select(preguntas).join([
       innerJoin(
@@ -150,7 +154,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
 
   /// Devuelve la respuesta a [pregunta] de tipo numerica.
   Future<RespuestasCompanion> getRespuestaDePreguntaNumerica(
-      Pregunta pregunta, int inspeccionId) async {
+      Pregunta pregunta, int? inspeccionId) async {
     ///Si la inspeccion es nueva entonces no existe una respuesta y se envia nulo
     ///para que el control cree una por defecto
     if (inspeccionId == null) return null;
@@ -380,20 +384,73 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
     return (select(inspecciones)..where((i) => i.id.equals(id))).getSingle();
   }
 
+  Future<int> guardarRespuesta(
+    dom.Respuesta respuesta,
+    int inspeccionId, {
+    double? valor,
+    dominio.OpcionDeRespuesta? opcion,
+  }) async {
+    final fotosManager = getIt<FotosRepository>();
+    final fotosBaseProcesadas = await fotosManager.organizarFotos(
+      respuesta.metaRespuesta.fotosBase,
+      Categoria.inspeccion,
+      identificador: inspeccionId.toString(),
+    );
+    final fotosReparacionProcesadas = await fotosManager.organizarFotos(
+      respuesta.metaRespuesta.fotosReparacion,
+      Categoria.inspeccion,
+      identificador: inspeccionId.toString(),
+    );
+    const respuestaCompanion = RespuestasCompanion();
+    final respuestaAInsertar = respuestaCompanion.copyWith(
+      //TODO: forma de acceder al id de la respuesta, de la pregunta y de la opción.
+      /* id: Value(respuesta.metaRespuesta.id), 
+       preguntaId: Value(respuesta.metaRespuesta.preguntaId), 
+      opcionDeRespuestaId: Value(opcion.id), */
+      inspeccionId: Value(inspeccionId),
+      fotosBase: Value(fotosBaseProcesadas),
+      fotosReparacion: Value(fotosReparacionProcesadas),
+      observacion: Value(respuesta.metaRespuesta.observaciones),
+      observacionReparacion:
+          Value(respuesta.metaRespuesta.observacionesReparacion),
+      reparado: Value(respuesta.metaRespuesta.reparada),
+      calificacion: Value(respuesta.metaRespuesta.criticidadInspector),
+      valor: Value(valor),
+    );
+
+    return await upsertRespuesta(respuestaAInsertar);
+  }
+
+  Future<int> upsertRespuesta(RespuestasCompanion respuestaForm) async {
+    if (respuestaForm.id.present) {
+      await update(respuestas).replace(respuestaForm);
+      return respuestaForm.id.value;
+    } else {
+      return await into(respuestas).insert(respuestaForm);
+    }
+  }
+
+  Future<List<int>> procesarRespuestaMultiple(
+      dom.RespuestaDeSeleccionMultiple respuesta, int inspeccionId) async {
+    final ids = await Future.wait(respuesta.opciones
+        .where((subResp) => subResp.estaSeleccionada)
+        .map((subResp) async {
+      //TODO: ¿Cómo acceder a la opción de respuesta de las multiples?
+      return await guardarRespuesta(
+        subResp,
+        inspeccionId, /* opcion: subResp. */
+      );
+    }));
+    return ids;
+  }
+
   /// Realiza el guardado de la inspección al presionar el botón guardar o finalizar en el llenado.
   Future guardarInspeccion(
-      List<List<RespuestaConOpcionesDeRespuesta>> respuestasForm,
-      int cuestionarioId,
-      int activoId,
-      EstadoDeInspeccion estado,
-
-      /// Criticidad de la inspección antes de reparaciones.
-      double criticidad,
-
-      /// Criticidad de la inspección después de reparaciones.
-      double criticidadReparacion) async {
+    List<dom.Respuesta> respuestasForm,
+    int inspeccionId,
+  ) async {
     return transaction(() async {
-      /// Se redondea para evitar que se guarde en la bd un montón de decimales.
+      /*  /// Se redondea para evitar que se guarde en la bd un montón de decimales.
       final mod = pow(10.0, 2);
       final critiRound = (criticidad * mod).round().toDouble() / mod;
       final critiRepaRound =
@@ -416,59 +473,35 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
                 criticidadTotal: Value(critiRound),
                 criticidadReparacion: Value(critiRepaRound),
               ),
-      );
+      ); */
 
       /// Se comienza a procesar las respuestas a cada pregunta.
       final List<int> respuestasId = [];
-      await Future.forEach<List<RespuestaConOpcionesDeRespuesta>>(
-          respuestasForm, (resp) async {
-        for (final rf in resp) {
-          /// Asociación de cada respuesta con [ins].
-          if (rf != null) {
-            rf.respuesta = rf?.respuesta?.copyWith(inspeccionId: Value(ins.id));
-          }
+      await Future.forEach<dom.Respuesta>(respuestasForm, (resp) async {
+        if (resp is dom.RespuestaDeSeleccionUnica) {
+          final id = await guardarRespuesta(resp, inspeccionId,
+              opcion: resp.opcionSeleccionada);
+          respuestasId.add(id);
+        } else if (resp is dom.RespuestaNumerica) {
+          final id = await guardarRespuesta(resp, inspeccionId,
+              valor: resp.respuestaNumerica);
+          respuestasId.add(id);
+        } else if (resp is dom.RespuestaDeSeleccionMultiple) {
+          final ids = await procesarRespuestaMultiple(resp, inspeccionId);
+          respuestasId.addAll(ids);
+        } else if (resp is dom.RespuestaDeCuadriculaDeSeleccionUnica) {
+          final ids = await Future.wait(resp.respuestas.map((subResp) async {
+            return await guardarRespuesta(subResp, inspeccionId,
+                opcion: subResp.opcionSeleccionada);
+          }));
+          respuestasId.addAll(ids);
+        } else if (resp is dom.RespuestaDeCuadriculaDeSeleccionMultiple) {
+          resp.respuestas.map((e) async {
+            final ids = await procesarRespuestaMultiple(e, inspeccionId);
+          });
+        } else {
+          throw (Exception('Tipo de respuesta no reconocido'));
         }
-
-        /// Se obtiene la primera respuesta que se haya hecho.
-        ///
-        /// En este caso no importa cual sea pues solo se necesita para obtener [idform] para dar el nombre de la carpeta de las fotos con [idform].
-        final respuesta = respuestasForm.firstWhere((resp) => resp.isNotEmpty,
-            orElse: () => null);
-
-        final idform =
-            respuesta?.first?.respuesta?.inspeccionId?.value?.toString();
-
-        await Future.forEach<RespuestaConOpcionesDeRespuesta>(resp, (e) async {
-          if (e != null) {
-            final fotosBaseProc = idform != null
-                ? await FotosRepository.organizarFotos(
-                    e.respuesta.fotosBase.value,
-                    tipoDocumento: "inspecciones",
-                    idDocumento: idform)
-                : null;
-
-            final fotosRepProc = idform != null
-                ? await FotosRepository.organizarFotos(
-                    e.respuesta.fotosReparacion.value,
-                    tipoDocumento: "inspecciones",
-                    idDocumento: idform)
-                : null;
-            e.respuesta = e.respuesta.copyWith(
-              fotosBase: Value(fotosBaseProc.toImmutableList()),
-              fotosReparacion: Value(fotosRepProc.toImmutableList()),
-            );
-
-            int res;
-            if (e.respuesta.id.present) {
-              await into(respuestas).insertOnConflictUpdate(e.respuesta);
-              res = e.respuesta.id.value;
-              respuestasId.add(res);
-            } else {
-              res = await into(respuestas).insert(e.respuesta);
-              respuestasId.add(res);
-            }
-          }
-        });
       });
 
       /// Se eliminan de la bd las respuestas que hayan sido deseleccionadas.
@@ -477,7 +510,7 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
       await (delete(respuestas)
             ..where((resp) =>
                 resp.id.isNotIn(respuestasId) &
-                resp.inspeccionId.equals(ins.id)))
+                resp.inspeccionId.equals(inspeccionId)))
           .go();
     });
   }

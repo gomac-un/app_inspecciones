@@ -40,10 +40,17 @@ class ListViewPreguntas extends ConsumerWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 700),
         child: SafeArea(
-          child: ListView.builder(
-            controller: controller,
-            itemCount: widgets.length,
-            itemBuilder: (_, j) => widgets[j],
+          child: SingleChildScrollView(
+            child: Expanded(
+              child: Container(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  controller: controller,
+                  itemCount: widgets.length,
+                  itemBuilder: (_, j) => widgets[j],
+                ),
+              ),
+            ),
           ),
         ),
       ),

@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:dartz/dartz.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 import '../domain/bloque.dart';
 import '../domain/bloques/bloques.dart';
 import '../domain/bloques/preguntas/opcion_de_respuesta.dart';
@@ -240,7 +239,7 @@ class InspeccionesRepository {
     ];
     final inspeccion = Inspeccion(
       id: 1,
-      estado: EstadoDeInspeccion.enBorrador,
+      estado: EstadoDeInspeccion.borrador,
       activo: "123",
     );
     final cuestionario = CuestionarioInspeccionado(
@@ -405,7 +404,7 @@ class InspeccionesRepository {
     ];
     final inspeccion = Inspeccion(
       id: 2,
-      estado: EstadoDeInspeccion.enBorrador,
+      estado: EstadoDeInspeccion.borrador,
       activo: "123",
     );
     final cuestionario = CuestionarioInspeccionado(
@@ -423,6 +422,8 @@ class InspeccionesRepository {
 
   Future<void> guardarInspeccion(List<Respuesta> respuestas,
       {required int inspeccionId}) async {
+    /* _db.llenadoDao.guardarInspeccion(respuestas,inspeccionId); */
+
     print("guardando inspeccion $inspeccionId");
     for (final respuesta in respuestas) {
       print(respuesta);

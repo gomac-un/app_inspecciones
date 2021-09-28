@@ -1,9 +1,6 @@
-import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:moor/moor.dart';
-part 'tablas_unidas.g.dart';
 
 /// Clases que agrupan [Dataclass]es de moor que están relacionadas
 /// Las que tienen sufijo Companion, contienen tipos [UpdateCompanion], los
@@ -205,28 +202,14 @@ class RespuestaConOpcionesDeRespuestaCompanion {
   }
 }
 */
-@JsonSerializable()
-class RespuestaConOpcionesDeRespuesta2 {
-  Respuesta respuesta;
-  List<OpcionDeRespuesta> opcionesDeRespuesta;
-
-  RespuestaConOpcionesDeRespuesta2(this.respuesta, this.opcionesDeRespuesta);
-
-  factory RespuestaConOpcionesDeRespuesta2.fromJson(
-          Map<String, dynamic> json) =>
-      _$RespuestaConOpcionesDeRespuesta2FromJson(json);
-  Map<String, dynamic> toJson() =>
-      _$RespuestaConOpcionesDeRespuesta2ToJson(this);
-}
 
 /// Usada en las cuadriculas, ver [BloqueConCuadricula] más abajo.
 ///
 /// Reúne pregunta con sus respectivas respuestas
 class PreguntaConRespuestaConOpcionesDeRespuesta {
   final Pregunta pregunta;
-  List<RespuestaConOpcionesDeRespuesta> respuesta;
 
-  PreguntaConRespuestaConOpcionesDeRespuesta(this.pregunta, this.respuesta);
+  PreguntaConRespuestaConOpcionesDeRespuesta(this.pregunta);
 }
 
 /// Reune [cuadricula] con sus posibles [opcionesDeRespuesta] (Columnas de la cuadrícula)
@@ -273,7 +256,9 @@ class CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion {
             c.opcionesDeRespuesta.map((o) => o.toCompanion(true)).toList();
   const CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.vacio()
       : cuadricula = const CuadriculasDePreguntasCompanion(),
-        preguntas = const [],
+        preguntas = const [
+          /* PreguntaConOpcionesDeRespuestaCompanion.vacio() */
+        ],
         opcionesDeRespuesta = const [];
 
   CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion copyWith({
@@ -325,10 +310,11 @@ class BloqueConPreguntaSimple extends IBloqueOrdenable {
 
   /// List para el caso de las multiples
   /// TODO: mirar si se necesita esto (en la creacion no se necesita)
-  final List<RespuestaConOpcionesDeRespuesta>? respuesta;
 
-  const BloqueConPreguntaSimple(Bloque bloque, this.pregunta, [this.respuesta])
-      : super(bloque);
+  const BloqueConPreguntaSimple(
+    Bloque bloque,
+    this.pregunta,
+  ) : super(bloque);
 }
 
 /// Reúne la cuadricula con sus

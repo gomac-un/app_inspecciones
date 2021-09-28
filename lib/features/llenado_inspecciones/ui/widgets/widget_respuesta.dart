@@ -26,7 +26,7 @@ class WidgetRespuesta extends StatelessWidget {
         ReactiveTextField(
           formControl: control.observacionControl,
           decoration: const InputDecoration(
-            labelText: 'observaciones',
+            labelText: 'Observaciones',
             prefixIcon: Icon(Icons.remove_red_eye),
           ),
           maxLines: null,
@@ -41,7 +41,7 @@ class WidgetRespuesta extends StatelessWidget {
           final criticidadRespuesta =
               ref.watch(criticidadRespuestaProvider(control)) ?? 1;
           final mostrarReparacion = criticidadRespuesta > 0 &&
-              estadoDeInspeccion != EstadoDeInspeccion.enBorrador;
+              estadoDeInspeccion != EstadoDeInspeccion.borrador;
 
           final reparado = ref.watch(reparadoProvider(control.reparadoControl));
 
@@ -65,7 +65,7 @@ class WidgetRespuesta extends StatelessWidget {
                         ? ReactiveTextField(
                             formControl: control.observacionReparacionControl,
                             decoration: const InputDecoration(
-                              labelText: 'observaciones reparacion',
+                              labelText: 'Observaciones reparación',
                               prefixIcon: Icon(Icons.remove_red_eye),
                             ),
                             maxLines: null,
