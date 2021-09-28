@@ -26,6 +26,8 @@ final ProviderFamily<bool, AbstractControl> controlValidoProvider =
   return control.valid;
 });
 
+//TODO: eliminar la duplicacion de codigo en estos providers de [AbstractControl]s
+
 /// provider para la criticidad de la respuesta de un [ControladorDePregunta]
 final ProviderFamily<int?, ControladorDePregunta> criticidadRespuestaProvider =
     Provider.family<int?, ControladorDePregunta>((ref, controlador) {
@@ -38,6 +40,16 @@ final ProviderFamily<int?, ControladorDePregunta> criticidadRespuestaProvider =
   return controlador.criticidadRespuesta;
 });
 
+final ProviderFamily<int, FormControl<int>> criticidadInspectorProvider =
+    Provider.family<int, FormControl<int>>((ref, control) {
+  StreamSubscription? subscription;
+  subscription = control.valueChanges.listen((_) {
+    ref.refresh(criticidadInspectorProvider(control));
+    subscription?.cancel();
+  });
+  return control.value!;
+});
+
 final ProviderFamily<bool, FormControl<bool>> reparadoProvider =
     Provider.family<bool, FormControl<bool>>((ref, control) {
   StreamSubscription? subscription;
@@ -48,11 +60,16 @@ final ProviderFamily<bool, FormControl<bool>> reparadoProvider =
   return control.value!;
 });
 
-/// calcula lo mismo que [ControladorDePregunta.criticidadCalculada] pero de manera reactiva
+/// permite reaccionar a cambios de  [ControladorDePregunta.criticidadCalculada]
+/// de manera reactiva.
+///! Importante: se deben escuchar todas las variables de las
+///! que dependa [controlador.criticidadCalculada]
 final criticidadCalculadaProvider = Provider.family<int, ControladorDePregunta>(
   (ref, controlador) {
     ref.watch(criticidadRespuestaProvider(controlador));
     ref.watch(reparadoProvider(controlador.reparadoControl));
+    ref.watch(
+        criticidadInspectorProvider(controlador.criticidadInspectorControl));
     return controlador.criticidadCalculada;
   },
 );

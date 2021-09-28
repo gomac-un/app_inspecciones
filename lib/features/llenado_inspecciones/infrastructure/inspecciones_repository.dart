@@ -1,11 +1,13 @@
 import 'dart:math';
 
+import 'package:dartz/dartz.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../domain/bloque.dart';
 import '../domain/bloques/bloques.dart';
 import '../domain/bloques/preguntas/opcion_de_respuesta.dart';
 import '../domain/cuestionario.dart';
+import '../domain/identificador_inspeccion.dart';
 import '../domain/inspeccion.dart';
 import '../domain/metarespuesta.dart';
 import '../domain/respuesta.dart';
@@ -13,14 +15,44 @@ import '../domain/respuesta.dart';
 final inspeccionesRepositoryProvider =
     Provider((_) => InspeccionesRepository());
 
+//TODO: pasar a freezed
+class InspeccionesFailure {
+  final String msg;
+
+  InspeccionesFailure(this.msg);
+}
+
+// MF: Future Either Fail
+typedef FEF<C> = Future<Either<InspeccionesFailure, C>>;
+
 class InspeccionesRepository {
-  Future<CuestionarioInspeccionado> cargarInspeccion(int inspeccionId) async {
+  FEF<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
+    return Right([
+      if (activo == "1") Cuestionario(id: 1, tipoDeInspeccion: "preoperacional")
+    ]);
+  }
+
+  FEF<CuestionarioInspeccionado> cargarInspeccionLocal(
+      IdentificadorDeInspeccion id) async {
+    //TODO: implementar
+    print("cargando inspeccion $id");
+    //await Future.delayed(const Duration(seconds: 1));
+    if (id.activo == "1") {
+      return Right(await _inspeccionNueva());
+    } else {
+      return Right(await _inspeccionIniciada());
+    }
+  }
+
+  FEF<CuestionarioInspeccionado> cargarInspeccionRemota(
+      int inspeccionId) async {
+    //TODO: implementar
     print("cargando inspeccion $inspeccionId");
     //await Future.delayed(const Duration(seconds: 1));
     if (inspeccionId == 1) {
-      return _inspeccionNueva();
+      return Right(await _inspeccionNueva());
     } else {
-      return _inspeccionIniciada();
+      return Right(await _inspeccionIniciada());
     }
   }
 
@@ -212,10 +244,12 @@ class InspeccionesRepository {
       activo: "123",
     );
     final cuestionario = CuestionarioInspeccionado(
+      Cuestionario(
+        id: 1,
+        tipoDeInspeccion: "preoperacional",
+      ),
       inspeccion,
       bloques,
-      id: 1,
-      tipoDeInspeccion: "preoperacional",
     );
     inspeccion.cuestionario = cuestionario;
 
@@ -375,10 +409,12 @@ class InspeccionesRepository {
       activo: "123",
     );
     final cuestionario = CuestionarioInspeccionado(
+      Cuestionario(
+        id: 1,
+        tipoDeInspeccion: "preoperacional",
+      ),
       inspeccion,
       bloques,
-      id: 1,
-      tipoDeInspeccion: "preoperacional",
     );
     inspeccion.cuestionario = cuestionario;
 

@@ -12,9 +12,7 @@ import 'llenado_screen/paginador.dart';
 import 'theme.dart';
 
 class InspeccionPage extends ConsumerWidget {
-  final bool nuevaInspeccion;
-  const InspeccionPage({Key? key, required this.nuevaInspeccion})
-      : super(key: key);
+  const InspeccionPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

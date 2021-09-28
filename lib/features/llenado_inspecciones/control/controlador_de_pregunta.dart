@@ -1,3 +1,4 @@
+import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import '../domain/bloques/pregunta.dart';
@@ -17,8 +18,9 @@ abstract class ControladorDePregunta<T extends Pregunta> {
 
   late final observacionReparacionControl =
       fb.control(respuesta.observacionesReparacion);
-  late final fotosBaseControl = fb.control<List<dynamic>>([]);
-  late final fotosGuiaControl = fb.control<List<dynamic>>([]);
+  late final fotosBaseControl = fb.control<List<AppImage>>(respuesta.fotosBase);
+  late final fotosReparacionControl =
+      fb.control<List<AppImage>>(respuesta.fotosReparacion);
 
   abstract final AbstractControl respuestaEspecificaControl;
 
@@ -28,7 +30,7 @@ abstract class ControladorDePregunta<T extends Pregunta> {
     "observacionReparacion": observacionReparacionControl,
     "reparado": reparadoControl,
     "fotosBase": fotosBaseControl,
-    "fotosGuia": fotosGuiaControl,
+    "fotosReparacion": fotosReparacionControl,
   });
 
   /// el control de reactive forms que debe contener directa o indirectamente
@@ -57,11 +59,12 @@ abstract class ControladorDePregunta<T extends Pregunta> {
 
   /// solo se puede usar para leer el calculo, para componentes de la ui que deben
   /// reaccionar a cambios de este calculo se debe usar [criticidadCalculadaProvider]
-  int get criticidadCalculada =>
-      criticidadPregunta *
-      (criticidadRespuesta ??
-          1) * // si no se conoce el valor, la criticidad por defecto es 1
-      (reparadoControl.value! ? 0 : 1);
+  int get criticidadCalculada => (criticidadPregunta *
+          (criticidadRespuesta ??
+              1) * // si no se conoce el valor, la criticidad por defecto es 1
+          _porcentajeCalificacion(criticidadInspectorControl.value!) *
+          (reparadoControl.value! ? 0 : 1))
+      .round();
 
   int get criticidadPregunta => pregunta.criticidad;
 
@@ -70,4 +73,24 @@ abstract class ControladorDePregunta<T extends Pregunta> {
   int? get criticidadRespuesta;
 
   void accept(ControladorDePreguntaVisitor visitor);
+
+  static double _porcentajeCalificacion(int calificacion) {
+    switch (calificacion.round()) {
+      case 1:
+        return 0.55;
+
+      case 2:
+        return 0.70;
+
+      case 3:
+        return 0.85;
+
+      case 4:
+        return 1;
+
+      default:
+        throw Exception(
+            "el valor de calificacion mayor a 4, revise el reactive_slider");
+    }
+  }
 }

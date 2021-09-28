@@ -4,6 +4,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 import '../domain/bloques/pregunta.dart';
 import '../domain/cuestionario.dart';
+import '../domain/identificador_inspeccion.dart';
 import '../domain/inspeccion.dart';
 import '../infrastructure/inspecciones_repository.dart';
 import 'controlador_de_pregunta.dart';
@@ -14,29 +15,27 @@ typedef CallbackWithMessage = void Function(String message);
 
 final controladorFactoryProvider = Provider((ref) => ControladorFactory());
 
-final inspeccionIdProvider = StateProvider((ref) => 1);
+final inspeccionIdProvider =
+    StateProvider<IdentificadorDeInspeccion?>((ref) => null);
 
-final cuestionarioProvider = FutureProvider.autoDispose
-    .family<CuestionarioInspeccionado, int>((ref, inspeccionId) => ref
-        .watch(inspeccionesRepositoryProvider)
-        .cargarInspeccion(inspeccionId));
+final cuestionarioProvider = FutureProvider((ref) => ref
+    .watch(inspeccionesRepositoryProvider)
+    .cargarInspeccionLocal(ref.watch(inspeccionIdProvider).state!));
 
 final controladorLlenadoInspeccionProvider =
     FutureProvider.autoDispose((ref) async => ControladorLlenadoInspeccion(
-          await ref.watch(
-              cuestionarioProvider(ref.watch(inspeccionIdProvider).state)
-                  .future),
+          (await ref.watch(cuestionarioProvider.future)).fold(
+              (l) => throw l, (r) => r), //TODO: mirar como manejar errores
           ref.watch(controladorFactoryProvider),
           ref.read,
         ));
 
-final estadoDeInspeccionProvider = StateProvider.autoDispose((ref) =>
-    ref.watch(cuestionarioProvider(ref.watch(inspeccionIdProvider).state)).when(
-          data: (cuestionario) => cuestionario.inspeccion.estado,
-          loading: () => EstadoDeInspeccion.finalizada,
-          // TODO: mirar como declarar que simplemente esta cargando, de todas maneras este estado no se debe ver en la ui
-          error: (_, __) => EstadoDeInspeccion.finalizada,
-        ));
+final estadoDeInspeccionProvider = StateProvider(
+  (ref) => EstadoDeInspeccion.finalizada,
+  // TODO: mirar como declarar que simplemente esta cargando,
+  //de todas maneras este estado no se debe ver en la ui porque el constructor
+  //de [ControladorLlenadoInspeccion] le pone el valor que viene de la DB.
+);
 
 enum FiltroPreguntas {
   todas,
@@ -65,7 +64,9 @@ class ControladorLlenadoInspeccion {
     this.cuestionario,
     this.factory,
     this.read,
-  );
+  ) {
+    read(estadoDeInspeccionProvider).state = cuestionario.inspeccion.estado;
+  }
 
   @pragma('vm:notify-debugger-on-exception')
   Future<void> guardarInspeccion({

@@ -1,12 +1,10 @@
 import 'package:dartz/dartz.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:inspecciones/injection.dart';
-
-import 'package:moor/moor.dart';
-
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:inspecciones/injection.dart';
+import 'package:moor/moor.dart';
 
 part 'creacion_dao.g.dart';
 
@@ -263,7 +261,7 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
                 (item) =>
 
                     /// Envia lista vacia en las opciones de respuesta, porque ya van en [CuadriculaDePreguntasConOpcionesDeRespuesta]
-                    PreguntaConOpcionesDeRespuesta(item.value1, []),
+                    PreguntaConOpcionesDeRespuesta(item.value1, const []),
               )
               .toList(),
         );
@@ -461,8 +459,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     final fotosManager = getIt<FotosRepository>();
     final fotosGuiaProcesadas = await fotosManager.organizarFotos(
       preguntaCompanion.fotosGuia.valueOrDefault(const Nil()),
-      tipoDocumento: "cuestionarios",
-      idDocumento: cuestionario.id.toString(),
+      Categoria.cuestionario,
+      identificador: cuestionario.id.toString(),
     );
 
     final preguntaAInsertar = preguntaCompanion.copyWith(
