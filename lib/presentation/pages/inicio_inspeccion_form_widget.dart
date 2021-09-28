@@ -58,13 +58,8 @@ class InicioInspeccionController {
     res.fold(
       (f) => onError?.call(f),
       (c) async {
-        /// En caso de exito, se debe hacer esta consulta para obtener la insp
-        /// que se descargo desde la bd
-        //final inspeccion = await repository.cargarInspeccionLocal(inspeccionId);
-
-        /// Se abre la pantalla de llenado de inspección normal
         onSuccess?.call(IdentificadorDeInspeccion(
-          activo: c.inspeccion.activo,
+          activo: c.inspeccion.activo.id,
           cuestionarioId: c.cuestionario.id,
         ));
       },
@@ -159,16 +154,7 @@ class CargaLocalForm extends ConsumerWidget {
           decoration: const InputDecoration(
             labelText: 'Seleccione el tipo de inspección',
           ),
-        ),
-        /*
-                        //TODO: mejorar la usabilidad usando este tipo de dropdown con busqueda
-                        ReactiveDropdownSearch<CuestionarioDeModelo>(
-                      formControlName: 'tipoDeInspeccion',
-                      items: tiposDeInspeccion.value,
-                      itemAsString: (e) => e.tipoDeInspeccion,
-                      label: "Tipo de inspección",
-                      hint: "Seleccione el tipo de inspección",
-                    ),*/
+        ), //TODO: mejorar la usabilidad usando un widget que permita buscar
       ),
       ReactiveValueListenableBuilder(
         formControl: controller.controlLocal,
@@ -181,11 +167,6 @@ class CargaLocalForm extends ConsumerWidget {
           child: const Text('Inspeccionar'),
         ),
       ),
-      ElevatedButton(
-          onPressed: () {
-            print(controller.tipoInspeccionControl.valid);
-          },
-          child: Text("PTM"))
     ]);
   }
 }
@@ -213,8 +194,10 @@ class CargarRemotaForm extends ConsumerWidget {
             key: const ValueKey("remoto"),
             onPressed: controller.controlPendiente.valid
                 ? () => controller.buscarYDescargarInspeccionRemota(
-                    onError: (f) => _mostrarError(context, f),
-                    onSuccess: (arg) => Navigator.of(context).pop(arg))
+                      onError: (f) => _mostrarError(context, f),
+                      onSuccess: (arg) => Navigator.of(context).pop(
+                          arg), // Se abre la pantalla de llenado de inspección normal
+                    )
                 : null,
             child: const Text('Inspeccionar'),
           ),

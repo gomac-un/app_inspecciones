@@ -2,13 +2,16 @@ import 'dart:math';
 
 import 'package:dartz/dartz.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+
 import '../domain/bloque.dart';
 import '../domain/bloques/bloques.dart';
 import '../domain/bloques/preguntas/opcion_de_respuesta.dart';
+import '../domain/borrador.dart';
 import '../domain/cuestionario.dart';
 import '../domain/identificador_inspeccion.dart';
 import '../domain/inspeccion.dart';
 import '../domain/metarespuesta.dart';
+import '../domain/modelos.dart';
 import '../domain/respuesta.dart';
 
 final inspeccionesRepositoryProvider =
@@ -21,10 +24,33 @@ class InspeccionesFailure {
   InspeccionesFailure(this.msg);
 }
 
-// MF: Future Either Fail
+// FEF: Future Either Fail
 typedef FEF<C> = Future<Either<InspeccionesFailure, C>>;
 
 class InspeccionesRepository {
+  FEF<Unit> eliminarBorrador(Borrador inspeccion) =>
+      Future.value(const Right(unit));
+
+  FEF<Unit> subirInspeccion(Inspeccion inspeccion) => Future.value(const Right(
+      unit)); // subir la inspeccion al server y si es exitoso, borrarla del local
+
+  Stream<List<Borrador>> getBorradores() => Stream.value([
+        Borrador(
+          Inspeccion(
+            id: 1,
+            estado: EstadoDeInspeccion.borrador,
+            activo: Activo(id: "1", modelo: "auto"),
+            momentoBorradorGuardado: DateTime.now(),
+            criticidadTotal: 10,
+            criticidadReparacion: 5,
+            esNueva: true,
+          ),
+          Cuestionario(id: 1, tipoDeInspeccion: "preoperacional"),
+          avance: 5,
+          total: 10,
+        )
+      ]);
+
   FEF<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
     return Right([
       if (activo == "1") Cuestionario(id: 1, tipoDeInspeccion: "preoperacional")
@@ -52,6 +78,16 @@ class InspeccionesRepository {
       return Right(await _inspeccionNueva());
     } else {
       return Right(await _inspeccionIniciada());
+    }
+  }
+
+  Future<void> guardarInspeccion(List<Respuesta> respuestas,
+      {required int inspeccionId}) async {
+    /* _db.llenadoDao.guardarInspeccion(respuestas,inspeccionId); */
+
+    print("guardando inspeccion $inspeccionId");
+    for (final respuesta in respuestas) {
+      print(respuesta);
     }
   }
 
@@ -240,7 +276,11 @@ class InspeccionesRepository {
     final inspeccion = Inspeccion(
       id: 1,
       estado: EstadoDeInspeccion.borrador,
-      activo: "123",
+      activo: Activo(id: "123", modelo: "auto"),
+      momentoBorradorGuardado: DateTime.now(),
+      criticidadTotal: 10,
+      criticidadReparacion: 5,
+      esNueva: true,
     );
     final cuestionario = CuestionarioInspeccionado(
       Cuestionario(
@@ -405,7 +445,11 @@ class InspeccionesRepository {
     final inspeccion = Inspeccion(
       id: 2,
       estado: EstadoDeInspeccion.borrador,
-      activo: "123",
+      activo: Activo(id: "123", modelo: "auto"),
+      momentoBorradorGuardado: DateTime.now(),
+      criticidadTotal: 10,
+      criticidadReparacion: 5,
+      esNueva: true,
     );
     final cuestionario = CuestionarioInspeccionado(
       Cuestionario(
@@ -418,15 +462,5 @@ class InspeccionesRepository {
     inspeccion.cuestionario = cuestionario;
 
     return Future.value(cuestionario);
-  }
-
-  Future<void> guardarInspeccion(List<Respuesta> respuestas,
-      {required int inspeccionId}) async {
-    /* _db.llenadoDao.guardarInspeccion(respuestas,inspeccionId); */
-
-    print("guardando inspeccion $inspeccionId");
-    for (final respuesta in respuestas) {
-      print(respuesta);
-    }
   }
 }

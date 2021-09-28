@@ -1,9 +1,15 @@
 import 'cuestionario.dart';
+import 'modelos.dart';
 
 class Inspeccion {
   final int id;
   final EstadoDeInspeccion estado;
-  final String activo;
+  final Activo activo;
+  final DateTime? momentoBorradorGuardado;
+
+  final int criticidadTotal;
+  final int criticidadReparacion;
+  final bool esNueva;
   //inspector //TODO: agregarle el dato del inspector que la esta haciendo
 
   late final CuestionarioInspeccionado cuestionario;
@@ -12,6 +18,10 @@ class Inspeccion {
     required this.id,
     required this.estado,
     required this.activo,
+    this.momentoBorradorGuardado,
+    required this.criticidadTotal,
+    required this.criticidadReparacion,
+    required this.esNueva,
   });
 }
 

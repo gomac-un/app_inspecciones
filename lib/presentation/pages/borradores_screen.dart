@@ -1,41 +1,21 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
-import 'package:reactive_forms/reactive_forms.dart';
-
-import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
-import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
-import 'package:inspecciones/injection.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/features/llenado_inspecciones/control/controlador_llenado_inspeccion.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/borrador.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
+import 'package:inspecciones/features/llenado_inspecciones/infrastructure/inspecciones_repository.dart';
+import 'package:inspecciones/features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
 import 'package:inspecciones/presentation/pages/inicio_inspeccion_form_widget.dart';
-import 'package:inspecciones/presentation/widgets/drawer.dart';
-import 'package:inspecciones/router.gr.dart';
 
 //TODO: A futuro, Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 /// Pantalla con lista de todas las inspecciones pendientes por subir.
-class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
-  @override
-  Widget wrappedRoute(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider(create: (ctx) => getIt<InspeccionesRepository>()),
-        StreamProvider(
-          create: (ctx) => getIt<InspeccionesRepository>().getBorradores(),
-          initialData: const <Borrador>[],
-        )
-      ],
-      child: this,
-    );
-  }
-
-  const BorradoresPage(Key? key) : super(key: key);
+class BorradoresPage extends ConsumerWidget {
+  const BorradoresPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final repo = context.read<InspeccionesRepository>();
+  Widget build(BuildContext context, ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inspecciones'),
@@ -53,10 +33,9 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
           ),
         ],
       ),
-      drawer: const UserDrawer(),
+      //drawer: const UserDrawer(),
       body: StreamBuilder<List<Borrador>>(
-        // Toco usar un proviedr porque estaba creando el stream en cada rebuild
-        stream: context.watch<Stream<List<Borrador>>>(),
+        stream: ref.watch(inspeccionesRepositoryProvider).getBorradores(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             //throw snapshot.error;
@@ -97,7 +76,7 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
 
                 tileColor: Theme.of(context).cardColor,
                 title: Text(
-                    "${borrador.activo.id} - ${borrador.activo.modelo} (${borrador.cuestionario.tipoDeInspeccion})",
+                    "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.modelo} (${borrador.cuestionario.tipoDeInspeccion})",
                     style: Theme.of(context).textTheme.subtitle1),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,24 +118,10 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                         ),
                         onPressed: () async {
                           //TODO: eliminar esta duplicacion de codigo
+                          final repo = ref.read(inspeccionesRepositoryProvider);
                           final res =
                               await repo.subirInspeccion(borrador.inspeccion);
-                          final restxt = res.fold(
-                              (fail) => fail.when(
-                                  pageNotFound: () =>
-                                      'No se pudo encontrar la página, informe al encargado',
-                                  noHayConexionAlServidor: () =>
-                                      "No hay conexión al servidor",
-                                  noHayInternet: () =>
-                                      "No tiene conexión a internet",
-                                  serverError: (msg) => "Error interno: $msg",
-                                  credencialesException: () =>
-                                      'Error inesperado: intente inciar sesión nuevamente'),
-                              (u) {
-                            repo.eliminarRespuestas(borrador);
-
-                            return "exito";
-                          });
+                          final restxt = res.fold((f) => f.msg, (u) => "exito");
                           restxt == 'exito'
                               ? showDialog(
                                   context: context,
@@ -195,8 +160,11 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
                 trailing: borrador.inspeccion.esNueva
                     ? IconButton(
                         icon: const Icon(Icons.delete),
-                        onPressed: () =>
-                            eliminarBorrador(borrador, context, repo),
+                        onPressed: () => eliminarBorrador(
+                          borrador,
+                          context,
+                          ref.read(inspeccionesRepositoryProvider),
+                        ),
                       )
                     : const SizedBox.shrink(),
               );
@@ -225,65 +193,50 @@ class BorradoresPage extends StatelessWidget implements AutoRouteWrapper {
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                try {
-                  await repo.eliminarBorrador(borrador);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text("Borrador eliminado"),
-                    duration: Duration(seconds: 3),
-                  ));
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+
+                final res = await repo.eliminarBorrador(borrador);
+                res.fold(
+                  (f) =>
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content: Text("Error eliminando borrador"),
                     duration: Duration(seconds: 3),
-                  ));
-                }
+                  )),
+                  (_) =>
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text("Borrador eliminado"),
+                    duration: Duration(seconds: 3),
+                  )),
+                );
               },
               child: const Text("Eliminar"),
             ),
           ],
         );
-        ;
       },
     );
   }
 }
 
 /// Botón de creación de inspecciones
-class FloatingActionButtonInicioInspeccion extends StatelessWidget {
+class FloatingActionButtonInicioInspeccion extends ConsumerWidget {
   const FloatingActionButtonInicioInspeccion({
     Key? key,
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final form = FormGroup(
-      {'mostrar': FormControl<bool>(value: false)},
-    );
+  Widget build(BuildContext context, ref) {
     return FloatingActionButton.extended(
       onPressed: () async {
-        final res = await showDialog<ArgumentosLlenado>(
+        final res = await showDialog<IdentificadorDeInspeccion>(
           context: context,
-          builder: (context) => const AlertDialog(
-            title: Text('Inicio de inspección'),
-            content: InicioInspeccionForm(),
+          builder: (BuildContext context) => const Dialog(
+            child: InicioInspeccionForm(),
           ),
         );
-
         if (res != null) {
-          // llenar inspeccion
-          //TODO: arreglar el llenado de inspecciones
-          /*context.router.push(LlenadoFormRoute(
-                    activoId: res.activo,
-                    cuestionarioId: res.cuestionarioId));*/
-
-          /*final mensajeLlenado = await ExtendedNavigator.of(context)
-              .push(Routes.llenadoFormPage, arguments: res);
-          // mostar el mensaje que viene desde la pantalla de llenado
-          if (mensajeLlenado != null) {
-            ScaffoldMessenger.of(context)
-              ..removeCurrentSnackBar()
-              ..showSnackBar(SnackBar(content: Text("$mensajeLlenado")));
-          }*/
+          ref.read(inspeccionIdProvider).state = res;
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const InspeccionPage()));
         }
       },
       icon: const Icon(Icons.add),
