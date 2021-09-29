@@ -55,7 +55,7 @@ class InspeccionPage extends ConsumerWidget {
                 const FilterWidget(),
                 if (estadoDeInspeccion != EstadoDeInspeccion.finalizada) ...[
                   LlenadoAppBarButton(
-                    action: control.guardarInspeccion,
+                    guardar: control.guardarInspeccion,
                     icon: const Icon(Icons.save),
                     tooltip: "Guardar borrador",
                   ),
@@ -67,7 +67,11 @@ class InspeccionPage extends ConsumerWidget {
                     tooltip: "Iniciar reparaciones",
                   ),
                   IconButton(
-                    onPressed: control.finalizar,
+                    onPressed: () => control.finalizar(
+                      confirmation: () => _confirmarFinalizacion(context),
+                      ejecutarGuardado: agregarMensajesAccion(context),
+                      onInvalid: () => mostrarInvalido(context),
+                    ),
                     icon: const Icon(Icons.done),
                     tooltip: "Finalizar",
                   ),
@@ -81,4 +85,39 @@ class InspeccionPage extends ConsumerWidget {
           );
         });
   }
+
+  Future<bool?> _confirmarFinalizacion(BuildContext context) =>
+      mostrarConfirmacion(
+        context: context,
+        content: RichText(
+          text: TextSpan(
+            text: '¿Está seguro que desea finalizar esta inspección?\n',
+            style: TextStyle(
+                color: Theme.of(context).hintColor,
+                fontSize: 18,
+                fontWeight: FontWeight.bold),
+            children: <TextSpan>[
+              TextSpan(
+                text: 'Si lo hace, no podrá editarla después.\n\n',
+                style:
+                    TextStyle(color: Theme.of(context).hintColor, fontSize: 17),
+              ),
+              TextSpan(
+                text: 'IMPORTANTE: ',
+                style: TextStyle(
+                  color: Theme.of(context).accentColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextSpan(
+                text:
+                    'En caso de que otro usuario deba terminar la inspección, presione cancelar, guarde el avance y envíela sin finalizar',
+                style:
+                    TextStyle(color: Theme.of(context).hintColor, fontSize: 15),
+              ),
+            ],
+          ),
+        ),
+      );
 }

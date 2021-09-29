@@ -70,9 +70,15 @@ class BorradoresPage extends ConsumerWidget {
 
               return ListTile(
                 //TODO: arreglar el llenado de inspecciones
-                /*onTap: () => context.router.push(LlenadoFormRoute(
-                    activoId: borrador.activo.id,
-                    cuestionarioId: borrador.inspeccion.cuestionarioId)),*/
+                onTap: () {
+                  ref.read(inspeccionIdProvider).state =
+                      IdentificadorDeInspeccion(
+                    activo: borrador.inspeccion.activo.id,
+                    cuestionarioId: borrador.cuestionario.id,
+                  );
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const InspeccionPage()));
+                },
 
                 tileColor: Theme.of(context).cardColor,
                 title: Text(

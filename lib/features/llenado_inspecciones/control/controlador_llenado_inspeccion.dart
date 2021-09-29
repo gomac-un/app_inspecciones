@@ -13,6 +13,16 @@ import 'visitors/guardado_visitor.dart';
 
 typedef CallbackWithMessage = void Function(String message);
 
+typedef GuardadoCallback = Future<void> Function({
+  VoidCallback? onStart,
+  VoidCallback? onFinish,
+  CallbackWithMessage? onSuccess,
+  CallbackWithMessage? onError,
+});
+
+typedef EjecucionCallback = Future<void> Function(
+    GuardadoCallback funcionDeGuardado);
+
 final controladorFactoryProvider = Provider((ref) => ControladorFactory());
 
 final inspeccionIdProvider =
@@ -105,24 +115,37 @@ class ControladorLlenadoInspeccion {
     }
   }
 
-  void iniciarReparaciones({VoidCallback? onInvalid}) {
+  bool _validarInspeccion({VoidCallback? onInvalid}) {
     formArray.markAllAsTouched();
-    if (!esValida) {
+    if (!formArray.valid) {
       onInvalid?.call();
-    } else {
-      read(estadoDeInspeccionProvider).state = EstadoDeInspeccion.enReparacion;
-      read(filtroPreguntasProvider).state = FiltroPreguntas.criticas;
+      return false;
     }
+    return true;
   }
 
-  void finalizar() async {
-    await guardarInspeccion();
+  void iniciarReparaciones({VoidCallback? onInvalid}) {
+    final esValida = _validarInspeccion(onInvalid: onInvalid);
+    if (!esValida) return;
+
+    read(estadoDeInspeccionProvider).state = EstadoDeInspeccion.enReparacion;
+    read(filtroPreguntasProvider).state = FiltroPreguntas.criticas;
+  }
+
+  void finalizar(
+      {required Future<bool?> Function() confirmation,
+      required EjecucionCallback ejecutarGuardado,
+      VoidCallback? onInvalid}) async {
+    final esValida = _validarInspeccion(onInvalid: onInvalid);
+    if (!esValida) return;
+
+    final c = await confirmation();
+    if (c == null || !c) return;
+    await ejecutarGuardado(guardarInspeccion);
     read(estadoDeInspeccionProvider).state = EstadoDeInspeccion.finalizada;
     formArray.markAsDisabled();
     read(filtroPreguntasProvider).state = FiltroPreguntas.todas;
   }
-
-  bool get esValida => formArray.valid;
 
   void dispose() {
     //estadoDeInspeccion.dispose();
