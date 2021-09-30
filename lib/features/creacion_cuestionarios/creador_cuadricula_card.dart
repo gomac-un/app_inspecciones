@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-
-import 'package:inspecciones/mvvc/common_widgets.dart';
 
 import 'creacion_controls.dart';
 import 'creacion_form_controller.dart';
 import 'creacion_widgets.dart';
 import 'creador_seleccion_simple_card.dart';
+import 'pregunta_card.dart';
 import 'widget_respuestas.dart';
 
-/// !SUPER TODO!!
 /// TODO: evitar la duplicacion de codigo con [CreadorSeleccionSimpleCard]
 class CreadorCuadriculaCard extends StatelessWidget {
   /// Validaciones

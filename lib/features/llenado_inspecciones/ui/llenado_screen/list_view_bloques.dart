@@ -14,11 +14,11 @@ final listViewPreguntasScrollControllerProvider =
   scrollController.addListener(() {
     if (scrollController.position.userScrollDirection ==
         ScrollDirection.reverse) {
-      ref.watch(showFABProvider).state = false;
+      ref.read(showFABProvider).state = false;
     }
     if (scrollController.position.userScrollDirection ==
         ScrollDirection.forward) {
-      ref.watch(showFABProvider).state = true;
+      ref.read(showFABProvider).state = true;
     }
   });
   return scrollController;

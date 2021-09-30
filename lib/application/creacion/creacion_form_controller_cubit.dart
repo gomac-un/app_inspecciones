@@ -1,14 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:injectable/injectable.dart';
-
 import 'package:inspecciones/features/creacion_cuestionarios/creacion_form_controller.dart';
 import 'package:inspecciones/injection.dart';
 
-part 'creacion_form_controller_state.dart';
 part 'creacion_form_controller_cubit.freezed.dart';
-
-@injectable
+part 'creacion_form_controller_state.dart';
 
 /// Bloc encargado de instanciar de manera asincrona un [CreacionFormController]
 /// con el [cuestionarioId] recibido e ir notificando del estado de este proceso

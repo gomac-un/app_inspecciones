@@ -3,13 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../theme.dart';
 import '../control/controlador_llenado_inspeccion.dart';
 import '../domain/inspeccion.dart';
 import 'llenado_screen/actions.dart';
 import 'llenado_screen/filter_widget.dart';
 import 'llenado_screen/floating_action_button.dart';
 import 'llenado_screen/paginador.dart';
-import 'theme.dart';
 
 class InspeccionPage extends ConsumerWidget {
   const InspeccionPage({Key? key}) : super(key: key);
@@ -54,14 +54,17 @@ class InspeccionPage extends ConsumerWidget {
                     icon: const Icon(Icons.dark_mode_outlined)),
                 const FilterWidget(),
                 if (estadoDeInspeccion != EstadoDeInspeccion.finalizada) ...[
-                  LlenadoAppBarButton(
+                  BotonGuardar(
                     guardar: control.guardarInspeccion,
                     icon: const Icon(Icons.save),
                     tooltip: "Guardar borrador",
                   ),
                   IconButton(
+                    // TODO: mostrar solo si hay preguntas que necesiten reparacion
                     onPressed: () => control.iniciarReparaciones(
                       onInvalid: () => mostrarInvalido(context),
+                      mensajeReparacion: () =>
+                          mostrarMensajeReparacion(context),
                     ),
                     icon: const Icon(Icons.home_repair_service),
                     tooltip: "Iniciar reparaciones",

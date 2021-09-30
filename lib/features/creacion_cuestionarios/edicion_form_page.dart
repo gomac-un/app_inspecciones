@@ -1,23 +1,20 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
-
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:inspecciones/application/creacion/creacion_form_controller_cubit.dart';
+import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/injection.dart';
+import 'package:inspecciones/presentation/widgets/action_button.dart';
+import 'package:inspecciones/presentation/widgets/alertas.dart';
+import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:inspecciones/presentation/widgets/reactive_filter_chip_selection.dart';
 import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-import 'package:inspecciones/mvvc/form_scaffold.dart';
-import 'package:inspecciones/presentation/widgets/action_button.dart';
-import 'package:inspecciones/presentation/widgets/alertas.dart';
-import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
-import 'package:inspecciones/application/creacion/creacion_form_controller_cubit.dart';
-import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/mvvc/common_widgets.dart';
-
 import 'creacion_form_controller.dart';
 import 'creacion_widgets.dart';
+import 'pregunta_card.dart';
 
 /// pantalla de edicion de un cuestionario
 /// TODO: opcion para la creacion de cuestionarios con excel
@@ -61,11 +58,13 @@ class EdicionForm extends StatelessWidget {
     final controller = context.watch<CreacionFormController>();
     return ReactiveForm(
       formGroup: controller.control,
-      child: FormScaffold(
-        title: Text(
-          controller.estado == EstadoDeCuestionario.borrador
-              ? 'Creación de cuestionario'
-              : 'Visualización cuestionario',
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            controller.estado == EstadoDeCuestionario.borrador
+                ? 'Creación de cuestionario'
+                : 'Visualización cuestionario',
+          ),
         ),
         body: Column(
           children: [
@@ -153,8 +152,7 @@ class EdicionForm extends StatelessWidget {
               ),
             ),
             PreguntaCard(
-              titulo: 'Periodicidad',
-              descripcion: '(en días)',
+              titulo: 'Periodicidad (en días)',
               child: ReactiveSlider(
                 formControl: controller.periodicidadControl,
                 max: 100.0,

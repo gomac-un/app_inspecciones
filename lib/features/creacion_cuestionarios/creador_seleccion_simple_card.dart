@@ -1,14 +1,13 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 
+import 'package:flutter/material.dart';
+import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:reactive_multi_image_picker/reactive_multi_image_picker.dart';
 
-import 'package:inspecciones/core/entities/app_image.dart';
-import 'package:inspecciones/mvvc/common_widgets.dart';
-
 import 'creacion_controls.dart';
 import 'creacion_widgets.dart';
+import 'pregunta_card.dart';
 import 'widget_respuestas.dart';
 
 /// Widget  usado en la creación de preguntas de selección

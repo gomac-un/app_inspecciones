@@ -115,19 +115,12 @@ class ControladorLlenadoInspeccion {
     }
   }
 
-  bool _validarInspeccion({VoidCallback? onInvalid}) {
-    formArray.markAllAsTouched();
-    if (!formArray.valid) {
-      onInvalid?.call();
-      return false;
-    }
-    return true;
-  }
-
-  void iniciarReparaciones({VoidCallback? onInvalid}) {
+  void iniciarReparaciones(
+      {VoidCallback? onInvalid, VoidCallback? mensajeReparacion}) {
     final esValida = _validarInspeccion(onInvalid: onInvalid);
     if (!esValida) return;
 
+    mensajeReparacion?.call();
     read(estadoDeInspeccionProvider).state = EstadoDeInspeccion.enReparacion;
     read(filtroPreguntasProvider).state = FiltroPreguntas.criticas;
   }
@@ -141,14 +134,25 @@ class ControladorLlenadoInspeccion {
 
     final c = await confirmation();
     if (c == null || !c) return;
-    await ejecutarGuardado(guardarInspeccion);
     read(estadoDeInspeccionProvider).state = EstadoDeInspeccion.finalizada;
+
+    await ejecutarGuardado(
+        guardarInspeccion); //TODO: si falla se debe devolver al estado inicial
+
     formArray.markAsDisabled();
     read(filtroPreguntasProvider).state = FiltroPreguntas.todas;
   }
 
+  bool _validarInspeccion({VoidCallback? onInvalid}) {
+    formArray.markAllAsTouched();
+    if (!formArray.valid) {
+      onInvalid?.call();
+      return false;
+    }
+    return true;
+  }
+
   void dispose() {
-    //estadoDeInspeccion.dispose();
     formArray.dispose();
   }
 }

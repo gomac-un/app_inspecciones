@@ -4,11 +4,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../control/controlador_llenado_inspeccion.dart';
 import '../widgets/loading_dialog.dart';
 
-class LlenadoAppBarButton extends StatelessWidget {
+class BotonGuardar extends StatelessWidget {
   final GuardadoCallback guardar;
   final Widget icon;
   final String? tooltip;
-  const LlenadoAppBarButton(
+  const BotonGuardar(
       {Key? key, required this.guardar, required this.icon, this.tooltip})
       : super(key: key);
 
@@ -96,3 +96,7 @@ Future<bool?> mostrarConfirmacion({
         ],
       ),
     );
+
+void mostrarMensajeReparacion(BuildContext context) =>
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Por favor realice las reparaciones necesarias")));

@@ -50,7 +50,8 @@ class PaginadorYFiltradorDePreguntas extends ConsumerWidget {
         break;
     }
 
-    final bloquesPaginados = _paginarBloques(control.cuestionario.bloques);
+    final bloquesPaginados =
+        _paginarBloquesPorTitulo(control.cuestionario.bloques);
 
     return paginar
         ? PageView.builder(
@@ -72,7 +73,7 @@ class PaginadorYFiltradorDePreguntas extends ConsumerWidget {
         : ListViewPreguntas(widgets: widgets);
   }
 
-  static List<List<Bloque>> _paginarBloques(List<Bloque> bloques) {
+  static List<List<Bloque>> _paginarBloquesPorTitulo(List<Bloque> bloques) {
     List<Bloque> bloquesPagina = [];
     List<List<Bloque>> bloquesPaginados = [];
     for (final bloque in bloques) {
