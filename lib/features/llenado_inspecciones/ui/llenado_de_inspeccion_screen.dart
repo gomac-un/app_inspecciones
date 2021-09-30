@@ -12,7 +12,10 @@ import 'llenado_screen/floating_action_button.dart';
 import 'llenado_screen/paginador.dart';
 
 class InspeccionPage extends ConsumerWidget {
-  const InspeccionPage({Key? key}) : super(key: key);
+  ///TODO: usar este dato para actualizar el provider de inspeccionId cada que ingrese a esta pantalla
+  final int inspeccionId;
+  const InspeccionPage({Key? key, required this.inspeccionId})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

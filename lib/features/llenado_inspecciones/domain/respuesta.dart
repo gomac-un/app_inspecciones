@@ -1,4 +1,6 @@
+import 'bloques/pregunta.dart';
 import 'bloques/preguntas/opcion_de_respuesta.dart';
+import 'bloques/preguntas/preguntas.dart';
 import 'metarespuesta.dart';
 
 abstract class Respuesta {
@@ -25,7 +27,7 @@ class RespuestaNumerica extends Respuesta {
 class RespuestaDeSeleccionMultiple extends Respuesta {
   // no es List<OpcionDeRespuesta> debido a que se requiere guardar MetaRespuesta por cada opción seleccionada
   // Solo se agregan al guardar un cuestionario, al cargarlo no se necesitan aqui
-  final List<SubRespuestaDeSeleccionMultiple> opciones;
+  final List<SubPreguntaDeSeleccionMultiple> opciones;
 
   RespuestaDeSeleccionMultiple(MetaRespuesta metaRespuesta,
       [this.opciones = const []])
@@ -40,7 +42,7 @@ class SubRespuestaDeSeleccionMultiple extends Respuesta {
       : super(metaRespuesta);
 }
 
-class RespuestaDeCuadricula<T extends Respuesta> extends Respuesta {
+class RespuestaDeCuadricula<T extends Pregunta> extends Respuesta {
   // Solo se agregan al guardar un cuestionario, al cargarlo no se necesitan aqui
   final List<T> respuestas;
 
@@ -50,7 +52,7 @@ class RespuestaDeCuadricula<T extends Respuesta> extends Respuesta {
 }
 
 typedef RespuestaDeCuadriculaDeSeleccionUnica
-    = RespuestaDeCuadricula<RespuestaDeSeleccionUnica>;
+    = RespuestaDeCuadricula<PreguntaDeSeleccionUnica>;
 
 typedef RespuestaDeCuadriculaDeSeleccionMultiple
-    = RespuestaDeCuadricula<RespuestaDeSeleccionMultiple>;
+    = RespuestaDeCuadricula<PreguntaDeSeleccionMultiple>;

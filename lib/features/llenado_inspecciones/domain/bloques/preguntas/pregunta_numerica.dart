@@ -5,6 +5,7 @@ class PreguntaNumerica extends Pregunta<RespuestaNumerica> {
   final String unidades;
   PreguntaNumerica(
     this.rangosDeCriticidad, {
+    required int id,
     required String titulo,
     required String descripcion,
     required int criticidad,
@@ -13,6 +14,7 @@ class PreguntaNumerica extends Pregunta<RespuestaNumerica> {
     RespuestaNumerica? respuesta,
     required this.unidades,
   }) : super(
+          id: id,
           respuesta: respuesta,
           titulo: titulo,
           descripcion: descripcion,

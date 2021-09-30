@@ -81,12 +81,12 @@ class InspeccionesRepository {
     }
   }
 
-  Future<void> guardarInspeccion(List<Respuesta> respuestas,
+  Future<void> guardarInspeccion(List<Pregunta> preguntasRespondidas,
       {required int inspeccionId}) async {
     /* _db.llenadoDao.guardarInspeccion(respuestas,inspeccionId); */
 
     print("guardando inspeccion $inspeccionId");
-    for (final respuesta in respuestas) {
+    for (final respuesta in preguntasRespondidas) {
       print(respuesta);
     }
   }
@@ -94,32 +94,48 @@ class InspeccionesRepository {
   Future<CuestionarioInspeccionado> _inspeccionIniciada() {
     final List<OpcionDeRespuesta> opciones = [
       OpcionDeRespuesta(
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vehicula quam dui, in lobortis leo accumsan vel. Ut semper augue a erat tempus sagittis. Phasellus orci turpis, laoreet ac est.",
-          "",
-          1),
-      OpcionDeRespuesta("op2", "", 0),
+        id: 1,
+        titulo:
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vehicula quam dui, in lobortis leo accumsan vel. Ut semper augue a erat tempus sagittis. Phasellus orci turpis, laoreet ac est.",
+        descripcion: "",
+        criticidad: 1,
+      ),
+      OpcionDeRespuesta(id: 2, titulo: "op2", descripcion: "", criticidad: 0),
       OpcionDeRespuesta(
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam feugiat ullamcorper lacus nec tincidunt. Maecenas.",
-          "lalalallala",
-          1),
-      OpcionDeRespuesta("op4", "", 0),
+        id: 3,
+        titulo:
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam feugiat ullamcorper lacus nec tincidunt. Maecenas.",
+        descripcion: "lalalallala",
+        criticidad: 1,
+      ),
+      OpcionDeRespuesta(id: 4, titulo: "op4", descripcion: "", criticidad: 0),
       OpcionDeRespuesta(
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ligula est, suscipit at venenatis at.",
-          "yayayayqa",
-          1),
-      OpcionDeRespuesta("op6", "", 0),
+        id: 5,
+        titulo:
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ligula est, suscipit at venenatis at.",
+        descripcion: "yayayayqa",
+        criticidad: 1,
+      ),
+      OpcionDeRespuesta(id: 6, titulo: "op6", descripcion: "", criticidad: 0),
       OpcionDeRespuesta(
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In et erat et tellus dapibus lacinia in non quam. Cras et.",
-          "ñañañaññañañañaa",
-          1),
-      OpcionDeRespuesta("op8", "", 0),
+        id: 7,
+        titulo:
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In et erat et tellus dapibus lacinia in non quam. Cras et.",
+        descripcion: "ñañañaññañañañaa",
+        criticidad: 1,
+      ),
+      OpcionDeRespuesta(id: 8, titulo: "op8", descripcion: "", criticidad: 0),
       OpcionDeRespuesta(
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In et erat et tellus dapibus lacinia in non quam. Cras et.",
-          "alalalal",
-          1),
-      OpcionDeRespuesta("op10", "", 0),
+        id: 9,
+        titulo:
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In et erat et tellus dapibus lacinia in non quam. Cras et.",
+        descripcion: "alalalal",
+        criticidad: 1,
+      ),
+      OpcionDeRespuesta(id: 9, titulo: "op10", descripcion: "", criticidad: 0),
     ];
     late final List<Bloque> bloques = [
+      Titulo(titulo: "El titulo", descripcion: "La descripcion"),
       CuadriculaDeSeleccionMultiple(
         [
           PreguntaDeSeleccionMultiple(
@@ -128,16 +144,18 @@ class InspeccionesRepository {
             opciones
                 .map((op) => SubPreguntaDeSeleccionMultiple(
                       op,
-                      calificable: false,
-                      criticidad: op.criticidad,
-                      descripcion: op.descripcion,
-                      posicion: '',
+                      id: 3,
                       titulo: op.titulo,
+                      descripcion: op.descripcion,
+                      criticidad: op.criticidad,
+                      posicion: '',
+                      calificable: false,
                       respuesta: SubRespuestaDeSeleccionMultiple(
                           MetaRespuesta(),
                           estaSeleccionada: Random().nextBool()),
                     ))
                 .toList(),
+            id: 2,
             titulo: "Mi pregunta unica en cuadricula",
             descripcion:
                 "Mi descripcion de la de seleccion unica en cuadricula",
@@ -151,6 +169,7 @@ class InspeccionesRepository {
             opciones
                 .map((op) => SubPreguntaDeSeleccionMultiple(
                       op,
+                      id: 5,
                       calificable: false,
                       criticidad: op.criticidad,
                       descripcion: op.descripcion,
@@ -161,6 +180,7 @@ class InspeccionesRepository {
                           estaSeleccionada: Random().nextBool()),
                     ))
                 .toList(),
+            id: 4,
             titulo:
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in varius augue. Sed vestibulum sapien laoreet, tempus metus at, malesuada justo. Morbi cursus mi sollicitudin, vestibulum dolor nec, sagittis tellus. Phasellus a erat eget mi mattis ullamcorper. Nunc dignissim arcu eu urna pulvinar faucibus. Praesent ac pharetra odio. Donec pellentesque.",
             descripcion:
@@ -172,6 +192,7 @@ class InspeccionesRepository {
           ),
         ],
         opciones,
+        id: 1,
         titulo: "Mi pregunta cuadricula de seleccion unica",
         descripcion: "Mi descripcion de cuadricula de seleccion unica",
         criticidad: 1,
@@ -186,6 +207,7 @@ class InspeccionesRepository {
           PreguntaDeSeleccionUnica(
             // TODO: hacer que sean las mismas que las de la cuadricula
             opciones,
+            id: 7,
             titulo: "Mi pregunta unica en cuadricula",
             descripcion:
                 "Mi descripcion de la de seleccion unica en cuadricula",
@@ -199,6 +221,7 @@ class InspeccionesRepository {
           ),
           PreguntaDeSeleccionUnica(
             opciones,
+            id: 8,
             titulo:
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in varius augue. Sed vestibulum sapien laoreet, tempus metus at, malesuada justo. Morbi cursus mi sollicitudin, vestibulum dolor nec, sagittis tellus. Phasellus a erat eget mi mattis ullamcorper. Nunc dignissim arcu eu urna pulvinar faucibus. Praesent ac pharetra odio. Donec pellentesque.",
             descripcion:
@@ -213,6 +236,7 @@ class InspeccionesRepository {
           ),
         ],
         opciones,
+        id: 6,
         titulo: "Mi pregunta cuadricula de seleccion unica",
         descripcion: "Mi descripcion de cuadricula de seleccion unica",
         criticidad: 1,
@@ -220,12 +244,12 @@ class InspeccionesRepository {
         calificable: true,
         respuesta: RespuestaDeCuadriculaDeSeleccionUnica(MetaRespuesta()),
       ),
-      Titulo(titulo: "El titulo", descripcion: "La descripcion"),
       Titulo(
           titulo: "El otro titulazo " * 10,
           descripcion: "La otra descripcion " * 5),
       PreguntaNumerica(
         [],
+        id: 9,
         titulo: "Mi pregunta numerica",
         descripcion: "Mi descripcion de la numerica",
         criticidad: 1,
@@ -239,6 +263,7 @@ class InspeccionesRepository {
       ),
       PreguntaDeSeleccionUnica(
         opciones,
+        id: 10,
         titulo: "Mi pregunta unica",
         descripcion: "Mi descripcion de la de seleccion unica",
         criticidad: 1,
@@ -254,6 +279,7 @@ class InspeccionesRepository {
         opciones
             .map((op) => SubPreguntaDeSeleccionMultiple(
                   op,
+                  id: 12,
                   titulo: op.titulo,
                   descripcion: op.descripcion,
                   criticidad: op.criticidad,
@@ -265,6 +291,7 @@ class InspeccionesRepository {
                   ),
                 ))
             .toList(),
+        id: 11,
         titulo: "Mi pregunta de seleccion multiple",
         descripcion: "Mi descripcion de la de seleccion multiple",
         criticidad: 1,
@@ -295,172 +322,18 @@ class InspeccionesRepository {
     return Future.value(cuestionario);
   }
 
-  Future<CuestionarioInspeccionado> _inspeccionNueva() async {
-    final List<OpcionDeRespuesta> opciones = [
-      OpcionDeRespuesta(
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vehicula quam dui, in lobortis leo accumsan vel. Ut semper augue a erat tempus sagittis. Phasellus orci turpis, laoreet ac est.",
-          "",
-          1),
-      OpcionDeRespuesta("op2", "", 1),
-      OpcionDeRespuesta(
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam feugiat ullamcorper lacus nec tincidunt. Maecenas.",
-          "lalalallala",
-          1),
-      OpcionDeRespuesta("op4", "", 1),
-      OpcionDeRespuesta(
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ligula est, suscipit at venenatis at.",
-          "yayayayqa",
-          1),
-      OpcionDeRespuesta("op6", "", 1),
-      OpcionDeRespuesta(
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In et erat et tellus dapibus lacinia in non quam. Cras et.",
-          "ñañañaññañañañaa",
-          1),
-      OpcionDeRespuesta("op8", "", 1),
-      OpcionDeRespuesta(
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In et erat et tellus dapibus lacinia in non quam. Cras et.",
-          "alalalal",
-          1),
-      OpcionDeRespuesta("op10", "", 1),
-    ];
-    late final List<Bloque> bloques = [
-      Titulo(titulo: "El titulo", descripcion: "La descripcion"),
-      CuadriculaDeSeleccionMultiple(
-        [
-          PreguntaDeSeleccionMultiple(
-            // TODO: hacer que sean las mismas que las de la cuadricula
-            opciones,
-            opciones
-                .map((op) => SubPreguntaDeSeleccionMultiple(
-                      op,
-                      calificable: false,
-                      criticidad: op.criticidad,
-                      descripcion: op.descripcion,
-                      posicion: '',
-                      titulo: op.titulo,
-                    ))
-                .toList(),
-            titulo: "Mi pregunta unica en cuadricula",
-            descripcion:
-                "Mi descripcion de la de seleccion unica en cuadricula",
-            criticidad: 1,
-            posicion: "arriba",
-            calificable: true,
-          ),
-          PreguntaDeSeleccionMultiple(
-            opciones,
-            opciones
-                .map((op) => SubPreguntaDeSeleccionMultiple(
-                      op,
-                      calificable: false,
-                      criticidad: op.criticidad,
-                      descripcion: op.descripcion,
-                      posicion: '',
-                      titulo: op.titulo,
-                    ))
-                .toList(),
-            titulo:
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in varius augue. Sed vestibulum sapien laoreet, tempus metus at, malesuada justo. Morbi cursus mi sollicitudin, vestibulum dolor nec, sagittis tellus. Phasellus a erat eget mi mattis ullamcorper. Nunc dignissim arcu eu urna pulvinar faucibus. Praesent ac pharetra odio. Donec pellentesque.",
-            descripcion:
-                "Mi descripcion de la de seleccion unica en cuadricula",
-            criticidad: 1,
-            posicion: "arriba",
-            calificable: false,
-          ),
-        ],
-        opciones,
-        titulo: "Mi pregunta cuadricula de seleccion unica",
-        descripcion: "Mi descripcion de cuadricula de seleccion unica",
-        criticidad: 1,
-        posicion: "arriba",
-        calificable: true,
-      ),
-      CuadriculaDeSeleccionUnica(
-        [
-          PreguntaDeSeleccionUnica(
-            // TODO: hacer que sean las mismas que las de la cuadricula
-            opciones,
-            titulo: "Mi pregunta unica en cuadricula",
-            descripcion:
-                "Mi descripcion de la de seleccion unica en cuadricula",
-            criticidad: 1,
-            posicion: "arriba",
-            calificable: true,
-          ),
-          PreguntaDeSeleccionUnica(
-            opciones,
-            titulo:
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in varius augue. Sed vestibulum sapien laoreet, tempus metus at, malesuada justo. Morbi cursus mi sollicitudin, vestibulum dolor nec, sagittis tellus. Phasellus a erat eget mi mattis ullamcorper. Nunc dignissim arcu eu urna pulvinar faucibus. Praesent ac pharetra odio. Donec pellentesque.",
-            descripcion:
-                "Mi descripcion de la de seleccion unica en cuadricula",
-            criticidad: 1,
-            posicion: "arriba",
-            calificable: false,
-          ),
-        ],
-        opciones,
-        titulo: "Mi pregunta cuadricula de seleccion unica",
-        descripcion: "Mi descripcion de cuadricula de seleccion unica",
-        criticidad: 1,
-        posicion: "arriba",
-        calificable: true,
-      ),
-      Titulo(titulo: "El otro titulo ", descripcion: "La otra descripcion "),
-      PreguntaNumerica(
-        [],
-        titulo: "Mi pregunta numerica",
-        descripcion: "Mi descripcion de la numerica",
-        criticidad: 1,
-        posicion: "abajo",
-        calificable: true,
-        unidades: "metros",
-      ),
-      PreguntaDeSeleccionUnica(
-        opciones,
-        titulo: "Mi pregunta unica",
-        descripcion: "Mi descripcion de la de seleccion unica",
-        criticidad: 1,
-        posicion: "abajo",
-        calificable: false,
-      ),
-      PreguntaDeSeleccionMultiple(
-        opciones,
-        opciones
-            .map((op) => SubPreguntaDeSeleccionMultiple(
-                  op,
-                  titulo: op.titulo,
-                  descripcion: op.descripcion,
-                  criticidad: op.criticidad,
-                  posicion: "",
-                  calificable: false,
-                ))
-            .toList(),
-        titulo: "Mi pregunta de seleccion multiple",
-        descripcion: "Mi descripcion de la de seleccion multiple",
-        criticidad: 1,
-        posicion: "abajo",
-        calificable: true,
-      ),
-    ];
-    final inspeccion = Inspeccion(
-      id: 2,
-      estado: EstadoDeInspeccion.borrador,
-      activo: Activo(id: "123", modelo: "auto"),
-      momentoBorradorGuardado: DateTime.now(),
-      criticidadTotal: 10,
-      criticidadReparacion: 5,
-      esNueva: true,
-    );
-    final cuestionario = CuestionarioInspeccionado(
-      Cuestionario(
-        id: 1,
-        tipoDeInspeccion: "preoperacional",
-      ),
-      inspeccion,
-      bloques,
-    );
-    inspeccion.cuestionario = cuestionario;
-
-    return Future.value(cuestionario);
+  Future<CuestionarioInspeccionado> _inspeccionNueva() =>
+      _inspeccionIniciada().then(
+        (c) => CuestionarioInspeccionado(
+          c.cuestionario,
+          c.inspeccion,
+          c.bloques.map(_quitarRespuesta).toList(),
+        ),
+      );
+  Bloque _quitarRespuesta(Bloque b) {
+    if (b is Pregunta) {
+      b.respuesta = null;
+    }
+    return b;
   }
 }

@@ -1,15 +1,21 @@
+import '../../domain/bloques/pregunta.dart';
+import '../../domain/bloques/preguntas/preguntas.dart';
 import '../../domain/respuesta.dart';
 import '../../infrastructure/inspecciones_repository.dart';
 import '../controlador_de_pregunta.dart';
 import '../controladores_de_pregunta/controladores_de_pregunta.dart';
 import 'controlador_de_pregunta_visitor.dart';
 
+/// Clase que usa el patrón visitor para pasar por todos los tipos de controles,
+/// extraer su pregunta y agregarle la respuesta que tiene en ese momento.
+/// Por ahora se muta la pregunta con la nueva respuesta pero se debe considerar
+/// hacer este proceso inmutable.
 class GuardadoVisitor implements ControladorDePreguntaVisitor {
   final InspeccionesRepository _repository;
   final List<ControladorDePregunta> _controladores;
   final int _inspeccionId;
 
-  final List<Respuesta> respuestas = [];
+  final List<Pregunta> preguntasRespondidas = [];
 
   GuardadoVisitor(this._repository, this._controladores,
       {required int inspeccionId})
@@ -17,72 +23,82 @@ class GuardadoVisitor implements ControladorDePreguntaVisitor {
 
   Future<void> guardarInspeccion() async {
     await Future.delayed(const Duration(seconds: 3));
-    respuestas.clear();
+    preguntasRespondidas.clear();
     for (final c in _controladores) {
       c.accept(this);
     }
-    return _repository.guardarInspeccion(respuestas,
+    return _repository.guardarInspeccion(preguntasRespondidas,
         inspeccionId: _inspeccionId);
   }
 
   @override
-  void visitSeleccionUnica(ControladorDePreguntaDeSeleccionUnica pregunta) {
-    respuestas.add(_buildSeleccionUnica(pregunta));
+  void visitSeleccionUnica(ControladorDePreguntaDeSeleccionUnica controlador) {
+    preguntasRespondidas.add(_buildSeleccionUnica(controlador));
   }
 
-  RespuestaDeSeleccionUnica _buildSeleccionUnica(
-          ControladorDePreguntaDeSeleccionUnica pregunta) =>
-      RespuestaDeSeleccionUnica(pregunta.guardarMetaRespuesta(),
-          pregunta.respuestaEspecificaControl.value);
+  PreguntaDeSeleccionUnica _buildSeleccionUnica(
+          ControladorDePreguntaDeSeleccionUnica controlador) =>
+      controlador.pregunta
+        ..respuesta = RespuestaDeSeleccionUnica(
+          controlador.guardarMetaRespuesta(),
+          controlador.respuestaEspecificaControl.value,
+        );
 
   @override
   void visitControladorDePreguntaNumerica(
-      ControladorDePreguntaNumerica pregunta) {
-    respuestas.add(
-      RespuestaNumerica(
-        pregunta.guardarMetaRespuesta(),
-        respuestaNumerica: pregunta.respuestaEspecificaControl.value,
-      ),
+      ControladorDePreguntaNumerica controlador) {
+    preguntasRespondidas.add(
+      controlador.pregunta
+        ..respuesta = RespuestaNumerica(
+          controlador.guardarMetaRespuesta(),
+          respuestaNumerica: controlador.respuestaEspecificaControl.value,
+        ),
     );
   }
 
   @override
   void visitCuadriculaSeleccionUnica(
-      ControladorDeCuadriculaDeSeleccionUnica pregunta) {
-    respuestas.add(
-      RespuestaDeCuadriculaDeSeleccionUnica(
-        pregunta.guardarMetaRespuesta(),
-        pregunta.controladoresPreguntas.map(_buildSeleccionUnica).toList(),
-      ),
+      ControladorDeCuadriculaDeSeleccionUnica controlador) {
+    preguntasRespondidas.add(
+      controlador.pregunta
+        ..respuesta = RespuestaDeCuadriculaDeSeleccionUnica(
+          controlador.guardarMetaRespuesta(),
+          controlador.controladoresPreguntas.map(_buildSeleccionUnica).toList(),
+        ),
     );
   }
 
   @override
   void visitCuadriculaSeleccionMultiple(
-      ControladorDeCuadriculaDeSeleccionMultiple pregunta) {
-    respuestas.add(
-      RespuestaDeCuadriculaDeSeleccionMultiple(
-        pregunta.guardarMetaRespuesta(),
-        pregunta.controladoresPreguntas.map(_buildSeleccionMultiple).toList(),
-      ),
+      ControladorDeCuadriculaDeSeleccionMultiple controlador) {
+    preguntasRespondidas.add(
+      controlador.pregunta
+        ..respuesta = RespuestaDeCuadriculaDeSeleccionMultiple(
+          controlador.guardarMetaRespuesta(),
+          controlador.controladoresPreguntas
+              .map(_buildSeleccionMultiple)
+              .toList(),
+        ),
     );
   }
 
   @override
   void visitSeleccionMultiple(
       ControladorDePreguntaDeSeleccionMultiple pregunta) {
-    respuestas.add(_buildSeleccionMultiple(pregunta));
+    preguntasRespondidas.add(_buildSeleccionMultiple(pregunta));
   }
 
-  RespuestaDeSeleccionMultiple _buildSeleccionMultiple(
-          ControladorDePreguntaDeSeleccionMultiple pregunta) =>
-      RespuestaDeSeleccionMultiple(
-        pregunta.guardarMetaRespuesta(),
-        pregunta.controladoresPreguntas
-            .map((c) => SubRespuestaDeSeleccionMultiple(
+  PreguntaDeSeleccionMultiple _buildSeleccionMultiple(
+          ControladorDePreguntaDeSeleccionMultiple controlador) =>
+      controlador.pregunta
+        ..respuesta = RespuestaDeSeleccionMultiple(
+          controlador.guardarMetaRespuesta(),
+          controlador.controladoresPreguntas
+              .map((c) => c.pregunta
+                ..respuesta = SubRespuestaDeSeleccionMultiple(
                   c.guardarMetaRespuesta(),
                   estaSeleccionada: c.respuestaEspecificaControl.value!,
                 ))
-            .toList(),
-      );
+              .toList(),
+        );
 }

@@ -6,6 +6,7 @@ class PreguntaDeSeleccion<T extends Respuesta> extends Pregunta<T> {
 
   PreguntaDeSeleccion(
     this.opcionesDeRespuesta, {
+    required int id,
     required String titulo,
     required String descripcion,
     required int criticidad,
@@ -13,6 +14,7 @@ class PreguntaDeSeleccion<T extends Respuesta> extends Pregunta<T> {
     required bool calificable,
     T? respuesta,
   }) : super(
+          id: id,
           titulo: titulo,
           descripcion: descripcion,
           criticidad: criticidad,

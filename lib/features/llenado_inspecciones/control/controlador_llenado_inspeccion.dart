@@ -25,15 +25,16 @@ typedef EjecucionCallback = Future<void> Function(
 
 final controladorFactoryProvider = Provider((ref) => ControladorFactory());
 
-final inspeccionIdProvider =
-    StateProvider<IdentificadorDeInspeccion?>((ref) => null);
+final inspeccionIdProvider = StateProvider<IdentificadorDeInspeccion>((ref) =>
+    throw Exception(
+        "se debe definir inspeccionId dentro de la pagina de llenado"));
 
 final cuestionarioProvider = FutureProvider((ref) => ref
     .watch(inspeccionesRepositoryProvider)
-    .cargarInspeccionLocal(ref.watch(inspeccionIdProvider).state!));
+    .cargarInspeccionLocal(ref.watch(inspeccionIdProvider).state));
 
 final controladorLlenadoInspeccionProvider =
-    FutureProvider.autoDispose((ref) async => ControladorLlenadoInspeccion(
+    FutureProvider((ref) async => ControladorLlenadoInspeccion(
           (await ref.watch(cuestionarioProvider.future)).fold(
               (l) => throw l, (r) => r), //TODO: mirar como manejar errores
           ref.watch(controladorFactoryProvider),

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'presentation/pages/login_page.dart';
+import 'features/llenado_inspecciones/control/controlador_llenado_inspeccion.dart';
+import 'features/llenado_inspecciones/domain/identificador_inspeccion.dart';
+import 'features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
 import 'theme.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>(
@@ -24,6 +26,11 @@ void main() async {
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
+        inspeccionIdProvider
+            .overrideWithValue(StateController(IdentificadorDeInspeccion(
+          activo: "1",
+          cuestionarioId: 1,
+        ))),
       ],
       child: const MyApp(),
     ),
@@ -44,7 +51,9 @@ class MyApp extends ConsumerWidget {
         filled: true,
       )),
       //InspeccionPage(nuevaInspeccion: true)
-      home: const LoginPage(),
+      home: const InspeccionPage(
+        inspeccionId: 1,
+      ),
     );
   }
 }
