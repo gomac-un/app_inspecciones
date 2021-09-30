@@ -62,10 +62,6 @@ class SincronizacionPage extends StatelessWidget implements AutoRouteWrapper {
               child: BlocBuilder<SincronizacionCubit, SincronizacionState>(
                 builder: (context, state) {
                   return Stepper(
-                    controlsBuilder: (BuildContext context,
-                            {VoidCallback? onStepContinue,
-                            VoidCallback? onStepCancel}) =>
-                        Container(),
                     onStepTapped: (index) {
                       sincronizacionCubit.selectPaso(index);
                     },

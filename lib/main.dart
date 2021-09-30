@@ -1,11 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'features/llenado_inspecciones/ui/theme.dart';
-import 'presentation/pages/borradores_screen.dart';
+import 'presentation/pages/login_page.dart';
+import 'theme.dart';
 
-void main() {
-  runApp(const ProviderScope(child: MyApp()));
+final sharedPreferencesProvider = Provider<SharedPreferences>(
+    (ref) => throw Exception('Provider was not initialized'));
+void main() async {
+  // Show a progress indicator while awaiting things
+  runApp(
+    const MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+    ),
+  );
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends ConsumerWidget {
@@ -22,7 +44,7 @@ class MyApp extends ConsumerWidget {
         filled: true,
       )),
       //InspeccionPage(nuevaInspeccion: true)
-      home: const BorradoresPage(),
+      home: const LoginPage(),
     );
   }
 }

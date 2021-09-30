@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:inspecciones/application/auth/auth_bloc.dart';
+import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
 import 'package:inspecciones/injection.dart';

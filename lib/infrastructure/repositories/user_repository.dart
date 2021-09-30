@@ -1,25 +1,20 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/entities/usuario.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
 import 'package:inspecciones/infrastructure/repositories/credenciales.dart';
-import 'package:meta/meta.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
-/// Maneja la información del usuario y sirve de puente entre [AuthBloc] y [InspeccionesRemoteDataSource]
-@injectable
 class UserRepository {
-  final InspeccionesRemoteDataSource _api;
+  final AuthRemoteDatasource _api;
   final LocalPreferencesDataSource _localPreferences;
 
   UserRepository(this._api, this._localPreferences);
 
-  /// Construye un objeto usuario con información traida del server
   Future<Either<AuthFailure, Usuario>> authenticateUser(
       {required Credenciales credenciales, bool offline = false}) async {
     if (offline) {
@@ -39,7 +34,7 @@ class UserRepository {
     /// True si puede crear cuestionarios
     final bool esAdmin;
     try {
-      /// genera elcódigo unico que identifica cada instalación de la app
+      /// genera el código unico que identifica cada instalación de la app
       /// en caso de que no exista uno ya
       await getOrRegisterAppId();
 
@@ -80,10 +75,12 @@ class UserRepository {
     await _localPreferences.saveUser(user);
   }
 
-  /// Elimina user guardado localmente cuando se presiona cerrar sesión, el usuario deberá iniciar sesión la próxima vez que abra la app
+  /// Elimina user guardado localmente cuando se presiona cerrar sesión,
+  /// el usuario deberá iniciar sesión la próxima vez que abra la app
   Future<void> deleteLocalUser() => _localPreferences.deleteUser();
 
-  /// Devuelve usuario si hay uno guardado (No se debe iniciar sesión), en caso contrario null (Aparece login_screen).
+  /// Devuelve usuario si hay uno guardado (No se debe iniciar sesión),
+  /// en caso contrario null (Aparece login_screen).
   Option<Usuario> getLocalUser() => optionOf(_localPreferences.getUser());
 
   /// Consulta si en [localPreferences] se ha guardado el appId (Código unico de instalación),

@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:inspecciones/application/auth/auth_bloc.dart';
+import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 

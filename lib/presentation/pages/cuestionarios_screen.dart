@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/presentation/widgets/drawer.dart';
 import 'package:inspecciones/presentation/widgets/alertas.dart';
+import 'package:inspecciones/presentation/widgets/drawer.dart';
 import 'package:inspecciones/router.gr.dart';
 import 'package:inspecciones/viewmodel/cuestionario_list_view_model.dart';
 import 'package:provider/provider.dart';
+
 import '../../infrastructure/moor_database.dart';
 
 /// Pantalla que muestra la lista de cuestionarios subidos y en proceso.
@@ -22,7 +23,7 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
     );
   }
 
-  const CuestionariosPage(Key? key) : super(key: key);
+  const CuestionariosPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

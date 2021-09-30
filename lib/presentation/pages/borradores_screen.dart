@@ -69,7 +69,6 @@ class BorradoresPage extends ConsumerWidget {
                       : 'Criticidad parcial inicial: ';
 
               return ListTile(
-                //TODO: arreglar el llenado de inspecciones
                 onTap: () {
                   ref.read(inspeccionIdProvider).state =
                       IdentificadorDeInspeccion(
