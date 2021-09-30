@@ -9,6 +9,7 @@ class PreguntaDeSeleccionMultiple
   PreguntaDeSeleccionMultiple(
     List<OpcionDeRespuesta> opcionesDeRespuesta,
     this.respuestas, {
+    required int id,
     required String titulo,
     required String descripcion,
     required int criticidad,
@@ -17,6 +18,7 @@ class PreguntaDeSeleccionMultiple
     RespuestaDeSeleccionMultiple? respuesta,
   }) : super(
           opcionesDeRespuesta,
+          id: id,
           respuesta: respuesta,
           titulo: titulo,
           descripcion: descripcion,
@@ -31,6 +33,7 @@ class SubPreguntaDeSeleccionMultiple
   final OpcionDeRespuesta opcion;
   SubPreguntaDeSeleccionMultiple(
     this.opcion, {
+    required int id,
     required String titulo,
     required String descripcion,
     required int criticidad,
@@ -38,6 +41,7 @@ class SubPreguntaDeSeleccionMultiple
     required bool calificable,
     SubRespuestaDeSeleccionMultiple? respuesta,
   }) : super(
+          id: id,
           respuesta: respuesta,
           titulo: titulo,
           descripcion: descripcion,

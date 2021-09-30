@@ -1,7 +1,13 @@
 class OpcionDeRespuesta {
+  final int id;
   final String titulo;
   final String descripcion;
   final int criticidad;
 
-  OpcionDeRespuesta(this.titulo, this.descripcion, this.criticidad);
+  OpcionDeRespuesta({
+    required this.id,
+    required this.titulo,
+    required this.descripcion,
+    required this.criticidad,
+  });
 }

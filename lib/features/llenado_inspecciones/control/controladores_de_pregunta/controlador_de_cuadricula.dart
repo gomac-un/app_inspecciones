@@ -11,10 +11,9 @@ import 'controlador_de_pregunta_de_seleccion_multiple.dart';
 import 'controlador_de_pregunta_de_seleccion_unica.dart';
 
 abstract class ControladorDeCuadricula<
-    A extends Respuesta,
-    B extends RespuestaDeCuadricula<A>,
-    C extends PreguntaDeSeleccion<A>,
-    T extends Cuadricula<A, B, C>,
+    B extends RespuestaDeCuadricula,
+    C extends PreguntaDeSeleccion,
+    T extends Cuadricula<B, C>,
     S extends ControladorDePregunta<C>> extends ControladorDePregunta<T> {
   abstract final List<S> controladoresPreguntas;
 
@@ -37,7 +36,6 @@ abstract class ControladorDeCuadricula<
 /// genericos, toca hacerlo a mano
 class ControladorDeCuadriculaDeSeleccionMultiple
     extends ControladorDeCuadricula<
-        RespuestaDeSeleccionMultiple,
         RespuestaDeCuadriculaDeSeleccionMultiple,
         PreguntaDeSeleccionMultiple,
         CuadriculaDeSeleccionMultiple,
@@ -58,7 +56,6 @@ class ControladorDeCuadriculaDeSeleccionMultiple
 }
 
 class ControladorDeCuadriculaDeSeleccionUnica extends ControladorDeCuadricula<
-    RespuestaDeSeleccionUnica,
     RespuestaDeCuadriculaDeSeleccionUnica,
     PreguntaDeSeleccionUnica,
     CuadriculaDeSeleccionUnica,

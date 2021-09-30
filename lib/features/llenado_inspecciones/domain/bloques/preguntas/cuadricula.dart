@@ -3,13 +3,14 @@ import 'opcion_de_respuesta.dart';
 import 'pregunta_de_seleccion.dart';
 import 'preguntas.dart';
 
-class Cuadricula<A extends Respuesta, T extends RespuestaDeCuadricula<A>,
-    P extends PreguntaDeSeleccion<A>> extends PreguntaDeSeleccion<T> {
+class Cuadricula<T extends RespuestaDeCuadricula, P extends PreguntaDeSeleccion>
+    extends PreguntaDeSeleccion<T> {
   final List<P> preguntas;
 
   Cuadricula(
     this.preguntas,
     List<OpcionDeRespuesta> opcionesDeRespuesta, {
+    required int id,
     required String titulo,
     required String descripcion,
     required int criticidad,
@@ -18,6 +19,7 @@ class Cuadricula<A extends Respuesta, T extends RespuestaDeCuadricula<A>,
     T? respuesta,
   }) : super(
           opcionesDeRespuesta,
+          id: id,
           respuesta: respuesta,
           titulo: titulo,
           descripcion: descripcion,
@@ -27,8 +29,8 @@ class Cuadricula<A extends Respuesta, T extends RespuestaDeCuadricula<A>,
         );
 }
 
-typedef CuadriculaDeSeleccionMultiple = Cuadricula<RespuestaDeSeleccionMultiple,
+typedef CuadriculaDeSeleccionMultiple = Cuadricula<
     RespuestaDeCuadriculaDeSeleccionMultiple, PreguntaDeSeleccionMultiple>;
 
-typedef CuadriculaDeSeleccionUnica = Cuadricula<RespuestaDeSeleccionUnica,
+typedef CuadriculaDeSeleccionUnica = Cuadricula<
     RespuestaDeCuadriculaDeSeleccionUnica, PreguntaDeSeleccionUnica>;
