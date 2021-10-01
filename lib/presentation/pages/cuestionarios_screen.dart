@@ -1,38 +1,25 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/presentation/widgets/alertas.dart';
-import 'package:inspecciones/presentation/widgets/drawer.dart';
-import 'package:inspecciones/router.gr.dart';
-import 'package:inspecciones/viewmodel/cuestionario_list_view_model.dart';
-import 'package:provider/provider.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/features/creacion_cuestionarios/edicion_form_page.dart';
 
+import '../../core/enums.dart';
 import '../../infrastructure/moor_database.dart';
+import '../../viewmodel/cuestionario_list_view_model.dart';
+import '../widgets/alertas.dart';
 
 /// Pantalla que muestra la lista de cuestionarios subidos y en proceso.
-class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
-  @override
-  Widget wrappedRoute(BuildContext context) {
-    return Provider(
-      //TODO: mirar si se tiene que hacer dispose al CuestionarioListViewModel
-      create: (_) => getIt<CuestionarioListViewModel>(),
-      child: this,
-    );
-  }
-
+class CuestionariosPage extends ConsumerWidget {
   const CuestionariosPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final viewModel = context.read<CuestionarioListViewModel>();
+  Widget build(BuildContext context, ref) {
+    final viewModel = ref.watch(cuestionarioListViewModelProvider);
     return Scaffold(
         appBar: AppBar(
           title: const Text('Cuestionarios'),
         ),
-        drawer: const UserDrawer(),
+        //drawer: const UserDrawer(),
         body: StreamBuilder<List<Cuestionario>>(
           /// Se reconstruye automaticamente con los cuestionarios que se van agregando.
           stream: viewModel.getCuestionarios(),
@@ -63,8 +50,12 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
               itemBuilder: (context, index) {
                 final cuestionario = cuestionarios[index];
                 return ListTile(
-                  onTap: () => context.router
-                      .push(EdicionFormRoute(cuestionarioId: cuestionario.id)),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          EdicionFormPage(cuestionarioId: cuestionario.id),
+                    ),
+                  ),
                   tileColor: Theme.of(context).cardColor,
                   title: Text(cuestionario.tipoDeInspeccion),
                   subtitle: Column(
@@ -105,8 +96,8 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
                       /// Los cuestionarios subidos ya no se pueden borrar
                       ? IconButton(
                           icon: const Icon(Icons.delete),
-                          onPressed: () =>
-                              _eliminarCuestionario(context, cuestionario),
+                          onPressed: () => _eliminarCuestionario(
+                              context, cuestionario, viewModel),
                         )
                       : Icon(Icons.cloud,
                           color: Theme.of(context).colorScheme.secondary),
@@ -175,9 +166,8 @@ class CuestionariosPage extends StatelessWidget implements AutoRouteWrapper {
   }
 
   /// Elimina [cuestionario] y todas sus preguntas
-  void _eliminarCuestionario(BuildContext context, Cuestionario cuestionario) {
-    final viewModel = context.read<CuestionarioListViewModel>();
-
+  void _eliminarCuestionario(BuildContext context, Cuestionario cuestionario,
+      CuestionarioListViewModel viewModel) {
     // show the dialog
     showDialog(
       context: context,
@@ -221,7 +211,11 @@ class FloatingActionButtonCreacionCuestionario extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
       onPressed: () async {
-        final res = await context.router.push(const CreacionFormRoute());
+        final res = await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const EdicionFormPage(),
+          ),
+        );
         // muestra el mensaje que viene desde la pantalla de llenado
         if (res != null) {
           ScaffoldMessenger.of(context)

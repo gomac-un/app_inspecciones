@@ -1,18 +1,16 @@
 import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
-import 'package:moor/moor.dart';
-import 'package:path/path.dart' as path;
-
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
-import 'package:inspecciones/injection.dart';
+import 'package:moor/moor.dart';
+import 'package:path/path.dart' as path;
 
-import 'daos/planeacion_dao.dart';
 export 'database/shared.dart';
 
 part 'datos_de_prueba.dart';
@@ -42,13 +40,15 @@ part 'tablas.dart';
     ProgramacionSistemasXActivo,
     TiposDeInspecciones,
   ],
-  daos: [LlenadoDao, CreacionDao, BorradoresDao, PlaneacionDao],
+  daos: [LlenadoDao, CreacionDao, BorradoresDao],
 )
-class Database extends _$Database {
+class MoorDatabase extends _$MoorDatabase {
   final int _appId;
+  //TODO: eliminar la dependencia con fotosRepository
+  final FotosRepository fotosRepository;
   // En el caso de que la db crezca mucho y las consultas empiecen a relentizar
   //la UI se debe considerar el uso de los isolates https://moor.simonbinder.eu/docs/advanced-features/isolates/
-  Database(QueryExecutor e, this._appId) : super(e);
+  MoorDatabase(QueryExecutor e, this._appId, this.fotosRepository) : super(e);
 
   @override
   int get schemaVersion => 1;
@@ -249,18 +249,18 @@ class Database extends _$Database {
         p as Map<String, dynamic>,
         serializer: const CustomSerializer(),
       );
-      final fotosManager = getIt<FotosRepository>();
+
       return respuesta.copyWith(
         /// se hace este proceso para agregarle el path completo a las fotos
         fotosBase: respuesta.fotosBase.map(
-          (e) => fotosManager.convertirAUbicacionAbsolutaAppImage(
+          (e) => fotosRepository.convertirAUbicacionAbsolutaAppImage(
             e,
             Categoria.inspeccion,
             identificador: (json['id'] as int).toString(),
           ),
         ),
         fotosReparacion: respuesta.fotosReparacion.map(
-          (e) => fotosManager.convertirAUbicacionAbsolutaAppImage(
+          (e) => fotosRepository.convertirAUbicacionAbsolutaAppImage(
             e,
             Categoria.inspeccion,
             identificador: (json['id'] as int).toString(),
@@ -355,10 +355,10 @@ class Database extends _$Database {
         p as Map<String, dynamic>,
         serializer: const CustomSerializer(),
       );
-      final fotosManager = getIt<FotosRepository>();
+
       return pregunta.copyWith(
         fotosGuia: pregunta.fotosGuia.map(
-          (e) => fotosManager.convertirAUbicacionAbsolutaAppImage(
+          (e) => fotosRepository.convertirAUbicacionAbsolutaAppImage(
             e,
             Categoria.cuestionario,
             identificador:

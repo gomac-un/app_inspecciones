@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -144,14 +143,13 @@ String obtenerErrores(AbstractControl<dynamic> form) {
     }
   }
   if (errorSistema != null) {
-    texto = texto.isNotEmpty
-        ? '$texto \n- ${errorSistema ?? ''}'
-        : '$texto- ${errorSistema ?? ''}';
+    texto =
+        texto.isNotEmpty ? '$texto \n- $errorSistema' : '$texto- $errorSistema';
   }
   if (errorContratista != null) {
     texto = texto.isNotEmpty
-        ? '$texto \n- ${errorContratista ?? ''}'
-        : '$texto- ${errorContratista ?? ''}';
+        ? '$texto \n- $errorContratista'
+        : '$texto- $errorContratista';
   }
   final erroresBloques = form.errors['bloques'] as Map?;
   if (erroresBloques != null) {

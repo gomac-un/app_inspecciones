@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -25,17 +26,17 @@ typedef EjecucionCallback = Future<void> Function(
 
 final controladorFactoryProvider = Provider((ref) => ControladorFactory());
 
-final inspeccionIdProvider = StateProvider<IdentificadorDeInspeccion>((ref) =>
-    throw Exception(
-        "se debe definir inspeccionId dentro de la pagina de llenado"));
+final cuestionarioProvider = FutureProvider.family<
+        Either<InspeccionesFailure, CuestionarioInspeccionado>,
+        IdentificadorDeInspeccion>(
+    (ref, inspeccionId) => ref
+        .watch(inspeccionesRepositoryProvider)
+        .cargarInspeccionLocal(inspeccionId));
 
-final cuestionarioProvider = FutureProvider((ref) => ref
-    .watch(inspeccionesRepositoryProvider)
-    .cargarInspeccionLocal(ref.watch(inspeccionIdProvider).state));
-
-final controladorLlenadoInspeccionProvider =
-    FutureProvider((ref) async => ControladorLlenadoInspeccion(
-          (await ref.watch(cuestionarioProvider.future)).fold(
+final controladorLlenadoInspeccionProvider = FutureProvider.family<
+        ControladorLlenadoInspeccion, IdentificadorDeInspeccion>(
+    (ref, inspeccionId) async => ControladorLlenadoInspeccion(
+          (await ref.watch(cuestionarioProvider(inspeccionId).future)).fold(
               (l) => throw l, (r) => r), //TODO: mirar como manejar errores
           ref.watch(controladorFactoryProvider),
           ref.read,

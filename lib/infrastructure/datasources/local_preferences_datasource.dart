@@ -1,8 +1,12 @@
 import 'dart:convert';
 
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/usuario.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+final sharedPreferencesProvider = Provider<SharedPreferences>(
+    (ref) => throw Exception('Provider was not initialized'));
 
 /// Clase encargada de guardar localmente los datos que la app debe recordar cada vez que se inicie
 abstract class LocalPreferencesDataSource {
@@ -67,5 +71,5 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
 
   /// Devuelve el id de la instalación de la app en el dispositivo
   @override
-  int? getAppId() => _preferences.getInt(appIdKey);
+  int? getAppId() => 999999999; //TODO: arreglar _preferences.getInt(appIdKey);
 }

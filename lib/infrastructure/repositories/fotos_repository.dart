@@ -1,15 +1,25 @@
 import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:file/file.dart';
-import 'package:injectable/injectable.dart';
-import 'package:path/path.dart' as path;
-
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/infrastructure/core/directorio_de_datos.dart';
+import 'package:inspecciones/infrastructure/datasources/providers.dart';
+import 'package:path/path.dart' as path;
+
+final fotosRepositoryProvider = Provider(
+  (ref) => FotosRepository(
+    ref.watch(fileSystemProvider),
+    ref.watch(directorioDeDatosProvider),
+  ),
+);
+
+final fileSystemProvider = Provider<FileSystem>(
+    (ref) => throw Exception("no se ha definido el FileSystem"));
 
 enum Categoria { cuestionario, inspeccion }
 
-@injectable
 class FotosRepository {
   final FileSystem _fileSystem;
   final DirectorioDeDatos _directorio;

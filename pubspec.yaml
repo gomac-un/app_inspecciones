@@ -15,7 +15,8 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  auto_route: ^2.3.0
+  #auto_route: ^2.3.0
+  flutter_bloc:
   collection: ^1.15.0
   cool_stepper: ^1.2.1
   cupertino_icons: ^1.0.3
@@ -25,13 +26,10 @@ dependencies:
   enum_to_string: ^2.0.1
   file: ^6.1.2
   flutter_archive: ^4.0.1
-  flutter_bloc: ^7.2.0
   flutter_downloader: ^1.6.1
   freezed_annotation: ^0.14.3
-  get_it: ^7.2.0
   grouped_list: ^4.1.0
   image_picker: ^0.8.3+3
-
   internet_connection_checker: ^0.0.1+2
   intl: ^0.17.0
   json_annotation: ^4.0.1
@@ -40,7 +38,6 @@ dependencies:
   open_file: ^3.2.1
   path: ^1.8.0
   path_provider: ^2.0.2
-  provider: ^6.0.0
   reactive_forms: ^10.6.2
   flutter_hooks: ^0.18.0
   hooks_riverpod: ^1.0.0-dev.7

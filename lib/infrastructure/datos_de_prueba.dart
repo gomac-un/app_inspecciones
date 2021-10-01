@@ -5,10 +5,10 @@ Function initialize(db) {
         batch.insertAll(db.activos, [
           ...*/
 
-Future<void> Function(Batch) initialize(Database db) =>
+Future<void> Function(Batch) initialize(MoorDatabase db) =>
     (Batch batch) => _initialize(batch, db);
 
-Future<void> _initialize(Batch batch, Database db) async {
+Future<void> _initialize(Batch batch, MoorDatabase db) async {
   batch.insertAll(db.activos, [
     ActivosCompanion.insert(modelo: 'DT-Kenworth', id: const Value(1)),
     ActivosCompanion.insert(modelo: 'sencillo-Kenworth', id: const Value(2)),

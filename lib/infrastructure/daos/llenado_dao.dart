@@ -1,18 +1,5 @@
-import 'dart:math';
-import 'package:inspecciones/features/llenado_inspecciones/domain/respuesta.dart'
-    as dom;
-import 'package:collection/collection.dart';
-import 'package:dartz/dartz.dart';
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:intl/intl.dart';
 import 'package:moor/moor.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/preguntas/opcion_de_respuesta.dart'
-    as dominio;
-import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
-
-import '../../injection.dart';
 
 part 'llenado_dao.g.dart';
 
@@ -37,11 +24,11 @@ part 'llenado_dao.g.dart';
   SubSistemas,
   CriticidadesNumericas,
 ])
-class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
+class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
   // this constructor is required so that the main database can create an instance
   // of this object.
-  LlenadoDao(Database db) : super(db);
-
+  LlenadoDao(MoorDatabase db) : super(db);
+/*
   /// Trae una lista con todos los cuestionarios disponibles para un activo,
   /// incluyendo los cuestionarios que son asignados a todos los activos
   Future<List<Cuestionario>> cuestionariosParaActivo(int activo) async {
@@ -545,5 +532,5 @@ class LlenadoDao extends DatabaseAccessor<Database> with _$LlenadoDaoMixin {
             .toList(),
       );
     }).toList();
-  }
+  }*/
 }

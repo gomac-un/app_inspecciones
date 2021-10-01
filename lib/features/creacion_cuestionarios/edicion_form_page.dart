@@ -1,15 +1,11 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:inspecciones/application/creacion/creacion_form_controller_cubit.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/injection.dart';
 import 'package:inspecciones/presentation/widgets/action_button.dart';
 import 'package:inspecciones/presentation/widgets/alertas.dart';
 import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:inspecciones/presentation/widgets/reactive_filter_chip_selection.dart';
-import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_form_controller.dart';
@@ -18,44 +14,36 @@ import 'pregunta_card.dart';
 
 /// pantalla de edicion de un cuestionario
 /// TODO: opcion para la creacion de cuestionarios con excel
-class EdicionFormPage extends StatelessWidget implements AutoRouteWrapper {
+class EdicionFormPage extends ConsumerWidget {
   final int? cuestionarioId;
 
-  const EdicionFormPage({Key? key, @pathParam this.cuestionarioId})
-      : super(key: key);
-
-  /// Definición del provider, para poder acceder a [CreacionFormViewModel]
-  /// desde las rutas hijo (creacion_cards y creacion_controls)
-  @override
-  Widget wrappedRoute(BuildContext context) => BlocProvider(
-        create: (ctx) =>
-            getIt<CreacionFormControllerCubit>(param1: cuestionarioId),
-        child: this,
-      );
+  const EdicionFormPage({Key? key, this.cuestionarioId}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<CreacionFormControllerCubit,
-        CreacionFormControllerState>(
-      builder: (context, state) {
-        return state.when(
-          initial: () => const CircularProgressIndicator(),
-          inProgress: () => const CircularProgressIndicator(),
-          success: (controller) =>
-              Provider.value(value: controller, child: const EdicionForm()),
-          failure: (e) => Text("Error cargando el cuestionario: $e"),
-        );
-      },
+  Widget build(BuildContext context, ref) {
+    return ProviderScope(
+      overrides: [
+        cuestionarioIdProvider.overrideWithValue(cuestionarioId),
+        creacionFormControllerFutureProvider,
+        creacionFormControllerProvider,
+      ],
+      child: Consumer(builder: (context, ref, _) {
+        final formController = ref.watch(creacionFormControllerFutureProvider);
+        return formController.when(
+            data: (_) => const EdicionForm(),
+            loading: () => const CircularProgressIndicator(),
+            error: (e, _) => Text("Error cargando el cuestionario: $e"));
+      }),
     );
   }
 }
 
-class EdicionForm extends StatelessWidget {
+class EdicionForm extends ConsumerWidget {
   const EdicionForm({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final controller = context.watch<CreacionFormController>();
+  Widget build(BuildContext context, ref) {
+    final controller = ref.watch(creacionFormControllerProvider);
     return ReactiveForm(
       formGroup: controller.control,
       child: Scaffold(
@@ -66,118 +54,124 @@ class EdicionForm extends StatelessWidget {
                 : 'Visualización cuestionario',
           ),
         ),
-        body: Column(
-          children: [
-            PreguntaCard(
-              titulo: 'Tipo de inspección',
-              child: Column(
-                children: [
-                  ReactiveDropdownField<String>(
-                    formControl: controller.tipoDeInspeccionControl,
-                    validationMessages: (control) =>
-                        {ValidationMessage.required: 'Este valor es requerido'},
-                    items: controller.todosLosTiposDeInspeccion
-                        .map((e) => DropdownMenuItem<String>(
-                              value: e,
-                              child: Text(e),
-                            ))
-                        .toList(),
-                    decoration: const InputDecoration(
-                      labelText: 'Seleccione el tipo de inspeccion',
-                    ),
-                    onTap: () {
-                      FocusScope.of(context)
-                          .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-                    },
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  /// En caso de que se seleccione 'Otra', se activa textfield para que escriba el tipo de inspeccion
-                  ReactiveValueListenableBuilder<String>(
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              PreguntaCard(
+                titulo: 'Tipo de inspección',
+                child: Column(
+                  children: [
+                    ReactiveDropdownField<String>(
                       formControl: controller.tipoDeInspeccionControl,
-                      builder: (context, value, child) {
-                        if (value.value ==
-                            CreacionFormController.otroTipoDeInspeccion) {
-                          return ReactiveTextField(
-                            formControl:
-                                controller.nuevoTipoDeInspeccionControl,
-                            decoration: const InputDecoration(
-                              labelText: 'Escriba el tipo de inspeccion',
-                              prefixIcon: Icon(Icons.text_fields),
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      }),
-                ],
-              ),
-            ),
-            PreguntaCard(
-              titulo: 'Modelos de vehículo',
-              child: ReactiveFilterChipSelection(
-                formControl: controller.modelosControl,
-                posibleItems: controller.todosLosModelos,
-                decoration: const InputDecoration(
-                  labelText: 'Modelos a los que aplica esta inspección',
-                ),
-                labelAccesor: id,
-                validationMessages: (control) => {
-                  ValidationMessage.minLength: 'Seleccione al menos un modelo',
-                  'yaExiste':
-                      'Ya existe un cuestionario de este tipo para este modelo'
-                },
-              ),
-            ),
+                      validationMessages: (control) => {
+                        ValidationMessage.required: 'Este valor es requerido'
+                      },
+                      items: controller.todosLosTiposDeInspeccion
+                          .map((e) => DropdownMenuItem<String>(
+                                value: e,
+                                child: Text(e),
+                              ))
+                          .toList(),
+                      decoration: const InputDecoration(
+                        labelText: 'Seleccione el tipo de inspeccion',
+                      ),
+                      onTap: () {
+                        FocusScope.of(context)
+                            .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+                      },
+                    ),
 
-            PreguntaCard(
-              titulo: 'Contratista',
-              child: ReactiveDropdownField(
-                formControl: controller.contratistaControl,
-                validationMessages: (control) =>
-                    {ValidationMessage.required: 'Seleccione un contratista'},
-                items: controller.todosLosContratistas
-                    .map((e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(e.nombre),
-                        ))
-                    .toList(),
-                decoration: const InputDecoration(
-                  labelText: 'Seleccione un contratista',
-                ),
-                onTap: () {
-                  FocusScope.of(context)
-                      .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-                },
-              ),
-            ),
-            PreguntaCard(
-              titulo: 'Periodicidad (en días)',
-              child: ReactiveSlider(
-                formControl: controller.periodicidadControl,
-                max: 100.0,
-                divisions: 100,
-                labelBuilder: (v) => v.round().toString(),
-              ),
-            ),
+                    const SizedBox(height: 10),
 
-            /// Cuando se agrega un bloque, esta lista empieza a mostrarlos en la pantalla.
-            AnimatedList(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              initialItemCount: controller.controllersBloques.length,
-              itemBuilder: (context, index, animation) {
-                return Provider.value(
-                  value: index,
-                  child: ControlWidgetAnimado(
-                    controller: controller.controllersBloques[index],
-                    animation: animation,
+                    /// En caso de que se seleccione 'Otra', se activa textfield para que escriba el tipo de inspeccion
+                    ReactiveValueListenableBuilder<String>(
+                        formControl: controller.tipoDeInspeccionControl,
+                        builder: (context, value, child) {
+                          if (value.value ==
+                              CreacionFormController.otroTipoDeInspeccion) {
+                            return ReactiveTextField(
+                              formControl:
+                                  controller.nuevoTipoDeInspeccionControl,
+                              decoration: const InputDecoration(
+                                labelText: 'Escriba el tipo de inspeccion',
+                                prefixIcon: Icon(Icons.text_fields),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        }),
+                  ],
+                ),
+              ),
+              PreguntaCard(
+                titulo: 'Modelos de vehículo',
+                child: ReactiveFilterChipSelection(
+                  formControl: controller.modelosControl,
+                  posibleItems: controller.todosLosModelos,
+                  decoration: const InputDecoration(
+                    labelText: 'Modelos a los que aplica esta inspección',
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 60),
-          ],
+                  labelAccesor: id,
+                  validationMessages: (control) => {
+                    ValidationMessage.minLength:
+                        'Seleccione al menos un modelo',
+                    'yaExiste':
+                        'Ya existe un cuestionario de este tipo para este modelo'
+                  },
+                ),
+              ),
+
+              PreguntaCard(
+                titulo: 'Contratista',
+                child: ReactiveDropdownField(
+                  formControl: controller.contratistaControl,
+                  validationMessages: (control) =>
+                      {ValidationMessage.required: 'Seleccione un contratista'},
+                  items: controller.todosLosContratistas
+                      .map((e) => DropdownMenuItem(
+                            value: e,
+                            child: Text(e.nombre),
+                          ))
+                      .toList(),
+                  decoration: const InputDecoration(
+                    labelText: 'Seleccione un contratista',
+                  ),
+                  onTap: () {
+                    FocusScope.of(context)
+                        .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+                  },
+                ),
+              ),
+              PreguntaCard(
+                titulo: 'Periodicidad (en días)',
+                child: ReactiveSlider(
+                  formControl: controller.periodicidadControl,
+                  max: 100.0,
+                  divisions: 100,
+                  labelBuilder: (v) => v.round().toString(),
+                ),
+              ),
+
+              /// Cuando se agrega un bloque, esta lista empieza a mostrarlos en la pantalla.
+              AnimatedList(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                initialItemCount: controller.controllersBloques.length,
+                itemBuilder: (context, index, animation) {
+                  return ProviderScope(
+                    overrides: [
+                      numeroDeBloqueProvider.overrideWithValue(index)
+                    ],
+                    child: ControlWidgetAnimado(
+                      controller: controller.controllersBloques[index],
+                      animation: animation,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 60),
+            ],
+          ),
         ),
         floatingActionButton: BotonesGuardado(
           estado: controller.estado as EstadoDeCuestionario,
@@ -189,7 +183,7 @@ class EdicionForm extends StatelessWidget {
 
 /// TODO: reestructurar el flujo de estos botones
 /// Row con botón de guardar borrador y finalizar cuestionario
-class BotonesGuardado extends StatelessWidget {
+class BotonesGuardado extends ConsumerWidget {
   const BotonesGuardado({
     Key? key,
     required this.estado,
@@ -197,8 +191,8 @@ class BotonesGuardado extends StatelessWidget {
   final EstadoDeCuestionario estado;
 
   @override
-  Widget build(BuildContext context) {
-    final controller = context.watch<CreacionFormController>();
+  Widget build(BuildContext context, ref) {
+    final controller = ref.watch(creacionFormControllerProvider);
     final form = controller.control;
 
     return Padding(
@@ -264,7 +258,7 @@ class BotonesGuardado extends StatelessWidget {
                     }
                   }
                 : () {
-                    finalizarCuestionario(context);
+                    finalizarCuestionario(context, controller);
                   },
           ),
         ],
@@ -274,8 +268,8 @@ class BotonesGuardado extends StatelessWidget {
 
   /// Muestra alerta de finalización de cuestionario (error o éxito), o retrocede a la pantalla
   /// principal si el cuestionario ya esta finalizado.
-  void finalizarCuestionario(BuildContext context) {
-    final controller = context.read<CreacionFormController>();
+  void finalizarCuestionario(
+      BuildContext context, CreacionFormController controller) {
     // set up the buttons
     final cancelButton = TextButton(
       onPressed: () => Navigator.of(context).pop(),
@@ -319,7 +313,7 @@ class BotonesGuardado extends StatelessWidget {
 
     /// Se retrocede hasta la principal de cuestionarios cuando ya esta finalizado
     else {
-      context.router.pop();
+      Navigator.of(context).pop();
     }
   }
 }

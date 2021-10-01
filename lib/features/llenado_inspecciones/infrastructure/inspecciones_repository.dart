@@ -51,18 +51,23 @@ class InspeccionesRepository {
         )
       ]);
 
-  FEF<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
+  //FEF<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
+  Future<Either<InspeccionesFailure, List<Cuestionario>>>
+      cuestionariosParaActivo(String activo) async {
     return Right([
-      if (activo == "1") Cuestionario(id: 1, tipoDeInspeccion: "preoperacional")
+      if (activo == "1")
+        Cuestionario(id: 1, tipoDeInspeccion: "preoperacional"),
+      Cuestionario(id: 2, tipoDeInspeccion: "otro cuestionario"),
     ]);
   }
 
-  FEF<CuestionarioInspeccionado> cargarInspeccionLocal(
-      IdentificadorDeInspeccion id) async {
+  //FEF<CuestionarioInspeccionado> cargarInspeccionLocal(
+  Future<Either<InspeccionesFailure, CuestionarioInspeccionado>>
+      cargarInspeccionLocal(IdentificadorDeInspeccion id) async {
     //TODO: implementar
     print("cargando inspeccion $id");
     //await Future.delayed(const Duration(seconds: 1));
-    if (id.activo == "1") {
+    if (id.activo != "1") {
       return Right(await _inspeccionNueva());
     } else {
       return Right(await _inspeccionIniciada());
@@ -333,6 +338,16 @@ class InspeccionesRepository {
   Bloque _quitarRespuesta(Bloque b) {
     if (b is Pregunta) {
       b.respuesta = null;
+      if (b is PreguntaDeSeleccionMultiple) {
+        for (var r in b.respuestas) {
+          _quitarRespuesta(r);
+        }
+      }
+      if (b is CuadriculaDeSeleccionUnica) {
+        for (var r in b.preguntas) {
+          _quitarRespuesta(r);
+        }
+      }
     }
     return b;
   }

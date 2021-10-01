@@ -1,21 +1,37 @@
-import 'package:meta/meta.dart';
-
-import 'package:moor/moor.dart';
-import 'package:reactive_forms/reactive_forms.dart';
+import 'package:dartz/dartz.dart';
 import 'package:enum_to_string/enum_to_string.dart';
-import 'package:injectable/injectable.dart';
-
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:moor/moor.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_controls.dart';
 import 'creacion_validators.dart';
 
-@injectable
+final cuestionarioIdProvider = Provider<int?>((ref) => throw Exception(
+    "se debe definir cuestionarioId dentro de la pagina de creacion"));
+
+final creacionFormControllerFutureProvider = FutureProvider(
+  (ref) => CreacionFormController.create(
+    ref.watch(cuestionariosRepositoryProvider),
+    ref.watch(cuestionarioIdProvider),
+  ),
+);
+
+final creacionFormControllerProvider =
+    Provider((ref) => ref.watch(creacionFormControllerFutureProvider).when(
+          data: id,
+          loading: () => throw Exception(
+              "creacionFormControllerFutureProvider no se ha cargado"),
+          error: (e, s) => throw e,
+        ));
+
 class CreacionFormController {
-  final CuestionariosRepository _repository;
+  final CuestionariosRepository repository;
 
   ///constantes
   static const otroTipoDeInspeccion = "Otra";
@@ -74,11 +90,13 @@ class CreacionFormController {
     },
     asyncValidators: [
       cuestionariosExistentes(
-          datosIniciales.cuestionario.id.present
-              ? datosIniciales.cuestionario.id.value
-              : null,
-          tipoDeInspeccionControl,
-          modelosControl)
+        datosIniciales.cuestionario.id.present
+            ? datosIniciales.cuestionario.id.value
+            : null,
+        tipoDeInspeccionControl,
+        modelosControl,
+        repository,
+      )
     ],
     validators: [
       nuevoTipoDeInspeccionValidator(
@@ -120,11 +138,9 @@ class CreacionFormController {
 
   /// static factory que instancia un [CreacionFormController] de manera asíncrona
   /// ya que tiene que cargar información desde la base de datos
-  @factoryMethod
-  @factory
   static Future<CreacionFormController> create(
     CuestionariosRepository repository,
-    @factoryParam int? cuestionarioId,
+    int? cuestionarioId,
   ) async {
     final todosLosTiposDeInspeccion = await repository.getTiposDeInspecciones();
 
@@ -174,7 +190,7 @@ class CreacionFormController {
 
   /// TODO: reducir el numero de argumentos agrupandolos de alguna manera
   CreacionFormController._(
-    this._repository,
+    this.repository,
     this.todosLosContratistas,
     this.todosLosModelos,
     this.todosLosSistemas,
@@ -304,7 +320,7 @@ class CreacionFormController {
     final bloquesForm = controllersBloques.map((e) => e.toDB()).toList();
 
     // TODO: si se vuelve muy lento, usar un bloc y/o un isolate
-    await _repository.guardarCuestionario(
+    await repository.guardarCuestionario(
         cuestionario, cuestionariosDeModelos, bloquesForm);
   }
 }

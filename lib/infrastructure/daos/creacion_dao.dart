@@ -3,7 +3,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
-import 'package:inspecciones/injection.dart';
 import 'package:moor/moor.dart';
 
 part 'creacion_dao.g.dart';
@@ -29,10 +28,11 @@ part 'creacion_dao.g.dart';
   SubSistemas,
   CriticidadesNumericas,
 ])
-class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
+class CreacionDao extends DatabaseAccessor<MoorDatabase>
+    with _$CreacionDaoMixin {
   // this constructor is required so that the main database can create an instance
   // of this object.
-  CreacionDao(Database db) : super(db);
+  CreacionDao(MoorDatabase db) : super(db);
 
   //datos para la creacion de cuestionarios
   /// El cuestionario trae el sistemaId [id], para poder mostrar el [Sistema] en el formulario de creación, se obtiene así
@@ -456,7 +456,8 @@ class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
     List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
     List<CriticidadesNumericasCompanion>? criticidades,
   }) async {
-    final fotosManager = getIt<FotosRepository>();
+    final fotosManager =
+        db.fotosRepository; //TODO: eliminar la dependencia a fotosRepository
     final fotosGuiaProcesadas = await fotosManager.organizarFotos(
       preguntaCompanion.fotosGuia.valueOrDefault(const Nil()),
       Categoria.cuestionario,

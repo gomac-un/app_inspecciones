@@ -3,27 +3,24 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
 
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
-import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
-import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
-import 'package:inspecciones/injection.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_archive/flutter_archive.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:injectable/injectable.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
-
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
-part 'sincronizacion_state.dart';
 part 'sincronizacion_cubit.freezed.dart';
+part 'sincronizacion_state.dart';
 
 abstract class SincronizacionStep extends Cubit<SincronizacionStepState> {
   Future run();
@@ -115,7 +112,7 @@ class InstalarDatabaseCubit extends SincronizacionStep {
   String get titulo => 'Instalación base de datos';
 
   final String nombreArchivoDescargado;
-  final Database _db;
+  final MoorDatabase _db;
 
   InstalarDatabaseCubit(this.nombreArchivoDescargado, this._db)
       : super(const SincronizacionStepState.initial());
@@ -260,7 +257,7 @@ class DescargaFotosCubit extends SincronizacionStep {
 /// Módulo injectable para la descarga de la bd de Gomac
 ///
 /// La actualización de los estados se puede ver en la UI, en sincronizacion_screen.dart
-@injectable
+
 class SincronizacionCubit extends Cubit<SincronizacionState> {
   final nombreJson = 'server.json';
 

@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:moor/moor.dart';
+
 part 'borradores_dao.g.dart';
 
 /// Acceso a los datos de la Bd.
@@ -24,11 +25,11 @@ part 'borradores_dao.g.dart';
   Sistemas,
   SubSistemas,
 ])
-class BorradoresDao extends DatabaseAccessor<Database>
+class BorradoresDao extends DatabaseAccessor<MoorDatabase>
     with _$BorradoresDaoMixin {
   // this constructor is required so that the main database can create an instance
   // of this object.
-  BorradoresDao(Database db) : super(db);
+  BorradoresDao(MoorDatabase db) : super(db);
 
   /// Regresa el total de preguntas respondidas en una inspección con id=[id]
   /// (Se usa en la página de borradores para mostrar el avance)

@@ -1,7 +1,6 @@
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/features/llenado_inspecciones/control/controlador_llenado_inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/borrador.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
@@ -69,15 +68,16 @@ class BorradoresPage extends ConsumerWidget {
                       : 'Criticidad parcial inicial: ';
 
               return ListTile(
-                onTap: () {
-                  ref.read(inspeccionIdProvider).state =
-                      IdentificadorDeInspeccion(
-                    activo: borrador.inspeccion.activo.id,
-                    cuestionarioId: borrador.cuestionario.id,
-                  );
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const InspeccionPage()));
-                },
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => InspeccionPage(
+                      inspeccionId: IdentificadorDeInspeccion(
+                        activo: borrador.inspeccion.activo.id,
+                        cuestionarioId: borrador.cuestionario.id,
+                      ),
+                    ),
+                  ),
+                ),
 
                 tileColor: Theme.of(context).cardColor,
                 title: Text(
@@ -239,9 +239,8 @@ class FloatingActionButtonInicioInspeccion extends ConsumerWidget {
           ),
         );
         if (res != null) {
-          ref.read(inspeccionIdProvider).state = res;
-          Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const InspeccionPage()));
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => InspeccionPage(inspeccionId: res)));
         }
       },
       icon: const Icon(Icons.add),

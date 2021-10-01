@@ -1,45 +1,41 @@
 import 'dart:io';
-import 'package:injectable/injectable.dart';
 
+import 'package:flutter/foundation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/infrastructure/core/directorio_de_datos.dart';
+import 'package:inspecciones/infrastructure/datasources/providers.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:moor/ffi.dart';
 import 'package:moor/moor.dart';
-
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as path;
 
 import '../moor_database.dart';
 
-import 'package:inspecciones/infrastructure/core/directorio_de_datos.dart';
-import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
-
-@module
-abstract class DatabaseRegistrator {
-  @lazySingleton
-  Database constructDb(
-    LocalPreferencesDataSource localPreferencesDataSource,
-    DirectorioDeDatos directorioDeDatos,
-  ) {
-    final appId = localPreferencesDataSource.getAppId();
-    if (appId == null) {
-      throw Exception("no se ha definido el appId antes de crear la DB");
-    }
-
-    const logStatements = true;
-    if (Platform.isIOS || Platform.isAndroid) {
-      final executor = LazyDatabase(() async {
-        final dbFile = File(p.join(directorioDeDatos.path, 'db.sqlite'));
-        return VmDatabase(dbFile, logStatements: logStatements);
-      });
-
-      return Database(executor, appId);
-    }
-    if (Platform.isMacOS || Platform.isLinux) {
-      final file = File('db.sqlite');
-      return Database(VmDatabase(file, logStatements: logStatements), appId);
-    }
-    // if (Platform.isWindows) {
-    //   final file = File('db.sqlite');
-    //   return Database(VMDatabase(file, logStatements: logStatements));
-    // }
-    return Database(VmDatabase.memory(logStatements: logStatements), appId);
+final moorDatabaseProvider = Provider((ref) {
+  final appId = ref.read(localPreferencesDataSourceProvider).getAppId();
+  if (appId == null) {
+    throw Exception("no se ha definido el appId antes de crear la DB");
   }
+  return MoorDatabase(
+    _getQueryExecutor(ref.read(directorioDeDatosProvider)),
+    appId,
+    ref.watch(fotosRepositoryProvider),
+  );
+});
+
+QueryExecutor _getQueryExecutor(DirectorioDeDatos directorio) {
+  const logStatements = kDebugMode;
+  if (Platform.isIOS || Platform.isAndroid) {
+    return LazyDatabase(() async {
+      final dbFile = File(path.join(directorio.path, 'db.sqlite'));
+      return VmDatabase(dbFile, logStatements: logStatements);
+    });
+  }
+
+  if (Platform.isMacOS || Platform.isLinux) {
+    final dbFile = File('db.sqlite');
+    return VmDatabase(dbFile, logStatements: logStatements);
+  }
+
+  return VmDatabase.memory(logStatements: logStatements);
 }

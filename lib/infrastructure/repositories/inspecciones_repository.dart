@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dartz/dartz.dart';
-import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
@@ -12,10 +11,10 @@ import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 
 /// Contiene los metodos encargados de subir cuestionarios e inspecciones al server y descargar inspecciones.
-@injectable
+
 class InspeccionesRepository {
   final InspeccionesRemoteDataSource _api;
-  final Database _db;
+  final MoorDatabase _db;
   final FotosRepository _fotosRepository;
 
   InspeccionesRepository(this._api, this._db, this._fotosRepository);

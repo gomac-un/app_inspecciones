@@ -2,6 +2,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 
 import '../../../theme.dart';
 import '../control/controlador_llenado_inspeccion.dart';
@@ -12,14 +13,14 @@ import 'llenado_screen/floating_action_button.dart';
 import 'llenado_screen/paginador.dart';
 
 class InspeccionPage extends ConsumerWidget {
-  ///TODO: usar este dato para actualizar el provider de inspeccionId cada que ingrese a esta pantalla
-  final int inspeccionId;
+  final IdentificadorDeInspeccion inspeccionId;
   const InspeccionPage({Key? key, required this.inspeccionId})
       : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controlFuture = ref.watch(controladorLlenadoInspeccionProvider);
+    final controlFuture =
+        ref.watch(controladorLlenadoInspeccionProvider(inspeccionId));
 
     return controlFuture.when(
         loading: () => const Center(child: CircularProgressIndicator()),

@@ -1,14 +1,17 @@
+import 'package:file/local.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/core/entities/app_image.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'features/llenado_inspecciones/control/controlador_llenado_inspeccion.dart';
-import 'features/llenado_inspecciones/domain/identificador_inspeccion.dart';
-import 'features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
+import 'infrastructure/core/directorio_de_datos.dart';
+import 'infrastructure/datasources/local_preferences_datasource.dart';
+import 'infrastructure/datasources/providers.dart';
+import 'presentation/pages/login_page.dart';
 import 'theme.dart';
 
-final sharedPreferencesProvider = Provider<SharedPreferences>(
-    (ref) => throw Exception('Provider was not initialized'));
 void main() async {
   // Show a progress indicator while awaiting things
   runApp(
@@ -26,15 +29,21 @@ void main() async {
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        inspeccionIdProvider
-            .overrideWithValue(StateController(IdentificadorDeInspeccion(
-          activo: "1",
-          cuestionarioId: 1,
-        ))),
+        fileSystemProvider.overrideWithValue(
+            const LocalFileSystem()), //TODO: mirar si se puede usar un memoryFileSystem para web
+        if (!kIsWeb)
+          directorioDeDatosProvider
+              .overrideWithValue(await _getDirectorioDeDatos()),
       ],
       child: const MyApp(),
     ),
   );
+}
+
+Future<DirectorioDeDatos> _getDirectorioDeDatos() async {
+  final add = await getApplicationDocumentsDirectory();
+  final directorioDeDatos = DirectorioDeDatos(add.path);
+  return directorioDeDatos;
 }
 
 class MyApp extends ConsumerWidget {
@@ -51,9 +60,8 @@ class MyApp extends ConsumerWidget {
         filled: true,
       )),
       //InspeccionPage(nuevaInspeccion: true)
-      home: const InspeccionPage(
-        inspeccionId: 1,
-      ),
+      home:
+          const LoginPage(), //const CuestionariosPage(),  //const BorradoresPage(), //const EdicionFormPage(),
     );
   }
 }

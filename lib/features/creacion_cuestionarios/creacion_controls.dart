@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:moor/moor.dart';
@@ -469,8 +468,8 @@ class CreadorPreguntaCuadriculaController extends CreacionController
     /// Se le agrega el sistema y subsistema por defecto de la cuadricula,
     final nuevoController = CreadorPreguntaController(
       _repository,
-      controllerCamposGenerales.sistemaControl.value!,
-      controllerCamposGenerales.subSistemaControl.value!,
+      controllerCamposGenerales.sistemaControl.value,
+      controllerCamposGenerales.subSistemaControl.value,
       parteDeCuadricula: true,
     );
     controllersPreguntas.add(nuevoController);

@@ -3,21 +3,19 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dartz/dartz.dart';
-import 'package:injectable/injectable.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 
-@injectable
 class CuestionariosRepository {
   final InspeccionesRemoteDataSource _api;
-  final Database _db;
-  final FotosRepository _fotos_repository;
+  final MoorDatabase _db;
+  final FotosRepository _fotosRepository;
 
-  CuestionariosRepository(this._db, this._api, this._fotos_repository);
+  CuestionariosRepository(this._db, this._api, this._fotosRepository);
 
   Future<Either<ApiFailure, Unit>> subirCuestionariosPendientes() async {
     //TODO: subir cada uno, o todos a la vez para mas eficiencia
@@ -41,7 +39,7 @@ class CuestionariosRepository {
       /// Usado para el nombre de la carpeta de las fotos
       final idDocumento = cues['id'].toString();
 
-      final fotos = await _fotos_repository.getFotosDeDocumento(
+      final fotos = await _fotosRepository.getFotosDeDocumento(
         Categoria.cuestionario,
         identificador: idDocumento,
       );
@@ -83,8 +81,6 @@ class CuestionariosRepository {
   Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId) =>
       _db.creacionDao.cargarCuestionario(cuestionarioId);
 
-  /*Future<Cuestionario> getCuestionario(int cuestionarioId) =>
-      _db.creacionDao.getCuestionario(cuestionarioId);*/
   Future<List<Cuestionario>> getCuestionarios(
           String tipoDeInspeccion, List<String> modelos) =>
       _db.creacionDao.getCuestionarios(tipoDeInspeccion, modelos);

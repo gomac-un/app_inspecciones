@@ -1,22 +1,21 @@
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'package:enum_to_string/enum_to_string.dart';
-import 'package:provider/provider.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
-import 'package:inspecciones/injection.dart';
-import 'package:inspecciones/presentation/pages/ayuda_screen.dart';
-
+import '../../infrastructure/moor_database.dart';
+import '../../presentation/pages/ayuda_screen.dart';
 import 'creacion_controls.dart';
 import 'creacion_form_controller.dart';
 import 'creador_cuadricula_card.dart';
 import 'creador_numerica_card.dart';
 import 'creador_seleccion_simple_card.dart';
 import 'creador_titulo_card.dart';
+
+final numeroDeBloqueProvider =
+    Provider<int>((ref) => throw Exception("numero de bloque no definido"));
 
 /// Definición de los Widgets usados en los bloques de la creación de cuestionarios.
 ///
@@ -31,13 +30,12 @@ class ControlWidget extends StatelessWidget {
   const ControlWidget(this.controller, {Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    //TODO: hacer esta transformación sin duplicacion de codigo cuando
-    // implementen https://github.com/dart-lang/language/issues/216 en dart
     final controller = this.controller;
     //pendejada para que dart pueda hacer el cast con los ifs solamente
     if (controller is CreadorTituloController) {
       return CreadorTituloCard(
-          //Las keys se necesitan cuando tenemos una lista dinamica de elementos del mismo tipo en flutter
+          //Las keys se necesitan cuando tenemos una lista dinamica de elementos
+          // del mismo tipo en flutter
           key: ValueKey(controller),
           controller: controller);
     }
@@ -77,14 +75,14 @@ class ControlWidgetAnimado extends StatelessWidget {
   }
 }
 
-class CamposGenerales extends StatelessWidget {
+class CamposGenerales extends ConsumerWidget {
   final CamposGeneralesPreguntaController controller;
   const CamposGenerales({Key? key, required this.controller}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ref) {
     /// Se accede a este provider del formulario base de creación para poder cargar los sistemas
-    final formController = context.watch<CreacionFormController>();
+    final formController = ref.watch(creacionFormControllerProvider);
 
     /// Como es de selección, se asegura que los unicos tipos de pregunta que pueda seleccionar el creador
     /// sean de unica o multiple respuesta
@@ -123,7 +121,8 @@ class CamposGenerales extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        /// Se puede elegir a que sistema está asociado la pregunta, dependiendo de ese sistema elegido, se cargan los subsistemas
+        /// Se puede elegir a que sistema está asociado la pregunta, dependiendo
+        ///  de ese sistema elegido, se cargan los subsistemas
         ReactiveDropdownField<Sistema?>(
           formControl: controller.sistemaControl,
           items: formController.todosLosSistemas
@@ -273,29 +272,33 @@ class CamposGenerales extends StatelessWidget {
   }
 }
 
-/// Reúne todas las acciones comunes a todos los bloques, incluye agregar nuevo tipo de pregunta, agregar titulo, copiar y pegar bloque
-class BotonesDeBloque extends StatelessWidget {
-  const BotonesDeBloque({Key? key, required this.controllerActual})
-      : super(key: key);
+/// Reúne todas las acciones comunes a todos los bloques, incluye agregar nuevo
+/// tipo de pregunta, agregar titulo, copiar y pegar bloque
+class BotonesDeBloque extends ConsumerWidget {
+  const BotonesDeBloque({
+    Key? key,
+    required this.controllerActual,
+  }) : super(key: key);
 
   final CreacionController controllerActual;
 
   @override
-  Widget build(BuildContext context) {
-    final formController = context.read<CreacionFormController>();
+  Widget build(BuildContext context, ref) {
+    final formController = ref.watch(creacionFormControllerProvider);
     final animatedList = AnimatedList.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        /// Añade control [CreadorPreguntaFormGroup()] al control 'bloques' del cuestionario y muestra widget [CreadorSeleccionSimpleCard]
+        /// Añade control [CreadorPreguntaFormGroup()] al control 'bloques' del
+        /// cuestionario y muestra widget [CreadorSeleccionSimpleCard]
         IconButton(
           icon: const Icon(Icons.add_circle),
           tooltip: 'Pregunta de selección',
           onPressed: () => agregarBloque(
             formController,
             animatedList,
-            CreadorPreguntaController(
-                getIt<CuestionariosRepository>(), null, null),
+            //TODO: mover a logica de creacion al [formController]
+            CreadorPreguntaController(formController.repository, null, null),
           ),
         ),
 
@@ -306,8 +309,8 @@ class BotonesDeBloque extends StatelessWidget {
           onPressed: () => agregarBloque(
             formController,
             animatedList,
-            CreadorPreguntaCuadriculaController(
-                getIt<CuestionariosRepository>(), null, null),
+            CreadorPreguntaNumericaController(
+                formController.repository, null, null),
           ),
         ),
 
@@ -318,8 +321,8 @@ class BotonesDeBloque extends StatelessWidget {
           onPressed: () => agregarBloque(
             formController,
             animatedList,
-            CreadorPreguntaNumericaController(
-                getIt<CuestionariosRepository>(), null, null),
+            CreadorPreguntaCuadriculaController(
+                formController.repository, null, null),
           ),
         ),
 
@@ -335,90 +338,90 @@ class BotonesDeBloque extends StatelessWidget {
         ),
 
         /// Muestra numero de bloque y las opciones de copiar, pegar y borrar bloque
-        PopupMenuButton<int>(
-          padding: const EdgeInsets.all(2.0),
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 1,
-              child: ListTile(
-                /* 
-                leading: const Icon(Icons.copy), */
-                title: Consumer<int>(
-                  builder: (context, value, child) => Text(
-                    'Bloque número ${value + 1}',
+        Consumer(builder: (_, ref, __) {
+          return PopupMenuButton<int>(
+            padding: const EdgeInsets.all(2.0),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 1,
+                child: ListTile(
+                  /* 
+                    leading: const Icon(Icons.copy), */
+                  title: Text(
+                    'Bloque número ${ref.watch(numeroDeBloqueProvider) + 1}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  selected: true,
+                  onTap: () => {},
                 ),
-                selected: true,
-                onTap: () => {},
               ),
-            ),
-            PopupMenuItem(
-              value: 2,
-              child: ListTile(
-                leading: Icon(
-                  Icons.copy,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                title: Text('Copiar bloque',
-                    style: TextStyle(color: Colors.grey[800])),
-                selected: true,
-                onTap: () => {
-                  copiarBloque(formController),
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Bloque Copiado'),
-                    ),
-                  ),
-                  Navigator.pop(context),
-                },
-              ),
-            ),
-            PopupMenuItem(
-              value: 3,
-              child: ListTile(
-                leading: Icon(
-                  Icons.paste,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                title: Text('Pegar bloque',
-                    style: TextStyle(color: Colors.grey[800])),
-                selected: true,
-                onTap: () => {
-                  pegarBloque(formController, animatedList),
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Bloque Pegado'),
-                    ),
-                  ),
-                  Navigator.pop(context),
-                },
-              ),
-            ),
-            PopupMenuItem(
-              value: 4,
-              child: ListTile(
+              PopupMenuItem(
+                value: 2,
+                child: ListTile(
                   leading: Icon(
-                    Icons.delete,
+                    Icons.copy,
                     color: Theme.of(context).colorScheme.secondary,
                   ),
-                  selected: true,
-                  title: Text('Borrar bloque',
+                  title: Text('Copiar bloque',
                       style: TextStyle(color: Colors.grey[800])),
+                  selected: true,
                   onTap: () => {
-                        borrarBloque(formController, animatedList),
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Bloque eliminado'),
+                    copiarBloque(formController),
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Bloque Copiado'),
+                      ),
+                    ),
+                    Navigator.pop(context),
+                  },
+                ),
+              ),
+              PopupMenuItem(
+                value: 3,
+                child: ListTile(
+                  leading: Icon(
+                    Icons.paste,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  title: Text('Pegar bloque',
+                      style: TextStyle(color: Colors.grey[800])),
+                  selected: true,
+                  onTap: () => {
+                    pegarBloque(formController, animatedList),
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Bloque Pegado'),
+                      ),
+                    ),
+                    Navigator.pop(context),
+                  },
+                ),
+              ),
+              PopupMenuItem(
+                value: 4,
+                child: ListTile(
+                    leading: Icon(
+                      Icons.delete,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    selected: true,
+                    title: Text('Borrar bloque',
+                        style: TextStyle(color: Colors.grey[800])),
+                    onTap: () => {
+                          borrarBloque(formController, animatedList),
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Bloque eliminado'),
+                            ),
                           ),
-                        ),
-                        Navigator.pop(context),
-                      }),
-            ),
-          ],
-        ),
+                          Navigator.pop(context),
+                        }),
+              ),
+            ],
+          );
+        }),
       ],
     );
   }

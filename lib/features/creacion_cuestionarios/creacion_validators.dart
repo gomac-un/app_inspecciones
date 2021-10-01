@@ -1,8 +1,6 @@
 //Custom Validators
-import 'package:reactive_forms/reactive_forms.dart';
-
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
-import 'package:inspecciones/injection.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_form_controller.dart';
 
@@ -15,6 +13,7 @@ AsyncValidatorFunction cuestionariosExistentes(
   int? cuestionarioId,
   FormControl<String> tipoDeInspeccionControl,
   FormControl<List<String>> modelosControl,
+  CuestionariosRepository repository,
 ) =>
     (
       AbstractControl<dynamic> control,
@@ -26,7 +25,7 @@ AsyncValidatorFunction cuestionariosExistentes(
 
       /// Se consulta si ya existe algun cuestionario aplicado a los mismos modelos.
       final cuestionariosExistentes =
-          await getIt<CuestionariosRepository>().getCuestionarios(ti, mod);
+          await repository.getCuestionarios(ti, mod);
 
       if (cuestionariosExistentes.isNotEmpty) {
         try {

@@ -1,5 +1,5 @@
-import '../moor_database.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart';
 
-Database constructDb({bool logStatements = false}) {
-  throw 'Platform not supported';
-}
+final moorDatabaseProvider = Provider<MoorDatabase>(
+    (ref) => throw Exception("plataforma no soportada para la base de datos"));
