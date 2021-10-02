@@ -174,7 +174,7 @@ class EdicionForm extends ConsumerWidget {
           ),
         ),
         floatingActionButton: BotonesGuardado(
-          estado: controller.estado as EstadoDeCuestionario,
+          estado: controller.estado,
         ),
       ),
     );

@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:enum_to_string/enum_to_string.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
@@ -111,10 +110,8 @@ class CreacionFormController {
   final List<Contratista> todosLosContratistas;
 
   /// Si cuestionario es nuevo, se le asigna borrador.
-  late final estado = EnumToString.fromString(
-      EstadoDeCuestionario.values,
-      datosIniciales.cuestionario.tipoDeInspeccion.valueOrDefault(
-          EnumToString.convertToString(EstadoDeCuestionario.borrador)));
+  late final estado = datosIniciales.cuestionario.estado
+      .valueOrDefault(EstadoDeCuestionario.borrador);
 
   /// Se modifica cuando se copia un bloque desde creacion_controls.dart
   CreacionController? bloqueCopiado;
