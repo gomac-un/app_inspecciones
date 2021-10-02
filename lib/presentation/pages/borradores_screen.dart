@@ -7,7 +7,7 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dar
 import 'package:inspecciones/features/llenado_inspecciones/infrastructure/inspecciones_repository.dart';
 import 'package:inspecciones/features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
 import 'package:inspecciones/presentation/pages/inicio_inspeccion_form_widget.dart';
-import 'package:inspecciones/presentation/widgets/new_drawer.dart';
+import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
 //TODO: A futuro, Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 /// Pantalla con lista de todas las inspecciones pendientes por subir.
@@ -33,7 +33,7 @@ class BorradoresPage extends ConsumerWidget {
           ),
         ],
       ),
-      drawer: const NewDrawer(),
+      drawer: const UserDrawer(),
       body: StreamBuilder<List<Borrador>>(
         stream: ref.watch(inspeccionesRepositoryProvider).getBorradores(),
         builder: (context, snapshot) {

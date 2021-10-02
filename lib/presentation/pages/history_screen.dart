@@ -1,44 +1,17 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:inspecciones/application/auth/auth_service.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
-import 'package:inspecciones/injection.dart';
-import 'package:provider/provider.dart';
 
 /// Vista con el historial de las inspecciones enviadas satisfactoriamente al servidor
-class HistoryInspeccionesPage extends StatelessWidget
-    implements AutoRouteWrapper {
-  @override
-  Widget wrappedRoute(BuildContext context) {
-    final authBloc = Provider.of<AuthBloc>(context);
-    return MultiProvider(
-      providers: [
-        RepositoryProvider(
-            create: (ctx) => getIt<InspeccionesRepository>(
-                param1: authBloc.state.maybeWhen(
-                    authenticated: (u, s) => u.token,
-                    orElse: () => throw Exception(
-                        "Error inesperado: usuario no encontrado")))),
-        RepositoryProvider(create: (_) => getIt<Database>()),
-        StreamProvider(
-            create: (_) =>
-                getIt<Database>().borradoresDao.borradoresHistorial()),
-      ],
-      child: this,
-    );
-  }
+class HistoryInspeccionesPage extends StatelessWidget {
+  const HistoryInspeccionesPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final List<Borrador> toDelete = [];
     return Scaffold(
       appBar: AppBar(
         title: const Text('Historial'),
         actions: [
           Builder(
-            builder: (context) => FlatButton(
+            builder: (context) => TextButton(
               onPressed: () => _clearHistory(context, toDelete),
               child: const Text(
                 'Limpiar Historial',
@@ -150,11 +123,11 @@ class HistoryInspeccionesPage extends StatelessWidget
     final _yesButton = FlatButton(
         onPressed: () async {
           Navigator.of(context).pop();
-          toDelete.forEach((borrador) {
+          for (var borrador in toDelete) {
             RepositoryProvider.of<Database>(context)
                 .borradoresDao
                 .eliminarBorrador(borrador);
-          });
+          }
           Scaffold.of(context).showSnackBar(const SnackBar(
             content: Text("Finalizado"),
             duration: Duration(seconds: 3),

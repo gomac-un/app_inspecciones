@@ -191,8 +191,9 @@ class LoginControl extends FormGroup {
   }) async {
     try {
       onStart?.call();
-      final authService = read(authProvider.notifier);
+
       final credenciales = getCredenciales();
+      final authService = read(authProvider.notifier);
       authService.login(credenciales,
           offline: false, onSuccess: onSuccess, onFailure: onFailure);
     } catch (exception, stack) {

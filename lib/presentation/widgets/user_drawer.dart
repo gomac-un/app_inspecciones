@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/application/auth/auth_service.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/app_repository.dart';
 import 'package:inspecciones/presentation/pages/borradores_screen.dart';
 import 'package:inspecciones/presentation/pages/cuestionarios_screen.dart';
+import 'package:inspecciones/presentation/pages/inspecciones_db_viewer_screen.dart';
 import 'package:inspecciones/presentation/pages/sincronizacion_page.dart';
 import 'package:inspecciones/theme.dart';
-import 'package:moor_db_viewer/moor_db_viewer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class NewDrawer extends ConsumerWidget {
-  const NewDrawer({Key? key}) : super(key: key);
+class UserDrawer extends ConsumerWidget {
+  const UserDrawer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
+    final user = ref.watch(userProvider);
     return SafeArea(
       child: Drawer(
         child: Column(
@@ -23,13 +23,14 @@ class NewDrawer extends ConsumerWidget {
             Expanded(
               child: ListView(
                 children: [
-                  MenuItem(
-                    texto:
-                        'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
-                    icon: Icons.app_registration_outlined,
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => const CuestionariosPage())),
-                  ),
+                  if (user.esAdmin)
+                    MenuItem(
+                      texto:
+                          'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
+                      icon: Icons.app_registration_outlined,
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const CuestionariosPage())),
+                    ),
                   MenuItem(
                     texto: 'Borradores',
                     icon: Icons.list_alt_outlined,
@@ -42,13 +43,14 @@ class NewDrawer extends ConsumerWidget {
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => const SincronizacionPage())),
                   ),
-                  MenuItem(
-                    texto: 'Ver base de datos',
-                    icon: Icons.storage_outlined,
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            MoorDbViewer(ref.read(moorDatabaseProvider)))),
-                  ),
+                  if (user.esAdmin)
+                    MenuItem(
+                      texto: 'Ver base de datos',
+                      icon: Icons.storage_outlined,
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) =>
+                              const InspeccionesDbViewerPage())),
+                    ),
                   MenuItem(
                     texto: 'Limpiar datos de la app',
                     icon: Icons.cleaning_services_outlined,
