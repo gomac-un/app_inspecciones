@@ -1,4 +1,4 @@
-part of 'sincronizacion_cubit.dart';
+part of 'sincronizacion_notifier.dart';
 
 @freezed
 class SincronizacionState with _$SincronizacionState {

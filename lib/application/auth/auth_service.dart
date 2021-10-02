@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/usuario.dart';
@@ -15,9 +15,14 @@ part 'auth_service.freezed.dart';
 part 'auth_state.dart';
 
 /// Maneja el estado de autenticación en la app
-
 final authProvider = StateNotifierProvider<AuthService, AuthState>(
     (ref) => AuthService(ref.watch(userRepositoryProvider)));
+
+final userProvider = Provider<Usuario>((ref) => ref.watch(authProvider).when(
+      authenticated: (usuario, _) => usuario,
+      unauthenticated: () => throw Exception("Usuario no inicializado"),
+      loading: () => throw Exception("Usuario no inicializado"),
+    ));
 
 class AuthService extends StateNotifier<AuthState> {
   final UserRepository _userRepository;
@@ -63,9 +68,9 @@ class AuthService extends StateNotifier<AuthState> {
         _userRepository.saveLocalUser(user: usuario);
 
         // para distinguir a los usuarios con Sentry
-        Sentry.configureScope(
+        /*Sentry.configureScope(
           (scope) => scope.user = SentryUser(id: usuario.documento),
-        );
+        );*/
 
         state = AuthState.authenticated(
           usuario: usuario,

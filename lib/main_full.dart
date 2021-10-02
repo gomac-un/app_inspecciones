@@ -97,40 +97,6 @@ class _InspeccionesAppState extends State<InspeccionesApp> {
   }
 }
 
-final theme = ThemeData();
-
-/// Tema personalizado, donde se definen los estilos de la app
-final customTheme = theme.copyWith(
-  outlinedButtonTheme: OutlinedButtonThemeData(
-    style: OutlinedButton.styleFrom(
-      backgroundColor: const Color.fromRGBO(237, 181, 34, 1),
-    ),
-  ),
-  primaryColorLight: const Color.fromRGBO(229, 236, 233, 1),
-  /*const Color.fromRGBO(28, 44, 59, 1),const Color.fromRGBO(114, 163, 141, 1), Colors.blue */
-  colorScheme: theme.colorScheme.copyWith(
-    primary: const Color.fromRGBO(28, 44, 59, 1),
-    secondary: const Color.fromRGBO(237, 181, 34, 1),
-    brightness: Brightness.light,
-    //brightness: Brightness.dark,
-  ),
-  highlightColor: const Color.fromRGBO(237, 181, 34, 0.5),
-  scaffoldBackgroundColor: const Color.fromRGBO(114, 163, 141, 1),
-  visualDensity: VisualDensity.compact,
-  inputDecorationTheme: theme.inputDecorationTheme.copyWith(
-    border: const UnderlineInputBorder(),
-    fillColor: Colors.grey.withOpacity(.3),
-    filled: true,
-  ),
-  textTheme: theme.textTheme.copyWith(
-    headline1: theme.textTheme.headline1?.copyWith(
-        fontSize: 20,
-        //color: Colors.white,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 1.25),
-  ),
-);
-
 class ClearFocusOnPop extends NavigatorObserver {
   @override
   void didPop(Route route, Route? previousRoute) {

@@ -3,10 +3,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/infrastructure/repositories/credenciales.dart';
+import 'package:inspecciones/presentation/pages/borradores_screen.dart';
 import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-
-import 'cuestionarios_screen.dart';
 
 /// Pantalla de inicio de sesión.
 class LoginPage extends ConsumerWidget {
@@ -20,71 +19,73 @@ class LoginPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Ingreso'),
       ),
-      body: ReactiveForm(
-          formGroup: form,
-          child: Card(
-            child: Column(
-              children: [
-                Image.asset("assets/images/logo-gomac-texto.png"),
-                const SizedBox(
-                  height: 15,
-                ),
-                ReactiveTextField(
-                  textInputAction: TextInputAction.next,
-                  validationMessages: (control) =>
-                      {ValidationMessage.required: 'Ingrese el usuario'},
-                  formControlName: 'usuario',
-                  decoration: const InputDecoration(
-                    labelText: 'Usuario',
-                    fillColor: Colors.transparent,
+      body: SingleChildScrollView(
+        child: ReactiveForm(
+            formGroup: form,
+            child: Card(
+              child: Column(
+                children: [
+                  Image.asset("assets/images/logo-gomac-texto.png"),
+                  const SizedBox(
+                    height: 15,
                   ),
-                ),
-                const SizedBox(height: 10),
-                ReactiveTextField(
-                  textInputAction: TextInputAction.done,
-                  validationMessages: (control) =>
-                      {ValidationMessage.required: 'Ingrese la contraseña'},
-                  formControlName: 'password',
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Contraseña',
-                    fillColor: Colors.transparent,
+                  ReactiveTextField(
+                    textInputAction: TextInputAction.next,
+                    validationMessages: (control) =>
+                        {ValidationMessage.required: 'Ingrese el usuario'},
+                    formControlName: 'usuario',
+                    decoration: const InputDecoration(
+                      labelText: 'Usuario',
+                      fillColor: Colors.transparent,
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
+                  const SizedBox(height: 10),
+                  ReactiveTextField(
+                    textInputAction: TextInputAction.done,
+                    validationMessages: (control) =>
+                        {ValidationMessage.required: 'Ingrese la contraseña'},
+                    formControlName: 'password',
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Contraseña',
+                      fillColor: Colors.transparent,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
 
-                /// Activa el botón de iniciar sesión solo cuando se hayan llenado los dos campos.
-                ReactiveFormConsumer(
-                  builder: (context, _, child) {
-                    return ButtonTheme(
-                      buttonColor: Theme.of(context).colorScheme.secondary,
-                      child: OutlinedButton(
-                        onPressed: !form.valid
-                            ? null
-                            : () => form.submit(
-                                  onStart: () => LoadingDialog.show(context),
-                                  onFinish: () => LoadingDialog.hide(context),
-                                  onSuccess: () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              const CuestionariosPage())),
-                                  onFailure: (failure) =>
-                                      _onFailure(context, ref.read, failure),
-                                ),
-                        child: const Text('Entrar'),
-                      ),
-                    );
-                  },
-                ),
+                  /// Activa el botón de iniciar sesión solo cuando se hayan llenado los dos campos.
+                  ReactiveFormConsumer(
+                    builder: (context, _, child) {
+                      return ButtonTheme(
+                        buttonColor: Theme.of(context).colorScheme.secondary,
+                        child: OutlinedButton(
+                          onPressed: !form.valid
+                              ? null
+                              : () => form.submit(
+                                    onStart: () => LoadingDialog.show(context),
+                                    onFinish: () => LoadingDialog.hide(context),
+                                    onSuccess: () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const BorradoresPage())),
+                                    onFailure: (failure) =>
+                                        _onFailure(context, ref.read, failure),
+                                  ),
+                          child: const Text('Entrar'),
+                        ),
+                      );
+                    },
+                  ),
 
-                const SizedBox(
-                  height: 15,
-                ),
-              ],
-            ),
-          )),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                ],
+              ),
+            )),
+      ),
     );
   }
 

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 
-import '../../../theme.dart';
 import '../control/controlador_llenado_inspeccion.dart';
 import '../domain/inspeccion.dart';
 import 'llenado_screen/actions.dart';
@@ -51,11 +50,7 @@ class InspeccionPage extends ConsumerWidget {
                 IconButton(
                     onPressed: () => ref.read(inspeccionIdProvider).state = 2,
                     icon: const Icon(Icons.filter_2)),*/
-                IconButton(
-                    onPressed: () {
-                      ref.read(themeProvider.notifier).switchTheme();
-                    },
-                    icon: const Icon(Icons.dark_mode_outlined)),
+
                 const FilterWidget(),
                 if (estadoDeInspeccion != EstadoDeInspeccion.finalizada) ...[
                   BotonGuardar(

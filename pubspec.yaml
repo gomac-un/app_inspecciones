@@ -41,6 +41,7 @@ dependencies:
   reactive_forms: ^10.6.2
   flutter_hooks: ^0.18.0
   hooks_riverpod: ^1.0.0-dev.7
+  android_path_provider: ^0.3.0
   reactive_multi_image_picker:
     git:
       url: https://github.com/victorcatn/reactive_multi_image_picker.git

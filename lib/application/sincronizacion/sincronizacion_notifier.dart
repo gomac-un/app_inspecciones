@@ -4,47 +4,185 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:bloc/bloc.dart';
+import 'package:android_path_provider/android_path_provider.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_archive/flutter_archive.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
-part 'sincronizacion_cubit.freezed.dart';
+part 'sincronizacion_notifier.freezed.dart';
 part 'sincronizacion_state.dart';
 
-abstract class SincronizacionStep extends Cubit<SincronizacionStepState> {
+final sincronizacionProvider =
+    StateNotifierProvider<SincronizacionNotifier, SincronizacionState>(
+        (ref) => SincronizacionNotifier(
+              ref.watch(userRepositoryProvider),
+              ref.read,
+            ));
+
+/// Para la descarga de la bd de Gomac
+///
+/// La actualización de los estados se puede ver en la UI, en sincronizacion_screen.dart
+
+class SincronizacionNotifier extends StateNotifier<SincronizacionState> {
+  final nombreJson = 'server.json';
+
+  /// Zip en el server con las fotos de los cuestionarios
+  final nombreZip = 'cuestionarios.zip';
+
+  /// Datos guardados localmente en la aplicacion
+  final UserRepository _userRepository;
+
+  final Reader read;
+
+  /// Emite estado con fecha de la ultima descarga de datos realizada [ultimaAct]
+  late final ValueNotifier<Option<DateTime>> ultimaActualizacion =
+      ValueNotifier(_userRepository.getUltimaSincronizacion());
+
+  late final DescargaCuestionariosNotifier descargaCuestionariosNotifier =
+      DescargaCuestionariosNotifier(
+          read(cuestionariosRepositoryProvider), nombreJson);
+
+  late final InstalarDatabaseNotifier instalarDatabaseNotifier =
+      InstalarDatabaseNotifier(nombreJson, read(moorDatabaseProvider));
+
+  late final DescargaFotosNotifier descargaFotosNotifier =
+      DescargaFotosNotifier(read(cuestionariosRepositoryProvider), nombreZip);
+
+  late final List<SincronizacionStep> steps = [
+    descargaCuestionariosNotifier,
+    instalarDatabaseNotifier,
+    descargaFotosNotifier
+  ];
+
+  late final List<StreamSubscription> subscriptions;
+
+  SincronizacionNotifier(
+    this._userRepository,
+    this.read,
+  ) : super(const SincronizacionState.initial(0)) {
+    subscriptions = steps
+        .mapIndexed((i, notifier) => notifier.stream.listen(
+              /*(d) => print("listened data $d"),
+        onError: (e) => print("listen error $e"),
+        onDone: () => print("listen done"),*/
+
+              progressOrFail(i, i < steps.length - 1 ? steps[i + 1] : null),
+            ))
+        .toList();
+  }
+
+  Future<void> _run() async {
+    await steps.first.run();
+  }
+
+  @override
+  Future<void> dispose() async {
+    for (final sub in subscriptions) {
+      await sub.cancel();
+    }
+    return super.dispose();
+  }
+
+  void selectPaso(int paso) {
+    state = state.copyWith(paso: paso);
+  }
+
+  void Function(SincronizacionStepState) progressOrFail(
+          int step, SincronizacionStep? next) =>
+      (SincronizacionStepState state) {
+        state.maybeMap(
+          success: (state) {
+            this.state = SincronizacionState.inProgress(step);
+            if (next != null) {
+              next.run();
+            } else {
+              /// En caso de éxito, guarda el momento actual como fecha de la ultima actualización
+              _userRepository.saveUltimaSincronizacion().then((res) {
+                if (res) {
+                  ultimaActualizacion.value =
+                      _userRepository.getUltimaSincronizacion();
+                } //TODO: que pasa si falla?
+              });
+              this.state = SincronizacionState.success(step);
+            }
+          },
+          failure: (state) {
+            this.state = SincronizacionState.failure(step);
+          },
+          orElse: () {},
+        );
+      };
+
+  /// Intento de hacer manejo de errores a la hora de descargar los datos del server
+  Future<Either<ApiFailure, Unit>> descargarServer() async {
+    try {
+      final hayInternet = await InternetConnectionChecker().hasConnection;
+      if (!hayInternet) {
+        throw InternetException();
+      }
+      await _run();
+      return right(unit);
+    } on TimeoutException {
+      return const Left(ApiFailure.noHayConexionAlServidor());
+    } on CredencialesException {
+      return const Left(ApiFailure.credencialesException());
+    } on ServerException catch (e) {
+      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+    } on InternetException {
+      return const Left(ApiFailure.noHayInternet());
+    } on PageNotFoundException {
+      return const Left(ApiFailure.pageNotFound());
+    } catch (e) {
+      return Left(ApiFailure.serverError(e.toString()));
+    }
+  }
+}
+
+abstract class SincronizacionStep
+    extends StateNotifier<SincronizacionStepState> {
   Future run();
   String get titulo;
 
   SincronizacionStep(SincronizacionStepState state) : super(state);
 
-  void emitWithLog(SincronizacionStepState newState) =>
-      emit(newState.copyWith(log: '${state.log}\n${newState.log}'));
+  void emitWithLog(SincronizacionStepState newState) {
+    if (newState.log.isNotEmpty) {
+      state = newState.copyWith(log: '${state.log}\n${newState.log}');
+    } else {
+      state = newState.copyWith(log: state.log);
+    }
+  }
 }
 
-class DescargaCuestionariosCubit extends SincronizacionStep {
+class DescargaCuestionariosNotifier extends SincronizacionStep {
   @override
   String get titulo => 'Descarga de cuestionarios';
 
   final CuestionariosRepository _cuestionariosRepository;
   final String nombreArchivoDescargado;
 
-  DescargaCuestionariosCubit(
+  DescargaCuestionariosNotifier(
       this._cuestionariosRepository, this.nombreArchivoDescargado)
       : super(const SincronizacionStepState.initial());
 
   @override
   Future run() async {
+    emitWithLog(
+      const SincronizacionStepState.inProgress(0, 'Descargando cuestionarios'),
+    );
+
     //inicializacion del downloader sacada del ejemplo flutter_downloader donde
     // se muestra como hacer descargas de una lista de links y agregar opcion de pausa
     // https://github.com/fluttercommunity/flutter_downloader/blob/master/example/lib/main.dart
@@ -52,35 +190,19 @@ class DescargaCuestionariosCubit extends SincronizacionStep {
     // un repositorio pero el paquete flutter_downloader permite mostrar la barra de progreso
     // y como es en un isolate no bloquea la UI
     final ReceivePort port = ReceivePort();
-    final Stream<dynamic> portStream = port.asBroadcastStream();
-
-    final registradorDePuerto = RegistradorDePuerto(
-      port: port,
-      nombrePuerto: "descarga_cuestionarios",
-    ); //TODO: mirar si realmente es necesario usar el registerPortWithName
-
-    FlutterDownloader.registerCallback(registradorDePuerto.downloadCallback);
-
-    emitWithLog(
-      const SincronizacionStepState.inProgress(0, 'Descargando cuestionarios'),
-    );
-
-    /// Descarga de los datos del servidor (Sin fotos)
-    ///
-    /// Hace la petición al servidor, en caso de exito instala la bd localmente, en caso de error lanza el
-    /// mensaje 'Error de descarga'
-    final directorioDeDescarga = await directorioLocal();
-    await _cuestionariosRepository.descargarCuestionarios(
-        directorioDeDescarga, nombreArchivoDescargado);
+    PortBinder.registrarPuerto(port);
+    //se debe esperar a que termine de procesar todo lo que necesita este puerto
+    //antes de registrar otro, si se registra otro antes, este no recibirá mas eventos.
 
     /// Escucha de las actualizaciones que ofrece el downloader
     late final StreamSubscription<dynamic> streamSubs;
-    streamSubs = portStream.listen((data) {
+    streamSubs = port.listen((data) {
       final task = data as Task;
-
+      //TODO: verificar que la taskId si sea la que solicitamos
       emitWithLog(
         state.maybeMap(
-          inProgress: (state) => state.copyWith(progress: task.progress),
+          inProgress: (state) => state.copyWith(
+              progress: task.progress, log: ""), //TODO: mostrar barra de carga
           orElse: () =>
               const SincronizacionStepState.failure("Estado inesperado"),
         ),
@@ -101,12 +223,17 @@ class DescargaCuestionariosCubit extends SincronizacionStep {
         emitWithLog(
           const SincronizacionStepState.failure('Error de descarga'),
         );
+        streamSubs.cancel();
       }
     });
+    final directorioDeDescarga = await directorioLocal();
+    // Encola la descarga y el callback se encargará de cambiar el estado
+    final taskId = await _cuestionariosRepository.descargarCuestionarios(
+        directorioDeDescarga, nombreArchivoDescargado);
   }
 }
 
-class InstalarDatabaseCubit extends SincronizacionStep {
+class InstalarDatabaseNotifier extends SincronizacionStep {
   /// Usa el Json descargado para insertar los datos en la BD local
   @override
   String get titulo => 'Instalación base de datos';
@@ -114,12 +241,14 @@ class InstalarDatabaseCubit extends SincronizacionStep {
   final String nombreArchivoDescargado;
   final MoorDatabase _db;
 
-  InstalarDatabaseCubit(this.nombreArchivoDescargado, this._db)
+  InstalarDatabaseNotifier(this.nombreArchivoDescargado, this._db)
       : super(const SincronizacionStepState.initial());
 
   @override
   Future run() async {
+    // pequeña espera para asegurarse que el archivo terminó de guardarse
     await Future.delayed(const Duration(seconds: 2));
+
     emitWithLog(
       const SincronizacionStepState.inProgress(0, 'Instalando base de datos'),
     );
@@ -127,7 +256,7 @@ class InstalarDatabaseCubit extends SincronizacionStep {
     final archivoDescargado =
         File(path.join(directorioDeDescarga, nombreArchivoDescargado));
 
-    late final String jsonString;
+    final String jsonString;
     try {
       jsonString = await archivoDescargado.readAsString();
     } catch (e) {
@@ -140,7 +269,7 @@ class InstalarDatabaseCubit extends SincronizacionStep {
 
     //parsear el json en un isolate para no volver la UI lenta
     // https://flutter.dev/docs/cookbook/networking/background-parsing
-    late final Map<String, dynamic> parsed;
+    final Map<String, dynamic> parsed;
     try {
       parsed = await compute(jsonDecode, jsonString) as Map<String, dynamic>;
       emitWithLog(
@@ -169,7 +298,7 @@ class InstalarDatabaseCubit extends SincronizacionStep {
   }
 }
 
-class DescargaFotosCubit extends SincronizacionStep {
+class DescargaFotosNotifier extends SincronizacionStep {
   //TODO: evitar la duplicacion del codigo de descarga con [DescargaCuestionariosCubit]
   @override
   String get titulo => 'Descarga de fotos';
@@ -177,20 +306,13 @@ class DescargaFotosCubit extends SincronizacionStep {
   final CuestionariosRepository _cuestionariosRepository;
   final String nombreZip;
 
-  DescargaFotosCubit(this._cuestionariosRepository, this.nombreZip)
+  DescargaFotosNotifier(this._cuestionariosRepository, this.nombreZip)
       : super(const SincronizacionStepState.initial());
 
   @override
   Future run() async {
     final ReceivePort port = ReceivePort();
-    final Stream<dynamic> portStream = port.asBroadcastStream();
-
-    final registradorDePuerto = RegistradorDePuerto(
-      port: port,
-      nombrePuerto: "descarga_fotos",
-    ); //TODO: mirar si realmente es necesario usar el registerPortWithName
-
-    FlutterDownloader.registerCallback(registradorDePuerto.downloadCallback);
+    PortBinder.registrarPuerto(port);
 
     emitWithLog(
       const SincronizacionStepState.inProgress(0, 'Descargando fotos'),
@@ -202,7 +324,7 @@ class DescargaFotosCubit extends SincronizacionStep {
 
     /// Escucha de las actualizaciones que ofrece el downloader
     late final StreamSubscription<dynamic> streamSubs;
-    streamSubs = portStream.listen((data) {
+    streamSubs = port.listen((data) {
       final task = data as Task;
 
       emitWithLog(
@@ -254,121 +376,6 @@ class DescargaFotosCubit extends SincronizacionStep {
   }
 }
 
-/// Módulo injectable para la descarga de la bd de Gomac
-///
-/// La actualización de los estados se puede ver en la UI, en sincronizacion_screen.dart
-
-class SincronizacionCubit extends Cubit<SincronizacionState> {
-  final nombreJson = 'server.json';
-
-  /// Zip en el server con las fotos de los cuestionarios
-  final nombreZip = 'cuestionarios.zip';
-
-  /// Datos guardados localmente en la aplicacion
-  final UserRepository _userRepository;
-
-  /// Emite estado con fecha de la ultima descarga de datos realizada [ultimaAct]
-  late final ValueNotifier<Option<DateTime>> ultimaActualizacion =
-      ValueNotifier(_userRepository.getUltimaSincronizacion());
-
-  late final DescargaCuestionariosCubit descargaCuestionariosCubit =
-      DescargaCuestionariosCubit(getIt<CuestionariosRepository>(), nombreJson);
-
-  late final InstalarDatabaseCubit instalarDatabaseCubit =
-      InstalarDatabaseCubit(nombreJson, getIt<Database>());
-
-  late final DescargaFotosCubit descargaFotosCubit =
-      DescargaFotosCubit(getIt<CuestionariosRepository>(), nombreZip);
-
-  late final List<SincronizacionStep> steps = [
-    descargaCuestionariosCubit,
-    instalarDatabaseCubit,
-    descargaFotosCubit
-  ];
-
-  late final List<StreamSubscription> subscriptions =
-      steps.asMap().entries.map((entry) {
-    final i = entry.key;
-    final cubit = entry.value;
-    return cubit.stream
-        .listen(progressOrFail(i, steps[i + 1], isLast: i == steps.length - 1));
-  }).toList();
-
-  SincronizacionCubit(
-    this._userRepository,
-  ) : super(const SincronizacionState.initial(0));
-
-  Future<void> _run() async {
-    await steps.first.run();
-  }
-
-  @override
-  Future<void> close() {
-    for (final sub in subscriptions) {
-      sub.cancel();
-    }
-    return super.close();
-  }
-
-  @override
-  void onChange(Change<SincronizacionState> change) {
-    super.onChange(change);
-    if (change.nextState is SincronizacionSuccess) {
-      /// En caso de éxito, guarda el momento actual como fecha de la ultima actualización
-      _userRepository.saveUltimaSincronizacion().then((res) {
-        if (res) {
-          ultimaActualizacion.value = _userRepository.getUltimaSincronizacion();
-        } //TODO: que pasa si falla?
-      });
-    }
-  }
-
-  void selectPaso(int paso) {
-    emit(state.copyWith(paso: paso));
-  }
-
-  void Function(SincronizacionStepState) progressOrFail(
-          int step, SincronizacionStep next,
-          {bool isLast = false}) =>
-      (SincronizacionStepState state) {
-        state.maybeMap(
-          success: (state) {
-            emit(SincronizacionState.inProgress(step));
-            if (!isLast) next.run();
-            if (isLast) emit(SincronizacionState.success(step));
-          },
-          failure: (state) {
-            emit(SincronizacionState.failure(step));
-          },
-          orElse: () {},
-        );
-      };
-
-  /// Intento de hacer manejo de errores a la hora de descargar los datos del server
-  Future<Either<ApiFailure, Unit>> descargarServer() async {
-    try {
-      final hayInternet = await InternetConnectionChecker().hasConnection;
-      if (!hayInternet) {
-        throw InternetException();
-      }
-      await _run();
-      return right(unit);
-    } on TimeoutException {
-      return const Left(ApiFailure.noHayConexionAlServidor());
-    } on CredencialesException {
-      return const Left(ApiFailure.credencialesException());
-    } on ServerException catch (e) {
-      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
-    } on InternetException {
-      return const Left(ApiFailure.noHayInternet());
-    } on PageNotFoundException {
-      return const Left(ApiFailure.pageNotFound());
-    } catch (e) {
-      return Left(ApiFailure.serverError(e.toString()));
-    }
-  }
-}
-
 @freezed
 class Task with _$Task {
   factory Task({
@@ -393,32 +400,46 @@ extension DownloadTaskStatusX on DownloadTaskStatus {
 }
 
 Future<String> directorioLocal() async {
-  final directory = await getApplicationDocumentsDirectory();
-  return directory.path;
+  /*final directory = await getApplicationDocumentsDirectory();
+  return directory.path;*/
+  String externalStorageDirPath;
+  if (Platform.isAndroid) {
+    try {
+      throw Exception("a");
+      externalStorageDirPath = await AndroidPathProvider.downloadsPath;
+    } catch (e) {
+      final directory = await getExternalStorageDirectory();
+      externalStorageDirPath = directory!.path;
+    }
+  } else if (Platform.isIOS) {
+    externalStorageDirPath =
+        (await getApplicationDocumentsDirectory()).absolute.path;
+  } else {
+    throw Exception("plataforma no soportada");
+  }
+  return externalStorageDirPath;
 }
 
-class RegistradorDePuerto {
-  final String nombrePuerto;
-  final ReceivePort port;
-
-  RegistradorDePuerto({required this.port, required this.nombrePuerto}) {
-    bindBackgroundIsolate();
-  }
-
-  void bindBackgroundIsolate() {
+class PortBinder {
+  static void registrarPuerto(ReceivePort port) {
     final isSuccess =
         IsolateNameServer.registerPortWithName(port.sendPort, nombrePuerto);
-    if (!isSuccess) {
+    if (isSuccess) {
+      FlutterDownloader.registerCallback(downloadCallback);
+    } else {
       unbindBackgroundIsolate();
-      bindBackgroundIsolate();
+      registrarPuerto(port);
     }
   }
 
-  void unbindBackgroundIsolate() {
+  static void unbindBackgroundIsolate() {
     IsolateNameServer.removePortNameMapping(nombrePuerto);
   }
 
-  void downloadCallback(String id, DownloadTaskStatus status, int progress) {
+  static const nombrePuerto = "sincronizacion";
+
+  static void downloadCallback(
+      String id, DownloadTaskStatus status, int progress) {
     final SendPort send = IsolateNameServer.lookupPortByName(nombrePuerto)!;
     send.send(Task(id: id, status: status, progress: progress));
   }

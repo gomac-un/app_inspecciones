@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
@@ -9,6 +10,7 @@ import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:path/path.dart' as p;
 
 class CuestionariosRepository {
   final InspeccionesRemoteDataSource _api;
@@ -30,7 +32,7 @@ class CuestionariosRepository {
     log(jsonEncode(cues));
     try {
       log(jsonEncode(cues));
-      await _api.postRecurso('/cuestionarios-completos/', cues);
+      await _api.postRecurso('cuestionarios-completos', cues);
 
       /// Como los cuestionarios quedan en el celular, se marca como subidos para que no se envíe al server un cuestionario que ya existe.
       /// cambia [cuestionario.esLocal] = false.
@@ -58,8 +60,14 @@ class CuestionariosRepository {
 
   /// Descarga los cuestionarios y todo lo necesario para tratarlos:
   /// activos, sistemas, contratistas y subsistemas
-  Future descargarCuestionarios(String savedir, String nombreJson) async {
-    _api.descargaFlutterDownloader('/server/', savedir, nombreJson);
+  /// En caso de que ya exista el archivo, lo borra y lo descarga de nuevo
+  Future<String?> descargarCuestionarios(
+      String savedir, String nombreJson) async {
+    final file = File(p.join(savedir, nombreJson));
+    if (await file.exists()) {
+      await file.delete();
+    }
+    _api.descargaFlutterDownloader('server', savedir, nombreJson);
   }
 
   /// Descarga todas las fotos de todos los cuestionarios

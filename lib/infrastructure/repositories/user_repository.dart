@@ -91,10 +91,7 @@ class UserRepository {
       return Future.value(Right(cachedAppId));
     }
     try {
-      final res = await _api.postRecurso(
-        '/registro-app/',
-        {},
-      );
+      final res = await _api.registrarApp();
       final appId = res['id'] as int;
       _localPreferences.saveAppId(appId);
       return Right(appId);

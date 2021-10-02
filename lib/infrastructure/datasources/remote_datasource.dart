@@ -7,19 +7,31 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:file/file.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:inspecciones/core/entities/usuario.dart';
+import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:path/path.dart' as path;
 
+final apiUriProvider = Provider((ref) => Uri(
+    scheme: 'https',
+    host: 'gomac.medellin.unal.edu.co',
+    pathSegments: ['inspecciones/api/v1']));
+
+extension ManipulacionesUri on Uri {
+  Uri appendSegment(String segment, {bool addTrailingSlash = true}) => replace(
+      pathSegments: [...pathSegments, segment, if (addTrailingSlash) '']);
+}
+
 //TODO eliminar la duplicacion de código
 class AuthRemoteDatasource {
-  static const _serverScheme = 'https';
-  static const _serverHost = 'gomac.medellin.unal.edu.co';
-  static const _apiBase = 'inspecciones/api/v1';
   static const _timeLimit = Duration(seconds: 5);
-  String token = "";
+
+  final Reader read;
+  AuthRemoteDatasource(
+    this.read,
+  );
 
   Future<ConnectivityResult> _hayInternet() async =>
       await (Connectivity().checkConnectivity());
@@ -30,11 +42,7 @@ class AuthRemoteDatasource {
   /// la petición a la Api para que devuelva el token de autenticación
   /// (https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication)
   Future<Map<String, dynamic>> getToken(Map<String, dynamic> user) async {
-    const tokenEndpoint = 'api-token-auth';
-    final uri = Uri(
-        scheme: _serverScheme,
-        host: _serverHost,
-        pathSegments: [_apiBase, tokenEndpoint]);
+    final uri = read(apiUriProvider).appendSegment('api-token-auth');
 
     final http.Response response = await http
         .post(
@@ -68,19 +76,16 @@ class AuthRemoteDatasource {
   /// Devuelve json que permite saber si [user] es admin, es decir, si puede
   /// o no crear cuestionarios-
   Future<Map<String, dynamic>> getPermisos(
-      Map<String, dynamic> user, String tokenUsuario) async {
-    final uri = Uri(
-        scheme: _serverScheme,
-        host: _serverHost,
-        pathSegments: [_apiBase, '/groups/']);
+      Map<String, dynamic> user, String token) async {
+    final uri = read(apiUriProvider).appendSegment('groups');
+
     print("req: ${uri.path}\n${jsonEncode(user)}");
     final http.Response response = await http
         .post(
           uri,
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
-            if (tokenUsuario != null)
-              HttpHeaders.authorizationHeader: "Token $tokenUsuario"
+            HttpHeaders.authorizationHeader: "Token $token"
           },
           body: jsonEncode(user),
         )
@@ -101,13 +106,10 @@ class AuthRemoteDatasource {
     }
   }
 
-  Future<Map<String, dynamic>> postRecurso(
-      String recursoEndpoint, Map<String, dynamic> data) async {
-    final uri = Uri(
-        scheme: _serverScheme,
-        host: _serverHost,
-        pathSegments: [_apiBase, recursoEndpoint]);
-    print("req: ${uri.path}\n${jsonEncode(data)}");
+  Future<Map<String, dynamic>> registrarApp() async {
+    final uri = read(apiUriProvider).appendSegment('registro-app');
+
+    print("req: ${uri.path}");
     http.Response response;
 
     final hayInternet = await _hayInternet();
@@ -119,10 +121,9 @@ class AuthRemoteDatasource {
         .post(
           uri,
           headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-            if (token != null) HttpHeaders.authorizationHeader: "Token $token"
+            'Content-Type': 'application/json; charset=UTF-8'
           },
-          body: jsonEncode(data),
+          body: jsonEncode({}),
         )
         .timeout(_timeLimit);
     print("res: ${response.statusCode}\n${response.body}");
@@ -151,33 +152,26 @@ abstract class InspeccionesRemoteDataSource {
 
   Future subirFotos(
       Iterable<File> fotos, String iddocumento, Categoria tipodocumento);
-  void descargaFlutterDownloader(
+  Future<String?> descargaFlutterDownloader(
       String recurso, String savedir, String filename);
 }
 
 class DjangoJsonAPI implements InspeccionesRemoteDataSource {
-  /// Ruta base del serer.
-  static const _serverScheme = 'https';
-  static const _serverHost = 'gomac.medellin.unal.edu.co';
-  /* 'https://gomac.medellin.unal.edu.co' ; */
-  /* http://pruebainsgomac.duckdns.org:8000' */
-  //static const _server = 'http://10.0.2.2:8000';
-
-  static const _apiBase = 'inspecciones/api/v1';
-
   static const _timeLimit = Duration(seconds: 5); //TODO: ajustar el timelimit
-  final UsuarioOnline _usuario;
-  String get token => _usuario.token;
 
-  DjangoJsonAPI(this._usuario);
+  final Reader read;
+
+  DjangoJsonAPI(this.read);
 
   /// Realiza la petición  get a la api a la [url]
   @override
   Future<Map<String, dynamic>> getRecurso(String recursoEndpoint) async {
-    final uri = Uri(
-        scheme: _serverScheme,
-        host: _serverHost,
-        pathSegments: [_apiBase, recursoEndpoint]);
+    final uri = read(apiUriProvider).appendSegment(recursoEndpoint);
+
+    final token = read(userProvider).map(
+        offline: (_) => throw Exception("el usuario no esta online"),
+        online: (u) => u.token);
+
     final hayInternet = await _hayInternet();
     if (hayInternet == ConnectivityResult.none) {
       throw InternetException();
@@ -185,9 +179,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     print("req: ${uri.path}\ntoken:$token");
     final http.Response response = await http.get(
       uri,
-      headers: {
-        if (token != null) HttpHeaders.authorizationHeader: "Token $token"
-      },
+      headers: {HttpHeaders.authorizationHeader: "Token $token"},
     ).timeout(_timeLimit);
     print("res: ${response.statusCode}\n${response.body}");
 
@@ -212,10 +204,10 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   @override
   Future<Map<String, dynamic>> postRecurso(
       String recursoEndpoint, Map<String, dynamic> data) async {
-    final uri = Uri(
-        scheme: _serverScheme,
-        host: _serverHost,
-        pathSegments: [_apiBase, recursoEndpoint]);
+    final uri = read(apiUriProvider).appendSegment(recursoEndpoint);
+    final token = read(userProvider).map(
+        offline: (_) => throw Exception("el usuario no esta online"),
+        online: (u) => u.token);
     print("req: ${uri.path}\n${jsonEncode(data)}");
     http.Response response;
 
@@ -229,7 +221,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
           uri,
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
-            if (token != null) HttpHeaders.authorizationHeader: "Token $token"
+            HttpHeaders.authorizationHeader: "Token $token"
           },
           body: jsonEncode(data),
         )
@@ -253,16 +245,16 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   @override
   Future<Map<String, dynamic>> putRecurso(
       String recursoEndpoint, Map<String, dynamic> data) async {
-    final uri = Uri(
-        scheme: _serverScheme,
-        host: _serverHost,
-        pathSegments: [_apiBase, recursoEndpoint]);
+    final uri = read(apiUriProvider).appendSegment(recursoEndpoint);
+    final token = read(userProvider).map(
+        offline: (_) => throw Exception("el usuario no esta online"),
+        online: (u) => u.token);
     final http.Response response = await http
         .put(
           uri,
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
-            if (token != null) HttpHeaders.authorizationHeader: "Token $token"
+            HttpHeaders.authorizationHeader: "Token $token"
           },
           body: jsonEncode(data),
         )
@@ -286,11 +278,11 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   @override
   Future subirFotos(
       Iterable<File> fotos, String idDocumento, Categoria tipoDocumento) async {
-    const uriRecurso = '/subir-fotos/';
-    final uri = Uri(
-        scheme: _serverScheme,
-        host: _serverHost,
-        pathSegments: [_apiBase, uriRecurso]);
+    final uri = read(apiUriProvider).appendSegment('subir-fotos');
+
+    final token = read(userProvider).map(
+        offline: (_) => throw Exception("el usuario no esta online"),
+        online: (u) => u.token);
     final request = http.MultipartRequest("POST", uri);
 
     request.headers[HttpHeaders.authorizationHeader] = "Token $token";
@@ -323,12 +315,20 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     //<input type="file" id="files" name="file_fields" multiple>
   }
 
-  /// Descarga el [recurso] desde el server, es como un get sencillo, pero permite mostrar el progreso en la Ui (ver sincronizacion_cubit.dart)
+  /// Permite programar la descarga de un recurso usando [FlutterDownloader],
+  /// para poder conocer el estado de la descarga se tiene que haber configurado
+  /// previamente [FlutterDownloader], registrando un puerto y un callback
+  /// ya que esta libreria funciona con isolates, ejemplo: [DescargaCuestionariosNotifier]
   @override
-  void descargaFlutterDownloader(
+  Future<String?> descargaFlutterDownloader(
       String recurso, String savedir, String filename) {
-    final url = _serverScheme + '://' + _serverHost + _apiBase + recurso;
-    FlutterDownloader.enqueue(
+    final url = read(apiUriProvider).appendSegment(recurso).toString();
+
+    final token = read(userProvider).map(
+        offline: (_) => throw Exception("el usuario no esta online"),
+        online: (u) => u.token);
+
+    return FlutterDownloader.enqueue(
         url: url,
         headers: <String, String>{
           HttpHeaders.authorizationHeader: "Token $token"

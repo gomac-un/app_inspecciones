@@ -32,7 +32,8 @@ final cuestionarioProvider = FutureProvider.family<
     (ref, inspeccionId) => ref
         .watch(inspeccionesRepositoryProvider)
         .cargarInspeccionLocal(inspeccionId));
-
+//TODO: hacer que este y otros providers hagan dispose cuando se dejen de usar
+// para liberar memoria
 final controladorLlenadoInspeccionProvider = FutureProvider.family<
         ControladorLlenadoInspeccion, IdentificadorDeInspeccion>(
     (ref, inspeccionId) async => ControladorLlenadoInspeccion(

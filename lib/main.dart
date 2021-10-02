@@ -1,15 +1,18 @@
 import 'package:file/local.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
+import 'package:inspecciones/presentation/pages/login_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'infrastructure/core/directorio_de_datos.dart';
 import 'infrastructure/datasources/local_preferences_datasource.dart';
 import 'infrastructure/datasources/providers.dart';
-import 'presentation/pages/login_page.dart';
+import 'infrastructure/datasources/remote_datasource.dart';
 import 'theme.dart';
 
 void main() async {
@@ -23,11 +26,19 @@ void main() async {
       ),
     ),
   );
+  await FlutterDownloader.initialize(debug: kDebugMode);
   final prefs = await SharedPreferences.getInstance();
 
   runApp(
     ProviderScope(
       overrides: [
+        apiUriProvider.overrideWithValue(
+          Uri(
+              scheme: 'http',
+              host: '10.0.2.2',
+              port: 8000,
+              pathSegments: ['inspecciones', 'api', 'v1']),
+        ),
         sharedPreferencesProvider.overrideWithValue(prefs),
         fileSystemProvider.overrideWithValue(
             const LocalFileSystem()), //TODO: mirar si se puede usar un memoryFileSystem para web
@@ -35,6 +46,7 @@ void main() async {
           directorioDeDatosProvider
               .overrideWithValue(await _getDirectorioDeDatos()),
       ],
+      observers: [Logger()],
       child: const MyApp(),
     ),
   );
@@ -51,17 +63,54 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final theme = ref.watch(themeProvider);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      theme: theme.copyWith(
-          inputDecorationTheme: theme.inputDecorationTheme.copyWith(
-        filled: true,
-      )),
-      //InspeccionPage(nuevaInspeccion: true)
+      theme: ref.watch(themeProvider),
+
       home:
-          const LoginPage(), //const CuestionariosPage(),  //const BorradoresPage(), //const EdicionFormPage(),
+          const LoginPage(), //const CuestionariosPage(),  //const LoginPage(), //const EdicionFormPage(),
     );
+  }
+}
+
+class Logger extends ProviderObserver {
+  @override
+  void didUpdateProvider(
+    ProviderBase provider,
+    Object? previousValue,
+    Object? newValue,
+    ProviderContainer container,
+  ) {
+    print({
+      "action": "didUpdateProvider",
+      "provider": "${provider.name ?? provider.runtimeType}",
+      "previousValue": "$previousValue",
+      "newValue": "$newValue"
+    });
+  }
+
+  @override
+  void didAddProvider(
+    ProviderBase provider,
+    Object? value,
+    ProviderContainer container,
+  ) {
+    print({
+      "action": "didAddProvider",
+      "provider": "${provider.name ?? provider.runtimeType}",
+      "value": "$value"
+    });
+  }
+
+  @override
+  void didDisposeProvider(
+    ProviderBase provider,
+    ProviderContainer containers,
+  ) {
+    print({
+      "action": "didUpdateProvider",
+      "provider": "${provider.name ?? provider.runtimeType}",
+    });
   }
 }
