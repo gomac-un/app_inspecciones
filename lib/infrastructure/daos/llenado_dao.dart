@@ -1,5 +1,22 @@
+import 'package:collection/collection.dart';
+import 'package:dartz/dartz.dart';
+import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/bloque.dart'
+    as bloque_dom;
+import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/bloques.dart'
+    as bl_dom;
+import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/preguntas/preguntas.dart'
+    as pr_dom;
+import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/titulo.dart'
+    as tit_dom;
+import 'package:inspecciones/features/llenado_inspecciones/domain/metarespuesta.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
+import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:intl/intl.dart';
 import 'package:moor/moor.dart';
+
+import '../../injection.dart';
 
 part 'llenado_dao.g.dart';
 
@@ -28,7 +45,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
   // this constructor is required so that the main database can create an instance
   // of this object.
   LlenadoDao(MoorDatabase db) : super(db);
-/*
+
   /// Trae una lista con todos los cuestionarios disponibles para un activo,
   /// incluyendo los cuestionarios que son asignados a todos los activos
   Future<List<Cuestionario>> cuestionariosParaActivo(int activo) async {
@@ -79,23 +96,37 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
   }
 
   /// Devuelve los titulos que pertenecen al cuestionario
-  Future<List<BloqueConTitulo>> getTitulos(int cuestionarioId) {
+  Future<List<tit_dom.Titulo>> getTitulos(int cuestionarioId) {
     final query = select(titulos).join([
       innerJoin(bloques, bloques.id.equalsExp(titulos.bloqueId)),
     ])
       ..where(bloques.cuestionarioId.equals(cuestionarioId));
     return query
-        .map((row) => BloqueConTitulo(
-              row.readTable(bloques),
-              row.readTable(titulos),
+        .map((row) => tit_dom.Titulo(
+              titulo: row.readTable(titulos).titulo,
+              descripcion: row.readTable(titulos).descripcion,
             ))
         .get();
   }
 
+  MetaRespuesta getMetaRespuesta(Respuesta respuesta) => MetaRespuesta(
+        criticidadInspector: respuesta.calificacion,
+        observaciones: respuesta.observacion,
+        reparada: respuesta.reparado,
+        observacionesReparacion: respuesta.observacionReparacion,
+        fotosBase: respuesta.fotosBase.toList(),
+        fotosReparacion: respuesta.fotosReparacion.toList(),
+      );
+
+  pr_dom.OpcionDeRespuesta createOpcionDeRespuesta(OpcionDeRespuesta opcion) =>  pr_dom.OpcionDeRespuesta(
+              id: opcion.id,
+              titulo: opcion.texto,
+              descripcion: "",
+              criticidad: opcion.criticidad);
+
   /// Devuelve las preguntas numericas de la inspección, con la respuesta que
   /// se haya insertado y las criticidadesNumericas (rangos de criticidad)
-  Future<List<BloqueConPreguntaNumerica>> getPreguntaNumerica(
-      int cuestionarioId,
+  Future<List<bl_dom.PreguntaNumerica>> getPreguntaNumerica(int cuestionarioId,
 
       /// Usada para obtener las respuestas del inspector a la pregunta
       [int? inspeccionId]) async {
@@ -120,27 +151,31 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
               row.readTable(criticidadesNumericas),
             ))
         .get();
-
     return Future.wait(
       groupBy<Tuple4<Bloque, Pregunta, Respuesta, CriticidadesNumerica>,
           Pregunta>(res, (e) => e.value2).entries.map((entry) async {
-        return BloqueConPreguntaNumerica(
-          // todas deberian tener el mismo bloque, TODO: comprobar esto
-          entry.value.first.value1,
-          PreguntaNumerica(
-            entry.key,
-
-            /// Se cargan las criticidades para poder calcular la criticidad total de la pregunta de acuerdo a la respuesta.
-            entry.value.map((item) => item.value4).toList(),
-          ),
-          await getRespuestaDePreguntaNumerica(entry.key, inspeccionId),
-        );
+        return bl_dom.PreguntaNumerica(
+            entry.value
+                .map((item) => bl_dom.RangoDeCriticidad(item.value4.valorMinimo,
+                    item.value4.valorMaximo, item.value4.criticidad))
+                .toList(),
+            id: entry.key.id,
+            //Todo: modificar la bd para que sean calificables.
+            calificable: entry.key.esCondicional,
+            criticidad: entry.key.criticidad,
+            posicion:
+                '${entry.key.eje} / ${entry.key.lado} / ${entry.key.posicionZ}',
+            titulo: entry.key.titulo,
+            unidades: '', //TODO: añadir en la creación
+            descripcion: '',
+            respuesta:
+                await getRespuestaDePreguntaNumerica(entry.key, inspeccionId));
       }),
     );
   }
 
   /// Devuelve la respuesta a [pregunta] de tipo numerica.
-  Future<RespuestasCompanion> getRespuestaDePreguntaNumerica(
+  Future<bl_dom.RespuestaNumerica?> getRespuestaDePreguntaNumerica(
       Pregunta pregunta, int? inspeccionId) async {
     ///Si la inspeccion es nueva entonces no existe una respuesta y se envia nulo
     ///para que el control cree una por defecto
@@ -151,19 +186,20 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
             u.preguntaId.equals(pregunta.id) &
             u.inspeccionId.equals(inspeccionId),
       );
-    final res = await query.get();
-
-    ///Si no han contestado la pregunta se envia nulo para que el control cree una por defecto
-    if (res.isEmpty) return null;
-
-    final respuesta = res.last;
-    return respuesta.toCompanion(true);
+    //Se supone que solo debe haber una respuesta por [pregunta] numerica para [inspeccionId]
+    final res = await query.getSingleOrNull();
+    if (res != null) {
+      return bl_dom.RespuestaNumerica(getMetaRespuesta(res),
+          respuestaNumerica: res.valor);
+    }
+    return null;
   }
 
   /// Devuelve las preguntas de tipo selección asociadas al cuestionario con id=[cuestionarioId]
   /// Junto con sus opciones de respuesta y las respuestas que haya insertado el inspector.
-  Future<List<BloqueConPreguntaSimple>> getPreguntasSimples(int cuestionarioId,
-      [int inspeccionId]) async {
+  Future<List<pr_dom.PreguntaDeSeleccion>> getPreguntasSeleccionSimple(
+      int cuestionarioId,
+      [int? inspeccionId]) async {
     final opcionesPregunta = alias(opcionesDeRespuesta, 'op');
 
     final query = select(preguntas).join([
@@ -176,45 +212,34 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
 
           /// Carga solo las preguntas unicaRespuesta/multipleRespuesta
           (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)));
-
     final res = await query
-        .map((row) => {
-              'bloque': row.readTable(bloques),
-              'pregunta': row.readTable(preguntas),
-              'opcionesDePregunta': row.readTable(opcionesPregunta)
-            })
+        .map((row) => Tuple3(
+              row.readTable(bloques),
+              row.readTable(preguntas),
+              row.readTable(opcionesPregunta),
+            ))
         .get();
 
     return Future.wait(
-      groupBy(res, (e) => e['pregunta']).entries.map((entry) async {
-        return BloqueConPreguntaSimple(
-          entry.value.first['bloque'] as Bloque,
-          PreguntaConOpcionesDeRespuesta(
-            entry.key as Pregunta,
-            entry.value
-                .map((item) => item['opcionesDePregunta'] as OpcionDeRespuesta)
-                .toList(),
-          ),
-          respuesta:
-              await getRespuestaDePregunta(entry.key as Pregunta, inspeccionId),
-          //TODO: mirar si se puede optimizar para no realizar subconsulta por cada pregunta
-        );
+      groupBy<Tuple3<Bloque, Pregunta, OpcionDeRespuesta>, Pregunta>(
+          res, (e) => e.value2).entries.map((entry) async {
+        final respuestas =
+            await getRespuestaDePreguntaSimple(entry.key, inspeccionId);
+        if (entry.key.tipo == TipoDePregunta.multipleRespuesta) {
+          return getPreguntaMultiple(entry.key, entry.value, respuestas);
+        }
+        //TODO: OPCIÓN DE RESPUESTA NO TIENE DESCRIPCIÓN
+        return getPreguntaUnica(entry.key, entry.value, respuestas);
       }),
     );
   }
 
   /// Devuelve las respuestas que haya dado el inspector a [pregunta], es [List<RespuestaConOpcionesDeRespuesta>]
   /// porque en el caso de las preguntas multiples, en la bd puede haber más d euna respuesta por pregunta
-  Future<List<RespuestaConOpcionesDeRespuesta>> getRespuestaDePregunta(
-      Pregunta pregunta, int inspeccionId) async {
-    //TODO: mirar el caso donde se presenten varias respuestas a una preguntaXinspeccion
-    // Hasta el momento se está dando el caso para las preguntas de tipo multiple,
-    // en donde el par preguntaId-inspeccionId
-    // No es único, hasta el momento no genera ningún problema, pero
-    ///Si la inspeccion es nueva entonces no existe una respuesta y se envia nulo
-    ///para que el control cree una por defecto
+  Future<List<Tuple2<Respuesta, OpcionDeRespuesta>>>
+      getRespuestaDePreguntaSimple(Pregunta pregunta, int? inspeccionId) async {
     if (inspeccionId == null) {
-      return [RespuestaConOpcionesDeRespuesta(null, null)];
+      return [];
     }
     final query = select(respuestas).join([
       leftOuterJoin(
@@ -227,27 +252,92 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
             respuestas.inspeccionId.equals(inspeccionId), //seleccion multiple
       );
     final res = await query
-        .map((row) =>
-            [row.readTable(respuestas), row.readTable(opcionesDeRespuesta)])
+        .map((row) => Tuple2(
+              row.readTable(respuestas),
+              row.readTable(opcionesDeRespuesta),
+            ))
         .get();
 
     ///Si existe la inspeccion y no se ha contestado la pregunta, se envia nulo
     ///para que el control cree una por defecto
-    if (res.isEmpty) return [RespuestaConOpcionesDeRespuesta(null, null)];
-    return res
-        .map(
-          (e) => RespuestaConOpcionesDeRespuesta(
-            (e[0] as Respuesta).toCompanion(true),
-            e[1] as OpcionDeRespuesta,
-          ),
-        )
-        .toList();
+    if (res.isEmpty) return [];
+
+    return res;
+  }
+
+  
+  bl_dom.PreguntaDeSeleccionMultiple getPreguntaMultiple(
+      Pregunta pregunta,
+      List<Tuple3<Bloque, Pregunta, OpcionDeRespuesta>> opciones,
+      List<Tuple2<Respuesta, OpcionDeRespuesta>> respuestas) {
+    return bl_dom.PreguntaDeSeleccionMultiple(
+      opciones
+          .map((opcion) => createOpcionDeRespuesta(opcion.value3))
+          .toList(),
+      opciones.map((op) {
+        final respuesta = respuestas
+            .firstWhereOrNull((element) => element.value2.id == op.value3.id);
+        return bl_dom.SubPreguntaDeSeleccionMultiple(
+          createOpcionDeRespuesta(op.value3),
+          id: 3,
+          titulo: pregunta.titulo,
+          descripcion: pregunta.descripcion,
+          criticidad: pregunta.criticidad,
+          posicion:
+              '${pregunta.eje} / ${pregunta.lado} / ${pregunta.posicionZ}',
+          calificable: false,
+          respuesta: respuesta == null
+              ? bl_dom.SubRespuestaDeSeleccionMultiple(MetaRespuesta.vacia(),
+                  estaSeleccionada: false)
+              : bl_dom.SubRespuestaDeSeleccionMultiple(
+                  getMetaRespuesta(respuesta.value1),
+                  estaSeleccionada: true),
+        );
+      }).toList(),
+      id: pregunta.id,
+      calificable: pregunta.esCondicional,
+      criticidad: pregunta.criticidad,
+      posicion: '${pregunta.eje} / ${pregunta.lado} / ${pregunta.posicionZ}',
+      titulo: pregunta.titulo,
+      descripcion: '',
+    );
+  }
+
+  bl_dom.PreguntaDeSeleccionUnica getPreguntaUnica(
+      Pregunta pregunta,
+      List<Tuple3<Bloque, Pregunta, OpcionDeRespuesta>> opciones,
+      List<Tuple2<Respuesta, OpcionDeRespuesta>> respuestas) {
+    final respuesta = respuestas.first.value1;
+    final opcion = respuestas.first.value2;
+    final metaRespuesta = getMetaRespuesta(respuesta);
+    return pr_dom.PreguntaDeSeleccionUnica(
+      opciones
+          .map((e) => createOpcionDeRespuesta(e.value3))
+          .toList(),
+      id: pregunta.id,
+      calificable: pregunta.esCondicional,
+      criticidad: pregunta.criticidad,
+      posicion: '${pregunta.eje} / ${pregunta.lado} / ${pregunta.posicionZ}',
+      titulo: pregunta.titulo, //TODO: añadir en la creación
+      descripcion: '',
+      respuesta: respuestas.isEmpty
+          ? null
+          : //Se supone que para las unicas solo debe haber una respuesta.
+          bl_dom.RespuestaDeSeleccionUnica(
+              metaRespuesta,
+              bl_dom.OpcionDeRespuesta(
+                  id: opcion.id,
+                  titulo: opcion.texto,
+                  descripcion: '',
+                  criticidad: opcion.criticidad),
+            ),
+    );
   }
 
   /// Devuelve las cuadriculas de la inspección con sus respectivas preguntas y opciones de respuesta.
   /// También incluye las respuestas que ha dado el inspector.
-  Future<List<BloqueConCuadricula>> getCuadriculas(int cuestionarioId,
-      [int inspeccionId]) async {
+  Future<List<bl_dom.Cuadricula>> getCuadriculas(int cuestionarioId,
+      [int? inspeccionId]) async {
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
       innerJoin(cuadriculasDePreguntas,
@@ -259,49 +349,51 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     //parteDeCuadriculaUnica
 
     final res = await query
-        .map((row) => {
-              'pregunta': row.readTable(preguntas),
-              'bloque': row.readTable(bloques),
-              'cuadricula': row.readTable(cuadriculasDePreguntas),
-            })
+        .map((row) => Tuple3(row.readTable(preguntas), row.readTable(bloques),
+            row.readTable(cuadriculasDePreguntas)))
         .get();
-
     return Future.wait(
-      groupBy(res, (e) => e['bloque'] as Bloque).entries.map((entry) async {
-        return BloqueConCuadricula(
-          entry.key,
-
-          /// Carga todas las preguntas y opciones de respuesta de la cuadricula
-          CuadriculaDePreguntasConOpcionesDeRespuesta(
-            entry.value.first['cuadricula'] as CuadriculaDePreguntas,
-            await respuestasDeCuadricula(
-                (entry.value.first['cuadricula'] as CuadriculaDePreguntas).id),
-          ),
-
-          /// Estas son las respuestas que ha dado el inspector. Incluye la pregunta y la respuesta seleccionada
-          preguntasRespondidas: await Future.wait(entry.value.map(
-            (item) async => PreguntaConRespuestaConOpcionesDeRespuesta(
-                item['pregunta'] as Pregunta,
-                await getRespuestaDePregunta(
-                    item['pregunta'] as Pregunta, inspeccionId)),
-          )),
-        );
+      groupBy<Tuple3<Pregunta, Bloque, CuadriculaDePreguntas>, Bloque>(
+          res, (e) => e.value2).entries.map((entry) async {
+        // Todas las preguntas del bloque van a ser del mismo tipo.
+        final tipo = entry.value.first.value1.tipo;
+        final respuestas =
+            await respuestasDeCuadricula(entry.value.first.value3.id);
+        if (tipo == TipoDePregunta.parteDeCuadriculaUnica) {
+          return getCuadriculaDeSeleccionUnica( entry.value, respuestas);
+        }
+        //TODO: OPCIÓN DE RESPUESTA NO TIENE DESCRIPCIÓN
+        return getPreguntaUnica(entry.key, entry.value, respuestas);
       }),
     );
   }
-
+  bl_dom.CuadriculaDeSeleccionUnica getCuadriculaDeSeleccionUnica(List<Tuple3<Pregunta, Bloque, CuadriculaDePreguntas>> value, List<pr_dom.OpcionDeRespuesta> opciones, ){
+    return bl_dom.CuadriculaDeSeleccionUnica(
+      value.map((e) => getPregunt
+      opciones,
+        id: 6,
+        titulo: "Mi pregunta cuadricula de seleccion unica",
+        descripcion: "Mi descripcion de cuadricula de seleccion unica",
+        criticidad: 1,
+        posicion: "arriba",
+        calificable: true,
+        respuesta: RespuestaDeCuadriculaDeSeleccionUnica(MetaRespuesta()),
+    )
+  }
   /// Devuelve las respuestas de la cuadricula con id=[cuadriculaId], es una lista para el caso de las cuadriculas
   /// con respuesta multiple
-  Future<List<OpcionDeRespuesta>> respuestasDeCuadricula(int cuadriculaId) {
+  Future<List<pr_dom.OpcionDeRespuesta>> respuestasDeCuadricula(int cuadriculaId) async {
     final query = select(opcionesDeRespuesta)
       ..where((or) => or.cuadriculaId.equals(cuadriculaId));
-    return query.get();
+    final res = await query.get();
+   final opciones = res.map((element) => createOpcionDeRespuesta(element)).toList();
+    return opciones;
   }
 
   /// Devuelve todos los bloques de la inspeccion del cuestionario con id=[cuestionarioId] para [activoId]
   ///
   /// Incluye los titulos y las preguntas con sus respectivas opciones de respuesta y respuestas seleccionadas
-  Future<List<IBloqueOrdenable>> cargarInspeccion(
+  Future<List<bloque_dom.Bloque>> cargarInspeccion(
       int cuestionarioId, int activoId) async {
     final inspeccion = await (select(inspecciones)
           ..where(
@@ -314,25 +406,26 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
           ))
         .getSingleOrNull();
 
+    //Todas los metodos para cargarla aceptan inspecciónId nulo.
     //! if(inspeccion==null){???}
 
-    final inspeccionId = inspeccion.id;
+    final inspeccionId = inspeccion?.id;
 
-    final List<BloqueConTitulo> titulos = await getTitulos(cuestionarioId);
+    final List<tit_dom.Titulo> titulos = await getTitulos(cuestionarioId);
 
     /// De selección multiple o unica
-    final List<BloqueConPreguntaSimple> preguntasSimples =
-        await getPreguntasSimples(cuestionarioId, inspeccionId);
+    final List<bl_dom.PreguntaDeSeleccion> preguntasSeleccion =
+        await getPreguntasSeleccionSimple(cuestionarioId, inspeccionId);
 
     final List<BloqueConCuadricula> cuadriculas =
         await getCuadriculas(cuestionarioId, inspeccionId);
 
-    final List<BloqueConPreguntaNumerica> numerica =
+    final List<bl_dom.PreguntaNumerica> numerica =
         await getPreguntaNumerica(cuestionarioId, inspeccionId);
 
     return [
       ...titulos,
-      ...preguntasSimples,
+      ...preguntasSeleccion,
       ...cuadriculas,
       ...numerica,
     ];
@@ -340,7 +433,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
 
   /// Crea id para una inspección con el formato 'yyMMddHHmm[activo]'
   int generarId(int activo) {
-    final fechaFormateada = DateFormat("yyMMddHHmm").format(DateTime.now());
+    final fechaFormateada = DateFormat("yyMMddHHmmss").format(DateTime.now());
     return int.parse('$fechaFormateada$activo');
   }
 
@@ -371,11 +464,16 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     return (select(inspecciones)..where((i) => i.id.equals(id))).getSingle();
   }
 
+  Future<Inspeccion?> upsertInspeccion(
+      {int? inspeccionId, int? activoId, Cuestionario? cuestionario}) async {
+    return null;
+  }
+
   Future<int> guardarRespuesta(
-    dom.Respuesta respuesta,
+    bl_dom.Respuesta respuesta,
     int inspeccionId, {
     double? valor,
-    dominio.OpcionDeRespuesta? opcion,
+    bl_dom.OpcionDeRespuesta? opcion,
   }) async {
     final fotosManager = getIt<FotosRepository>();
     final fotosBaseProcesadas = await fotosManager.organizarFotos(
@@ -418,7 +516,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
   }
 
   Future<List<int>> procesarRespuestaMultiple(
-      dom.RespuestaDeSeleccionMultiple respuesta, int inspeccionId) async {
+      bl_dom.RespuestaDeSeleccionMultiple respuesta, int inspeccionId) async {
     final ids = await Future.wait(respuesta.opciones
         .where((subResp) => subResp.estaSeleccionada)
         .map((subResp) async {
@@ -433,9 +531,8 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
 
   /// Realiza el guardado de la inspección al presionar el botón guardar o finalizar en el llenado.
   Future guardarInspeccion(
-    List<dom.Respuesta> respuestasForm,
-    int inspeccionId,
-  ) async {
+      List<bl_dom.Respuesta> respuestasForm, int inspeccionId,
+      {int? activoId, Cuestionario? cuestionario}) async {
     return transaction(() async {
       /*  /// Se redondea para evitar que se guarde en la bd un montón de decimales.
       final mod = pow(10.0, 2);
@@ -461,28 +558,32 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
                 criticidadReparacion: Value(critiRepaRound),
               ),
       ); */
+      final inspeccion = upsertInspeccion(
+          inspeccionId: inspeccionId,
+          activoId: activoId,
+          cuestionario: cuestionario);
 
       /// Se comienza a procesar las respuestas a cada pregunta.
       final List<int> respuestasId = [];
-      await Future.forEach<dom.Respuesta>(respuestasForm, (resp) async {
-        if (resp is dom.RespuestaDeSeleccionUnica) {
+      await Future.forEach<bl_dom.Respuesta>(respuestasForm, (resp) async {
+        if (resp is bl_dom.RespuestaDeSeleccionUnica) {
           final id = await guardarRespuesta(resp, inspeccionId,
               opcion: resp.opcionSeleccionada);
           respuestasId.add(id);
-        } else if (resp is dom.RespuestaNumerica) {
+        } else if (resp is bl_dom.RespuestaNumerica) {
           final id = await guardarRespuesta(resp, inspeccionId,
               valor: resp.respuestaNumerica);
           respuestasId.add(id);
-        } else if (resp is dom.RespuestaDeSeleccionMultiple) {
+        } else if (resp is bl_dom.RespuestaDeSeleccionMultiple) {
           final ids = await procesarRespuestaMultiple(resp, inspeccionId);
           respuestasId.addAll(ids);
-        } else if (resp is dom.RespuestaDeCuadriculaDeSeleccionUnica) {
+        } else if (resp is bl_dom.RespuestaDeCuadriculaDeSeleccionUnica) {
           final ids = await Future.wait(resp.respuestas.map((subResp) async {
             return await guardarRespuesta(subResp, inspeccionId,
                 opcion: subResp.opcionSeleccionada);
           }));
           respuestasId.addAll(ids);
-        } else if (resp is dom.RespuestaDeCuadriculaDeSeleccionMultiple) {
+        } else if (resp is bl_dom.RespuestaDeCuadriculaDeSeleccionMultiple) {
           resp.respuestas.map((e) async {
             final ids = await procesarRespuestaMultiple(e, inspeccionId);
           });
@@ -532,5 +633,5 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
             .toList(),
       );
     }).toList();
-  }*/
+  }
 }
