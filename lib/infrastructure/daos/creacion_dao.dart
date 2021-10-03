@@ -5,7 +5,7 @@ import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:moor/moor.dart';
 
-part 'creacion_dao.g.dart';
+part 'creacion_dao.moor.dart';
 
 /// Acceso a los datos de la Bd.
 ///

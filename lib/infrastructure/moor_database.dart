@@ -14,7 +14,7 @@ import 'package:path/path.dart' as path;
 export 'database/shared.dart';
 
 part 'datos_de_prueba.dart';
-part 'moor_database.g.dart';
+part 'moor_database.moor.dart';
 part 'tablas.dart';
 
 ///  Métodos de Database e inicialización de la DB

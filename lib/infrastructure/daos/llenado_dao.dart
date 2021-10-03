@@ -1,7 +1,7 @@
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:moor/moor.dart';
 
-part 'llenado_dao.g.dart';
+part 'llenado_dao.moor.dart';
 
 /// Acceso a los datos de la Bd.
 ///
