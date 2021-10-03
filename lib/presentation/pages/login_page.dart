@@ -9,88 +9,105 @@ import 'package:reactive_forms/reactive_forms.dart';
 final loadingProvider = StateProvider((ref) => false);
 
 /// Pantalla de inicio de sesión.
-class LoginPage extends ConsumerWidget {
+class LoginPage extends StatelessWidget {
   final String? from;
   const LoginPage({Key? key, this.from}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, ref) {
-    final form = ref.watch(loginControlProvider);
-
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ingreso'),
       ),
       body: SingleChildScrollView(
-        child: ReactiveForm(
-            formGroup: form,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
             child: Card(
-              child: Column(
-                children: [
-                  Image.asset("assets/images/logo-gomac-texto.png"),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  ReactiveTextField(
-                    textInputAction: TextInputAction.next,
-                    validationMessages: (control) =>
-                        {ValidationMessage.required: 'Ingrese el usuario'},
-                    formControlName: 'usuario',
-                    decoration: const InputDecoration(
-                      labelText: 'Usuario',
-                      fillColor: Colors.transparent,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  ReactiveTextField(
-                    textInputAction: TextInputAction.done,
-                    validationMessages: (control) =>
-                        {ValidationMessage.required: 'Ingrese la contraseña'},
-                    formControlName: 'password',
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Contraseña',
-                      fillColor: Colors.transparent,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 15,
-                  ),
-
-                  /// Activa el botón de iniciar sesión solo cuando se hayan llenado los dos campos.
-                  ReactiveFormConsumer(
-                    builder: (context, _, child) {
-                      return Consumer(builder: (context, ref, _) {
-                        final loadingCtrl = ref.watch(loadingProvider);
-                        final isLoading = loadingCtrl.state;
-                        return ElevatedButton(
-                          onPressed: !form.valid || isLoading
-                              ? null
-                              : () => form.submit(
-                                    onStart: () => loadingCtrl.state = true,
-                                    onFinish: () => loadingCtrl.state = false,
-                                    onSuccess: () {
-                                      if (from != null) context.go(from!);
-                                    },
-                                    onFailure: (failure) =>
-                                        _onFailure(context, ref.read, failure),
-                                  ),
-                          child: isLoading
-                              ? const SizedBox.square(
-                                  dimension: 20,
-                                  child: CircularProgressIndicator())
-                              : const Text('Entrar'),
-                        );
-                      });
-                    },
-                  ),
-
-                  const SizedBox(
-                    height: 15,
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: LoginForm(from: from),
               ),
-            )),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LoginForm extends ConsumerWidget {
+  final String? from;
+  const LoginForm({Key? key, this.from}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, ref) {
+    final form = ref.watch(loginControlProvider);
+    return ReactiveForm(
+      formGroup: form,
+      child: Column(
+        children: [
+          Image.asset("assets/images/logo-gomac-texto.png"),
+          const SizedBox(
+            height: 15,
+          ),
+          ReactiveTextField(
+            textInputAction: TextInputAction.next,
+            validationMessages: (control) =>
+                {ValidationMessage.required: 'Ingrese el usuario'},
+            formControlName: 'usuario',
+            decoration: const InputDecoration(
+              labelText: 'Usuario',
+              fillColor: Colors.transparent,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ReactiveTextField(
+            textInputAction: TextInputAction.done,
+            validationMessages: (control) =>
+                {ValidationMessage.required: 'Ingrese la contraseña'},
+            formControlName: 'password',
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'Contraseña',
+              fillColor: Colors.transparent,
+            ),
+          ),
+          const SizedBox(
+            height: 15,
+          ),
+
+          /// Activa el botón de iniciar sesión solo cuando se hayan llenado los dos campos.
+          ReactiveFormConsumer(
+            builder: (context, _, child) {
+              return Consumer(builder: (context, ref, _) {
+                final loadingCtrl = ref.watch(loadingProvider);
+                final isLoading = loadingCtrl.state;
+                return ElevatedButton(
+                  onPressed: !form.valid || isLoading
+                      ? null
+                      : () => form.submit(
+                            onStart: () => loadingCtrl.state = true,
+                            onFinish: () => loadingCtrl.state = false,
+                            onSuccess: () {
+                              if (from != null) context.go(from!);
+                            },
+                            onFailure: (failure) =>
+                                _onFailure(context, ref.read, failure),
+                          ),
+                  child: isLoading
+                      ? const SizedBox.square(
+                          dimension: 20, child: CircularProgressIndicator())
+                      : const Text('Entrar'),
+                );
+              });
+            },
+          ),
+
+          const SizedBox(
+            height: 15,
+          ),
+        ],
       ),
     );
   }

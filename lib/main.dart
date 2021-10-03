@@ -53,23 +53,37 @@ Future<void> _ejecutarAppConRiverpod() async {
   if (!kIsWeb) await FlutterDownloader.initialize(debug: kDebugMode);
   final prefs = await SharedPreferences.getInstance();
 
+  final webOverrides = [
+    apiUriProvider.overrideWithValue(
+      Uri(
+        scheme: 'http',
+        host: 'localhost',
+        port: 8000,
+        pathSegments: ['inspecciones', 'api', 'v1'],
+      ),
+    )
+  ];
+  final androidOverrides = [
+    apiUriProvider.overrideWithValue(
+      Uri(
+        scheme: 'http',
+        host: '10.0.2.2',
+        port: 8000,
+        pathSegments: ['inspecciones', 'api', 'v1'],
+      ),
+    ),
+    if (!kIsWeb)
+      directorioDeDatosProvider.overrideWithValue(await getDirectorioDeDatos()),
+    fileSystemProvider.overrideWithValue(const LocalFileSystem()),
+    //TODO: mirar si se puede usar un memoryFileSystem para web
+  ];
+
   runApp(
     ProviderScope(
       overrides: [
-        apiUriProvider.overrideWithValue(
-          Uri(
-            scheme: 'http',
-            host: '10.0.2.2',
-            port: 8000,
-            pathSegments: ['inspecciones', 'api', 'v1'],
-          ),
-        ),
         sharedPreferencesProvider.overrideWithValue(prefs),
-        fileSystemProvider.overrideWithValue(
-            const LocalFileSystem()), //TODO: mirar si se puede usar un memoryFileSystem para web
-        if (!kIsWeb)
-          directorioDeDatosProvider
-              .overrideWithValue(await getDirectorioDeDatos()),
+        if (kIsWeb) ...webOverrides,
+        if (!kIsWeb) ...androidOverrides,
       ],
       observers: [RiverpodLogger()],
       child: RemoveFocusOnTap(
