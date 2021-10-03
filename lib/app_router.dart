@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/presentation/pages/cuestionarios_screen.dart';
+import 'package:inspecciones/presentation/pages/history_screen.dart';
 import 'package:inspecciones/presentation/pages/sincronizacion_page.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'application/auth/auth_service.dart';
 import 'features/llenado_inspecciones/domain/identificador_inspeccion.dart';
@@ -10,6 +12,7 @@ import 'features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
 import 'presentation/pages/borradores_screen.dart';
 import 'presentation/pages/login_page.dart';
 import 'theme.dart';
+import 'utils.dart';
 
 class AppRouter extends ConsumerWidget {
   final LoginInfo loginInfo;
@@ -47,6 +50,14 @@ class AppRouter extends ConsumerWidget {
         pageBuilder: (context, state) => MaterialPage<void>(
           key: state.pageKey,
           child: const BorradoresPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/history',
+        name: 'history',
+        pageBuilder: (context, state) => MaterialPage<void>(
+          key: state.pageKey,
+          child: const HistoryInspeccionesPage(),
         ),
       ),
       GoRoute(
@@ -93,6 +104,10 @@ class AppRouter extends ConsumerWidget {
       return null;
     },
     refreshListenable: loginInfo,
+    observers: [
+      ClearFocusOnPop(),
+      SentryNavigatorObserver(),
+    ],
   );
 
   @override
@@ -103,7 +118,6 @@ class AppRouter extends ConsumerWidget {
       theme: ref.watch(themeProvider),
       routeInformationParser: _router.routeInformationParser,
       routerDelegate: _router.routerDelegate,
-//const LoginPage(), //const CuestionariosPage(),  //const LoginPage(), //const EdicionFormPage(),
     );
   }
 }

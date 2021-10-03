@@ -24,9 +24,7 @@ class BorradoresPage extends ConsumerWidget {
         actions: [
           IconButton(
               icon: const Icon(Icons.history),
-              onPressed: () {
-                //context.router.push(const HistoryRoute());
-              }),
+              onPressed: () => context.goNamed("history")),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.asset(

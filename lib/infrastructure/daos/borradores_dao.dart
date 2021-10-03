@@ -113,6 +113,10 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
         );
   }
 
+  Future<void> eliminarHistorialEnviados() async {
+    //TODO: implement
+  }
+
   /// Elimina la inspección donde inspeccion.id = [borrador.inspeccion.id] y en cascada las respuestas asociadas
   Future eliminarBorrador(Borrador borrador) async {
     await (delete(inspecciones)
