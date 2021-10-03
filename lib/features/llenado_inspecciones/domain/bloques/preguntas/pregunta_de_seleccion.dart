@@ -9,6 +9,7 @@ class PreguntaDeSeleccion<T extends Respuesta> extends Pregunta<T> {
     required int id,
     required String titulo,
     required String descripcion,
+    required int nOrden,
     required int criticidad,
     required String posicion,
     required bool calificable,
@@ -21,5 +22,6 @@ class PreguntaDeSeleccion<T extends Respuesta> extends Pregunta<T> {
           posicion: posicion,
           respuesta: respuesta,
           calificable: calificable,
+          nOrden: nOrden,
         );
 }

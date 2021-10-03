@@ -8,20 +8,21 @@ class PreguntaNumerica extends Pregunta<RespuestaNumerica> {
     required int id,
     required String titulo,
     required String descripcion,
+    required int nOrden,
     required int criticidad,
     required String posicion,
     required bool calificable,
     RespuestaNumerica? respuesta,
     required this.unidades,
   }) : super(
-          id: id,
-          respuesta: respuesta,
-          titulo: titulo,
-          descripcion: descripcion,
-          criticidad: criticidad,
-          posicion: posicion,
-          calificable: calificable,
-        );
+            id: id,
+            respuesta: respuesta,
+            titulo: titulo,
+            descripcion: descripcion,
+            criticidad: criticidad,
+            posicion: posicion,
+            calificable: calificable,
+            nOrden: nOrden);
 }
 
 class RangoDeCriticidad {

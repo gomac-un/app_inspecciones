@@ -18,9 +18,10 @@ class Pregunta<T extends Respuesta> extends Bloque {
     required this.id,
     required String titulo,
     required String descripcion,
+    required int nOrden,
     required this.criticidad,
     required this.posicion,
     required this.calificable,
     this.respuesta,
-  }) : super(titulo: titulo, descripcion: descripcion);
+  }) : super(titulo: titulo, descripcion: descripcion, nOrden: nOrden);
 }

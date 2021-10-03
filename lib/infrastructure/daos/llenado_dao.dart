@@ -102,6 +102,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
         .map((row) => tit_dom.Titulo(
               titulo: row.readTable(titulos).titulo,
               descripcion: row.readTable(titulos).descripcion,
+              nOrden: row.readTable(bloques).nOrden,
             ))
         .get();
   }
@@ -166,6 +167,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
             titulo: entry.key.titulo,
             unidades: '', //TODO: añadir en la creación
             descripcion: '',
+            nOrden: entry.value.first.value1.nOrden,
             respuesta:
                 await getRespuestaDePreguntaNumerica(entry.key, inspeccionId));
       }),
@@ -223,16 +225,18 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
           res, (e) => e.value2).entries.map((entry) async {
         if (entry.key.tipo == TipoDePregunta.multipleRespuesta) {
           return getPreguntaDeSeleccionMultiple(entry.key,
-              entry.value.map((e) => e.value3).toList(), inspeccionId);
+              entry.value.map((e) => e.value3).toList(), inspeccionId,
+              nOrden: entry.value.first.value1.nOrden);
         }
         //TODO: OPCIÓN DE RESPUESTA NO TIENE DESCRIPCIÓN
         return await getPreguntaDeSeleccionUnica(
-            entry.key, entry.value.map((e) => e.value3).toList(), inspeccionId);
+            entry.key, entry.value.map((e) => e.value3).toList(), inspeccionId,
+            nOrden: entry.value.first.value1.nOrden);
       }),
     );
   }
 
-  /// Devuelve las respuestas que haya dado el inspector a [pregunta], es [List<RespuestaConOpcionesDeRespuesta>]
+  /// Devuelve las respuestas que haya dado el inspector a [pregunta], es List
   /// porque en el caso de las preguntas multiples, en la bd puede haber más d euna respuesta por pregunta
   Future<List<Tuple2<Respuesta, OpcionDeRespuesta>>>
       getRespuestaDePreguntaSimple(Pregunta pregunta, int? inspeccionId) async {
@@ -264,9 +268,8 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
   }
 
   Future<bl_dom.PreguntaDeSeleccionMultiple> getPreguntaDeSeleccionMultiple(
-      Pregunta pregunta,
-      List<OpcionDeRespuesta> opciones,
-      int? inspeccionId) async {
+      Pregunta pregunta, List<OpcionDeRespuesta> opciones, int? inspeccionId,
+      {required int nOrden}) async {
     final respuestas =
         await getRespuestaDePreguntaSimple(pregunta, inspeccionId);
     return bl_dom.PreguntaDeSeleccionMultiple(
@@ -283,6 +286,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
           posicion:
               '${pregunta.eje} / ${pregunta.lado} / ${pregunta.posicionZ}',
           calificable: false,
+          nOrden: nOrden,
           respuesta: respuesta == null
               ? bl_dom.SubRespuestaDeSeleccionMultiple(MetaRespuesta.vacia(),
                   estaSeleccionada: false)
@@ -292,6 +296,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
         );
       }).toList(),
       id: pregunta.id,
+      nOrden: nOrden,
       calificable: pregunta.esCondicional,
       criticidad: pregunta.criticidad,
       posicion: '${pregunta.eje} / ${pregunta.lado} / ${pregunta.posicionZ}',
@@ -301,9 +306,8 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
   }
 
   Future<bl_dom.PreguntaDeSeleccionUnica> getPreguntaDeSeleccionUnica(
-      Pregunta pregunta,
-      List<OpcionDeRespuesta> opciones,
-      int? inspeccionId) async {
+      Pregunta pregunta, List<OpcionDeRespuesta> opciones, int? inspeccionId,
+      {required int nOrden}) async {
     final respuestas =
         await getRespuestaDePreguntaSimple(pregunta, inspeccionId);
     final respuesta = respuestas.first.value1;
@@ -315,8 +319,9 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
       calificable: pregunta.esCondicional,
       criticidad: pregunta.criticidad,
       posicion: '${pregunta.eje} / ${pregunta.lado} / ${pregunta.posicionZ}',
-      titulo: pregunta.titulo, //TODO: añadir en la creación
-      descripcion: '',
+      titulo: pregunta.titulo,
+      descripcion: '', //TODO: añadir en la creación
+      nOrden: nOrden,
       respuesta: respuestas.isEmpty
           ? null
           : //Se supone que para las unicas solo debe haber una respuesta.
@@ -373,12 +378,14 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     return bl_dom.CuadriculaDeSeleccionUnica(
       await Future.wait(value
           .map((e) async => await getPreguntaDeSeleccionUnica(
-              e.value1, opciones, inspeccionId))
+              e.value1, opciones, inspeccionId,
+              nOrden: value.first.value2.nOrden))
           .toList()),
       opciones.map((element) => createOpcionDeRespuesta(element)).toList(),
       id: value.first.value3.id,
       titulo: value.first.value3.titulo,
       descripcion: value.first.value3.descripcion,
+      nOrden: value.first.value2.nOrden,
       criticidad: 0, //TODO: no tiene criticidad /* value.first.value3., */
       posicion: "arriba", // Todo: no tiene posición
       calificable: true, //Todo: no es calificable
@@ -392,12 +399,14 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     return bl_dom.CuadriculaDeSeleccionMultiple(
       await Future.wait(value
           .map((e) async => await getPreguntaDeSeleccionMultiple(
-              e.value1, opciones, inspeccionId))
+              e.value1, opciones, inspeccionId,
+              nOrden: value.first.value2.nOrden))
           .toList()),
       opciones.map((element) => createOpcionDeRespuesta(element)).toList(),
       id: value.first.value3.id,
       titulo: value.first.value3.titulo,
       descripcion: value.first.value3.descripcion,
+      nOrden: value.first.value2.nOrden,
       criticidad: 0, //TODO: no tiene criticidad /* value.first.value3., */
       posicion: "arriba", // Todo: no tiene posición
       calificable: true, //Todo: no es calificable
