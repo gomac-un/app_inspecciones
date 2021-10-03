@@ -12,11 +12,8 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/titulo
 import 'package:inspecciones/features/llenado_inspecciones/domain/metarespuesta.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:intl/intl.dart';
 import 'package:moor/moor.dart';
-
-import '../../injection.dart';
 
 part 'llenado_dao.g.dart';
 
@@ -442,7 +439,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     final List<bl_dom.PreguntaDeSeleccion> preguntasSeleccion =
         await getPreguntasSeleccionSimple(cuestionarioId, inspeccionId);
 
-    final List<BloqueConCuadricula> cuadriculas =
+    final List<bl_dom.Cuadricula> cuadriculas =
         await getCuadriculas(cuestionarioId, inspeccionId);
 
     final List<bl_dom.PreguntaNumerica> numerica =
@@ -489,12 +486,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     return (select(inspecciones)..where((i) => i.id.equals(id))).getSingle();
   }
 
-  Future<Inspeccion?> upsertInspeccion(
-      {int? inspeccionId, int? activoId, Cuestionario? cuestionario}) async {
-    return null;
-  }
-
-  Future<int> guardarRespuesta(
+  Future guardarRespuesta(
     bl_dom.Respuesta respuesta,
     int inspeccionId, {
     double? valor,
@@ -513,10 +505,9 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     );
     const respuestaCompanion = RespuestasCompanion();
     final respuestaAInsertar = respuestaCompanion.copyWith(
-      //TODO: forma de acceder al id de la respuesta, de la pregunta y de la opción.
-      /* id: Value(respuesta.metaRespuesta.id), 
-       preguntaId: Value(respuesta.metaRespuesta.preguntaId), 
-      opcionDeRespuestaId: Value(opcion.id), */
+      //TODO: forma de acceder al id de la pregunta.
+      /* preguntaId: Value(respuesta.metaRespuesta.), */
+      opcionDeRespuestaId: opcion != null ? Value(opcion.id) : null,
       inspeccionId: Value(inspeccionId),
       fotosBase: Value(fotosBaseProcesadas),
       fotosReparacion: Value(fotosReparacionProcesadas),
@@ -528,30 +519,23 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
       valor: Value(valor),
     );
 
-    return await upsertRespuesta(respuestaAInsertar);
+    await into(respuestas).insert(respuestaAInsertar);
   }
 
-  Future<int> upsertRespuesta(RespuestasCompanion respuestaForm) async {
-    if (respuestaForm.id.present) {
-      await update(respuestas).replace(respuestaForm);
-      return respuestaForm.id.value;
-    } else {
-      return await into(respuestas).insert(respuestaForm);
-    }
+  Future deleteRespuestas(int inspeccionId) async {
+    await (delete(respuestas)
+          ..where((resp) => resp.inspeccionId.equals(inspeccionId)))
+        .go();
   }
 
-  Future<List<int>> procesarRespuestaMultiple(
+  Future procesarRespuestaMultiple(
       bl_dom.RespuestaDeSeleccionMultiple respuesta, int inspeccionId) async {
-    final ids = await Future.wait(respuesta.opciones
-        .where((subResp) => subResp.estaSeleccionada)
-        .map((subResp) async {
-      //TODO: ¿Cómo acceder a la opción de respuesta de las multiples?
-      return await guardarRespuesta(
-        subResp,
-        inspeccionId, /* opcion: subResp. */
-      );
-    }));
-    return ids;
+    respuesta.opciones
+        .where((element) =>
+            element.respuesta != null && element.respuesta!.estaSeleccionada)
+        .map((e) async => await guardarRespuesta(e.respuesta!, inspeccionId,
+            opcion: e.opcion))
+        .toList();
   }
 
   /// Realiza el guardado de la inspección al presionar el botón guardar o finalizar en el llenado.
@@ -583,54 +567,39 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
                 criticidadReparacion: Value(critiRepaRound),
               ),
       ); */
-      final inspeccion = upsertInspeccion(
-          inspeccionId: inspeccionId,
-          activoId: activoId,
-          cuestionario: cuestionario);
+      if (inspeccionId != null) {
+        await deleteRespuestas(inspeccionId);
+      }
 
       /// Se comienza a procesar las respuestas a cada pregunta.
-      final List<int> respuestasId = [];
       await Future.forEach<bl_dom.Respuesta>(respuestasForm, (resp) async {
         if (resp is bl_dom.RespuestaDeSeleccionUnica) {
-          final id = await guardarRespuesta(resp, inspeccionId,
+          await guardarRespuesta(resp, inspeccionId,
               opcion: resp.opcionSeleccionada);
-          respuestasId.add(id);
         } else if (resp is bl_dom.RespuestaNumerica) {
-          final id = await guardarRespuesta(resp, inspeccionId,
+          await guardarRespuesta(resp, inspeccionId,
               valor: resp.respuestaNumerica);
-          respuestasId.add(id);
         } else if (resp is bl_dom.RespuestaDeSeleccionMultiple) {
-          final ids = await procesarRespuestaMultiple(resp, inspeccionId);
-          respuestasId.addAll(ids);
+          await procesarRespuestaMultiple(resp, inspeccionId);
         } else if (resp is bl_dom.RespuestaDeCuadriculaDeSeleccionUnica) {
-          final ids = await Future.wait(resp.respuestas.map((subResp) async {
-            return await guardarRespuesta(subResp, inspeccionId,
-                opcion: subResp.opcionSeleccionada);
-          }));
-          respuestasId.addAll(ids);
+          resp.respuestas.map((e) async => e.respuesta != null
+              ? await guardarRespuesta(e.respuesta!, inspeccionId,
+                  opcion: e.respuesta!.opcionSeleccionada)
+              : null);
         } else if (resp is bl_dom.RespuestaDeCuadriculaDeSeleccionMultiple) {
-          resp.respuestas.map((e) async {
-            final ids = await procesarRespuestaMultiple(e, inspeccionId);
-          });
+          resp.respuestas.map((e) async => e.respuesta != null
+              ? await procesarRespuestaMultiple(e.respuesta!, inspeccionId)
+              : null);
         } else {
           throw (Exception('Tipo de respuesta no reconocido'));
         }
       });
-
-      /// Se eliminan de la bd las respuestas que hayan sido deseleccionadas.
-      ///
-      /// Pr ejemplo, en caso de las multiples, se puede elegir una opción en una ocasión y luego deseleccionarla, en este caso, la eliminamos también de la bd
-      await (delete(respuestas)
-            ..where((resp) =>
-                resp.id.isNotIn(respuestasId) &
-                resp.inspeccionId.equals(inspeccionId)))
-          .go();
     });
   }
 
   // funciones para subir al server
   /// Método no usado por ahora
-  Future<List<RespuestaConOpcionesDeRespuesta2>> getRespuestasDeInspeccion(
+  /* Future<List<RespuestaConOpcionesDeRespuesta2>> getRespuestasDeInspeccion(
       Inspeccion inspeccion) async {
     final query = select(respuestas).join([
       leftOuterJoin(
@@ -658,14 +627,5 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
             .toList(),
       );
     }).toList();
-  }
-}
-
-extension PregutnaFromDataClass on bl_dom.Pregunta {
-  Pregunta fromDataClass(
-          Pregunta pregunta,
-          List<Tuple3<Bloque, Pregunta, OpcionDeRespuesta>> opciones,
-          List<Tuple2<Respuesta, OpcionDeRespuesta>> respuestas) =>
-      firstWhere((_) => true,
-          orElse: () => const PreguntaConOpcionesDeRespuestaCompanion.vacio());
+  } */
 }
