@@ -60,6 +60,7 @@ class SincronizacionPage extends ConsumerWidget {
                   steps: [
                     for (final step in sincronizacionNotifier.steps)
                       Step(
+                        // ignore: invalid_use_of_protected_member
                         state: step.state.map(
                             initial: (_) => StepState.indexed,
                             inProgress: (_) => StepState.editing,

@@ -54,7 +54,7 @@ void main() {
   late List<SubSistema> subSistemas;
   late CreacionFormController controller;
   late PreguntasCompanion datosIniciales;
-  late Cuestionario c;
+
   setUp(() async {
     repository = MockCuestionariosRepository();
     /* controller = await CreacionFormController.create(repository, null); */

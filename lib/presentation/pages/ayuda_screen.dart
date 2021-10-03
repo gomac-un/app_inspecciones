@@ -68,8 +68,8 @@ class AyudaPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  leading:
-                      Icon(Icons.help, color: Theme.of(context).accentColor),
+                  leading: Icon(Icons.help,
+                      color: Theme.of(context).colorScheme.secondary),
                   isThreeLine: true,
                 ),
               ),

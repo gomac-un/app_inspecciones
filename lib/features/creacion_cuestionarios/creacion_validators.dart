@@ -29,8 +29,7 @@ AsyncValidatorFunction cuestionariosExistentes(
 
       if (cuestionariosExistentes.isNotEmpty) {
         try {
-          final y = cuestionariosExistentes
-              .firstWhere((cu) => cu.id != cuestionarioId);
+          cuestionariosExistentes.firstWhere((cu) => cu.id != cuestionarioId);
           modelosControl.setErrors({
             'yaExiste': true /*cuestionariosExistentes.first.modelo*/
           });

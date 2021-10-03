@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/cuestionario.dart';
@@ -21,7 +23,7 @@ class InicioInspeccionController {
           }
           final res = await repository.cuestionariosParaActivo(activo);
           res.fold((f) {
-            print(f); // TODO: como mostrar un error aqui?
+            developer.log(f.toString()); // TODO: como mostrar un error aqui?
             tiposDeInspeccionDisponibles.value = [];
             tipoInspeccionControl.value = null; // se necesita?
           }, (l) {

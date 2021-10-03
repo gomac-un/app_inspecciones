@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -53,7 +53,7 @@ class AuthRemoteDatasource {
           body: jsonEncode(user),
         )
         .timeout(_timeLimit);
-    print("res: ${response.statusCode}\n${response.body}");
+    developer.log("res: ${response.statusCode}\n${response.body}");
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body) as Map<String, dynamic>;
@@ -68,7 +68,7 @@ class AuthRemoteDatasource {
       //TODO: mirar los tipos de errores que pueden venir de la api. Hasta el momento se han manejado
       //los del lado cliente 401, 403 y 404. Los de tipo servidor se manejan en uno solo
       // que es cuando se lanza el serverError
-      log(response.body);
+      developer.log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
   }
@@ -79,7 +79,7 @@ class AuthRemoteDatasource {
       Map<String, dynamic> user, String token) async {
     final uri = read(apiUriProvider).appendSegment('groups');
 
-    print("req: ${uri.path}\n${jsonEncode(user)}");
+    developer.log("req: ${uri.path}\n${jsonEncode(user)}");
     final http.Response response = await http
         .post(
           uri,
@@ -90,7 +90,7 @@ class AuthRemoteDatasource {
           body: jsonEncode(user),
         )
         .timeout(_timeLimit);
-    print("res: ${response.statusCode}\n${response.body}");
+    developer.log("res: ${response.statusCode}\n${response.body}");
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body) as Map<String, dynamic>;
@@ -101,7 +101,7 @@ class AuthRemoteDatasource {
       throw PageNotFoundException();
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
-      log(response.body);
+      developer.log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
   }
@@ -109,7 +109,7 @@ class AuthRemoteDatasource {
   Future<Map<String, dynamic>> registrarApp() async {
     final uri = read(apiUriProvider).appendSegment('registro-app');
 
-    print("req: ${uri.path}");
+    developer.log("req: ${uri.path}");
     http.Response response;
 
     final hayInternet = await _hayInternet();
@@ -126,7 +126,7 @@ class AuthRemoteDatasource {
           body: jsonEncode({}),
         )
         .timeout(_timeLimit);
-    print("res: ${response.statusCode}\n${response.body}");
+    developer.log("res: ${response.statusCode}\n${response.body}");
     if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body) as Map<String, dynamic>;
     } else if (response.statusCode == 401 || response.statusCode == 403) {
@@ -136,7 +136,7 @@ class AuthRemoteDatasource {
       throw PageNotFoundException();
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
-      log(response.body);
+      developer.log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
   }
@@ -176,12 +176,12 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     if (hayInternet == ConnectivityResult.none) {
       throw InternetException();
     }
-    print("req: ${uri.path}\ntoken:$token");
+    developer.log("req: ${uri.path}\ntoken:$token");
     final http.Response response = await http.get(
       uri,
       headers: {HttpHeaders.authorizationHeader: "Token $token"},
     ).timeout(_timeLimit);
-    print("res: ${response.statusCode}\n${response.body}");
+    developer.log("res: ${response.statusCode}\n${response.body}");
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body) as Map<String, dynamic>;
@@ -192,7 +192,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
       throw PageNotFoundException();
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
-      log(response.body);
+      developer.log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
   }
@@ -208,7 +208,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     final token = read(userProvider)?.map(
         offline: (_) => throw Exception("el usuario no esta online"),
         online: (u) => u.token);
-    print("req: ${uri.path}\n${jsonEncode(data)}");
+    developer.log("req: ${uri.path}\n${jsonEncode(data)}");
     http.Response response;
 
     final hayInternet = await _hayInternet();
@@ -226,7 +226,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
           body: jsonEncode(data),
         )
         .timeout(_timeLimit);
-    print("res: ${response.statusCode}\n${response.body}");
+    developer.log("res: ${response.statusCode}\n${response.body}");
     if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body) as Map<String, dynamic>;
     } else if (response.statusCode == 401 || response.statusCode == 403) {
@@ -236,7 +236,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
       throw PageNotFoundException();
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
-      log(response.body);
+      developer.log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
   }
@@ -269,7 +269,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
       throw PageNotFoundException();
     } else {
       //TODO: mirar los tipos de errores que pueden venir de la api
-      log(response.body);
+      developer.log(response.body);
       throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
     }
   }
@@ -307,7 +307,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
 
-    log(response.body);
+    developer.log(response.body);
     if (response.statusCode > 299) {
       throw Exception("error del servidor");
     }

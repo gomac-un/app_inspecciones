@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class RiverpodLogger extends ProviderObserver {
@@ -14,12 +16,12 @@ class RiverpodLogger extends ProviderObserver {
     if (newValue is StateController<bool>) {
       newValue = newValue.state;
     }
-    print({
+    developer.log({
       "action": "didUpdateProvider",
       "provider": "${provider.name ?? provider.runtimeType}",
       "previousValue": "$previousValue",
       "newValue": "$newValue"
-    });
+    }.toString());
   }
 
   @override
@@ -28,11 +30,11 @@ class RiverpodLogger extends ProviderObserver {
     Object? value,
     ProviderContainer container,
   ) {
-    print({
+    developer.log({
       "action": "didAddProvider",
       "provider": "${provider.name ?? provider.runtimeType}",
       "value": "$value"
-    });
+    }.toString());
   }
 
   @override
@@ -40,9 +42,9 @@ class RiverpodLogger extends ProviderObserver {
     ProviderBase provider,
     ProviderContainer containers,
   ) {
-    print({
+    developer.log({
       "action": "didUpdateProvider",
       "provider": "${provider.name ?? provider.runtimeType}",
-    });
+    }.toString());
   }
 }

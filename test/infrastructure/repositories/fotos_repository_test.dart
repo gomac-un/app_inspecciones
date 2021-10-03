@@ -121,7 +121,7 @@ void main() {
   group('getFotosDeDocumento', () {
     setUp(() {
       /// tocó usar el [LocalFileSystem] ya que con [MemoryFileSystem] no se crea el directorio
-      fileSystem = LocalFileSystem();
+      fileSystem = const LocalFileSystem();
 
       directorioDeDatos = DirectorioDeDatos(
           p.join(fileSystem.systemTempDirectory.path, 'app_inspecciones'));

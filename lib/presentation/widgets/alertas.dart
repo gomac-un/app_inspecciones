@@ -85,7 +85,7 @@ void mostrarErrores(BuildContext context, AbstractControl<dynamic> form) {
         onPressed: () => {
           Navigator.pop(context),
         },
-        color: Theme.of(context).accentColor,
+        color: Theme.of(context).colorScheme.secondary,
         radius: BorderRadius.circular(10.0),
         child: const Text(
           "Aceptar",
@@ -103,7 +103,7 @@ void mostrarErrores(BuildContext context, AbstractControl<dynamic> form) {
                         /* form.errors.values.toString(), */
                         obtenerErrores(form))));
           },
-          color: Theme.of(context).accentColor,
+          color: Theme.of(context).colorScheme.secondary,
           radius: BorderRadius.circular(10.0),
           child: const Text(
             "Ver errores",
@@ -130,18 +130,18 @@ String obtenerErrores(AbstractControl<dynamic> form) {
   final errorModelo = form.errors['modelos'] as Map;
 
   texto = errorTipo != null ? '- $errorTipo' : '';
-  if (errorModelo != null) {
-    final x = errorModelo['minLength'];
-    if (x != null) {
-      texto = texto.isNotEmpty
-          ? '$texto \n- Elija por lo menos un modelo'
-          : '$texto- Elija por lo menos un modelo';
-    } else if (errorModelo['yaExiste'] != null) {
-      texto = texto.isNotEmpty
-          ? '$texto \n- Ya existe un cuestionario de este tipo para alguno de los modelos'
-          : '$texto- Ya existe un cuestionario de este tipo para alguno de los modelos';
-    }
+
+  final x = errorModelo['minLength'];
+  if (x != null) {
+    texto = texto.isNotEmpty
+        ? '$texto \n- Elija por lo menos un modelo'
+        : '$texto- Elija por lo menos un modelo';
+  } else if (errorModelo['yaExiste'] != null) {
+    texto = texto.isNotEmpty
+        ? '$texto \n- Ya existe un cuestionario de este tipo para alguno de los modelos'
+        : '$texto- Ya existe un cuestionario de este tipo para alguno de los modelos';
   }
+
   if (errorSistema != null) {
     texto =
         texto.isNotEmpty ? '$texto \n- $errorSistema' : '$texto- $errorSistema';
