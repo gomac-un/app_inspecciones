@@ -2,6 +2,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/edicion_form_page.dart';
+import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
 import '../../core/enums.dart';
 import '../../infrastructure/moor_database.dart';
@@ -19,7 +20,7 @@ class CuestionariosPage extends ConsumerWidget {
         appBar: AppBar(
           title: const Text('Cuestionarios'),
         ),
-        //drawer: const UserDrawer(),
+        drawer: const UserDrawer(),
         body: StreamBuilder<List<Cuestionario>>(
           /// Se reconstruye automaticamente con los cuestionarios que se van agregando.
           stream: viewModel.getCuestionarios(),

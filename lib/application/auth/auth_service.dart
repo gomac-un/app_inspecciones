@@ -18,11 +18,39 @@ part 'auth_state.dart';
 final authProvider = StateNotifierProvider<AuthService, AuthState>(
     (ref) => AuthService(ref.watch(userRepositoryProvider)));
 
-final userProvider = Provider<Usuario>((ref) => ref.watch(authProvider).when(
-      authenticated: (usuario, _) => usuario,
-      unauthenticated: () => throw Exception("Usuario no inicializado"),
-      loading: () => throw Exception("Usuario no inicializado"),
-    ));
+final authListenableProvider =
+    Provider((ref) => LoginInfo(ref.watch(authProvider.notifier)));
+
+final userProvider =
+    Provider<Usuario?>((ref) => ref.watch(authProvider).whenOrNull(
+          authenticated: (usuario, _) => usuario,
+        ));
+
+class LoginInfo extends ChangeNotifier {
+  final AuthService authService;
+  late final VoidCallback remover;
+
+  bool _loggedIn = false;
+
+  LoginInfo(this.authService) {
+    remover = authService.addListener((auth) {
+      auth.map(
+        authenticated: (_) => _loggedIn = true,
+        unauthenticated: (_) => _loggedIn = false,
+        loading: (_) => _loggedIn = false,
+      );
+      notifyListeners();
+    });
+  }
+
+  bool get loggedIn => _loggedIn;
+
+  @override
+  void dispose() {
+    remover();
+    super.dispose();
+  }
+}
 
 class AuthService extends StateNotifier<AuthState> {
   final UserRepository _userRepository;
@@ -52,8 +80,7 @@ class AuthService extends StateNotifier<AuthState> {
     void Function(AuthFailure failure)? onFailure,
     VoidCallback? onSuccess,
   }) async {
-    /// TODO: mover la logica de authenticateUser de el userRepository a
-    /// este bloc o a un usecase
+    /// TODO: mover la logica de authenticateUser de el userRepository aqui o a un usecase
     final autentication = await _userRepository.authenticateUser(
         credenciales: credenciales, offline: offline);
 
@@ -68,9 +95,9 @@ class AuthService extends StateNotifier<AuthState> {
         _userRepository.saveLocalUser(user: usuario);
 
         // para distinguir a los usuarios con Sentry
-        /*Sentry.configureScope(
+        Sentry.configureScope(
           (scope) => scope.user = SentryUser(id: usuario.documento),
-        );*/
+        );
 
         state = AuthState.authenticated(
           usuario: usuario,

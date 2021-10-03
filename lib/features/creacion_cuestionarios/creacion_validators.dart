@@ -29,8 +29,7 @@ AsyncValidatorFunction cuestionariosExistentes(
 
       if (cuestionariosExistentes.isNotEmpty) {
         try {
-          final y = cuestionariosExistentes
-              .firstWhere((cu) => cu.id != cuestionarioId);
+          cuestionariosExistentes.firstWhere((cu) => cu.id != cuestionarioId);
           modelosControl.setErrors({
             'yaExiste': true /*cuestionariosExistentes.first.modelo*/
           });
@@ -69,15 +68,18 @@ ValidatorFunction nuevoTipoDeInspeccionValidator(
 
 /// Validación que verifica que el valor del textfield para 'minimo' sea menor que el valor introducido en el textfield 'maximo'.
 /// En las preguntas numéricas
-ValidatorFunction verificarRango(String controlMinimo, String controlMaximo) =>
-    (AbstractControl<dynamic> control) {
-      final form = control as FormGroup;
-      final valorMinimo = form.control(controlMinimo);
-      final valorMaximo = form.control(controlMaximo);
-      if (valorMinimo.value >= valorMaximo.value) {
-        valorMaximo.setErrors({'verificarRango': true});
+ValidatorFunction verificarRango(
+        {required FormControl<double> controlMinimo,
+        required FormControl<double> controlMaximo}) =>
+    (AbstractControl<dynamic> _) {
+      if (controlMinimo.value == null || controlMaximo.value == null) {
+        controlMaximo.removeError('verificarRango');
+        return null;
+      }
+      if (controlMinimo.value! > controlMaximo.value!) {
+        controlMaximo.setErrors({'verificarRango': true});
       } else {
-        valorMaximo.removeError('verificarRango');
+        controlMaximo.removeError('verificarRango');
       }
 
       return null;

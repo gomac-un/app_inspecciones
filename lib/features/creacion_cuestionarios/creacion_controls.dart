@@ -291,18 +291,23 @@ class CreadorCriticidadesNumericasController extends CreacionController {
       fb.control<double>(_criticidadDB.criticidad.valueOrDefault(0).toDouble());
 
   @override
-  late final control = fb.group({
-    'minimo': minimoControl,
-    'maximo': maximoControl,
-    'criticidad': criticidadControl,
-  }, [
-    /// Que el valor mínimo sea menor que el introducido en máximo
-    //TODO: validación para que no se entrecrucen los rangos
-    verificarRango('minimo', 'maximo')
-  ]);
+  late final FormGroup control;
 
   CreadorCriticidadesNumericasController(
-      [this._criticidadDB = const CriticidadesNumericasCompanion()]);
+      [this._criticidadDB = const CriticidadesNumericasCompanion()]) {
+    //No se puede inicializar en el late porque si nunca se usa el control, los
+    //validators generales no se van a crear.
+    // TODO: arreglar todos los otros controls de la app que sufran de este problema
+    control = fb.group({
+      'minimo': minimoControl,
+      'maximo': maximoControl,
+      'criticidad': criticidadControl,
+    }, [
+      /// Que el valor mínimo sea menor que el introducido en máximo
+      //TODO: validación para que no se entrecrucen los rangos
+      verificarRango(controlMinimo: minimoControl, controlMaximo: maximoControl)
+    ]);
+  }
 
   @override
   CreadorCriticidadesNumericasController copy() {

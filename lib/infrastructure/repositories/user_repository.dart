@@ -4,16 +4,17 @@ import 'package:dartz/dartz.dart';
 import 'package:inspecciones/core/entities/usuario.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
+import 'package:inspecciones/infrastructure/core/network_info.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
 import 'package:inspecciones/infrastructure/repositories/credenciales.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 class UserRepository {
   final AuthRemoteDatasource _api;
   final LocalPreferencesDataSource _localPreferences;
+  final NetworkInfo _networkInfo;
 
-  UserRepository(this._api, this._localPreferences);
+  UserRepository(this._api, this._localPreferences, this._networkInfo);
 
   Future<Either<AuthFailure, Usuario>> authenticateUser(
       {required Credenciales credenciales, bool offline = false}) async {
@@ -101,8 +102,7 @@ class UserRepository {
     }
   }
 
-  Future<bool> _hayInternet() async =>
-      InternetConnectionChecker().hasConnection;
+  Future<bool> _hayInternet() => _networkInfo.isConnected;
 
   Option<DateTime> getUltimaSincronizacion() =>
       optionOf(_localPreferences.getUltimaSincronizacion());

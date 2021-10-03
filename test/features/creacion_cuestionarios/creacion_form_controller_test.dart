@@ -14,6 +14,7 @@ import 'creacion_form_controller_test.mocks.dart';
 void main() {
   late MockCuestionariosRepository repository;
   late CreacionFormController controller;
+
   setUp(() async {
     repository = MockCuestionariosRepository();
     final lista = [1, 2, 3];
@@ -65,9 +66,8 @@ void main() {
   // Esto solo ocurre cuando se crea el cuestionario y el único bloque que hay es el inicial.
   //Si se agrega un bloque, permite borrarlo, pero este caso no se da porque desde la interfaz se maneja que el primer
   //bloque no se pueda borrar.
-  //TODO: revisar porque está fallando.
   test(
-      'borrarBloque(bloque) lanza Exception cuando se intenta borrar el primer bloque sin haber agregado uno más',
+      'borrarBloque(bloque) puede eliminar el primer bloque aunque en la UI no se permita',
       () async {
     final bloqDelete = controller.controllersBloques.first;
     //act

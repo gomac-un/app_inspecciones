@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:math';
 
 import 'package:dartz/dartz.dart';
@@ -65,7 +66,7 @@ class InspeccionesRepository {
   Future<Either<InspeccionesFailure, CuestionarioInspeccionado>>
       cargarInspeccionLocal(IdentificadorDeInspeccion id) async {
     //TODO: implementar
-    print("cargando inspeccion $id");
+    developer.log("cargando inspeccion $id");
     //await Future.delayed(const Duration(seconds: 1));
     if (id.activo != "1") {
       return Right(await _inspeccionNueva());
@@ -77,7 +78,7 @@ class InspeccionesRepository {
   FEF<CuestionarioInspeccionado> cargarInspeccionRemota(
       int inspeccionId) async {
     //TODO: implementar
-    print("cargando inspeccion $inspeccionId");
+    developer.log("cargando inspeccion $inspeccionId");
     //await Future.delayed(const Duration(seconds: 1));
     if (inspeccionId == 1) {
       return Right(await _inspeccionNueva());
@@ -90,9 +91,9 @@ class InspeccionesRepository {
       {required int inspeccionId}) async {
     /* _db.llenadoDao.guardarInspeccion(respuestas,inspeccionId); */
 
-    print("guardando inspeccion $inspeccionId");
+    developer.log("guardando inspeccion $inspeccionId");
     for (final respuesta in preguntasRespondidas) {
-      print(respuesta);
+      developer.log(respuesta.toString());
     }
   }
 

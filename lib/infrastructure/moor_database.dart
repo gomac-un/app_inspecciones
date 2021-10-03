@@ -14,7 +14,7 @@ import 'package:path/path.dart' as path;
 export 'database/shared.dart';
 
 part 'datos_de_prueba.dart';
-part 'moor_database.g.dart';
+part 'moor_database.moor.dart';
 part 'tablas.dart';
 
 ///  Métodos de Database e inicialización de la DB
@@ -361,8 +361,7 @@ class MoorDatabase extends _$MoorDatabase {
           (e) => fotosRepository.convertirAUbicacionAbsolutaAppImage(
             e,
             Categoria.cuestionario,
-            identificador:
-                ((p as Map<String, dynamic>)['cuestionario'] as int).toString(),
+            identificador: (p['cuestionario'] as int).toString(),
           ),
         ),
       );
@@ -441,13 +440,7 @@ class MoorDatabase extends _$MoorDatabase {
   /// Esta funcion deberá exportar TODAS las inspecciones llenadas de manera
   /// local al servidor
   Future exportarInspeccion() async {
-    // TODO: WIP
-
-    final ins = await (select(inspecciones)
-          ..where(
-            (e) => e.id.equals(1),
-          ))
-        .get();
+    // TODO: Implementar
   }
 }
 

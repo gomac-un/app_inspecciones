@@ -36,6 +36,7 @@ ThemeData _buildGomacTheme(Brightness brightness) {
   );
 }
 
+// ignore: unused_element
 ThemeData _buildFlutterTheme(Brightness brightness) {
   switch (brightness) {
     case Brightness.dark:
@@ -46,6 +47,7 @@ ThemeData _buildFlutterTheme(Brightness brightness) {
   }
 }
 
+// ignore: unused_element
 ThemeData _buildGomacThemeFromBase(Brightness brightness) {
   final ThemeData baseTheme;
   switch (brightness) {

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
@@ -196,9 +197,13 @@ class DescargaCuestionariosNotifier extends SincronizacionStep {
 
     /// Escucha de las actualizaciones que ofrece el downloader
     late final StreamSubscription<dynamic> streamSubs;
+    late final String? taskId;
     streamSubs = port.listen((data) {
       final task = data as Task;
-      //TODO: verificar que la taskId si sea la que solicitamos
+      if (task.id != taskId) {
+        log("TaskId no esperada");
+        return;
+      }
       emitWithLog(
         state.maybeMap(
           inProgress: (state) => state.copyWith(
@@ -228,7 +233,7 @@ class DescargaCuestionariosNotifier extends SincronizacionStep {
     });
     final directorioDeDescarga = await directorioLocal();
     // Encola la descarga y el callback se encargará de cambiar el estado
-    final taskId = await _cuestionariosRepository.descargarCuestionarios(
+    taskId = await _cuestionariosRepository.descargarCuestionarios(
         directorioDeDescarga, nombreArchivoDescargado);
   }
 }
@@ -405,7 +410,6 @@ Future<String> directorioLocal() async {
   String externalStorageDirPath;
   if (Platform.isAndroid) {
     try {
-      throw Exception("a");
       externalStorageDirPath = await AndroidPathProvider.downloadsPath;
     } catch (e) {
       final directory = await getExternalStorageDirectory();

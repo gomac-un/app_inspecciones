@@ -74,34 +74,10 @@ class CreacionFormController {
   final List<CreacionController> controllersBloques;
 
   /// FormArray con todos los bloques (preguntas,cuadriculas y titulos) que se agregan al cuestionario
-  late final bloquesControl =
-      FormArray(controllersBloques.map((e) => e.control).toList());
+  late final FormArray<Map<String, Object?>> bloquesControl;
 
   /// Formgroup que agrupa todos los controles del formulario
-  late final control = FormGroup(
-    {
-      'tipoDeInspeccion': tipoDeInspeccionControl,
-      'nuevoTipoDeInspeccion': nuevoTipoDeInspeccionControl,
-      'contratista': contratistaControl,
-      'periodicidad': periodicidadControl,
-      'modelos': modelosControl,
-      'bloques': bloquesControl,
-    },
-    asyncValidators: [
-      cuestionariosExistentes(
-        datosIniciales.cuestionario.id.present
-            ? datosIniciales.cuestionario.id.value
-            : null,
-        tipoDeInspeccionControl,
-        modelosControl,
-        repository,
-      )
-    ],
-    validators: [
-      nuevoTipoDeInspeccionValidator(
-          tipoDeInspeccionControl, nuevoTipoDeInspeccionControl)
-    ],
-  );
+  late final FormGroup control;
 
   /// Informacion traida desde la base de datos
   final List<Sistema> todosLosSistemas;
@@ -195,7 +171,34 @@ class CreacionFormController {
     this.controllersBloques, {
     this.datosIniciales =
         const CuestionarioConContratistaYModelosCompanion.vacio(),
-  });
+  }) {
+    bloquesControl =
+        FormArray(controllersBloques.map((e) => e.control).toList());
+    control = FormGroup(
+      {
+        'tipoDeInspeccion': tipoDeInspeccionControl,
+        'nuevoTipoDeInspeccion': nuevoTipoDeInspeccionControl,
+        'contratista': contratistaControl,
+        'periodicidad': periodicidadControl,
+        'modelos': modelosControl,
+        'bloques': bloquesControl,
+      },
+      asyncValidators: [
+        cuestionariosExistentes(
+          datosIniciales.cuestionario.id.present
+              ? datosIniciales.cuestionario.id.value
+              : null,
+          tipoDeInspeccionControl,
+          modelosControl,
+          repository,
+        )
+      ],
+      validators: [
+        nuevoTipoDeInspeccionValidator(
+            tipoDeInspeccionControl, nuevoTipoDeInspeccionControl)
+      ],
+    );
+  }
 
   /// Carga los bloques del cuestionario
   ///

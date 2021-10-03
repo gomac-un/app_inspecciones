@@ -37,6 +37,7 @@
         "**/*.g.dart": true,
         "**/*.gr.dart": true,
         "**/*.freezed.dart": true,
+        "**/*.moor.dart": true,
         "**/injection.config.dart": true,
         "**/*.mocks.dart": true,
     },

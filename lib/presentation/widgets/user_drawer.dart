@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/application/auth/auth_service.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/app_repository.dart';
-import 'package:inspecciones/presentation/pages/borradores_screen.dart';
-import 'package:inspecciones/presentation/pages/cuestionarios_screen.dart';
-import 'package:inspecciones/presentation/pages/sincronizacion_page.dart';
+import 'package:inspecciones/presentation/pages/inspecciones_db_viewer_screen.dart';
 import 'package:inspecciones/theme.dart';
-import 'package:moor_db_viewer/moor_db_viewer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class NewDrawer extends ConsumerWidget {
-  const NewDrawer({Key? key}) : super(key: key);
+class UserDrawer extends ConsumerWidget {
+  const UserDrawer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
+    final user = ref.watch(userProvider);
+    if (user == null) return const Text("usuario no identificado");
+    // El texto "usuario no identificado" nunca se debería mostrar ya que las
+    // pantallas con drawer solo se deben ver cuando el usuario ya esté
+    // autenticado, sin embargo no se puede lanzar una exepción porque ha pasado
+    // que el drawer intenta reconstruirse mientras el usuario no esta autenticado
+    // haciendo que el metodo falle y se quede permanentemente con el mensaje de error
     return SafeArea(
       child: Drawer(
         child: Column(
@@ -23,32 +27,30 @@ class NewDrawer extends ConsumerWidget {
             Expanded(
               child: ListView(
                 children: [
-                  MenuItem(
-                    texto:
-                        'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
-                    icon: Icons.app_registration_outlined,
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => const CuestionariosPage())),
-                  ),
+                  if (user.esAdmin)
+                    MenuItem(
+                      texto:
+                          'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
+                      icon: Icons.app_registration_outlined,
+                      onTap: () => context.goNamed("cuestionarios"),
+                    ),
                   MenuItem(
                     texto: 'Borradores',
                     icon: Icons.list_alt_outlined,
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => const BorradoresPage())),
+                    onTap: () => context.goNamed("borradores"),
                   ),
                   MenuItem(
                     texto: 'Sincronizar con GOMAC',
                     icon: Icons.sync_outlined,
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => const SincronizacionPage())),
+                    onTap: () => context.goNamed("sincronizacion"),
                   ),
-                  MenuItem(
-                    texto: 'Ver base de datos',
-                    icon: Icons.storage_outlined,
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            MoorDbViewer(ref.read(moorDatabaseProvider)))),
-                  ),
+                  if (user.esAdmin)
+                    MenuItem(
+                      texto: 'Ver base de datos',
+                      icon: Icons.storage_outlined,
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const InspeccionesDbViewerPage())),
+                    ),
                   MenuItem(
                     texto: 'Limpiar datos de la app',
                     icon: Icons.cleaning_services_outlined,
@@ -102,9 +104,13 @@ class AvatarCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     final user = ref.watch(userProvider);
+    if (user == null) return const Text("usuario no identificado");
     return UserAccountsDrawerHeader(
       accountName: Text(
-        user.esAdmin ? "Administrador" : "Inspector",
+        user.esAdmin
+            ? "Administrador"
+            : "Inspector" " - " +
+                user.map(online: (_) => "online", offline: (_) => "offline"),
       ),
       accountEmail: Text(
         /// Nombre de usuario
@@ -169,6 +175,7 @@ Future<void> _mostrarConfirmacionLimpieza({required BuildContext context}) =>
                 Consumer(builder: (context, ref, _) {
                   return ElevatedButton(
                     onPressed: () async {
+                      //TODO: realizar esta accion en una clase que no sea de capa ui
                       await ref
                           .read(appRepositoryProvider)
                           .limpiarDatosLocales();

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
+import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
 import '../control/controlador_llenado_inspeccion.dart';
 import '../domain/inspeccion.dart';
@@ -31,6 +32,9 @@ class InspeccionPage extends ConsumerWidget {
 
           return Scaffold(
             backgroundColor: Theme.of(context).backgroundColor,
+            drawer: estadoDeInspeccion == EstadoDeInspeccion.finalizada
+                ? const UserDrawer()
+                : null,
             appBar: AppBar(
               title: Text(
                 "Inspección " +
@@ -44,13 +48,6 @@ class InspeccionPage extends ConsumerWidget {
                       ? Colors.deepOrange
                       : null,
               actions: [
-                /*IconButton(
-                    onPressed: () => ref.read(inspeccionIdProvider).state = 1,
-                    icon: const Icon(Icons.filter_1)),
-                IconButton(
-                    onPressed: () => ref.read(inspeccionIdProvider).state = 2,
-                    icon: const Icon(Icons.filter_2)),*/
-
                 const FilterWidget(),
                 if (estadoDeInspeccion != EstadoDeInspeccion.finalizada) ...[
                   BotonGuardar(
@@ -107,7 +104,7 @@ class InspeccionPage extends ConsumerWidget {
               TextSpan(
                 text: 'IMPORTANTE: ',
                 style: TextStyle(
-                  color: Theme.of(context).accentColor,
+                  color: Theme.of(context).colorScheme.secondary,
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                 ),

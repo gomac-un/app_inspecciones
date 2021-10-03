@@ -3,7 +3,7 @@ import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:moor/moor.dart';
 
-part 'borradores_dao.g.dart';
+part 'borradores_dao.moor.dart';
 
 /// Acceso a los datos de la Bd.
 ///
@@ -111,6 +111,10 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
             ),
           ),
         );
+  }
+
+  Future<void> eliminarHistorialEnviados() async {
+    //TODO: implement
   }
 
   /// Elimina la inspección donde inspeccion.id = [borrador.inspeccion.id] y en cascada las respuestas asociadas

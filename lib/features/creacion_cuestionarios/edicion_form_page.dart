@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/presentation/widgets/action_button.dart';
 import 'package:inspecciones/presentation/widgets/alertas.dart';
 import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:inspecciones/presentation/widgets/reactive_filter_chip_selection.dart';
@@ -199,13 +198,13 @@ class BotonesGuardado extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
+        children: [
           /// Solo aparece guardar cuando no se ha finalizado el cuestionario.
           if (estado == EstadoDeCuestionario.borrador)
-            ActionButton(
-              key: const ObjectKey("borrador"),
-              iconData: Icons.archive,
-              label: 'Guardar',
+            FloatingActionButton.extended(
+              key: const ValueKey("borrador"),
+              icon: const Icon(Icons.archive),
+              label: const Text('Guardar'),
               onPressed: () async {
                 /// Que haya seleccionado modelos y tipo de inspeccion
                 if (controller.modelosControl.value!.isEmpty ||
@@ -238,7 +237,6 @@ class BotonesGuardado extends ConsumerWidget {
               },
             ),
           FloatingActionButton.extended(
-            heroTag: null,
             icon: const Icon(Icons.done_all_outlined),
             label: Text(estado == EstadoDeCuestionario.borrador
                 ? 'Finalizar'
