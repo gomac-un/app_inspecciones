@@ -1,6 +1,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/infrastructure/core/network_info.dart';
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
+import 'package:inspecciones/infrastructure/network_info/shared.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 

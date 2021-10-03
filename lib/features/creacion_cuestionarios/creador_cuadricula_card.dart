@@ -113,7 +113,7 @@ class WidgetPreguntas extends StatelessWidget {
                                           // se vuelve a proveer el control del formulario principal ya que el nuevo contexto no tiene acceso, supongo
                                           value: maincontext
                                               .watch<CreacionFormController>(),
-                                          // ignore: sized_box_for_whitespace
+
                                           child: SizedBox(
                                             width: media.width * 0.7,
                                             child: CreadorSeleccionSimpleCard(

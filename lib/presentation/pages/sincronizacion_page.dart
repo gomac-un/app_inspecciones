@@ -60,6 +60,8 @@ class SincronizacionPage extends ConsumerWidget {
                   steps: [
                     for (final step in sincronizacionNotifier.steps)
                       Step(
+                        // aqui tocó usar el state de el StateNotifier de cada control
+                        // en teoria no se puede pero no encontré otra manera
                         // ignore: invalid_use_of_protected_member
                         state: step.state.map(
                             initial: (_) => StepState.indexed,

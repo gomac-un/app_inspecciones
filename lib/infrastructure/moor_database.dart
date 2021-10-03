@@ -275,7 +275,6 @@ class MoorDatabase extends _$MoorDatabase {
     final inspeccionParseadas = Inspeccion.fromJson(
       json,
       serializer: const CustomSerializer(),
-      // ignore: avoid_redundant_argument_values
     );
 
     await customStatement('PRAGMA foreign_keys = OFF');
