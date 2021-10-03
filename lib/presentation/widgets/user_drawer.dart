@@ -15,6 +15,7 @@ class UserDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     final user = ref.watch(userProvider);
+    if (user == null) return const Text("usuario no identificado");
     return SafeArea(
       child: Drawer(
         child: Column(
@@ -104,6 +105,7 @@ class AvatarCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     final user = ref.watch(userProvider);
+    if (user == null) return const Text("usuario no identificado");
     return UserAccountsDrawerHeader(
       accountName: Text(
         user.esAdmin ? "Administrador" : "Inspector",

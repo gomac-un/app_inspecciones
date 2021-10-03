@@ -168,7 +168,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   Future<Map<String, dynamic>> getRecurso(String recursoEndpoint) async {
     final uri = read(apiUriProvider).appendSegment(recursoEndpoint);
 
-    final token = read(userProvider).map(
+    final token = read(userProvider)?.map(
         offline: (_) => throw Exception("el usuario no esta online"),
         online: (u) => u.token);
 
@@ -205,7 +205,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   Future<Map<String, dynamic>> postRecurso(
       String recursoEndpoint, Map<String, dynamic> data) async {
     final uri = read(apiUriProvider).appendSegment(recursoEndpoint);
-    final token = read(userProvider).map(
+    final token = read(userProvider)?.map(
         offline: (_) => throw Exception("el usuario no esta online"),
         online: (u) => u.token);
     print("req: ${uri.path}\n${jsonEncode(data)}");
@@ -246,7 +246,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
   Future<Map<String, dynamic>> putRecurso(
       String recursoEndpoint, Map<String, dynamic> data) async {
     final uri = read(apiUriProvider).appendSegment(recursoEndpoint);
-    final token = read(userProvider).map(
+    final token = read(userProvider)?.map(
         offline: (_) => throw Exception("el usuario no esta online"),
         online: (u) => u.token);
     final http.Response response = await http
@@ -280,7 +280,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
       Iterable<File> fotos, String idDocumento, Categoria tipoDocumento) async {
     final uri = read(apiUriProvider).appendSegment('subir-fotos');
 
-    final token = read(userProvider).map(
+    final token = read(userProvider)?.map(
         offline: (_) => throw Exception("el usuario no esta online"),
         online: (u) => u.token);
     final request = http.MultipartRequest("POST", uri);
@@ -324,7 +324,7 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
       String recurso, String savedir, String filename) {
     final url = read(apiUriProvider).appendSegment(recurso).toString();
 
-    final token = read(userProvider).map(
+    final token = read(userProvider)?.map(
         offline: (_) => throw Exception("el usuario no esta online"),
         online: (u) => u.token);
 

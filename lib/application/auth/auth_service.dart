@@ -21,12 +21,10 @@ final authProvider = StateNotifierProvider<AuthService, AuthState>(
 final authListenableProvider =
     Provider((ref) => LoginInfo(ref.watch(authProvider.notifier)));
 
-final userProvider = Provider<Usuario>((ref) => ref.watch(authProvider).when(
-      authenticated: (usuario, _) => usuario,
-      unauthenticated: () =>
-          throw Exception("Usuario no inicializado: unauthenticated"),
-      loading: () => throw Exception("Usuario no inicializado: loading"),
-    ));
+final userProvider =
+    Provider<Usuario?>((ref) => ref.watch(authProvider).whenOrNull(
+          authenticated: (usuario, _) => usuario,
+        ));
 
 class LoginInfo extends ChangeNotifier {
   final AuthService authService;
