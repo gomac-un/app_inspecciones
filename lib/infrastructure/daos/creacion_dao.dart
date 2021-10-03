@@ -459,7 +459,7 @@ class CreacionDao extends DatabaseAccessor<MoorDatabase>
     final fotosManager =
         db.fotosRepository; //TODO: eliminar la dependencia a fotosRepository
     final fotosGuiaProcesadas = await fotosManager.organizarFotos(
-      preguntaCompanion.fotosGuia.valueOrDefault(const Nil()),
+      preguntaCompanion.fotosGuia.valueOrDefault(const Nil()).toList(),
       Categoria.cuestionario,
       identificador: cuestionario.id.toString(),
     );

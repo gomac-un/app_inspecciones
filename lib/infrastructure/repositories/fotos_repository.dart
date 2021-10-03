@@ -32,22 +32,20 @@ class FotosRepository {
   /// mueve las fotos de su ubicacion temporal a la carpeta designada para el
   /// cuestionario o inspeccion
   Future<IList<AppImage>> organizarFotos(
-    IList<AppImage> fotos,
+    List<AppImage> fotos,
     Categoria categoria, {
     required String identificador,
   }) async {
-    return IList.from(await Future.wait(fotos
-        .map((foto) => foto.map(
-              remote: (e) => Future.value(e),
-              mobile: (im) => _procesarFoto(
-                im.path,
-                categoria,
-                identificador: identificador,
-              ),
-              web: (im) => throw UnsupportedError(
-                  "Las imagenes web no se pueden procesar en el sistema de archivos"),
-            ))
-        .toIterable()));
+    return IList.from(await Future.wait(fotos.map((foto) => foto.map(
+          remote: (e) => Future.value(e),
+          mobile: (im) => _procesarFoto(
+            im.path,
+            categoria,
+            identificador: identificador,
+          ),
+          web: (im) => throw UnsupportedError(
+              "Las imagenes web no se pueden procesar en el sistema de archivos"),
+        ))));
   }
 
   Future<MobileImage> _procesarFoto(
