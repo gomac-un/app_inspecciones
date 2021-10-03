@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/infrastructure/repositories/credenciales.dart';
-import 'package:inspecciones/presentation/pages/borradores_screen.dart';
-import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+
+final loadingProvider = StateProvider((ref) => false);
 
 /// Pantalla de inicio de sesión.
 class LoginPage extends ConsumerWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  final String? from;
+  const LoginPage({Key? key, this.from}) : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
@@ -58,24 +60,28 @@ class LoginPage extends ConsumerWidget {
                   /// Activa el botón de iniciar sesión solo cuando se hayan llenado los dos campos.
                   ReactiveFormConsumer(
                     builder: (context, _, child) {
-                      return ButtonTheme(
-                        buttonColor: Theme.of(context).colorScheme.secondary,
-                        child: OutlinedButton(
-                          onPressed: !form.valid
+                      return Consumer(builder: (context, ref, _) {
+                        final loadingCtrl = ref.watch(loadingProvider);
+                        final isLoading = loadingCtrl.state;
+                        return ElevatedButton(
+                          onPressed: !form.valid || isLoading
                               ? null
                               : () => form.submit(
-                                    onStart: () => LoadingDialog.show(context),
-                                    onFinish: () => LoadingDialog.hide(context),
-                                    onSuccess: () => Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const BorradoresPage())),
+                                    onStart: () => loadingCtrl.state = true,
+                                    onFinish: () => loadingCtrl.state = false,
+                                    onSuccess: () {
+                                      if (from != null) context.go(from!);
+                                    },
                                     onFailure: (failure) =>
                                         _onFailure(context, ref.read, failure),
                                   ),
-                          child: const Text('Entrar'),
-                        ),
-                      );
+                          child: isLoading
+                              ? const SizedBox.square(
+                                  dimension: 20,
+                                  child: CircularProgressIndicator())
+                              : const Text('Entrar'),
+                        );
+                      });
                     },
                   ),
 
@@ -148,7 +154,7 @@ class LoginPage extends ConsumerWidget {
 
   /// Cuando ocurre un problema en la autenticación, el usuario puede ingresar como inspector y llenar inspecciones.
   /// Esta alerta Le informa al usuario
-  _problemaDialog({
+  Future<void> _problemaDialog({
     required BuildContext context,
     required VoidCallback onContinuar,
     required String razon,
@@ -194,7 +200,7 @@ class LoginControl extends FormGroup {
 
       final credenciales = getCredenciales();
       final authService = read(authProvider.notifier);
-      authService.login(credenciales,
+      await authService.login(credenciales,
           offline: false, onSuccess: onSuccess, onFailure: onFailure);
     } catch (exception, stack) {
       onFailure?.call(AuthFailure.unexpectedError(exception));
