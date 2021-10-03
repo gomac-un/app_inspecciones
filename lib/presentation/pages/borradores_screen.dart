@@ -1,13 +1,15 @@
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/borrador.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/infrastructure/inspecciones_repository.dart';
 import 'package:inspecciones/features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
-import 'package:inspecciones/presentation/pages/inicio_inspeccion_form_widget.dart';
-import 'package:inspecciones/presentation/widgets/user_drawer.dart';
+
+import '../widgets/user_drawer.dart';
+import 'inicio_inspeccion_form_widget.dart';
 
 //TODO: A futuro, Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 /// Pantalla con lista de todas las inspecciones pendientes por subir.
@@ -38,12 +40,11 @@ class BorradoresPage extends ConsumerWidget {
         stream: ref.watch(inspeccionesRepositoryProvider).getBorradores(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            //throw snapshot.error;
             return Text("error: ${snapshot.error}");
           }
           final borradores = snapshot.data;
           if (borradores == null) {
-            return const Align(
+            return const Center(
               child: CircularProgressIndicator(),
             );
           }
@@ -69,17 +70,11 @@ class BorradoresPage extends ConsumerWidget {
                       : 'Criticidad parcial inicial: ';
 
               return ListTile(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => InspeccionPage(
-                      inspeccionId: IdentificadorDeInspeccion(
-                        activo: borrador.inspeccion.activo.id,
-                        cuestionarioId: borrador.cuestionario.id,
-                      ),
-                    ),
-                  ),
-                ),
-
+                onTap: () => context.goNamed('inspeccion', {
+                  "activoid": borrador.inspeccion.activo.id,
+                  "cuestionarioid": borrador.cuestionario.id.toString(),
+                }),
+                //TODO: mostrar la información de manera didáctica
                 tileColor: Theme.of(context).cardColor,
                 title: Text(
                     "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.modelo} (${borrador.cuestionario.tipoDeInspeccion})",

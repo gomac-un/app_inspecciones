@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/application/sincronizacion/sincronizacion_notifier.dart';
+import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
 /// Pantalla que muestra el progreso de a descarga de datos de gomac
 class SincronizacionPage extends ConsumerWidget {
@@ -19,7 +20,7 @@ class SincronizacionPage extends ConsumerWidget {
           BotonDescarga(),
         ],
       ),
-      //drawer: const UserDrawer(),
+      drawer: const UserDrawer(),
       body: SingleChildScrollView(
         child: Column(
           children: [

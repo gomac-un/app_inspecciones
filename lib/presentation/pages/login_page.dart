@@ -202,7 +202,7 @@ class LoginControl extends FormGroup {
       final authService = read(authProvider.notifier);
       await authService.login(credenciales,
           offline: false, onSuccess: onSuccess, onFailure: onFailure);
-    } catch (exception, stack) {
+    } catch (exception, _) {
       onFailure?.call(AuthFailure.unexpectedError(exception));
     } finally {
       onFinish?.call();
