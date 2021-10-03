@@ -118,11 +118,12 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
         fotosReparacion: respuesta.fotosReparacion.toList(),
       );
 
-  pr_dom.OpcionDeRespuesta createOpcionDeRespuesta(OpcionDeRespuesta opcion) =>  pr_dom.OpcionDeRespuesta(
-              id: opcion.id,
-              titulo: opcion.texto,
-              descripcion: "",
-              criticidad: opcion.criticidad);
+  pr_dom.OpcionDeRespuesta createOpcionDeRespuesta(OpcionDeRespuesta opcion) =>
+      pr_dom.OpcionDeRespuesta(
+          id: opcion.id,
+          titulo: opcion.texto,
+          descripcion: "",
+          criticidad: opcion.criticidad);
 
   /// Devuelve las preguntas numericas de la inspección, con la respuesta que
   /// se haya insertado y las criticidadesNumericas (rangos de criticidad)
@@ -223,13 +224,13 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     return Future.wait(
       groupBy<Tuple3<Bloque, Pregunta, OpcionDeRespuesta>, Pregunta>(
           res, (e) => e.value2).entries.map((entry) async {
-        final respuestas =
-            await getRespuestaDePreguntaSimple(entry.key, inspeccionId);
         if (entry.key.tipo == TipoDePregunta.multipleRespuesta) {
-          return getPreguntaMultiple(entry.key, entry.value, respuestas);
+          return getPreguntaDeSeleccionMultiple(entry.key,
+              entry.value.map((e) => e.value3).toList(), inspeccionId);
         }
         //TODO: OPCIÓN DE RESPUESTA NO TIENE DESCRIPCIÓN
-        return getPreguntaUnica(entry.key, entry.value, respuestas);
+        return await getPreguntaDeSeleccionUnica(
+            entry.key, entry.value.map((e) => e.value3).toList(), inspeccionId);
       }),
     );
   }
@@ -265,20 +266,19 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     return res;
   }
 
-  
-  bl_dom.PreguntaDeSeleccionMultiple getPreguntaMultiple(
+  Future<bl_dom.PreguntaDeSeleccionMultiple> getPreguntaDeSeleccionMultiple(
       Pregunta pregunta,
-      List<Tuple3<Bloque, Pregunta, OpcionDeRespuesta>> opciones,
-      List<Tuple2<Respuesta, OpcionDeRespuesta>> respuestas) {
+      List<OpcionDeRespuesta> opciones,
+      int? inspeccionId) async {
+    final respuestas =
+        await getRespuestaDePreguntaSimple(pregunta, inspeccionId);
     return bl_dom.PreguntaDeSeleccionMultiple(
-      opciones
-          .map((opcion) => createOpcionDeRespuesta(opcion.value3))
-          .toList(),
+      opciones.map((opcion) => createOpcionDeRespuesta(opcion)).toList(),
       opciones.map((op) {
         final respuesta = respuestas
-            .firstWhereOrNull((element) => element.value2.id == op.value3.id);
+            .firstWhereOrNull((element) => element.value2.id == op.id);
         return bl_dom.SubPreguntaDeSeleccionMultiple(
-          createOpcionDeRespuesta(op.value3),
+          createOpcionDeRespuesta(op),
           id: 3,
           titulo: pregunta.titulo,
           descripcion: pregunta.descripcion,
@@ -303,17 +303,17 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     );
   }
 
-  bl_dom.PreguntaDeSeleccionUnica getPreguntaUnica(
+  Future<bl_dom.PreguntaDeSeleccionUnica> getPreguntaDeSeleccionUnica(
       Pregunta pregunta,
-      List<Tuple3<Bloque, Pregunta, OpcionDeRespuesta>> opciones,
-      List<Tuple2<Respuesta, OpcionDeRespuesta>> respuestas) {
+      List<OpcionDeRespuesta> opciones,
+      int? inspeccionId) async {
+    final respuestas =
+        await getRespuestaDePreguntaSimple(pregunta, inspeccionId);
     final respuesta = respuestas.first.value1;
     final opcion = respuestas.first.value2;
     final metaRespuesta = getMetaRespuesta(respuesta);
     return pr_dom.PreguntaDeSeleccionUnica(
-      opciones
-          .map((e) => createOpcionDeRespuesta(e.value3))
-          .toList(),
+      opciones.map((e) => createOpcionDeRespuesta(e)).toList(),
       id: pregunta.id,
       calificable: pregunta.esCondicional,
       criticidad: pregunta.criticidad,
@@ -360,34 +360,59 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
         final respuestas =
             await respuestasDeCuadricula(entry.value.first.value3.id);
         if (tipo == TipoDePregunta.parteDeCuadriculaUnica) {
-          return getCuadriculaDeSeleccionUnica( entry.value, respuestas);
+          return getCuadriculaDeSeleccionUnica(
+              entry.value, respuestas, inspeccionId);
         }
-        //TODO: OPCIÓN DE RESPUESTA NO TIENE DESCRIPCIÓN
-        return getPreguntaUnica(entry.key, entry.value, respuestas);
+        return getCuadriculaDeSeleccionMultiple(
+            entry.value, respuestas, inspeccionId);
       }),
     );
   }
-  bl_dom.CuadriculaDeSeleccionUnica getCuadriculaDeSeleccionUnica(List<Tuple3<Pregunta, Bloque, CuadriculaDePreguntas>> value, List<pr_dom.OpcionDeRespuesta> opciones, ){
+
+  Future<bl_dom.CuadriculaDeSeleccionUnica> getCuadriculaDeSeleccionUnica(
+      List<Tuple3<Pregunta, Bloque, CuadriculaDePreguntas>> value,
+      List<OpcionDeRespuesta> opciones,
+      int? inspeccionId) async {
     return bl_dom.CuadriculaDeSeleccionUnica(
-      value.map((e) => getPregunt
-      opciones,
-        id: 6,
-        titulo: "Mi pregunta cuadricula de seleccion unica",
-        descripcion: "Mi descripcion de cuadricula de seleccion unica",
-        criticidad: 1,
-        posicion: "arriba",
-        calificable: true,
-        respuesta: RespuestaDeCuadriculaDeSeleccionUnica(MetaRespuesta()),
-    )
+      await Future.wait(value
+          .map((e) async => await getPreguntaDeSeleccionUnica(
+              e.value1, opciones, inspeccionId))
+          .toList()),
+      opciones.map((element) => createOpcionDeRespuesta(element)).toList(),
+      id: value.first.value3.id,
+      titulo: value.first.value3.titulo,
+      descripcion: value.first.value3.descripcion,
+      criticidad: 0, //TODO: no tiene criticidad /* value.first.value3., */
+      posicion: "arriba", // Todo: no tiene posición
+      calificable: true, //Todo: no es calificable
+    );
   }
+
+  Future<bl_dom.CuadriculaDeSeleccionMultiple> getCuadriculaDeSeleccionMultiple(
+      List<Tuple3<Pregunta, Bloque, CuadriculaDePreguntas>> value,
+      List<OpcionDeRespuesta> opciones,
+      int? inspeccionId) async {
+    return bl_dom.CuadriculaDeSeleccionMultiple(
+      await Future.wait(value
+          .map((e) async => await getPreguntaDeSeleccionMultiple(
+              e.value1, opciones, inspeccionId))
+          .toList()),
+      opciones.map((element) => createOpcionDeRespuesta(element)).toList(),
+      id: value.first.value3.id,
+      titulo: value.first.value3.titulo,
+      descripcion: value.first.value3.descripcion,
+      criticidad: 0, //TODO: no tiene criticidad /* value.first.value3., */
+      posicion: "arriba", // Todo: no tiene posición
+      calificable: true, //Todo: no es calificable
+    );
+  }
+
   /// Devuelve las respuestas de la cuadricula con id=[cuadriculaId], es una lista para el caso de las cuadriculas
   /// con respuesta multiple
-  Future<List<pr_dom.OpcionDeRespuesta>> respuestasDeCuadricula(int cuadriculaId) async {
+  Future<List<OpcionDeRespuesta>> respuestasDeCuadricula(int cuadriculaId) {
     final query = select(opcionesDeRespuesta)
       ..where((or) => or.cuadriculaId.equals(cuadriculaId));
-    final res = await query.get();
-   final opciones = res.map((element) => createOpcionDeRespuesta(element)).toList();
-    return opciones;
+    return query.get();
   }
 
   /// Devuelve todos los bloques de la inspeccion del cuestionario con id=[cuestionarioId] para [activoId]
@@ -634,4 +659,13 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
       );
     }).toList();
   }
+}
+
+extension PregutnaFromDataClass on bl_dom.Pregunta {
+  Pregunta fromDataClass(
+          Pregunta pregunta,
+          List<Tuple3<Bloque, Pregunta, OpcionDeRespuesta>> opciones,
+          List<Tuple2<Respuesta, OpcionDeRespuesta>> respuestas) =>
+      firstWhere((_) => true,
+          orElse: () => const PreguntaConOpcionesDeRespuestaCompanion.vacio());
 }
