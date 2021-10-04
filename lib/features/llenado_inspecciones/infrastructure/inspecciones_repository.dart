@@ -3,7 +3,6 @@ import 'dart:developer' as developer;
 import 'package:dartz/dartz.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/modelos.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart' as moor;
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 
@@ -32,7 +31,8 @@ class InspeccionesRepository {
   final FotosRepository _fotosRepository;
 
   InspeccionesRepository(this._db, this._fotosRepository);
-
+  FEF<Unit> subirInspeccion(Inspeccion inspeccion) =>
+      Future.value(const Right(unit)); //TODO: implementar
   Stream<List<Borrador>> getBorradores() => _db.borradoresDao.borradores(false);
 
   //FEF<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
@@ -104,5 +104,4 @@ class InspeccionesRepository {
     _db.llenadoDao.guardarInspeccion(preguntasRespondidas, inspeccion,
         fotosManager: _fotosRepository);
   }
-
 }

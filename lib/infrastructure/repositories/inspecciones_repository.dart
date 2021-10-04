@@ -91,11 +91,8 @@ class InspeccionesRepository {
     }
   }
 
-  Stream<List<Borrador>> getBorradores() => _db.borradoresDao.borradores();
   Future eliminarRespuestas(Borrador borrador) =>
       _db.borradoresDao.eliminarRespuestas(borrador); //TODO que devuelve?
   /* Future<List<Cuestionario>> cuestionariosParaActivo(int activo) =>
       _db.llenadoDao.cuestionariosParaActivo(activo); */
-  Future eliminarBorrador(Borrador borrador) =>
-      _db.borradoresDao.eliminarBorrador(borrador); //TODO que devuelve?
 }
