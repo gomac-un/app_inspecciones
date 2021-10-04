@@ -100,13 +100,9 @@ class InspeccionesRepository {
   }
 
   Future<void> guardarInspeccion(List<Pregunta> preguntasRespondidas,
-      {required int inspeccionId}) async {
-    /* _db.llenadoDao.guardarInspeccion(respuestas,inspeccionId); */
-
-    developer.log("guardando inspeccion $inspeccionId");
-    for (final respuesta in preguntasRespondidas) {
-      developer.log(respuesta.toString());
-    }
+      {required Inspeccion inspeccion}) async {
+    _db.llenadoDao.guardarInspeccion(preguntasRespondidas, inspeccion,
+        fotosManager: _fotosRepository);
   }
 
 }

@@ -9,6 +9,8 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/pregun
     as pr_dom;
 import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/titulo.dart'
     as tit_dom;
+import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
+    as insp_dom;
 import 'package:inspecciones/features/llenado_inspecciones/domain/metarespuesta.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
@@ -46,20 +48,6 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
   /// Trae una lista con todos los cuestionarios disponibles para un activo,
   /// incluyendo los cuestionarios que son asignados a todos los activos
   Future<List<Cuestionario>> cuestionariosParaActivo(int activo) async {
-    //if (activo == null) return [];
-    /*
-    final query = select(activos).join([
-      innerJoin(cuestionarioDeModelos,
-          cuestionarioDeModelos.modelo.equalsExp(activos.modelo)),
-      innerJoin(cuestionarios,
-          cuestionarios.id.equalsExp(cuestionarioDeModelos.cuestionarioId))
-    ])
-      ..where(activos.identificador.equals(vehiculo));
-
-    return query.map((row) {
-      return row.readTable(cuestionarios);
-    }).get();*/
-
     return customSelect(
       '''
       SELECT cuestionarios.* FROM activos
@@ -492,11 +480,12 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
 
   Future guardarRespuesta(
     bl_dom.Respuesta respuesta,
-    int inspeccionId, {
+    int inspeccionId,
+    int preguntaId, {
     double? valor,
     bl_dom.OpcionDeRespuesta? opcion,
+    required FotosRepository fotosManager,
   }) async {
-    final fotosManager = getIt<FotosRepository>();
     final fotosBaseProcesadas = await fotosManager.organizarFotos(
       respuesta.metaRespuesta.fotosBase,
       Categoria.inspeccion,
@@ -510,7 +499,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     const respuestaCompanion = RespuestasCompanion();
     final respuestaAInsertar = respuestaCompanion.copyWith(
       //TODO: forma de acceder al id de la pregunta.
-      /* preguntaId: Value(respuesta.metaRespuesta.), */
+      preguntaId: Value(preguntaId),
       opcionDeRespuestaId: opcion != null ? Value(opcion.id) : null,
       inspeccionId: Value(inspeccionId),
       fotosBase: Value(fotosBaseProcesadas),
@@ -533,19 +522,25 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
   }
 
   Future procesarRespuestaMultiple(
-      bl_dom.RespuestaDeSeleccionMultiple respuesta, int inspeccionId) async {
-    respuesta.opciones
+      List<bl_dom.SubPreguntaDeSeleccionMultiple> respuesta,
+      int inspeccionId,
+      int preguntaId,
+      {required FotosRepository fotosManager}) async {
+    respuesta
         .where((element) =>
             element.respuesta != null && element.respuesta!.estaSeleccionada)
-        .map((e) async => await guardarRespuesta(e.respuesta!, inspeccionId,
-            opcion: e.opcion))
+        .map((e) async => await guardarRespuesta(
+            e.respuesta!, inspeccionId, e.id,
+            fotosManager: fotosManager, opcion: e.opcion))
         .toList();
   }
 
   /// Realiza el guardado de la inspección al presionar el botón guardar o finalizar en el llenado.
   Future guardarInspeccion(
-      List<bl_dom.Respuesta> respuestasForm, int inspeccionId,
-      {int? activoId, Cuestionario? cuestionario}) async {
+      List<bl_dom.Pregunta> respuestasForm, insp_dom.Inspeccion inspeccion,
+      {int? activoId,
+      Cuestionario? cuestionario,
+      required FotosRepository fotosManager}) async {
     return transaction(() async {
       /*  /// Se redondea para evitar que se guarde en la bd un montón de decimales.
       final mod = pow(10.0, 2);
@@ -571,29 +566,52 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
                 criticidadReparacion: Value(critiRepaRound),
               ),
       ); */
-      if (inspeccionId != null) {
-        await deleteRespuestas(inspeccionId);
-      }
+      final estado = inspeccion.estado;
+      await (update(inspecciones)..where((i) => i.id.equals(inspeccion.id)))
+          .write(
+        InspeccionesCompanion(
+          momentoFinalizacion: estado == insp_dom.EstadoDeInspeccion.finalizada
+              ? Value(DateTime.now())
+              : const Value.absent(),
+          estado: Value(EstadoDeInspeccion.values.firstWhere(
+              (element) => element.index == inspeccion.estado.index)),
+          criticidadTotal: Value(inspeccion.criticidadTotal),
+          criticidadReparacion: Value(inspeccion.criticidadReparacion),
+          momentoBorradorGuardado:
+              /*  estado == insp_dom.EstadoDeInspeccion.borrador
+                  ? const Value.absent()
+                  :  */
+              //Todo: ¿El momento guardado se actualiza siempre?
+              Value(DateTime.now()),
+        ),
+      );
+      final inspeccionId = inspeccion.id;
+      await deleteRespuestas(inspeccionId);
 
       /// Se comienza a procesar las respuestas a cada pregunta.
-      await Future.forEach<bl_dom.Respuesta>(respuestasForm, (resp) async {
-        if (resp is bl_dom.RespuestaDeSeleccionUnica) {
-          await guardarRespuesta(resp, inspeccionId,
-              opcion: resp.opcionSeleccionada);
-        } else if (resp is bl_dom.RespuestaNumerica) {
-          await guardarRespuesta(resp, inspeccionId,
-              valor: resp.respuestaNumerica);
-        } else if (resp is bl_dom.RespuestaDeSeleccionMultiple) {
-          await procesarRespuestaMultiple(resp, inspeccionId);
-        } else if (resp is bl_dom.RespuestaDeCuadriculaDeSeleccionUnica) {
-          resp.respuestas.map((e) async => e.respuesta != null
-              ? await guardarRespuesta(e.respuesta!, inspeccionId,
-                  opcion: e.respuesta!.opcionSeleccionada)
+      await Future.forEach<bl_dom.Pregunta>(respuestasForm, (resp) async {
+        if (resp is bl_dom.PreguntaDeSeleccionUnica) {
+          await guardarRespuesta(resp.respuesta!, inspeccionId, resp.id,
+              opcion: resp.respuesta!.opcionSeleccionada,
+              fotosManager: fotosManager);
+        } else if (resp is bl_dom.PreguntaNumerica) {
+          await guardarRespuesta(resp.respuesta!, inspeccionId, resp.id,
+              valor: resp.respuesta!.respuestaNumerica,
+              fotosManager: fotosManager);
+        } else if (resp is bl_dom.PreguntaDeSeleccionMultiple) {
+          await procesarRespuestaMultiple(
+              resp.respuestas, inspeccionId, resp.id,
+              fotosManager: fotosManager);
+        } else if (resp is bl_dom.CuadriculaDeSeleccionUnica) {
+          resp.preguntas.map((e) async => e.respuesta != null
+              ? await guardarRespuesta(e.respuesta!, inspeccionId, e.id,
+                  opcion: e.respuesta!.opcionSeleccionada,
+                  fotosManager: fotosManager)
               : null);
-        } else if (resp is bl_dom.RespuestaDeCuadriculaDeSeleccionMultiple) {
-          resp.respuestas.map((e) async => e.respuesta != null
-              ? await procesarRespuestaMultiple(e.respuesta!, inspeccionId)
-              : null);
+        } else if (resp is bl_dom.CuadriculaDeSeleccionMultiple) {
+          resp.preguntas.map((e) async => await procesarRespuestaMultiple(
+              e.respuestas, inspeccionId, e.id,
+              fotosManager: fotosManager));
         } else {
           throw (Exception('Tipo de respuesta no reconocido'));
         }

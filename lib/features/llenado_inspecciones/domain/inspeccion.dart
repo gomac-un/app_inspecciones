@@ -6,9 +6,10 @@ class Inspeccion {
   final EstadoDeInspeccion estado;
   final Activo activo;
   final DateTime? momentoBorradorGuardado;
+  final DateTime? momentoEnvio;
 
-  final int criticidadTotal;
-  final int criticidadReparacion;
+  final double criticidadTotal;
+  final double criticidadReparacion;
   final bool esNueva;
   //inspector //TODO: agregarle el dato del inspector que la esta haciendo
 
@@ -19,6 +20,7 @@ class Inspeccion {
     required this.estado,
     required this.activo,
     this.momentoBorradorGuardado,
+    this.momentoEnvio,
     required this.criticidadTotal,
     required this.criticidadReparacion,
     required this.esNueva,
