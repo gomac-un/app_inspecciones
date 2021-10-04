@@ -424,9 +424,9 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
   /// Devuelve todos los bloques de la inspeccion del cuestionario con id=[cuestionarioId] para [activoId]
   ///
   /// Incluye los titulos y las preguntas con sus respectivas opciones de respuesta y respuestas seleccionadas
-  Future<List<bloque_dom.Bloque>> cargarInspeccion(
+  Future<Tuple2<Inspeccion, List<bloque_dom.Bloque>>> cargarInspeccion(
       int cuestionarioId, int activoId) async {
-    final inspeccion = await (select(inspecciones)
+    final inspeccionExistente = await (select(inspecciones)
           ..where(
             (inspeccion) =>
                 inspeccion.cuestionarioId.equals(cuestionarioId) &
@@ -438,9 +438,10 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
         .getSingleOrNull();
 
     //Todas los metodos para cargarla aceptan inspecciónId nulo.
-    //! if(inspeccion==null){???}
-
-    final inspeccionId = inspeccion?.id;
+    //! if(inspeccion==null){???} //¿Crear una y devolver esa o qué?
+    final inspeccion =
+        inspeccionExistente ?? await crearInspeccion(cuestionarioId, activoId);
+    final inspeccionId = inspeccion.id;
 
     final List<tit_dom.Titulo> titulos = await getTitulos(cuestionarioId);
 
@@ -453,16 +454,15 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
 
     final List<bl_dom.PreguntaNumerica> numerica =
         await getPreguntaNumerica(cuestionarioId, inspeccionId);
-
-    return [
+    return Tuple2(inspeccion, [
       ...titulos,
       ...preguntasSeleccion,
       ...cuadriculas,
       ...numerica,
-    ];
+    ]);
   }
 
-  /// Crea id para una inspección con el formato 'yyMMddHHmm[activo]'
+  /// Crea id para una inspección con el formato 'yyMMddHHmmss[activo]'
   int generarId(int activo) {
     final fechaFormateada = DateFormat("yyMMddHHmmss").format(DateTime.now());
     return int.parse('$fechaFormateada$activo');
@@ -470,29 +470,24 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
 
   /// Devuelve la inspección creada al guardarla por primera vez.
   Future<Inspeccion> crearInspeccion(
-      int cuestionarioId,
+    int cuestionarioId,
 
-      /// Activo al cual se le está realizando la inspección.
-      int activo,
-      EstadoDeInspeccion estado,
-
-      /// Criticidad de la inspección antes de reparaciones.
-      double criticidad,
-
-      /// Criticidad de la inspección después de reparaciones.
-      double criticidadReparacion) async {
+    /// Activo al cual se le está realizando la inspección.
+    int activo,
+  ) async {
     if (activo == null) throw Exception("activo nulo");
     final ins = InspeccionesCompanion.insert(
       id: Value(generarId(activo)),
       cuestionarioId: cuestionarioId,
-      estado: estado,
-      criticidadTotal: criticidad,
-      criticidadReparacion: criticidadReparacion,
+      estado: EstadoDeInspeccion.borrador,
+      criticidadTotal: 0,
+      criticidadReparacion: 0,
       activoId: activo,
       momentoInicio: Value(DateTime.now()),
+      momentoBorradorGuardado: Value(DateTime.now()),
     );
-    final id = await into(inspecciones).insert(ins);
-    return (select(inspecciones)..where((i) => i.id.equals(id))).getSingle();
+    final inspeccion = await into(inspecciones).insertReturning(ins);
+    return inspeccion;
   }
 
   Future guardarRespuesta(
