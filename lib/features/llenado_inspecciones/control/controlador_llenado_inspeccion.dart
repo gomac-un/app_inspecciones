@@ -94,7 +94,7 @@ class ControladorLlenadoInspeccion {
       final visitor = GuardadoVisitor(
         repository,
         controladores,
-        inspeccionId: cuestionario.inspeccion.id,
+        inspeccion: cuestionario.inspeccion,
       );
       await visitor.guardarInspeccion();
       onSuccess?.call("Inspeccion guardada");
