@@ -1,5 +1,4 @@
 import 'dart:developer' as developer;
-import 'dart:math';
 
 import 'package:dartz/dartz.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -34,32 +33,26 @@ class InspeccionesRepository {
 
   InspeccionesRepository(this._db, this._fotosRepository);
 
-  Stream<List<Borrador>> getBorradores() => Stream.value([
-        Borrador(
-          Inspeccion(
-            id: 1,
-            estado: EstadoDeInspeccion.borrador,
-            activo: Activo(id: "1", modelo: "auto"),
-            momentoBorradorGuardado: DateTime.now(),
-            criticidadTotal: 10,
-            criticidadReparacion: 5,
-            esNueva: true,
-          ),
-          Cuestionario(id: 1, tipoDeInspeccion: "preoperacional"),
-          avance: 5,
-          total: 10,
-        )
-      ]);
+  Stream<List<Borrador>> getBorradores() => _db.borradoresDao.borradores(false);
 
   //FEF<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
   Future<Either<InspeccionesFailure, List<Cuestionario>>>
       cuestionariosParaActivo(String activo) async {
-    return Right([
-      if (activo == "1")
-        Cuestionario(id: 1, tipoDeInspeccion: "preoperacional"),
-      Cuestionario(id: 2, tipoDeInspeccion: "otro cuestionario"),
-    ]);
+    try {
+      final activoId = int.parse(activo);
+      final cuestionarios =
+          await _db.llenadoDao.cuestionariosParaActivo(activoId);
+      return Right(cuestionarios
+          .map((cuest) => Cuestionario(
+              id: cuest.id, tipoDeInspeccion: cuest.tipoDeInspeccion))
+          .toList());
+    } catch (e) {
+      return Left(InspeccionesFailure('Activo invalido'));
+    }
   }
+
+  Future eliminarBorrador(Borrador borrador) =>
+      _db.borradoresDao.eliminarBorrador(borrador);
 
   Future<Either<InspeccionesFailure, CuestionarioInspeccionado>>
       cargarInspeccionLocal(IdentificadorDeInspeccion id) async {
