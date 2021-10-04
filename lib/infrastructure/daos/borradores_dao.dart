@@ -1,4 +1,12 @@
 import 'package:dartz/dartz.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/borrador.dart'
+    as borr_dom;
+import 'package:inspecciones/features/llenado_inspecciones/domain/cuestionario.dart'
+    as cuest_dom;
+import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
+    as insp_dom;
+import 'package:inspecciones/features/llenado_inspecciones/domain/modelos.dart'
+    as act_dom;
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:moor/moor.dart';
@@ -46,71 +54,62 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
 
   /// Devuelve [List<Borrador>] con todas las inspecciones que han sido guardadas
   /// para mostrar en la UI en borradores_screen.dart
-  Stream<List<Borrador>> borradores() {
+  Stream<List<borr_dom.Borrador>> borradores(bool toHistoryScreen) {
     final query = select(inspecciones).join([
       innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
     ])
 
       /// Se filtran los que tengan momentoEnvio nulo, esto, porque también están quedando guardadas las enviadas para el historial
       /// y estas no se muestran en la pantalla de borradores.
-      ..where(inspecciones.momentoEnvio.isNull());
+      ..where(toHistoryScreen
+          ? inspecciones.momentoEnvio.isNotNull()
+          : inspecciones.momentoEnvio.isNull());
+    final borradores = query
+        .map((row) => {
+              'activo': row.readTable(activos),
+              'inspeccion': row.readTable(inspecciones)
+            })
+        .watch();
 
     /// Agrupación del resultado de la consulta en la clase Borrador para manejarlo mejor en la UI
-    return query
-        .map((row) =>
-            Borrador(row.readTable(activos), row.readTable(inspecciones)))
-        .watch()
-        .asyncMap<List<Borrador>>(
-          (l) async => Future.wait<Borrador>(
-            l.map(
-              (b) async {
-                /// Se consulta el cuestionario asociado a cada inspección, para saber de que tipo es
-                final cuestionario = await db.getCuestionario(b.inspeccion);
-                return b.copyWith(
-                    cuestionario: cuestionario,
+    return borradores.asyncMap<List<borr_dom.Borrador>>(
+      (l) async => Future.wait<borr_dom.Borrador>(
+        l.map(
+          (b) async {
+            final inspeccion = b['inspeccion'] as Inspeccion;
 
-                    /// Cantidad de preguntas respondidas
-                    avance: await getTotalRespuesta(b.inspeccion.id),
+            /// Se consulta el cuestionario asociado a cada inspección, para saber de que tipo es
+            final cuestionario = await db.getCuestionario(inspeccion);
+            return borr_dom.Borrador(
+                insp_dom.Inspeccion(
+                  id: inspeccion.id,
+                  momentoEnvio: inspeccion.momentoEnvio,
+                  activo: await getActivoPorId(inspeccion.activoId),
+                  estado: insp_dom.EstadoDeInspeccion.values.firstWhere(
+                      (element) => element.index == inspeccion.estado.index),
+                  esNueva: inspeccion.esNueva,
+                  criticidadReparacion: inspeccion.criticidadReparacion,
+                  criticidadTotal: inspeccion.criticidadTotal,
+                ),
+                cuest_dom.Cuestionario(
+                    id: cuestionario.id,
+                    tipoDeInspeccion: cuestionario.tipoDeInspeccion),
 
-                    /// Total de preguntas del cuestionario
-                    total: await db.getTotalPreguntas(cuestionario.id));
-              },
-            ),
-          ),
-        );
+                /// Cantidad de preguntas respondidas
+                avance: await getTotalRespuesta(inspeccion.id),
+
+                /// Total de preguntas del cuestionario
+                total: await db.getTotalPreguntas(cuestionario.id));
+          },
+        ),
+      ),
+    );
   }
 
-  Stream<List<Borrador>> borradoresHistorial() {
-    final query = select(inspecciones).join([
-      innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
-    ])
-
-      /// Se filtran los que tengan momentoEnvio No nulo
-      ..where(inspecciones.momentoEnvio.isNotNull());
-
-    /// Agrupación del resultado de la consulta en la clase Borrador para manejarlo mejor en la UI
-    return query
-        .map((row) =>
-            Borrador(row.readTable(activos), row.readTable(inspecciones)))
-        .watch()
-        .asyncMap<List<Borrador>>(
-          (l) async => Future.wait<Borrador>(
-            l.map(
-              (b) async {
-                /// Se consulta el cuestionario asociado a cada inspección, para saber de que tipo es
-                final cuestionario = await db.getCuestionario(b.inspeccion);
-                return b.copyWith(
-                    cuestionario: cuestionario,
-
-                    /// Cantidad de preguntas respondidas
-                    avance: await getTotalRespuesta(b.inspeccion.id),
-
-                    /// Total de preguntas del cuestionario
-                    total: await db.getTotalPreguntas(cuestionario.id));
-              },
-            ),
-          ),
-        );
+  Future<act_dom.Activo> getActivoPorId(int id) async {
+    final query = select(activos)..where((tbl) => tbl.id.equals(id));
+    final activo = await query.getSingle();
+    return act_dom.Activo(id: activo.id.toString(), modelo: activo.modelo);
   }
 
   Future<void> eliminarHistorialEnviados() async {
@@ -118,7 +117,7 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
   }
 
   /// Elimina la inspección donde inspeccion.id = [borrador.inspeccion.id] y en cascada las respuestas asociadas
-  Future eliminarBorrador(Borrador borrador) async {
+  Future eliminarBorrador(borr_dom.Borrador borrador) async {
     await (delete(inspecciones)
           ..where((ins) => ins.id.equals(borrador.inspeccion.id)))
         .go();

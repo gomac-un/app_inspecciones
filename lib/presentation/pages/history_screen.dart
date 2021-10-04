@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/borrador.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
 final borradoresDaoProvider =
@@ -30,7 +30,7 @@ class HistoryInspeccionesPage extends ConsumerWidget {
         ],
       ),
       body: StreamBuilder<List<Borrador>>(
-          stream: ref.watch(borradoresDaoProvider).borradoresHistorial(),
+          stream: ref.watch(borradoresDaoProvider).borradores(true),
           builder: (context, snapshot) {
             final textTheme = Theme.of(context).textTheme;
 
@@ -62,7 +62,7 @@ class HistoryInspeccionesPage extends ConsumerWidget {
                 return ListTile(
                   tileColor: Theme.of(context).cardColor,
                   title: Text(
-                    "${borrador.inspeccion.activoId} - ${borrador.activo.modelo} (${borrador.cuestionario.tipoDeInspeccion})",
+                    "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.modelo} (${borrador.cuestionario.tipoDeInspeccion})",
                     style: textTheme.headline6,
                   ),
                   subtitle: Column(
