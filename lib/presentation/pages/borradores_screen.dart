@@ -105,57 +105,63 @@ class BorradoresPage extends ConsumerWidget {
                   ],
                 ),
 
-                /// Solo se puede subir al server si está finalizado o enReparacion
-                leading: [
-                  EstadoDeInspeccion.finalizada,
-                  EstadoDeInspeccion.enReparacion
-                ].contains(borrador.inspeccion.estado)
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.cloud_upload,
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                        onPressed: () async {
-                          //TODO: eliminar esta duplicacion de codigo
-                          final repo = ref.read(inspeccionesRepositoryProvider);
-                          final res =
-                              await repo.subirInspeccion(borrador.inspeccion);
-                          final restxt = res.fold((f) => f.msg, (u) => "exito");
-                          restxt == 'exito'
-                              ? showDialog(
-                                  context: context,
-                                  barrierColor:
-                                      Theme.of(context).primaryColorLight,
-                                  barrierDismissible: false,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      contentTextStyle:
-                                          Theme.of(context).textTheme.headline5,
-                                      title: const Icon(Icons.done_sharp,
-                                          size: 100, color: Colors.green),
-                                      actions: [
-                                        Center(
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: const Text('Aceptar'),
-                                          ),
-                                        )
-                                      ],
-                                      content: const Text(
-                                        'Inspección enviada correctamente',
-                                        textAlign: TextAlign.center,
+                leading: IconButton(
+                    icon: Icon(
+                      Icons.cloud_upload,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    onPressed: () async {
+                      //TODO: eliminar esta duplicacion de codigo
+                      final repo = ref.read(inspeccionesRepositoryProvider);
+                      final res =
+                          await repo.subirInspeccion(borrador.inspeccion);
+                      final restxt = res.fold(
+                          (f) => f.when(
+                              pageNotFound: () =>
+                                  'No se pudo encontrar la inspección, asegúrese de escribir el código correctamente',
+                              noHayConexionAlServidor: () =>
+                                  "No hay conexión al servidor",
+                              noHayInternet: () =>
+                                  "Verifique su conexión a internet",
+                              serverError: (msg) => "Error interno: $msg",
+                              credencialesException: () =>
+                                  'Error inesperado: intente inciar sesión nuevamente'),
+                          (u) => "exito");
+                      if (restxt == 'exito') {
+                        await repo.eliminarRespuestas(borrador);
+                      }
+                      restxt == 'exito'
+                          ? showDialog(
+                              context: context,
+                              barrierColor: Theme.of(context).primaryColorLight,
+                              barrierDismissible: false,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  contentTextStyle:
+                                      Theme.of(context).textTheme.headline5,
+                                  title: const Icon(Icons.done_sharp,
+                                      size: 100, color: Colors.green),
+                                  actions: [
+                                    Center(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('Aceptar'),
                                       ),
-                                    );
-                                  },
-                                )
-                              : ScaffoldMessenger.of(context)
-                                  .showSnackBar(SnackBar(
-                                  content: Text(restxt),
-                                ));
-                        })
-                    : const SizedBox(),
+                                    )
+                                  ],
+                                  content: const Text(
+                                    'Inspección enviada correctamente',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              },
+                            )
+                          : ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(restxt),
+                            ));
+                    }),
                 trailing: borrador.inspeccion.esNueva
                     ? IconButton(
                         icon: const Icon(Icons.delete),

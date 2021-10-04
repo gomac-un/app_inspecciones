@@ -8,7 +8,6 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dar
 import 'package:inspecciones/features/llenado_inspecciones/domain/modelos.dart'
     as act_dom;
 import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:moor/moor.dart';
 
 part 'borradores_dao.moor.dart';
@@ -125,12 +124,10 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
 
   /// Método usado cuando se envía inspección al server que actualiza el momento de envío y
   /// elimina las respuestas
-  Future eliminarRespuestas(Borrador borrador) async {
+  Future eliminarRespuestas(int inspeccionId) async {
     /// Se está actualizando en la bd porque para el historial, la inspeccion no se va a borrar del cel
-    ///  y se necesita el momento de envio como constancia //TODO: implementar historial
-    await (update(inspecciones)
-          ..where((i) => i.id.equals(borrador.inspeccion.id)))
-        .write(
+    ///  y se necesita el momento de envio como constancia
+    await (update(inspecciones)..where((i) => i.id.equals(inspeccionId))).write(
       InspeccionesCompanion(
         momentoEnvio: Value(DateTime.now()),
       ),
@@ -139,7 +136,7 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
     /// Se eliminan las respuestas porque no es necesario para el historial y
     /// no tiene sentido tenerlas ocupando espacio  en la bd
     await (delete(respuestas)
-          ..where((res) => res.inspeccionId.equals(borrador.inspeccion.id)))
+          ..where((res) => res.inspeccionId.equals(inspeccionId)))
         .go();
   }
 }
