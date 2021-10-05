@@ -4,10 +4,10 @@ import 'package:dartz/dartz.dart';
 import 'package:inspecciones/core/entities/usuario.dart';
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
+import 'package:inspecciones/features/login/credenciales.dart';
 import 'package:inspecciones/infrastructure/core/network_info.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
-import 'package:inspecciones/infrastructure/repositories/credenciales.dart';
 
 class UserRepository {
   final AuthRemoteDatasource _api;

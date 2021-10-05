@@ -243,7 +243,7 @@ class MoorDatabase extends _$MoorDatabase {
   }
 
   /// Método usado para cuando se descarga una inspección desde el servidor se guarde en la bd y se pueda seguir el curso normal
-  Future guardarInspeccionBD(Map<String, dynamic> json) async {
+  Future<void> guardarInspeccionBD(Map<String, dynamic> json) async {
     final respuestasParseadas = (json["respuestas"] as List).map((p) {
       final respuesta = Respuesta.fromJson(
         p as Map<String, dynamic>,

@@ -9,7 +9,7 @@ final inspeccionesRemoteDataSourceProvider =
         (ref) => DjangoJsonAPI(ref.read)); //TODO: implementar
 
 final authRemoteDataSourceProvider =
-    Provider((ref) => AuthRemoteDatasource(ref.read));
+    Provider((ref) => AuthRemoteDatasource(ref.watch(apiUriProvider)));
 
 final localPreferencesDataSourceProvider = Provider<LocalPreferencesDataSource>(
     (ref) =>

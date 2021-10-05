@@ -6,7 +6,7 @@ final networkInfoProvider = Provider<NetworkInfo>(
     (ref) => NetworkInfoAndroidImpl(InternetConnectionChecker()));
 
 // En Android toca usar [InternetConnectionChecker] porque
-class NetworkInfoAndroidImpl implements NetworkInfo {
+class NetworkInfoAndroidImpl extends NetworkInfo {
   final InternetConnectionChecker connectionChecker;
 
   NetworkInfoAndroidImpl(this.connectionChecker);

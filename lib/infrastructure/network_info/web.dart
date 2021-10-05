@@ -5,7 +5,7 @@ import 'package:inspecciones/infrastructure/core/network_info.dart';
 final networkInfoProvider =
     Provider<NetworkInfo>((ref) => NetworkInfoWebImpl(Connectivity()));
 
-class NetworkInfoWebImpl implements NetworkInfo {
+class NetworkInfoWebImpl extends NetworkInfo {
   final Connectivity connectivity;
 
   NetworkInfoWebImpl(this.connectivity);

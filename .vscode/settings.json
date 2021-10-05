@@ -20,7 +20,6 @@
     
     "dart.previewFlutterUiGuides": true,
     "dart.previewFlutterUiGuidesCustomTracking": true,
-    "dart.previewVsCodeTestRunner": true,
     
     //"dart.openDevTools": "flutter",
     "material-icon-theme.folders.associations": {

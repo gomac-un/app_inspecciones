@@ -19,65 +19,26 @@ final apiUriProvider = Provider((ref) => Uri(
     host: 'gomac.medellin.unal.edu.co',
     pathSegments: ['inspecciones/api/v1']));
 
-extension ManipulacionesUri on Uri {
-  Uri appendSegment(String segment, {bool addTrailingSlash = true}) => replace(
-      pathSegments: [...pathSegments, segment, if (addTrailingSlash) '']);
-}
-
 //TODO eliminar la duplicacion de código
 class AuthRemoteDatasource {
   static const _timeLimit = Duration(seconds: 5);
 
-  final Reader read;
   AuthRemoteDatasource(
-    this.read,
+    this.apiUri,
   );
+  final Uri apiUri;
 
   Future<ConnectivityResult> _hayInternet() async =>
       await (Connectivity().checkConnectivity());
 
-  /// Devuelve el token del usuario
-  ///
-  /// Con las credenciales ingresadas al momento de iniciar sesión, se hace
-  /// la petición a la Api para que devuelva el token de autenticación
-  /// (https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication)
-  Future<Map<String, dynamic>> getToken(Map<String, dynamic> user) async {
-    final uri = read(apiUriProvider).appendSegment('api-token-auth');
+  
 
-    final http.Response response = await http
-        .post(
-          uri,
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(user),
-        )
-        .timeout(_timeLimit);
-    developer.log("res: ${response.statusCode}\n${response.body}");
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return json.decode(response.body) as Map<String, dynamic>;
-    } else if (response.statusCode == 401 ||
-        response.statusCode == 403 ||
-        response.statusCode == 400) {
-      throw CredencialesException(
-          jsonDecode(response.body) as Map<String, dynamic>);
-    } else if (response.statusCode == 404) {
-      throw PageNotFoundException();
-    } else {
-      //TODO: mirar los tipos de errores que pueden venir de la api. Hasta el momento se han manejado
-      //los del lado cliente 401, 403 y 404. Los de tipo servidor se manejan en uno solo
-      // que es cuando se lanza el serverError
-      developer.log(response.body);
-      throw ServerException(jsonDecode(response.body) as Map<String, dynamic>);
-    }
-  }
 
   /// Devuelve json que permite saber si [user] es admin, es decir, si puede
   /// o no crear cuestionarios-
   Future<Map<String, dynamic>> getPermisos(
       Map<String, dynamic> user, String token) async {
-    final uri = read(apiUriProvider).appendSegment('groups');
+    final uri = apiUri.appendSegment('groups');
 
     developer.log("req: ${uri.path}\n${jsonEncode(user)}");
     final http.Response response = await http
@@ -107,7 +68,7 @@ class AuthRemoteDatasource {
   }
 
   Future<Map<String, dynamic>> registrarApp() async {
-    final uri = read(apiUriProvider).appendSegment('registro-app');
+    final uri = apiUri.appendSegment('registro-app');
 
     developer.log("req: ${uri.path}");
     http.Response response;
@@ -337,4 +298,10 @@ class DjangoJsonAPI implements InspeccionesRemoteDataSource {
         fileName: filename,
         showNotification: false);
   }
+}
+
+extension ManipulacionesUri on Uri {
+  //TODO: eliminar cuando se refactorice la api
+  Uri appendSegment(String segment, {bool addTrailingSlash = true}) => replace(
+      pathSegments: [...pathSegments, segment, if (addTrailingSlash) '']);
 }

@@ -9,8 +9,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'application/auth/auth_service.dart';
 import 'features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
+import 'features/login/login_page.dart';
 import 'presentation/pages/borradores_screen.dart';
-import 'presentation/pages/login_page.dart';
 import 'theme.dart';
 import 'utils.dart';
 

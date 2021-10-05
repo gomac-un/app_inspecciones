@@ -6,7 +6,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/usuario.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
-import 'package:inspecciones/infrastructure/repositories/credenciales.dart';
+import 'package:inspecciones/features/login/credenciales.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';

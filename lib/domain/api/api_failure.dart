@@ -4,9 +4,14 @@ part 'api_failure.freezed.dart';
 
 @freezed
 class ApiFailure with _$ApiFailure {
-  const factory ApiFailure.noHayInternet() = NoHayInternet;
-  const factory ApiFailure.noHayConexionAlServidor() = NoHayConexionAlServidor;
-  const factory ApiFailure.serverError(String msg) = ServerError;
-  const factory ApiFailure.credencialesException() = CredencialesError;
-  const factory ApiFailure.pageNotFound() = PageNotFoundError;
+  const factory ApiFailure.errorDeConexion(String mensaje) = _ErrorDeConexion;
+  const factory ApiFailure.errorInesperadoDelServidor(String mensaje) =
+      _ErrorInesperadoDelServidor;
+  const factory ApiFailure.errorDecodificandoLaRespuesta(String mensaje) =
+      _ErrorDecodificandoLaRespuesta;
+  const factory ApiFailure.errorDeCredenciales(String mensaje) =
+      _ErrorDeCredenciales;
+  const factory ApiFailure.errorDePermisos(String mensaje) = _ErrorDePermisos;
+  const factory ApiFailure.errorDeComunicacionConLaApi(String mensaje) =
+      _ErrorDeComunicacionConLaApi;
 }
