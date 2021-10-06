@@ -24,10 +24,6 @@ jobs:
       with:
         flutter-version: '2.6'
         channel: 'beta'
-        
-    # Uncomment this step to verify the use of 'dart format' on each commit.
-    # - name: Verify formatting
-    #   run: dart format --output=none --set-exit-if-changed .
 
     - name: Install dependencies
       run: flutter pub get
@@ -43,4 +39,10 @@ jobs:
       run: flutter analyze
       
     - name: Run tests
-      run: flutter test
+      run: flutter test --coverage
+
+    - name: Upload coverage to Codecov 
+      uses: codecov/codecov-action@v1 
+      with: 
+        token: ${{ secrets.CODECOV_TOKEN }} 
+        file: coverage/lcov.info
