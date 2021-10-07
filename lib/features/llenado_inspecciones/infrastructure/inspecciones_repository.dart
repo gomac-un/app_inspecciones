@@ -49,17 +49,19 @@ class InspeccionesRepository {
   //FEF<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
   Future<Either<InspeccionesFailure, List<Cuestionario>>>
       cuestionariosParaActivo(String activo) async {
+    final int activoId;
     try {
-      final activoId = int.parse(activo);
-      final cuestionarios =
-          await _db.llenadoDao.cuestionariosParaActivo(activoId);
-      return Right(cuestionarios
-          .map((cuest) => Cuestionario(
-              id: cuest.id, tipoDeInspeccion: cuest.tipoDeInspeccion))
-          .toList());
-    } catch (e) {
+      activoId = int.parse(activo);
+    } on FormatException{
       return Left(InspeccionesFailure('Activo invalido'));
     }
+    final cuestionarios =
+        await _db.llenadoDao.cuestionariosParaActivo(activoId);
+    return Right(cuestionarios
+        .map((cuest) => Cuestionario(
+            id: cuest.id, tipoDeInspeccion: cuest.tipoDeInspeccion))
+        .toList());
+   
   }
 
   Future eliminarBorrador(Borrador borrador) =>
