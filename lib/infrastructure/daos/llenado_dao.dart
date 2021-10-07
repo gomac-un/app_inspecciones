@@ -249,7 +249,6 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
 
     ///Si existe la inspeccion y no se ha contestado la pregunta, se envia nulo
     ///para que el control cree una por defecto
-    if (res.isEmpty) return [];
 
     return res;
   }
