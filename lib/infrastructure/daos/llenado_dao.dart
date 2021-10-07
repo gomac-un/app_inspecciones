@@ -176,11 +176,10 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
       );
     //Se supone que solo debe haber una respuesta por [pregunta] numerica para [inspeccionId]
     final res = await query.getSingleOrNull();
-    if (res != null) {
-      return bl_dom.RespuestaNumerica(getMetaRespuesta(res),
+    if (res == null) return null;
+    return bl_dom.RespuestaNumerica(getMetaRespuesta(res),
           respuestaNumerica: res.valor);
-    }
-    return null;
+    
   }
 
   /// Devuelve las preguntas de tipo selección asociadas al cuestionario con id=[cuestionarioId]
