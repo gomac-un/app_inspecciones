@@ -68,10 +68,13 @@ class BorradoresPage extends ConsumerWidget {
                       : 'Criticidad parcial inicial: ';
 
               return ListTile(
-                onTap: () => context.goNamed('inspeccion', {
-                  "activoid": borrador.inspeccion.activo.id,
-                  "cuestionarioid": borrador.cuestionario.id.toString(),
-                }),
+                onTap: () => context.goNamed(
+                  'inspeccion',
+                  params: {
+                    "activoid": borrador.inspeccion.activo.id,
+                    "cuestionarioid": borrador.cuestionario.id.toString(),
+                  },
+                ),
                 //TODO: mostrar la información de manera didáctica
                 tileColor: Theme.of(context).cardColor,
                 title: Text(

@@ -23,8 +23,8 @@ class InspeccionPage extends ConsumerWidget {
         ref.watch(controladorLlenadoInspeccionProvider(inspeccionId));
 
     return controlFuture.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, __) => Text(e.toString()),
+        loading: (prev) => const Center(child: CircularProgressIndicator()),
+        error: (e, s, prev) => Text(e.toString()),
         data: (control) {
           final estadoDeInspeccion =
               ref.watch(estadoDeInspeccionProvider).state;

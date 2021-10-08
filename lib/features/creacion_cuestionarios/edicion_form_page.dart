@@ -23,15 +23,13 @@ class EdicionFormPage extends ConsumerWidget {
     return ProviderScope(
       overrides: [
         cuestionarioIdProvider.overrideWithValue(cuestionarioId),
-        creacionFormControllerFutureProvider,
-        creacionFormControllerProvider,
       ],
       child: Consumer(builder: (context, ref, _) {
         final formController = ref.watch(creacionFormControllerFutureProvider);
         return formController.when(
             data: (_) => const EdicionForm(),
-            loading: () => const CircularProgressIndicator(),
-            error: (e, _) => Text("Error cargando el cuestionario: $e"));
+            loading: (prev) => const CircularProgressIndicator(),
+            error: (e, s, prev) => Text("Error cargando el cuestionario: $e"));
       }),
     );
   }

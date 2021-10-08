@@ -20,15 +20,18 @@ final creacionFormControllerFutureProvider = FutureProvider(
     ref.watch(cuestionariosRepositoryProvider),
     ref.watch(cuestionarioIdProvider),
   ),
+  dependencies: [cuestionarioIdProvider, cuestionariosRepositoryProvider],
 );
 
-final creacionFormControllerProvider =
-    Provider((ref) => ref.watch(creacionFormControllerFutureProvider).when(
-          data: id,
-          loading: () => throw Exception(
-              "creacionFormControllerFutureProvider no se ha cargado"),
-          error: (e, s) => throw e,
-        ));
+final creacionFormControllerProvider = Provider(
+  (ref) => ref.watch(creacionFormControllerFutureProvider).when(
+        data: id,
+        loading: (previous) => throw Exception(
+            "creacionFormControllerFutureProvider no se ha cargado"),
+        error: (e, s, previous) => throw e,
+      ),
+  dependencies: [creacionFormControllerFutureProvider],
+);
 
 class CreacionFormController {
   final CuestionariosRepository repository;
