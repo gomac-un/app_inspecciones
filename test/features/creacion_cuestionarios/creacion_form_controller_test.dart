@@ -12,7 +12,7 @@ import 'creacion_form_controller_test.mocks.dart';
   [CuestionariosRepository],
 )
 void main() {
-  late MockCuestionariosRepository repository;
+  late CuestionariosRepository repository;
   late CreacionFormController controller;
 
   setUp(() async {

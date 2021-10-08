@@ -200,7 +200,9 @@ class MoorDatabase extends _$MoorDatabase {
   }
 
   /// marca [cuestionario.esLocal] = false cuando [cuestionario] es subido al server
-  Future marcarCuestionarioSubido(Cuestionario cuestionario) =>
+  /// retorna el numero de cuestionarios afectados, deber ser 1, si es distinto
+  /// se debe considerar un error
+  Future<int> marcarCuestionarioSubido(Cuestionario cuestionario) =>
       (update(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
           .write(const CuestionariosCompanion(esLocal: Value(false)));
 

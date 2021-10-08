@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_test;
-import 'package:inspecciones/infrastructure/core/errors.dart';
+import 'package:inspecciones/infrastructure/core/api_exceptions.dart';
 import 'package:inspecciones/infrastructure/datasources/django_json_api.dart';
 import 'package:test/test.dart';
 
@@ -48,8 +48,8 @@ void main() {
         () async {
       //TODO: mirar como se pueden ejecutar los tests en flutter web para ver si los errores cambian
       final api = _mockDJA((request) => throw const SocketException(""));
-      await expectLater(() => api.getInspeccion(1),
-          throwsA(isA<ErrorDeConexion>()));
+      await expectLater(
+          () => api.getInspeccion(1), throwsA(isA<ErrorDeConexion>()));
     });
     test(
         'descargarInspeccionRemota debería lanzar ErrorInesperadoDelServidor cuando el status es 500',
@@ -71,8 +71,8 @@ void main() {
       final api =
           _mockDJA((request) async => http.Response(r'{"detail":""}', 401));
 
-      await expectLater(() => api.getInspeccion(1),
-          throwsA(isA<ErrorDeCredenciales>()));
+      await expectLater(
+          () => api.getInspeccion(1), throwsA(isA<ErrorDeCredenciales>()));
     });
     test(
         'descargarInspeccionRemota debería lanzar ErrorEnLaComunicacionConLaApi cuando el estatus es 404',
@@ -121,4 +121,6 @@ void main() {
           throwsA(isA<ErrorInesperadoDelServidor>()));
     });
   });
+  //TODO: probar el metodo de subir fotos
+  //TODO: probar el metodo de FlutterDownloader
 }

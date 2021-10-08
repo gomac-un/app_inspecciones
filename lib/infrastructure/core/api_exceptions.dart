@@ -1,4 +1,9 @@
-class ErrorDeConexion {
+class ApiException {
+  const ApiException();
+}
+
+/// Este archivo contiene todas las excepciones que puede generar una api remota
+class ErrorDeConexion extends ApiException {
   final String mensaje;
 
   /// Error lanzado cuando no se puede realizar la conexion con el servidor,
@@ -8,7 +13,7 @@ class ErrorDeConexion {
   const ErrorDeConexion(this.mensaje);
 }
 
-class ErrorInesperadoDelServidor {
+class ErrorInesperadoDelServidor extends ApiException {
   final String mensaje;
 
   /// Error lanzado cuando ocurre un error que no se habia pronosticado en ninguno
@@ -16,7 +21,7 @@ class ErrorInesperadoDelServidor {
   const ErrorInesperadoDelServidor(this.mensaje);
 }
 
-class ErrorDecodificandoLaRespuesta {
+class ErrorDecodificandoLaRespuesta extends ApiException {
   final String respuesta;
 
   /// Error lanzado cuando se intenta decodificar la respuesta esperada en un
@@ -25,7 +30,7 @@ class ErrorDecodificandoLaRespuesta {
   const ErrorDecodificandoLaRespuesta(this.respuesta);
 }
 
-class ErrorDeCredenciales {
+class ErrorDeCredenciales extends ApiException {
   final String mensaje;
 
   /// Error lanzado cuando el servidor informa que las credenciales no son validas,
@@ -34,7 +39,7 @@ class ErrorDeCredenciales {
   const ErrorDeCredenciales(this.mensaje);
 }
 
-class ErrorDePermisos {
+class ErrorDePermisos extends ApiException {
   final String mensaje;
 
   /// Error lanzado cuando a pesar de tener las credenciales correctas,el servidor
@@ -42,7 +47,7 @@ class ErrorDePermisos {
   const ErrorDePermisos(this.mensaje);
 }
 
-class ErrorEnLaComunicacionConLaApi {
+class ErrorEnLaComunicacionConLaApi extends ApiException {
   final String mensaje;
 
   /// Error lanzado cuando la APP realiza una peticion a la API pero es rechazada,

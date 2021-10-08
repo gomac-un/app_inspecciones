@@ -13,7 +13,7 @@ abstract class LocalPreferencesDataSource {
   Future<bool> saveUser(Usuario user);
   Future<bool> deleteUser();
   Usuario? getUser();
-  Future<bool> saveUltimaSincronizacion();
+  Future<bool> saveUltimaSincronizacion(DateTime momento);
   DateTime? getUltimaSincronizacion();
   Future<bool> saveAppId(int appId);
   int? getAppId();
@@ -49,8 +49,8 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
 
   /// Guarda el momento de la ultima sincronización con gomac
   @override
-  Future<bool> saveUltimaSincronizacion() {
-    final date = DateFormat(dateformat).format(DateTime.now());
+  Future<bool> saveUltimaSincronizacion(DateTime momento) {
+    final date = DateFormat(dateformat).format(momento);
     return _preferences.setString(ultimaActualizacionKey, date);
   }
 

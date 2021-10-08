@@ -9,6 +9,7 @@ import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/features/login/credenciales.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
+import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'auth_service.freezed.dart';
@@ -23,7 +24,7 @@ final authListenableProvider =
 
 final userProvider =
     Provider<Usuario?>((ref) => ref.watch(authProvider).whenOrNull(
-          authenticated: (usuario, _) => usuario,
+          authenticated: id,
         ));
 
 class LoginInfo extends ChangeNotifier {
@@ -63,14 +64,10 @@ class AuthService extends StateNotifier<AuthState> {
     //TODO: eliminar duplicacion de codigo con login
     // TODO: registrar de alguna manera el token en la api
     final usuario = _userRepository.getLocalUser();
-    final lastSync = _userRepository.getUltimaSincronizacion();
 
     state = usuario.fold(
       () => const AuthState.unauthenticated(),
-      (usuario) => AuthState.authenticated(
-        usuario: usuario,
-        sincronizado: lastSync,
-      ),
+      (usuario) => AuthState.authenticated(usuario: usuario),
     );
   }
 
@@ -87,10 +84,6 @@ class AuthService extends StateNotifier<AuthState> {
     autentication.fold(
       (failure) => onFailure?.call(failure),
       (usuario) {
-        /// Obtiene la ultima sincronización, esto para saber que pantalla se
-        /// muestra primero: sincronización o borradores.
-        final lastSync = _userRepository.getUltimaSincronizacion();
-
         /// Guarda los datos del usuario, para que no tenga que iniciar sesión la próxima vez
         _userRepository.saveLocalUser(user: usuario);
 
@@ -99,10 +92,7 @@ class AuthService extends StateNotifier<AuthState> {
           (scope) => scope.user = SentryUser(id: usuario.documento),
         );
 
-        state = AuthState.authenticated(
-          usuario: usuario,
-          sincronizado: lastSync,
-        );
+        state = AuthState.authenticated(usuario: usuario);
         onSuccess?.call();
       },
     );
@@ -111,6 +101,7 @@ class AuthService extends StateNotifier<AuthState> {
   Future logout() async {
     /// Se borra la info del usuario, lo que hace que deba iniciar sesión la próxima vez
     await _userRepository.deleteLocalUser();
+
     Sentry.configureScope(
       (scope) =>
           scope.user = scope.user?.copyWith(extras: {'logged_out': true}),
@@ -121,5 +112,5 @@ class AuthService extends StateNotifier<AuthState> {
   /// Informacion usada por la vista para evitar login sin haber obtenido el AppId
 
   Future<Either<AuthFailure, int>> getOrRegisterAppId() =>
-      _userRepository.getOrRegisterAppId();
+      _userRepository.getOrRegisterAppId().leftMap(apiFailureToAuthFailure);
 }

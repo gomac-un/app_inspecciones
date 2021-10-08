@@ -14,7 +14,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app_router.dart';
 import 'infrastructure/datasources/local_preferences_datasource.dart';
 import 'infrastructure/datasources/providers.dart';
-import 'infrastructure/datasources/remote_datasource.dart';
 import 'presentation/pages/splash_screen.dart';
 import 'riverpod_logger.dart';
 import 'utils.dart';
@@ -94,3 +93,10 @@ Future<void> _ejecutarAppConRiverpod() async {
     ),
   );
 }
+//TODO: permitir tener una version de produccion donde el apiUriProvider sea
+/*
+Uri(
+    scheme: 'https',
+    host: 'gomac.medellin.unal.edu.co',
+    pathSegments: ['inspecciones/api/v1'])
+ */

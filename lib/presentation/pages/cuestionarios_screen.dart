@@ -145,15 +145,7 @@ class CuestionariosPage extends ConsumerWidget {
       (fail) => ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            fail.when(
-              noHayConexionAlServidor: () => "No hay conexion al servidor",
-              noHayInternet: () => "No hay internet",
-              serverError: (msg) => "Error inesperado: $msg",
-              credencialesException: () =>
-                  'Error, intente inciar sesión nuevamente',
-              pageNotFound: () =>
-                  'No se pudo encontrar la página, informe al encargado',
-            ),
+            fail.toString(),
           ),
         ),
       ),

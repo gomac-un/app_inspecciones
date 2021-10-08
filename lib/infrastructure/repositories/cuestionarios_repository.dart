@@ -1,23 +1,25 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
-import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
-import 'package:inspecciones/infrastructure/datasources/remote_datasource.dart';
+import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
+import 'package:inspecciones/infrastructure/datasources/flutter_downloader/errors.dart';
+import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
-import 'package:path/path.dart' as p;
+import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
+import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
 
 class CuestionariosRepository {
-  final InspeccionesRemoteDataSource _api;
+  final CuestionariosRemoteDataSource _api;
+  final FotosRemoteDataSource _apiFotos;
   final MoorDatabase _db;
   final FotosRepository _fotosRepository;
 
-  CuestionariosRepository(this._db, this._api, this._fotosRepository);
+  CuestionariosRepository(
+      this._api, this._apiFotos, this._db, this._fotosRepository);
 
   Future<Either<ApiFailure, Unit>> subirCuestionariosPendientes() async {
     //TODO: subir cada uno, o todos a la vez para mas eficiencia
@@ -28,52 +30,63 @@ class CuestionariosRepository {
   Future<Either<ApiFailure, Unit>> subirCuestionario(
       Cuestionario cuestionario) async {
     /// Json con info de [cuestionario] y sus respectivos bloques.
-    final cues = await _db.getCuestionarioCompletoAsJson(cuestionario);
-    log(jsonEncode(cues));
-    try {
-      log(jsonEncode(cues));
-      await _api.postRecurso('cuestionarios-completos', cues);
+    final cuestionarioMap =
+        await _db.getCuestionarioCompletoAsJson(cuestionario);
 
-      /// Como los cuestionarios quedan en el celular, se marca como subidos para que no se envíe al server un cuestionario que ya existe.
-      /// cambia [cuestionario.esLocal] = false.
-      await _db.marcarCuestionarioSubido(cuestionario);
-
+    subirFotos() async {
       /// Usado para el nombre de la carpeta de las fotos
-      final idDocumento = cues['id'].toString();
+      final idDocumento = cuestionarioMap['id'].toString();
 
       final fotos = await _fotosRepository.getFotosDeDocumento(
         Categoria.cuestionario,
         identificador: idDocumento,
       );
-      await _api.subirFotos(fotos, idDocumento, Categoria.cuestionario);
-      return right(unit);
-    } on TimeoutException {
-      return const Left(ApiFailure.noHayConexionAlServidor());
-    } on CredencialesException catch (e) {
-      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
-    } on InternetException {
-      return const Left(ApiFailure.noHayInternet());
-    } on ServerException catch (e) {
-      return Left(ApiFailure.serverError(jsonEncode(e.respuesta)));
+      return _apiFotos.subirFotos(fotos, idDocumento, Categoria.cuestionario);
     }
+
+    return apiExceptionToApiFailure(
+            () => _api.crearCuestionario(cuestionarioMap))
+        .nestedEvaluatedMap(
+          /// Como los cuestionarios quedan en el celular, se marca como subidos
+          /// para que no se envíe al server un cuestionario que ya existe.
+          /// cambia [cuestionario.esLocal] = false.
+          (_) => _db.marcarCuestionarioSubido(cuestionario),
+        )
+        .flatMap(
+          (_) => apiExceptionToApiFailure(
+            () => subirFotos().then((_) => unit),
+          ),
+        );
+    //TODO: mirar como procesar los json de las respuestas intermedias
   }
 
   /// Descarga los cuestionarios y todo lo necesario para tratarlos:
   /// activos, sistemas, contratistas y subsistemas
   /// En caso de que ya exista el archivo, lo borra y lo descarga de nuevo
-  Future<String?> descargarCuestionarios(
-      String savedir, String nombreJson) async {
-    final file = File(p.join(savedir, nombreJson));
-    if (await file.exists()) {
-      await file.delete();
+
+  Future<Either<ApiFailure, File>> descargarTodosLosCuestionarios(
+      String token) async {
+    try {
+      return Right(await _api.descargarTodosLosCuestionarios(token));
+    } on ErrorDeDescargaFlutterDownloader {
+      return const Left(ApiFailure.errorDeComunicacionConLaApi(
+          "FlutterDownloader no pudo descargar los cuestionarios"));
+    } catch (e) {
+      return Left(ApiFailure.errorDeProgramacion(e.toString()));
     }
-    _api.descargaFlutterDownloader('server', savedir, nombreJson);
   }
 
   /// Descarga todas las fotos de todos los cuestionarios
-  Future descargarFotos(String savedir, String nombreZip) async {
-    _api.descargaFlutterDownloader(
-        '/media/fotos-app-inspecciones/cuestionarios.zip', savedir, nombreZip);
+  Future<Either<ApiFailure, Unit>> descargarFotos(String token) async {
+    try {
+      await _api.descargarTodasLasFotos(token);
+      return const Right(unit);
+    } on ErrorDeDescargaFlutterDownloader {
+      return const Left(ApiFailure.errorDeComunicacionConLaApi(
+          "FlutterDownloader no pudo descargar las fotos"));
+    } catch (e) {
+      return Left(ApiFailure.errorDeProgramacion(e.toString()));
+    }
   }
 
   Stream<List<Cuestionario>> getCuestionariosLocales() =>

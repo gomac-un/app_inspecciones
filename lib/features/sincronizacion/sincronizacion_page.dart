@@ -1,8 +1,9 @@
-import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/application/sincronizacion/sincronizacion_notifier.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
+
+import 'providers.dart';
+import 'sincronizacion_controller.dart';
 
 /// Pantalla que muestra el progreso de a descarga de datos de gomac
 class SincronizacionPage extends ConsumerWidget {
@@ -85,11 +86,13 @@ class SincronizacionPage extends ConsumerWidget {
             ),
 
             /// Ultima sincronización.
-            ValueListenableBuilder<Option<DateTime>>(
-                valueListenable: sincronizacionNotifier.ultimaActualizacion,
-                builder: (_, value, __) => Text("Ultima sincronizacion: " +
-                    value.fold(() => "Nunca se ha sincronizado",
-                        (date) => date.toIso8601String())))
+            Consumer(builder: (_, ref, __) {
+              final ultimaSincronizacion =
+                  ref.watch(momentoDeSincronizacionProvider);
+              return Text("Ultima sincronizacion: " +
+                  (ultimaSincronizacion?.toIso8601String() ??
+                      "Nunca se ha sincronizado"));
+            })
           ],
         ),
       ),
@@ -106,30 +109,7 @@ class BotonDescarga extends ConsumerWidget {
     final sincronizacionNotifier = ref.watch(sincronizacionProvider.notifier);
 
     return OutlinedButton.icon(
-      /*color: Theme.of(context).brightness == Brightness.light
-                  ? Colors.black
-                  : Colors.white,*/
-      onPressed: () async {
-        /// Intento de hacer manejo de errores, pero aún no sé como hacerlo con [FlutterDownloader]
-        final descarga = await sincronizacionNotifier.descargarServer();
-        final res = descarga.fold(
-            (fail) => fail.when(
-                pageNotFound: () =>
-                    'No se pudo encontrar la página, informe al encargado',
-                noHayConexionAlServidor: () => "No hay conexion al servidor",
-                noHayInternet: () => "No tiene conexión a internet",
-                serverError: (msg) => "Error interno: $msg",
-                credencialesException: () =>
-                    'Error inesperado: intente inciar sesión nuevamente'), (u) {
-          return "exito";
-        });
-
-        if (res != 'exito') {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(res),
-          ));
-        }
-      },
+      onPressed: sincronizacionNotifier.iniciarProceso,
       icon: const Icon(Icons.play_arrow, color: Colors.white),
       label: const Text(
         "Iniciar descarga",

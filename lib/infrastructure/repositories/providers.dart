@@ -7,14 +7,17 @@ import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import '../moor_database.dart';
 import 'cuestionarios_repository.dart';
 
-final userRepositoryProvider = Provider((ref) => UserRepository(
-    ref.watch(authRemoteDataSourceProvider),
-    ref.watch(localPreferencesDataSourceProvider),
-    ref.watch(networkInfoProvider)));
+final userRepositoryProvider = Provider(
+  (ref) => UserRepository(
+      ref.read,
+      ref.watch(localPreferencesDataSourceProvider),
+      ref.watch(networkInfoProvider)),
+);
 
 final cuestionariosRepositoryProvider =
     Provider((ref) => CuestionariosRepository(
+          ref.watch(cuestionariosRemoteDataSourceProvider),
+          ref.watch(fotosRemoteDataSourceProvider),
           ref.watch(moorDatabaseProvider),
-          ref.watch(inspeccionesRemoteDataSourceProvider),
           ref.watch(fotosRepositoryProvider),
         ));

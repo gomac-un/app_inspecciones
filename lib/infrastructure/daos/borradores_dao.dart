@@ -118,7 +118,7 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
   }
 
   /// Elimina la inspección donde inspeccion.id = [borrador.inspeccion.id] y en cascada las respuestas asociadas
-  Future eliminarBorrador(Borrador borrador) async {
+  Future<void> eliminarBorrador(Borrador borrador) async {
     await (delete(inspecciones)
           ..where((ins) => ins.id.equals(borrador.inspeccion.id)))
         .go();
@@ -126,7 +126,7 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
 
   /// Método usado cuando se envía inspección al server que actualiza el momento de envío y
   /// elimina las respuestas
-  Future eliminarRespuestas(Borrador borrador) async {
+  Future<void> eliminarRespuestas(Borrador borrador) async {
     /// Se está actualizando en la bd porque para el historial, la inspeccion no se va a borrar del cel
     ///  y se necesita el momento de envio como constancia //TODO: implementar historial
     await (update(inspecciones)
