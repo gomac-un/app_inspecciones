@@ -1,4 +1,4 @@
-# Inspecciones
+# Inspecciones [![codecov](https://codecov.io/gh/gomac-un/app_inspecciones/branch/actualizacion_flutter/graph/badge.svg?token=CCRFGYBVVN)](https://codecov.io/gh/gomac-un/app_inspecciones)
 
 Aplicacion escrita en Flutter para la creación de cuestionarios y el llenado de inspeciones con el fin de recolectar información durante la inspeccion de activos.
 
