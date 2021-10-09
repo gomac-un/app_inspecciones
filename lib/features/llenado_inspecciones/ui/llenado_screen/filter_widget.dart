@@ -4,8 +4,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../control/controlador_llenado_inspeccion.dart';
 
-
-
 class FilterWidget extends ConsumerWidget {
   const FilterWidget({
     Key? key,

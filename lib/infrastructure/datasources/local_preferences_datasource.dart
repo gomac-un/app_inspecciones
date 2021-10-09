@@ -64,12 +64,11 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
   }
 
   /// Guarda localmente el id de la instalación de la app en el dispositivo.
-  /// Así podrá entrar a llenar inspecciones aún cuando no tenga internet
   @override
   Future<bool> saveAppId(int appId) async =>
       _preferences.setInt(appIdKey, appId);
 
   /// Devuelve el id de la instalación de la app en el dispositivo
   @override
-  int? getAppId() => 999999999; //TODO: arreglar _preferences.getInt(appIdKey);
+  int? getAppId() => _preferences.getInt(appIdKey);
 }

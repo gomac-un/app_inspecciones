@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/usuario.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/features/login/credenciales.dart';
+import 'package:inspecciones/infrastructure/repositories/app_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
@@ -16,8 +17,11 @@ part 'auth_service.freezed.dart';
 part 'auth_state.dart';
 
 /// Maneja el estado de autenticación en la app
-final authProvider = StateNotifierProvider<AuthService, AuthState>(
-    (ref) => AuthService(ref.watch(userRepositoryProvider)));
+final authProvider =
+    StateNotifierProvider<AuthService, AuthState>((ref) => AuthService(
+          ref.watch(userRepositoryProvider),
+          ref.watch(appRepositoryProvider),
+        ));
 
 final authListenableProvider =
     Provider((ref) => LoginInfo(ref.watch(authProvider.notifier)));
@@ -55,8 +59,10 @@ class LoginInfo extends ChangeNotifier {
 
 class AuthService extends StateNotifier<AuthState> {
   final UserRepository _userRepository;
+  final AppRepository _appRepository;
 
-  AuthService(this._userRepository) : super(const AuthState.loading()) {
+  AuthService(this._userRepository, this._appRepository)
+      : super(const AuthState.loading()) {
     init();
   }
 
@@ -112,5 +118,5 @@ class AuthService extends StateNotifier<AuthState> {
   /// Informacion usada por la vista para evitar login sin haber obtenido el AppId
 
   Future<Either<AuthFailure, int>> getOrRegisterAppId() =>
-      _userRepository.getOrRegisterAppId().leftMap(apiFailureToAuthFailure);
+      _appRepository.getOrRegisterAppId().leftMap(apiFailureToAuthFailure);
 }

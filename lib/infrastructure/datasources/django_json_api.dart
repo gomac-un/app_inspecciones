@@ -50,11 +50,9 @@ class DjangoJsonApi
   /// Devuelve json que permite saber si [user] es admin, es decir, si puede
   /// o no crear cuestionarios-
   @override
-  Future<JsonObject> getPermisos(String username, String token) =>
-      _ejecutarRequest(() {
-        return _client.post(_apiUri.appendSegment('groups'),
-            body: {"username": username});
-      });
+  Future<JsonObject> getPermisos(String username) =>
+      _ejecutarRequest(() => _client
+          .post(_apiUri.appendSegment('groups'), body: {"username": username}));
 
   /// Le informa al servidor que debe registrar un nuevo cliente y el servidor
   /// retorna una id, esta id es unica por cada peticion y será usada para generar

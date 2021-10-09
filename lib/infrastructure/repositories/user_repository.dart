@@ -13,13 +13,21 @@ import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
 import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
 
+import 'app_repository.dart';
+
 class UserRepository {
   AuthRemoteDataSource get _api => _read(authRemoteDataSourceProvider);
   final LocalPreferencesDataSource _localPreferences;
   final NetworkInfo _networkInfo;
+  final AppRepository _appRepository;
   final Reader _read;
 
-  UserRepository(this._read, this._localPreferences, this._networkInfo);
+  UserRepository(
+    this._read,
+    this._localPreferences,
+    this._networkInfo,
+    this._appRepository,
+  );
 
   Future<Either<AuthFailure, Usuario>> authenticateUser(
       {required Credenciales credenciales, bool offline = false}) async {
@@ -34,37 +42,34 @@ class UserRepository {
       return const Left(AuthFailure.noHayInternet());
     }
 
-    return getOrRegisterAppId()
-        .flatMap(
-            (_) => apiExceptionToApiFailure(() => _getUsuario(credenciales)))
+    return getUsuario(credenciales).leftMap(apiFailureToAuthFailure).flatMap(
+        (usuario) => _appRepository
+            .getOrRegisterAppId()
+            .leftMap(apiFailureToAuthFailure)
+            .then((r) => r.fold((l) => Left(l), (_) => Right(usuario))));
+
+    _appRepository
+        .getOrRegisterAppId()
+        .flatMap((appId) => getUsuario(credenciales))
         .leftMap(apiFailureToAuthFailure);
   }
 
-  /// Devuelve el token usado en autenticación de Django para hacer
-  Future<String> _getToken(Credenciales credenciales) async {
-    final resMap = await _api.getToken(credenciales.toJson());
-    final token = resMap['token'] as String;
-    // esto puede que sea tarea de otra clase
-    _read(tokenProvider.notifier).state = token;
-    return token;
-  }
+  /// verifica que el usuario y la contraseña coincidan y además recibe y guarda
+  /// el token de autenticacion de la api
+  Future<Either<ApiFailure, Usuario>> getUsuario(Credenciales credenciales) =>
+      _appRepository.registrarToken(credenciales).flatMap(
+            (token) => apiExceptionToApiFailure(() async => Usuario.online(
+                  documento: credenciales.username,
+                  password: credenciales.password,
+                  esAdmin: await _getPermisos(credenciales.username),
+                )),
+          );
 
   /// Devuelve bool que indica si puede o no crear cuestionarios.
   /// Se usa [token] para poder enviar en el header de la petición
-  Future<bool> _getPermisos(String username, String token) async {
-    final resMap = await _api.getPermisos(username, token);
+  Future<bool> _getPermisos(String username) async {
+    final resMap = await _api.getPermisos(username);
     return resMap['esAdmin'] as bool;
-  }
-
-  Future<Usuario> _getUsuario(Credenciales credenciales) async {
-    final token = await _getToken(credenciales);
-
-    final esAdmin = await _getPermisos(credenciales.username, token);
-    return Usuario.online(
-      documento: credenciales.username,
-      password: credenciales.password,
-      esAdmin: esAdmin,
-    );
   }
 
   Future<void> saveLocalUser({required Usuario user}) async {
@@ -83,31 +88,7 @@ class UserRepository {
   /// en caso contrario null (Aparece login_screen).
   Option<Usuario> getLocalUser() => optionOf(_localPreferences.getUser());
 
-  /// genera el código unico que identifica cada instalación de la app
-  /// en caso de que no exista uno ya
-  /// Consulta si en [localPreferences] se ha guardado el appId (Código unico de instalación),
-  /// en caso de que no se hace petición a gomac para obtenerlo
-  Future<Either<ApiFailure, int>> getOrRegisterAppId() async {
-    final cachedAppId = _localPreferences.getAppId();
-    if (cachedAppId != null) {
-      return Right(cachedAppId);
-    }
-    return apiExceptionToApiFailure(_api.registrarApp).map(
-      (appIdMap) {
-        final appId = appIdMap['id'] as int;
-        _localPreferences.saveAppId(appId);
-        return Right(appId);
-      },
-    );
-  }
-
   Future<bool> _hayInternet() => _networkInfo.isConnected;
-
-  DateTime? getUltimaSincronizacion() =>
-      _localPreferences.getUltimaSincronizacion();
-
-  Future<bool> saveUltimaSincronizacion(DateTime momento) =>
-      _localPreferences.saveUltimaSincronizacion(momento);
 }
 
 AuthFailure apiFailureToAuthFailure(apiFailure) => apiFailure.map(
