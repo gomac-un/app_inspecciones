@@ -6,6 +6,17 @@ pubspec.lock
 **/*.moor.dart
 **/*.mocks.dart
 **/injection.config.dart
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+*.code-workspace
+
+# flutter defult .gitignore
+
 # Miscellaneous
 *.class
 *.log
@@ -24,24 +35,10 @@ coverage
 *.iws
 .idea/
 
-# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode
-# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode
-
-### VisualStudioCode ###
-.vscode/*
-!.vscode/launch.json
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/extensions.json
-*.code-workspace
-
-# Local History for Visual Studio Code
-.history/
-
-### VisualStudioCode Patch ###
-# Ignore all local history of files
-.history
-.ionide
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -52,7 +49,7 @@ coverage
 .packages
 .pub-cache/
 .pub/
-/build/
+build/
 
 # Web related
 lib/generated_plugin_registrant.dart
@@ -63,5 +60,7 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# Exceptions to above rules.
-!/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
