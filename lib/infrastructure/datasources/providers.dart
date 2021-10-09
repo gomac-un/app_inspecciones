@@ -10,10 +10,8 @@ import 'inspecciones_remote_datasource.dart';
 import 'local_preferences_datasource.dart';
 
 /// Este se inicializa en el main y se entrega al [ProviderScope]
-final apiUriProvider = Provider((ref) => Uri(
-    scheme: 'https',
-    host: 'gomac.medellin.unal.edu.co',
-    pathSegments: ['inspecciones/api/v1']));
+final apiUriProvider = Provider<Uri>(
+    (ref) => throw Exception("no se ha designado la url de la Api"));
 
 /// Este se inicializa en el main y se entrega al [ProviderScope]
 final directorioDeDatosProvider = Provider<DirectorioDeDatos>(

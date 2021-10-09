@@ -15,7 +15,8 @@ import 'controlador_de_pregunta.dart';
 //     criticidadRespuestaProvider(controladorPregunta), (v) {
 //   print(v);
 // });
-
+//TODO: mirar que hacer con las families cuyos objetos no son comparables por valor
+// ver https://riverpod.dev/docs/concepts/modifiers/family
 final ProviderFamily<bool, AbstractControl> controlValidoProvider =
     Provider.family<bool, AbstractControl>((ref, control) {
   StreamSubscription? subscription;

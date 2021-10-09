@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/features/sincronizacion/sincronizacion_page.dart';
 import 'package:inspecciones/presentation/pages/cuestionarios_screen.dart';
 import 'package:inspecciones/presentation/pages/history_screen.dart';
-import 'package:inspecciones/features/sincronizacion/sincronizacion_page.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'application/auth/auth_service.dart';
@@ -61,7 +61,7 @@ class AppRouter extends ConsumerWidget {
         ),
       ),
       GoRoute(
-        path: '/inspeccion',
+        path: '/inspeccion/:activoid/:cuestionarioid',
         name: 'inspeccion',
         pageBuilder: (context, state) => MaterialPage<void>(
           key: state.pageKey,

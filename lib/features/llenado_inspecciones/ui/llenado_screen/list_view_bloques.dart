@@ -7,9 +7,11 @@ import 'floating_action_button.dart';
 /// provee un [scrollController] para cada pagina de preguntas representadas por un
 /// [List<Widget>], el [scrollController] generado va escondiendo y mostrando el
 /// FAB cuando cambia de direccion
-final listViewPreguntasScrollControllerProvider =
-    Provider.family<ScrollController, List<Widget>>((ref, list) {
-  final scrollController = ScrollController();
+
+final listViewPreguntasScrollControllerProvider = ChangeNotifierProvider
+    .autoDispose
+    .family<ScrollController, List<Widget>>((ref, list) {
+  final scrollController = ScrollController(debugLabel: list.length.toString());
 
   scrollController.addListener(() {
     if (scrollController.position.userScrollDirection ==
