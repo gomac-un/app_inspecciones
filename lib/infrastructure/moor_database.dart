@@ -5,6 +5,7 @@ import 'package:dartz/dartz.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
