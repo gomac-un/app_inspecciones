@@ -24,7 +24,7 @@ class WidgetPreguntaNumerica extends StatelessWidget {
         ],
         valueAccessor: MyDoubleValueAccessor(),
         validationMessages: (control) => {
-          ValidationMessage.number: 'debe ser un numero valido',
+          ValidationMessage.number: 'Debe ser un número válido',
         },
         decoration: InputDecoration(
             labelText: "valor", suffix: Text(controlador.pregunta.unidades)),

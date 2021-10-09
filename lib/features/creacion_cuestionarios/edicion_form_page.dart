@@ -91,6 +91,10 @@ class EdicionForm extends ConsumerWidget {
                             return ReactiveTextField(
                               formControl:
                                   controller.nuevoTipoDeInspeccionControl,
+                              validationMessages: (control) => {
+                                ValidationMessage.required:
+                                    'Este valor es requerido'
+                              },
                               decoration: const InputDecoration(
                                 labelText: 'Escriba el tipo de inspeccion',
                                 prefixIcon: Icon(Icons.text_fields),
