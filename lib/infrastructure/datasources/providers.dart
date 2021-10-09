@@ -19,6 +19,9 @@ final apiUriProvider = Provider((ref) => Uri(
 final directorioDeDatosProvider = Provider<DirectorioDeDatos>(
     (ref) => throw Exception("no se ha inicializado el directorio de datos"));
 
+/// Parte de la autenticación de Django para acceder a los servicios de la Api
+/// https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
+/// Es [null] si el usuario no se ha autenticado
 final tokenProvider = StateProvider<String?>((ref) => null);
 
 //TODO: implementar el dispose

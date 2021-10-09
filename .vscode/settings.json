@@ -39,6 +39,7 @@
         "**/*.moor.dart": true,
         "**/injection.config.dart": true,
         "**/*.mocks.dart": true,
+        "build/": true,
     },
     "editor.bracketPairColorization.enabled": true,
     

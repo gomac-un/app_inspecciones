@@ -6,8 +6,8 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
@@ -51,9 +51,8 @@ class SincronizacionController extends StateNotifier<SincronizacionState> {
   Future<void> iniciarProceso() async {
     int step = 0;
     state = SincronizacionState.inProgress(step);
-    final token = read(userProvider)!.maybeMap(
-        online: (u) => u.token,
-        orElse: () => throw Exception("usuario no logueado"));
+    final token = read(tokenProvider).state;
+    if (token == null) throw Exception("El usuario no está autenticado");
     final res = await descargaCuestionariosStep.run(token).flatMap((f) {
       step++;
       return instalarDatabaseStep.run(f);

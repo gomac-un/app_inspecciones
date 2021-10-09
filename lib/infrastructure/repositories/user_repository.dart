@@ -43,7 +43,10 @@ class UserRepository {
   /// Devuelve el token usado en autenticación de Django para hacer
   Future<String> _getToken(Credenciales credenciales) async {
     final resMap = await _api.getToken(credenciales.toJson());
-    return resMap['token'] as String;
+    final token = resMap['token'] as String;
+    // esto puede que sea tarea de otra clase
+    _read(tokenProvider.notifier).state = token;
+    return token;
   }
 
   /// Devuelve bool que indica si puede o no crear cuestionarios.
@@ -55,14 +58,13 @@ class UserRepository {
 
   Future<Usuario> _getUsuario(Credenciales credenciales) async {
     final token = await _getToken(credenciales);
-    _read(tokenProvider.notifier).state =
-        token; // esto puede que sea tarea de otra clase
+
     final esAdmin = await _getPermisos(credenciales.username, token);
     return Usuario.online(
-        documento: credenciales.username,
-        password: credenciales.password,
-        esAdmin: esAdmin,
-        token: token);
+      documento: credenciales.username,
+      password: credenciales.password,
+      esAdmin: esAdmin,
+    );
   }
 
   Future<void> saveLocalUser({required Usuario user}) async {

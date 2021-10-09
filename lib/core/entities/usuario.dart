@@ -10,10 +10,6 @@ class Usuario with _$Usuario {
     required String documento,
     required String password,
 
-    /// Parte de la autenticación de Django para acceder a los servicios de la Api
-    /// https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
-    required String token,
-
     /// True si puede crear cuestionarios.
     required bool esAdmin,
   }) = UsuarioOnline;
