@@ -41,14 +41,11 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
   /// Regresa el total de preguntas respondidas en una inspección con id=[id]
   /// (Se usa en la página de borradores para mostrar el avance)
   Future<int> getTotalRespuesta(int inspeccionId) async {
-    final query = await customSelect(
-      '''
-      SELECT DISTINCT respuestas.pregunta_id  FROM respuestas
-      WHERE respuestas.inspeccion_id = $inspeccionId 
-      ;''',
-    ).map((row) => Respuesta.fromData(row.data, db)).get();
-    // Devuelve solo la cantidad
-    return query.length;
+    final query = selectOnly(respuestas, distinct: true)
+      ..addColumns([respuestas.preguntaId])
+      ..where(respuestas.inspeccionId.equals(inspeccionId));
+    final res = await query.map((row) => row.read(respuestas.preguntaId)).get();
+    return res.length;
   }
 
   /// Devuelve [List<Borrador>] con todas las inspecciones que han sido guardadas
@@ -64,10 +61,8 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
           ? inspecciones.momentoEnvio.isNotNull()
           : inspecciones.momentoEnvio.isNull());
     final borradores = query
-        .map((row) => {
-              'activo': row.readTable(activos),
-              'inspeccion': row.readTable(inspecciones)
-            })
+        .map((row) => Tuple2<Activo, Inspeccion>(
+            row.readTable(activos), row.readTable(inspecciones)))
         .watch();
 
     /// Agrupación del resultado de la consulta en la clase Borrador para manejarlo mejor en la UI
@@ -75,7 +70,7 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
       (l) async => Future.wait<borr_dom.Borrador>(
         l.map(
           (b) async {
-            final inspeccion = b['inspeccion'] as Inspeccion;
+            final inspeccion = b.value2;
 
             /// Se consulta el cuestionario asociado a cada inspección, para saber de que tipo es
             final cuestionario = await db.getCuestionario(inspeccion);
@@ -84,8 +79,7 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
                   id: inspeccion.id,
                   momentoEnvio: inspeccion.momentoEnvio,
                   activo: await getActivoPorId(inspeccion.activoId),
-                  estado: insp_dom.EstadoDeInspeccion.values.firstWhere(
-                      (element) => element.index == inspeccion.estado.index),
+                  estado: inspeccion.estado,
                   esNueva: inspeccion.esNueva,
                   criticidadReparacion: inspeccion.criticidadReparacion,
                   criticidadTotal: inspeccion.criticidadTotal,

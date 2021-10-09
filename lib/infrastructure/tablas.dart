@@ -372,7 +372,7 @@ class ListOfImagesInColumnConverter extends TypeConverter<ListImages, String> {
 
     /// Como es DB entonces es mobil, y si empieza por http es remota
     /// TODO: hacerlo mas robusto
-    return IList.from(jsonDecode(fromDb) as List<String>).map((path) =>
+    return IList.from(jsonDecode(fromDb) as List<dynamic>).map((path) =>
         path.startsWith('http')
             ? AppImage.remote(path)
             : AppImage.mobile(path));

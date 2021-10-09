@@ -16,11 +16,6 @@ enum TipoDePregunta {
 /// Al presionar por primera vez finalizar y haber llenado y validado el
 /// formulario completamente, el estado pasa a ser enReparación.
 /// Cuando se han realizado las reparaciones y se da finalizar, se cambia el estado a finalizada.
-enum EstadoDeInspeccion {
-  borrador,
-  enReparacion,
-  finalizada,
-}
 
 enum EstadoDeCuestionario {
   borrador,

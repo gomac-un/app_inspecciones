@@ -71,5 +71,5 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
 
   /// Devuelve el id de la instalación de la app en el dispositivo
   @override
-  int? getAppId() => 999999999; //TODO: arreglar _preferences.getInt(appIdKey);
+  int? getAppId() => 1; //TODO: arreglar _preferences.getInt(appIdKey);
 }

@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
-import 'dart:developer';
 
 import 'package:dartz/dartz.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/core/enums.dart' as en;
 import 'package:inspecciones/core/error/exceptions.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
@@ -52,7 +50,7 @@ class InspeccionesRepository {
     final int activoId;
     try {
       activoId = int.parse(activo);
-    } on FormatException{
+    } on FormatException {
       return Left(InspeccionesFailure('Activo invalido'));
     }
     final cuestionarios =
@@ -61,7 +59,6 @@ class InspeccionesRepository {
         .map((cuest) => Cuestionario(
             id: cuest.id, tipoDeInspeccion: cuest.tipoDeInspeccion))
         .toList());
-   
   }
 
   Future eliminarBorrador(Borrador borrador) =>
@@ -73,7 +70,6 @@ class InspeccionesRepository {
     try {
       final inspeccionCompleta = await _db.llenadoDao
           .cargarInspeccion(id.cuestionarioId, int.parse(id.activo));
-      inspeccionCompleta.value2.sort((a, b) => a.nOrden.compareTo(b.nOrden));
       final cuestionario =
           await _db.creacionDao.getCuestionario(id.cuestionarioId);
       final inspeccion = inspeccionCompleta.value1;
@@ -113,8 +109,7 @@ class InspeccionesRepository {
     /// Se obtiene un json con la info de la inspeción y sus respectivas respuestas
     final inspAEnviar = moor.Inspeccion(
         id: inspeccion.id,
-        estado: en.EstadoDeInspeccion.values
-            .firstWhere((element) => element.index == inspeccion.estado.index),
+        estado: inspeccion.estado,
         activoId: int.parse(inspeccion.activo.id),
         momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
         momentoEnvio: DateTime.now(),
@@ -129,7 +124,7 @@ class InspeccionesRepository {
       /// [inspeccion.esNueva] es un campo usado localmente para saber si fue creada o se descaargó desde el server.
       /// Se debe eliminar de [ins] porque genera un error en el server. (En proceso de mejora)
       ins.remove('esNueva');
-      log(jsonEncode(ins));
+      developer.log(jsonEncode(ins));
 
       /// Se hace la petición a diferentes urls dependiendo si es una inspección creada o si es una edición de una que ya fue subida al server
       inspeccion.esNueva

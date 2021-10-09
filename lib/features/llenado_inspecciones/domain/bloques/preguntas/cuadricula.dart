@@ -13,7 +13,6 @@ class Cuadricula<T extends RespuestaDeCuadricula, P extends PreguntaDeSeleccion>
     required int id,
     required String titulo,
     required String descripcion,
-    required int nOrden,
     required int criticidad,
     required String posicion,
     required bool calificable,
@@ -27,7 +26,6 @@ class Cuadricula<T extends RespuestaDeCuadricula, P extends PreguntaDeSeleccion>
           criticidad: criticidad,
           posicion: posicion,
           calificable: calificable,
-          nOrden: nOrden,
         );
 }
 

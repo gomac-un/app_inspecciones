@@ -12,7 +12,6 @@ class PreguntaDeSeleccionMultiple
     required int id,
     required String titulo,
     required String descripcion,
-    required int nOrden,
     required int criticidad,
     required String posicion,
     required bool calificable,
@@ -26,7 +25,6 @@ class PreguntaDeSeleccionMultiple
           criticidad: criticidad,
           posicion: posicion,
           calificable: calificable,
-          nOrden: nOrden,
         );
 }
 
@@ -38,7 +36,6 @@ class SubPreguntaDeSeleccionMultiple
     required int id,
     required String titulo,
     required String descripcion,
-    required int nOrden,
     required int criticidad,
     required String posicion,
     required bool calificable,
@@ -51,6 +48,5 @@ class SubPreguntaDeSeleccionMultiple
           criticidad: criticidad,
           posicion: posicion,
           calificable: calificable,
-          nOrden: nOrden,
         );
 }
