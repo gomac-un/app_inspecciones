@@ -47,18 +47,19 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
 
   /// Trae una lista con todos los cuestionarios disponibles para un activo,
   /// incluyendo los cuestionarios que son asignados a todos los activos
-  Future<List<Cuestionario>> cuestionariosParaActivo(int activo) async {
+  Future<List<Cuestionario>> getCuestionariosDisponiblesParaActivo(
+      int activoId) async {
     return customSelect(
       '''
       SELECT cuestionarios.* FROM activos
       INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.modelo = activos.modelo
       INNER JOIN cuestionarios ON cuestionarios.id = cuestionario_de_modelos.cuestionario_id
-      WHERE activos.id = $activo
+      WHERE activos.id = $activoId
       UNION
       SELECT cuestionarios.* FROM cuestionarios
       INNER JOIN cuestionario_de_modelos ON cuestionario_de_modelos.cuestionario_id = cuestionarios.id
       WHERE (cuestionario_de_modelos.modelo = 'Todos' OR cuestionario_de_modelos.modelo = 'todos') AND 
-        EXISTS (SELECT * FROM activos WHERE activos.id = $activo)
+        EXISTS (SELECT * FROM activos WHERE activos.id = $activoId)
       ;''',
     ).map((row) => Cuestionario.fromData(row.data, db)).get();
   }
@@ -98,7 +99,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     return res;
   }
 
-  MetaRespuesta buildMetaRespuesta(Respuesta respuesta) => MetaRespuesta(
+  MetaRespuesta _buildMetaRespuesta(Respuesta respuesta) => MetaRespuesta(
         criticidadInspector: respuesta.calificacion ?? 0,
         observaciones: respuesta.observacion,
         reparada: respuesta.reparado,
@@ -107,7 +108,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
         fotosReparacion: respuesta.fotosReparacion.toList(),
       );
 
-  pr_dom.OpcionDeRespuesta buildOpcionDeRespuesta(OpcionDeRespuesta opcion) =>
+  pr_dom.OpcionDeRespuesta _buildOpcionDeRespuesta(OpcionDeRespuesta opcion) =>
       pr_dom.OpcionDeRespuesta(
           id: opcion.id,
           titulo: opcion.texto,
@@ -116,7 +117,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
 
   /// Devuelve las preguntas numericas de la inspección, con la respuesta que
   /// se haya insertado y las criticidadesNumericas (rangos de criticidad)
-  Future<List<Tuple2<int, bl_dom.PreguntaNumerica>>> getPreguntasNumerica(
+  Future<List<Tuple2<int, bl_dom.PreguntaNumerica>>> getPreguntasNumericas(
       int cuestionarioId,
 
       /// Usada para obtener las respuestas del inspector a la pregunta
@@ -181,7 +182,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     //Se supone que solo debe haber una respuesta por [pregunta] numerica para [inspeccionId]
     final res = await query.getSingleOrNull();
     if (res == null) return null;
-    return bl_dom.RespuestaNumerica(buildMetaRespuesta(res),
+    return bl_dom.RespuestaNumerica(_buildMetaRespuesta(res),
         respuestaNumerica: res.valor);
   }
 
@@ -269,12 +270,12 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     final respuestas =
         await getRespuestaDePreguntaSimple(pregunta, inspeccionId);
     return bl_dom.PreguntaDeSeleccionMultiple(
-      opciones.map((opcion) => buildOpcionDeRespuesta(opcion)).toList(),
+      opciones.map((opcion) => _buildOpcionDeRespuesta(opcion)).toList(),
       opciones.map((op) {
         final respuesta = respuestas
             .firstWhereOrNull((element) => element.value2.id == op.id);
         return bl_dom.SubPreguntaDeSeleccionMultiple(
-          buildOpcionDeRespuesta(op),
+          _buildOpcionDeRespuesta(op),
           id: 3,
           titulo: op.texto,
           descripcion: '', //Todo: descripción de la opción de respuesta
@@ -286,7 +287,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
               ? bl_dom.SubRespuestaDeSeleccionMultiple(MetaRespuesta.vacia(),
                   estaSeleccionada: false)
               : bl_dom.SubRespuestaDeSeleccionMultiple(
-                  buildMetaRespuesta(respuesta.value1),
+                  _buildMetaRespuesta(respuesta.value1),
                   estaSeleccionada: true),
         );
       }).toList(),
@@ -307,7 +308,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     final respuestas =
         await getRespuestaDePreguntaSimple(pregunta, inspeccionId);
     final listaOpciones =
-        opciones.map((e) => buildOpcionDeRespuesta(e)).toList();
+        opciones.map((e) => _buildOpcionDeRespuesta(e)).toList();
     return pr_dom.PreguntaDeSeleccionUnica(
       listaOpciones,
       id: pregunta.id,
@@ -320,7 +321,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
           ? null
           : //Se supone que para las unicas solo debe haber una respuesta.
           bl_dom.RespuestaDeSeleccionUnica(
-              buildMetaRespuesta(respuestas.first.value1),
+              _buildMetaRespuesta(respuestas.first.value1),
               listaOpciones.firstWhereOrNull(
                   (opcion) => opcion.id == respuestas.first.value2.id),
             ),
@@ -379,7 +380,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
                 inspeccionId,
               ))
           .toList()),
-      opciones.map((element) => buildOpcionDeRespuesta(element)).toList(),
+      opciones.map((element) => _buildOpcionDeRespuesta(element)).toList(),
       id: value.first.value3.id,
       titulo: value.first.value3.titulo,
       descripcion: value.first.value3.descripcion,
@@ -402,7 +403,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
                 inspeccionId,
               ))
           .toList()),
-      opciones.map((element) => buildOpcionDeRespuesta(element)).toList(),
+      opciones.map((element) => _buildOpcionDeRespuesta(element)).toList(),
       id: value.first.value3.id,
       titulo: value.first.value3.titulo,
       descripcion: value.first.value3.descripcion,
@@ -451,7 +452,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
         await getCuadriculas(cuestionarioId, inspeccionId);
 
     final List<Tuple2<int, bl_dom.PreguntaNumerica>> numerica =
-        await getPreguntasNumerica(cuestionarioId, inspeccionId);
+        await getPreguntasNumericas(cuestionarioId, inspeccionId);
 
     final bloques = [
       ...titulos,
@@ -464,7 +465,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
   }
 
   /// Crea id para una inspección con el formato 'yyMMddHHmmss[activo]'
-  int generarId(int activo) {
+  int _generarInspeccionId(int activo) {
     final fechaFormateada = DateFormat("yyMMddHHmmss").format(DateTime.now());
     return int.parse('$fechaFormateada$activo');
   }
@@ -477,7 +478,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     int activo,
   ) async {
     final ins = InspeccionesCompanion.insert(
-      id: Value(generarId(activo)),
+      id: Value(_generarInspeccionId(activo)),
       cuestionarioId: cuestionarioId,
       estado: insp_dom.EstadoDeInspeccion.borrador,
       criticidadTotal: 0,
@@ -490,7 +491,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     return inspeccion;
   }
 
-  Future guardarRespuesta(
+  Future<void> guardarRespuesta(
     bl_dom.Respuesta respuesta,
     int inspeccionId,
     int preguntaId, {
@@ -529,11 +530,9 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
     }
   }
 
-  Future deleteRespuestas(int inspeccionId) async {
-    await (delete(respuestas)
-          ..where((resp) => resp.inspeccionId.equals(inspeccionId)))
-        .go();
-  }
+  Future<void> deleteRespuestas(int inspeccionId) => (delete(respuestas)
+        ..where((resp) => resp.inspeccionId.equals(inspeccionId)))
+      .go();
 
   Future procesarRespuestaMultiple(
       List<bl_dom.SubPreguntaDeSeleccionMultiple> respuesta,
@@ -550,7 +549,7 @@ class LlenadoDao extends DatabaseAccessor<MoorDatabase> with _$LlenadoDaoMixin {
   }
 
   /// Realiza el guardado de la inspección al presionar el botón guardar o finalizar en el llenado.
-  Future guardarInspeccion(
+  Future<void> guardarInspeccion(
       List<bl_dom.Pregunta> preguntasForm, insp_dom.Inspeccion inspeccion,
       {int? activoId,
       Cuestionario? cuestionario,
