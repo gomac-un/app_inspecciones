@@ -62,16 +62,20 @@ void mostrarInvalido(BuildContext context) => mostrarError(
       msg:
           "Se mostrarán unicamente las respuestas no válidas para que las revise y pueda finalizar la inspección",
       actions: [
+        TextButton(
+          child: const Text('Cancelar'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         Consumer(builder: (context, ref, _) {
           return TextButton(
-            child: const Text("Ok"),
+            child: const Text("Aceptar"),
             onPressed: () {
               ref.read(filtroPreguntasProvider).state =
                   FiltroPreguntas.invalidas;
               Navigator.of(context).pop();
             },
           );
-        })
+        }),
       ],
     );
 

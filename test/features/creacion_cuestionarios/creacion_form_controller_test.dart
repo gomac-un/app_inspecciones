@@ -100,7 +100,7 @@ void main() {
     expect(controller.modelosControl.hasError('minLength'), isTrue);
   });
   test(
-      'cuando se selecciona "Otra" en tipo de inspección el campo "nuevo tipo de inspección es obligatorio',
+      'cuando se selecciona "Otra" en tipo de inspección el campo "nuevo tipo de inspección" es obligatorio',
       () async {
     final controller = await CreacionFormController.create(repository, null);
     controller.tipoDeInspeccionControl.value =

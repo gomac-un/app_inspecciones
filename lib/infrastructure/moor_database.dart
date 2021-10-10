@@ -4,6 +4,8 @@ import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
@@ -189,16 +191,6 @@ class MoorDatabase extends _$MoorDatabase {
     return cuestionarioJson;
   }
 
-  /// Devuelve inspección con id = [id] cuando se descargó del server y se va a llenar desde la app
-  Future<Inspeccion> getInspeccionParaTerminar(int id) {
-    /// Se elimina momentoEnvio para que aparezca como borrador y no en el historial.
-    (update(inspecciones)..where((c) => c.id.equals(id))).write(
-        const InspeccionesCompanion(
-            momentoEnvio: Value(null), esNueva: Value(false)));
-    return (select(inspecciones)..where((ins) => ins.id.equals(id)))
-        .getSingle();
-  }
-
   /// marca [cuestionario.esLocal] = false cuando [cuestionario] es subido al server
   /// retorna el numero de cuestionarios afectados, deber ser 1, si es distinto
   /// se debe considerar un error
@@ -209,10 +201,7 @@ class MoorDatabase extends _$MoorDatabase {
   /// Devuelve json con [inspeccion] y sus respectivas respuestas
   Future<Map<String, dynamic>> getInspeccionConRespuestas(
       Inspeccion inspeccion) async {
-    ///Se usa [copyWith] porque el cambio que se hizo en las lineas anteriores no se ve reflejado en inspecciones
-    final jsonIns = inspeccion
-        .copyWith(momentoEnvio: DateTime.now())
-        .toJson(serializer: const CustomSerializer());
+    final jsonIns = inspeccion.toJson(serializer: const CustomSerializer());
     //get respuestas
     final queryRes = select(respuestas).join([
       leftOuterJoin(opcionesDeRespuesta,
@@ -245,7 +234,8 @@ class MoorDatabase extends _$MoorDatabase {
   }
 
   /// Método usado para cuando se descarga una inspección desde el servidor se guarde en la bd y se pueda seguir el curso normal
-  Future<void> guardarInspeccionBD(Map<String, dynamic> json) async {
+  Future<IdentificadorDeInspeccion> guardarInspeccionBD(
+      Map<String, dynamic> json) async {
     final respuestasParseadas = (json["respuestas"] as List).map((p) {
       final respuesta = Respuesta.fromJson(
         p as Map<String, dynamic>,
@@ -277,7 +267,10 @@ class MoorDatabase extends _$MoorDatabase {
     final inspeccionParseadas = Inspeccion.fromJson(
       json,
       serializer: const CustomSerializer(),
-    );
+    ).copyWith(
+        //Se actualiza con momentoEnvio nulo para que no aparezca en el historial de enviadas
+        momentoEnvio: null,
+        esNueva: false);
 
     await customStatement('PRAGMA foreign_keys = OFF');
 
@@ -290,6 +283,9 @@ class MoorDatabase extends _$MoorDatabase {
       });
     });
     await customStatement('PRAGMA foreign_keys = ON');
+    return IdentificadorDeInspeccion(
+        activo: inspeccionParseadas.activoId.toString(),
+        cuestionarioId: inspeccionParseadas.cuestionarioId);
   }
 
   /// Cuando se sincroniza con GOMAC, se insertan todos los datos a la bd.

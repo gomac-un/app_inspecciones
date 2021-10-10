@@ -305,7 +305,7 @@ class BotonesDeBloque extends ConsumerWidget {
         /// Añade control [CreadorPreguntaNumericaFormGroup()] al control 'bloques' del cuestionario y muestra widget [CreadorNumericaCard]
         IconButton(
           icon: const Icon(Icons.calculate),
-          tooltip: 'Pregunta Númerica',
+          tooltip: 'Pregunta Numérica',
           onPressed: () => agregarBloque(
             formController,
             animatedList,

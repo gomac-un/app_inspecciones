@@ -25,8 +25,8 @@ class PreguntaNumerica extends Pregunta<RespuestaNumerica> {
 }
 
 class RangoDeCriticidad {
-  final int inicio;
-  final int fin;
+  final double inicio;
+  final double fin;
   final int criticidad;
 
   RangoDeCriticidad(this.inicio, this.fin, this.criticidad);

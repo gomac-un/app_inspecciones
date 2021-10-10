@@ -1,3 +1,5 @@
+import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
+
 import '../../domain/bloques/pregunta.dart';
 import '../../domain/bloques/preguntas/preguntas.dart';
 import '../../domain/respuesta.dart';
@@ -13,22 +15,21 @@ import 'controlador_de_pregunta_visitor.dart';
 class GuardadoVisitor implements ControladorDePreguntaVisitor {
   final InspeccionesRepository _repository;
   final List<ControladorDePregunta> _controladores;
-  final int _inspeccionId;
+  final Inspeccion _inspeccion;
 
   final List<Pregunta> preguntasRespondidas = [];
 
   GuardadoVisitor(this._repository, this._controladores,
-      {required int inspeccionId})
-      : _inspeccionId = inspeccionId;
+      {required Inspeccion inspeccion})
+      : _inspeccion = inspeccion;
 
-  Future<void> guardarInspeccion() async {
-    await Future.delayed(const Duration(seconds: 3));
+  Future<void> guardarInspeccion() {
     preguntasRespondidas.clear();
     for (final c in _controladores) {
       c.accept(this);
     }
     return _repository.guardarInspeccion(preguntasRespondidas,
-        inspeccionId: _inspeccionId);
+        inspeccion: _inspeccion);
   }
 
   @override

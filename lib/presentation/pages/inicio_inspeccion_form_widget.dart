@@ -2,13 +2,18 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/cuestionario.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/infrastructure/inspecciones_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/inspecciones_remote_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 class InicioInspeccionController {
-  final InspeccionesRepository repository;
+  final InspeccionesRemoteRepository _remoteRepository;
+  final InspeccionesRepository _localRepository;
+
   final tiposDeInspeccionDisponibles = ValueNotifier<List<Cuestionario>>([]);
 
   late final activoControl =
@@ -21,7 +26,7 @@ class InicioInspeccionController {
             tiposDeInspeccionDisponibles.value = [];
             return;
           }
-          final res = await repository.cuestionariosParaActivo(activo);
+          final res = await _localRepository.cuestionariosParaActivo(activo);
           res.fold((f) {
             developer.log(f.toString()); // TODO: como mostrar un error aqui?
             tiposDeInspeccionDisponibles.value = [];
@@ -48,22 +53,19 @@ class InicioInspeccionController {
     'codigoInsp': codigoInspeccionControl,
   });
 
-  InicioInspeccionController(this.repository);
+  InicioInspeccionController(this._remoteRepository, this._localRepository);
 
   Future<void> buscarYDescargarInspeccionRemota({
-    Function(InspeccionesFailure f)? onError,
+    Function(ApiFailure f)? onError,
     Function(IdentificadorDeInspeccion f)? onSuccess,
   }) async {
     final inspeccionId = int.parse(codigoInspeccionControl.value!);
-    final res = await repository.cargarInspeccionRemota(inspeccionId);
+    final res = await _remoteRepository.getInspeccionServidor(inspeccionId);
 
     res.fold(
       (f) => onError?.call(f),
       (c) async {
-        onSuccess?.call(IdentificadorDeInspeccion(
-          activo: c.inspeccion.activo.id,
-          cuestionarioId: c.cuestionario.id,
-        ));
+        onSuccess?.call(c);
       },
     );
   }
@@ -75,8 +77,10 @@ class InicioInspeccionController {
       );
 }
 
-final inicioDeInspeccionProvider = Provider((ref) =>
-    InicioInspeccionController(ref.watch(inspeccionesRepositoryProvider)));
+final inicioDeInspeccionProvider = Provider((ref) => InicioInspeccionController(
+      ref.watch(inspeccionesRemoteRepositoryProvider),
+      ref.watch(inspeccionesRepositoryProvider),
+    ));
 
 enum TipoDeCarga {
   local,
@@ -196,7 +200,7 @@ class CargarRemotaForm extends ConsumerWidget {
             key: const ValueKey("remoto"),
             onPressed: controller.controlPendiente.valid
                 ? () => controller.buscarYDescargarInspeccionRemota(
-                      onError: (f) => _mostrarError(context, f),
+                      onError: (f) => _mostrarError(context, null, f),
                       onSuccess: (arg) => Navigator.of(context).pop(
                           arg), // Se abre la pantalla de llenado de inspección normal
                     )
@@ -209,20 +213,22 @@ class CargarRemotaForm extends ConsumerWidget {
   }
 }
 
-_mostrarError(BuildContext context, InspeccionesFailure f) {
+_mostrarError(
+    BuildContext context,
+    InspeccionesFailure? f, //¿Por qué no dejarla simplemente como ApiFailure?
+    ApiFailure? apiFailure) {
   // TODO: cuando se use freezed
-  /*final text = f.when(
-      pageNotFound: () =>
-          'No se pudo encontrar la inspección, asegúrese de escribir el código correctamente',
-      noHayConexionAlServidor: () => "No hay conexión al servidor",
-      noHayInternet: () => "Verifique su conexión a internet",
-      serverError: (msg) => "Error interno: $msg",
-      credencialesException: () =>
-          'Error inesperado: intente inciar sesión nuevamente');*/
+  final text = apiFailure != null
+      ? apiFailure.maybeWhen(
+          errorInesperadoDelServidor: (m) =>
+              'No se pudo encontrar la inspección, asegúrese de escribir el código correctamente: $m',
+          orElse: () => 'error: $apiFailure',
+        )
+      : f!.msg;
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      content: Text(f.msg),
+      content: Text(text),
       actions: [
         TextButton(
           onPressed: Navigator.of(context).pop,

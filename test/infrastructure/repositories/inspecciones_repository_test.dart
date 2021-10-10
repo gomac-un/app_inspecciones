@@ -1,12 +1,15 @@
 import 'package:dartz/dartz.dart';
-import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/cuestionario.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/modelos.dart';
 import 'package:inspecciones/infrastructure/core/api_exceptions.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/inspecciones_remote_datasource.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/moor_database.dart' as moor;
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
-import 'package:inspecciones/infrastructure/repositories/inspecciones_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/inspecciones_remote_repository.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -17,7 +20,7 @@ import 'inspecciones_repository_test.mocks.dart';
   [
     InspeccionesRemoteDataSource,
     FotosRemoteDataSource,
-    MoorDatabase,
+    moor.MoorDatabase,
     FotosRepository
   ],
 )
@@ -26,24 +29,30 @@ main() {
   late MockFotosRemoteDataSource _apiFotos;
   late MockMoorDatabase _db;
   late MockFotosRepository _fotosRepository;
-  late InspeccionesRepository repository;
+  late InspeccionesRemoteRepository repository;
 
   setUp(() {
     _api = MockInspeccionesRemoteDataSource();
     _apiFotos = MockFotosRemoteDataSource();
     _db = MockMoorDatabase();
     _fotosRepository = MockFotosRepository();
-    repository = InspeccionesRepository(_api, _apiFotos, _db, _fotosRepository);
+    repository =
+        InspeccionesRemoteRepository(_api, _apiFotos, _db, _fotosRepository);
   });
 
   group("getInspeccionServidor", () {
-    test("debería devolver Right(unit) si no hay excepciones", () async {
+    test(
+        "debería devolver el [IdentificadorDeInspeccion] si no hay excepciones",
+        () async {
       when(_api.getInspeccion(1)).thenAnswer((_) async => {});
-      when(_db.guardarInspeccionBD({})).thenAnswer((_) => Future.value());
+      when(_db.guardarInspeccionBD({})).thenAnswer((_) => Future.value(
+            IdentificadorDeInspeccion(activo: "1", cuestionarioId: 1),
+          ));
 
       final res = await repository.getInspeccionServidor(1);
 
-      expect(res, const Right(unit));
+      expect(res,
+          Right(IdentificadorDeInspeccion(activo: "1", cuestionarioId: 1)));
     });
     test("debería devolver Left(ApiFailure) si hay ErrorDeConexion", () async {
       when(_api.getInspeccion(1))
@@ -82,10 +91,13 @@ main() {
         estado: EstadoDeInspeccion.borrador,
         criticidadTotal: 1,
         criticidadReparacion: 1,
-        cuestionarioId: 1,
-        activoId: 1,
+        activo: Activo(id: "1", modelo: "1"),
         esNueva: true,
       );
+      final cuestionario = CuestionarioInspeccionado(
+          Cuestionario(id: 1, tipoDeInspeccion: "a"), inspeccion, []);
+      inspeccion.cuestionario = cuestionario;
+
       when(_db.getInspeccionConRespuestas(any))
           .thenAnswer((_) async => {"id": "1"});
       when(_api.crearInspeccion({"id": "1"})).thenAnswer((_) async => {});
@@ -106,10 +118,13 @@ main() {
         estado: EstadoDeInspeccion.borrador,
         criticidadTotal: 1,
         criticidadReparacion: 1,
-        cuestionarioId: 1,
-        activoId: 1,
+        activo: Activo(id: "1", modelo: "1"),
         esNueva: true,
       );
+      final cuestionario = CuestionarioInspeccionado(
+          Cuestionario(id: 1, tipoDeInspeccion: "a"), inspeccion, []);
+      inspeccion.cuestionario = cuestionario;
+
       when(_db.getInspeccionConRespuestas(any))
           .thenAnswer((_) async => {"id": "1"});
       when(_api.crearInspeccion({"id": "1"}))

@@ -7,6 +7,7 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/infrastructure/inspecciones_repository.dart';
 import 'package:inspecciones/features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
 
 import '../widgets/user_drawer.dart';
 import 'inicio_inspeccion_form_widget.dart';
@@ -108,57 +109,56 @@ class BorradoresPage extends ConsumerWidget {
                   ],
                 ),
 
-                /// Solo se puede subir al server si está finalizado o enReparacion
-                leading: [
-                  EstadoDeInspeccion.finalizada,
-                  EstadoDeInspeccion.enReparacion
-                ].contains(borrador.inspeccion.estado)
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.cloud_upload,
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                        onPressed: () async {
-                          //TODO: eliminar esta duplicacion de codigo
-                          final repo = ref.read(inspeccionesRepositoryProvider);
-                          final res =
-                              await repo.subirInspeccion(borrador.inspeccion);
-                          final restxt = res.fold((f) => f.msg, (u) => "exito");
-                          restxt == 'exito'
-                              ? showDialog(
-                                  context: context,
-                                  barrierColor:
-                                      Theme.of(context).primaryColorLight,
-                                  barrierDismissible: false,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      contentTextStyle:
-                                          Theme.of(context).textTheme.headline5,
-                                      title: const Icon(Icons.done_sharp,
-                                          size: 100, color: Colors.green),
-                                      actions: [
-                                        Center(
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: const Text('Aceptar'),
-                                          ),
-                                        )
-                                      ],
-                                      content: const Text(
-                                        'Inspección enviada correctamente',
-                                        textAlign: TextAlign.center,
+                leading: IconButton(
+                    icon: Icon(
+                      Icons.cloud_upload,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    onPressed: () async {
+                      //TODO: eliminar esta duplicacion de codigo
+                      final remoteRepo =
+                          ref.read(inspeccionesRemoteRepositoryProvider);
+                      final localRepo =
+                          ref.read(inspeccionesRepositoryProvider);
+                      final res =
+                          await remoteRepo.subirInspeccion(borrador.inspeccion);
+                      final restxt =
+                          res.fold((f) => f.toString(), (u) => "exito");
+                      if (restxt == 'exito') {
+                        await localRepo.eliminarRespuestas(borrador);
+                      }
+                      restxt == 'exito'
+                          ? showDialog(
+                              context: context,
+                              barrierColor: Theme.of(context).primaryColorLight,
+                              barrierDismissible: false,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  contentTextStyle:
+                                      Theme.of(context).textTheme.headline5,
+                                  title: const Icon(Icons.done_sharp,
+                                      size: 100, color: Colors.green),
+                                  actions: [
+                                    Center(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('Aceptar'),
                                       ),
-                                    );
-                                  },
-                                )
-                              : ScaffoldMessenger.of(context)
-                                  .showSnackBar(SnackBar(
-                                  content: Text(restxt),
-                                ));
-                        })
-                    : const SizedBox(),
+                                    )
+                                  ],
+                                  content: const Text(
+                                    'Inspección enviada correctamente',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              },
+                            )
+                          : ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(restxt),
+                            ));
+                    }),
                 trailing: borrador.inspeccion.esNueva
                     ? IconButton(
                         icon: const Icon(Icons.delete),
