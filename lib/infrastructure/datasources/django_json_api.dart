@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cross_file/cross_file.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter_archive/flutter_archive.dart';
 import 'package:http/http.dart' as http;
+import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/infrastructure/core/api_exceptions.dart';
 import 'package:inspecciones/infrastructure/core/typedefs.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
@@ -83,8 +85,8 @@ class DjangoJsonApi
           body: inspeccion));
 
   @override
-  Future<JsonObject> subirFotos(
-      Iterable<File> fotos, String idDocumento, Categoria tipoDocumento) async {
+  Future<JsonObject> subirFotos(Iterable<AppImage> fotos, String idDocumento,
+      Categoria tipoDocumento) async {
     final uri = _apiUri.appendSegment('subir-fotos');
 
     final request = http.MultipartRequest("POST", uri);
@@ -93,16 +95,26 @@ class DjangoJsonApi
     request.fields['tipodocumento'] =
         EnumToString.convertToString(tipoDocumento);
 
-    for (final file in fotos) {
-      final fileName = path.basename(file.path);
-      //final fileName = file.path.split("/").last;
+    Future<void> agregarFoto(String f) async {
+      final fileName = path.basename(f);
       //final stream = http.ByteStream(file.openRead());
-
+      final file = XFile(f);
       final length = await file.length();
       final multipartFileSign = http.MultipartFile(
-          'fotos', file.openRead(), length,
-          filename: fileName);
+        'fotos',
+        file.openRead(),
+        length,
+        filename: fileName,
+      );
       request.files.add(multipartFileSign);
+    }
+
+    for (final foto in fotos) {
+      await foto.when(
+        remote: (_) async {},
+        mobile: agregarFoto,
+        web: agregarFoto,
+      );
     }
 
     return _ejecutarRequest(
@@ -148,6 +160,8 @@ class DjangoJsonApi
         zipFile: zipFotos, destinationDir: destinationDir);
   }
 
+  /// ejecuta [request] y devuelve el body parseado como json, ademas lanza los
+  /// distintos errores definidos en [../core/api_exceptions.dart]
   Future<JsonObject> _ejecutarRequest(
       Future<http.Response> Function() request) async {
     final http.Response response;

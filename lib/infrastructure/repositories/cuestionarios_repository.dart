@@ -33,7 +33,7 @@ class CuestionariosRepository {
     final cuestionarioMap =
         await _db.getCuestionarioCompletoAsJson(cuestionario);
 
-    subirFotos() async {
+    Future<void> subirFotos() async {
       /// Usado para el nombre de la carpeta de las fotos
       final idDocumento = cuestionarioMap['id'].toString();
 
@@ -41,7 +41,7 @@ class CuestionariosRepository {
         Categoria.cuestionario,
         identificador: idDocumento,
       );
-      return _apiFotos.subirFotos(fotos, idDocumento, Categoria.cuestionario);
+      await _apiFotos.subirFotos(fotos, idDocumento, Categoria.cuestionario);
     }
 
     return apiExceptionToApiFailure(
@@ -122,7 +122,7 @@ class CuestionariosRepository {
   Future<List<SubSistema>> getSubSistemas(Sistema sistema) =>
       _db.creacionDao.getSubSistemas(sistema);
 
-  Future guardarCuestionario(
+  Future<void> guardarCuestionario(
     CuestionariosCompanion cuestionario,
     List<CuestionarioDeModelosCompanion> cuestionariosDeModelos,
     List<Object> bloquesForm,

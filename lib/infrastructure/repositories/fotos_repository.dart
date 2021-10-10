@@ -35,20 +35,23 @@ class FotosRepository {
     IList<AppImage> fotos,
     Categoria categoria, {
     required String identificador,
-  }) async {
-    return IList.from(await Future.wait(fotos
-        .map((foto) => foto.map(
-              remote: (e) => Future.value(e),
-              mobile: (im) => _procesarFoto(
-                im.path,
-                categoria,
-                identificador: identificador,
-              ),
-              web: (im) => throw UnsupportedError(
-                  "Las imagenes web no se pueden procesar en el sistema de archivos"),
-            ))
-        .toIterable()));
-  }
+  }) async =>
+      IList.from(
+        await Future.wait(
+          fotos
+              .map((foto) => foto.map(
+                    remote: (e) => Future.value(e),
+                    mobile: (im) => _procesarFoto(
+                      im.path,
+                      categoria,
+                      identificador: identificador,
+                    ),
+                    web: (im) => throw UnsupportedError(
+                        "Las imagenes web no se pueden procesar en el sistema de archivos"),
+                  ))
+              .toIterable(),
+        ),
+      );
 
   Future<MobileImage> _procesarFoto(
     String filePath,
@@ -72,7 +75,10 @@ class FotosRepository {
     return MobileImage(savedImage.path);
   }
 
-  Future<List<File>> getFotosDeDocumento(
+  /// Lee la carpeta designada para [identificador] y [categoria] y devuelve
+  /// la lista de todos las fotos que hay.
+  /// TODO: implementar con imagenes web
+  Future<List<MobileImage>> getFotosDeDocumento(
     Categoria categoria, {
     required String identificador,
   }) async {
@@ -81,7 +87,12 @@ class FotosRepository {
         .directory(path.join(_directorio.path, subcarpeta, identificador));
     final existe = await docDir.exists();
     if (!existe) return [];
-    return docDir.list().where((e) => e is File).cast<File>().toList();
+    return docDir
+        .list()
+        .where((e) => e is File)
+        .cast<File>()
+        .map((f) => MobileImage(f.path))
+        .toList();
   }
 
   String _convertirAUbicacionAbsoluta(

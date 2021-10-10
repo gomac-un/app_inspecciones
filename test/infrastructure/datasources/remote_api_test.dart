@@ -43,7 +43,7 @@ main() {
     expect(res.statusCode, 401);
     expect(json.decode(res.body)["detail"], isNotEmpty);
   });
-  //TODO: probar una peticion donde el servir lance 403: no autorizado
+  //TODO: probar una peticion donde el servidor lance 403: no autorizado
   test('una peticion normal deberia dar status 200 y la respuesta es tipo json',
       () async {
     final loggedInApi = loggedClient;

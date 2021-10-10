@@ -3,12 +3,49 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_test;
+import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/infrastructure/core/api_exceptions.dart';
 import 'package:inspecciones/infrastructure/datasources/django_json_api.dart';
+import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:test/test.dart';
 
+@TestOn('vm') // Uses dart:io
+//@TestOn('browser') // Uses web-only Flutter SDK
+
+/// para probar en chrome se usa
+/// `flutter test test/infrastructure/datasources/django_json_api_test.dart --platform chrome`
 void main() {
   final apiUri = Uri.parse("http://127.0.0.1:8000/inspecciones/api/v1");
+  test("appendSegment deberia agregar una nuevo segmento al final de la uri",
+      () {
+    final nuevaUri = apiUri.appendSegment('api-token-auth');
+    expect(nuevaUri,
+        Uri.parse("http://127.0.0.1:8000/inspecciones/api/v1/api-token-auth/"));
+    expect(nuevaUri.toString(),
+        "http://127.0.0.1:8000/inspecciones/api/v1/api-token-auth/");
+  });
+
+  test(
+      "appendSegment deberia agregar un segmento sin trailing slash si addTrailingSlash es false",
+      () {
+    final nuevaUri =
+        apiUri.appendSegment('api-token-auth', addTrailingSlash: false);
+    expect(nuevaUri,
+        Uri.parse("http://127.0.0.1:8000/inspecciones/api/v1/api-token-auth"));
+    expect(nuevaUri.toString(),
+        "http://127.0.0.1:8000/inspecciones/api/v1/api-token-auth");
+  });
+
+  test("appendSegment deberia agregar varios segmentos", () {
+    final nuevaUri = apiUri
+        .appendSegment('inspecciones', addTrailingSlash: false)
+        .appendSegment("1");
+    expect(nuevaUri,
+        Uri.parse("http://127.0.0.1:8000/inspecciones/api/v1/inspecciones/1/"));
+    expect(nuevaUri.toString(),
+        "http://127.0.0.1:8000/inspecciones/api/v1/inspecciones/1/");
+  });
+
   group("DjangoJsonApiClient", () {
     test('una peticion GET deberia usar el token asignado en el header',
         () async {
@@ -35,92 +72,145 @@ void main() {
     });
   });
 
-  /// la funcion que se esta probando realmente al invocar [descargarInspeccionRemota]
-  /// es [_ejecutarRequest] pero como es privada se debe probar desde esta otra
   group("django json api", () {
-    DjangoJsonApi _mockDJA(http_test.MockClientHandler fn) => DjangoJsonApi(
-          DjangoJsonApiAuthenticatedClient("123", http_test.MockClient(fn)),
+    DjangoJsonApi buildDjangoJsonApi(http_test.MockClientHandler fn) =>
+        DjangoJsonApi(
+          http_test.MockClient(fn),
           apiUri,
         );
+    test(
+        "si se usan un cliente autenticado, getInspeccion debería realizar una peticion con el token",
+        () async {
+      String authHeader = "";
+      final api = DjangoJsonApi(
+        DjangoJsonApiAuthenticatedClient("123",
+            http_test.MockClient((request) async {
+          authHeader = request.headers[HttpHeaders.authorizationHeader]!;
+          return http.Response("{}", 200);
+        })),
+        apiUri,
+      );
+      await api.getInspeccion(1);
+      expect(authHeader, contains("123"));
+    });
 
-    test(
-        "descargarInspeccionRemota debería lanzar ErrorDeConexion cuando hay un SocketException",
+    test("subirFotos debería adjuntar las fotos en el body de la request",
         () async {
-      //TODO: mirar como se pueden ejecutar los tests en flutter web para ver si los errores cambian
-      final api = _mockDJA((request) => throw const SocketException(""));
-      await expectLater(
-          () => api.getInspeccion(1), throwsA(isA<ErrorDeConexion>()));
+      const testFilePath = "./test/infrastructure/datasources/assets/foto.jpg";
+      final fotos = [const AppImage.mobile(testFilePath)];
+      final sizeOriginal = File(testFilePath).readAsBytesSync().lengthInBytes;
+      int bodySize = 0;
+      final api = buildDjangoJsonApi((request) async {
+        bodySize = request.bodyBytes.lengthInBytes;
+        return http.Response("{}", 200);
+      });
+      await api.subirFotos(fotos, "1", Categoria.inspeccion);
+      // esta es una forma bastante indirecta de probar que el archivo se
+      //incluya en el body de la request
+      expect(bodySize, greaterThan(sizeOriginal));
+    }, onPlatform: {
+      'browser': const Skip('solo lee imagenes del filesystem local')
     });
-    test(
-        'descargarInspeccionRemota debería lanzar ErrorInesperadoDelServidor cuando el status es 500',
-        () async {
-      final api = _mockDJA((request) async => http.Response("no json", 500));
-      await expectLater(() => api.getInspeccion(1),
-          throwsA(isA<ErrorInesperadoDelServidor>()));
-    });
-    test(
-        'descargarInspeccionRemota debería lanzar ErrorDecodificandoLaRespuesta cuando la respuesta no es json valido',
-        () async {
-      final api = _mockDJA((request) async => http.Response("boo", 200));
-      await expectLater(() => api.getInspeccion(1),
-          throwsA(isA<ErrorDecodificandoLaRespuesta>()));
-    });
-    test(
-        'descargarInspeccionRemota debería lanzar ErrorDeCredenciales cuando el estatus es 401',
+
+    test("descargarTodosLosCuestionarios debería descargar los cuestionarios",
         () async {
       final api =
-          _mockDJA((request) async => http.Response(r'{"detail":""}', 401));
+          buildDjangoJsonApi((request) async => http.Response("{}", 200));
+      await api.descargarTodosLosCuestionarios("123");
+    }, skip: "esta funcion no se deja probar facilmente");
 
-      await expectLater(
-          () => api.getInspeccion(1), throwsA(isA<ErrorDeCredenciales>()));
-    });
     test(
-        'descargarInspeccionRemota debería lanzar ErrorEnLaComunicacionConLaApi cuando el estatus es 404',
+        "descargarTodasLasFotos debería descargar todas las fotos y extraerlas en las carpetas correspondientes",
         () async {
-      final api = _mockDJA((request) async => http.Response('404', 404));
+      final api =
+          buildDjangoJsonApi((request) async => http.Response("{}", 200));
+      await api.descargarTodasLasFotos("123");
+    }, skip: "esta funcion no se deja probar facilmente");
 
-      await expectLater(() => api.getInspeccion(-1),
-          throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
-    });
-    test(
-        'descargarInspeccionRemota debería lanzar ErrorEnLaComunicacionConLaApi cuando el estatus es 400',
-        () async {
-      final api = _mockDJA((request) async => http.Response(
-          r'{"id":["Este campo es requerido."],"clase":["Este campo es requerido."]}',
-          400));
+    /// la funcion que se esta probando realmente al invocar [getInspeccion]
+    /// es [_ejecutarRequest] pero como es privada se debe probar desde esta otra
+    group("Tipos de errores", () {
+      test(
+          "getInspeccion debería lanzar ErrorDeConexion cuando hay un SocketException",
+          () async {
+        final api =
+            buildDjangoJsonApi((request) => throw const SocketException(""));
+        await expectLater(
+            () => api.getInspeccion(1), throwsA(isA<ErrorDeConexion>()));
+      });
+      test(
+          'getInspeccion debería lanzar ErrorInesperadoDelServidor cuando el status es 500',
+          () async {
+        final api = buildDjangoJsonApi(
+            (request) async => http.Response("no json", 500));
+        await expectLater(() => api.getInspeccion(1),
+            throwsA(isA<ErrorInesperadoDelServidor>()));
+      });
+      test(
+          'getInspeccion debería lanzar ErrorDecodificandoLaRespuesta cuando la respuesta no es json valido',
+          () async {
+        final api =
+            buildDjangoJsonApi((request) async => http.Response("boo", 200));
+        await expectLater(() => api.getInspeccion(1),
+            throwsA(isA<ErrorDecodificandoLaRespuesta>()));
+      });
+      test(
+          'getInspeccion debería lanzar ErrorDeCredenciales cuando el estatus es 401',
+          () async {
+        final api = buildDjangoJsonApi(
+            (request) async => http.Response(r'{"detail":""}', 401));
 
-      await expectLater(() => api.getInspeccion(1),
-          throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
-    });
-    test(
-        'descargarInspeccionRemota debería lanzar ErrorEnLaComunicacionConLaApi cuando el estatus es 405',
-        () async {
-      final api = _mockDJA((request) async => http.Response.bytes(
-          utf8.encode(r'{"detail":"Método \"DELETE\" no permitido."}'), 405));
+        await expectLater(
+            () => api.getInspeccion(1), throwsA(isA<ErrorDeCredenciales>()));
+      });
+      test(
+          'getInspeccion debería lanzar ErrorEnLaComunicacionConLaApi cuando el estatus es 404',
+          () async {
+        final api =
+            buildDjangoJsonApi((request) async => http.Response('404', 404));
 
-      await expectLater(() => api.getInspeccion(1),
-          throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
-    });
-    test(
-        'descargarInspeccionRemota debería lanzar ErrorEnLaComunicacionConLaApi cuando el estatus es 415',
-        () async {
-      final api = _mockDJA((request) async => http.Response.bytes(
-          utf8.encode(
-              r'{"detail":"Tipo de medio \"text/plain; charset=utf-8\" incompatible en la solicitud."}'),
-          415));
+        await expectLater(() => api.getInspeccion(-1),
+            throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
+      });
+      test(
+          'getInspeccion debería lanzar ErrorEnLaComunicacionConLaApi cuando el estatus es 400',
+          () async {
+        final api = buildDjangoJsonApi((request) async => http.Response(
+            '{"id":["Este campo es requerido."],"clase":["Este campo es requerido."]}',
+            400));
 
-      await expectLater(() => api.getInspeccion(1),
-          throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
-    });
-    test(
-        'descargarInspeccionRemota debería lanzar ErrorInesperadoDelServidor cuando el estatus es uno no considerado',
-        () async {
-      final api = _mockDJA((request) async => http.Response("", 485));
+        await expectLater(() => api.getInspeccion(1),
+            throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
+      });
+      test(
+          'getInspeccion debería lanzar ErrorEnLaComunicacionConLaApi cuando el estatus es 405',
+          () async {
+        final api = buildDjangoJsonApi((request) async => http.Response.bytes(
+            utf8.encode(r'{"detail":"Método \"DELETE\" no permitido."}'), 405));
 
-      await expectLater(() => api.getInspeccion(1),
-          throwsA(isA<ErrorInesperadoDelServidor>()));
+        await expectLater(() => api.getInspeccion(1),
+            throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
+      });
+      test(
+          'getInspeccion debería lanzar ErrorEnLaComunicacionConLaApi cuando el estatus es 415',
+          () async {
+        final api = buildDjangoJsonApi((request) async => http.Response.bytes(
+            utf8.encode(
+                r'{"detail":"Tipo de medio \"text/plain; charset=utf-8\" incompatible en la solicitud."}'),
+            415));
+
+        await expectLater(() => api.getInspeccion(1),
+            throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
+      });
+      test(
+          'getInspeccion debería lanzar ErrorInesperadoDelServidor cuando el estatus es uno no considerado',
+          () async {
+        final api =
+            buildDjangoJsonApi((request) async => http.Response("", 485));
+
+        await expectLater(() => api.getInspeccion(1),
+            throwsA(isA<ErrorInesperadoDelServidor>()));
+      });
     });
   });
-  //TODO: probar el metodo de subir fotos
-  //TODO: probar el metodo de FlutterDownloader
 }
