@@ -47,11 +47,6 @@ class UserRepository {
             .getOrRegisterAppId()
             .leftMap(apiFailureToAuthFailure)
             .then((r) => r.fold((l) => Left(l), (_) => Right(usuario))));
-
-    _appRepository
-        .getOrRegisterAppId()
-        .flatMap((appId) => getUsuario(credenciales))
-        .leftMap(apiFailureToAuthFailure);
   }
 
   /// verifica que el usuario y la contraseña coincidan y además recibe y guarda
