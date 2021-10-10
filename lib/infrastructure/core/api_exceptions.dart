@@ -1,4 +1,4 @@
-class ApiException {
+class ApiException implements Exception {
   const ApiException();
 }
 

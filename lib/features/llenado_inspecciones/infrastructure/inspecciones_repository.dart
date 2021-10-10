@@ -50,7 +50,7 @@ class InspeccionesRepository {
       return Left(InspeccionesFailure('Activo invalido'));
     }
     final cuestionarios =
-        await _db.llenadoDao.cuestionariosParaActivo(activoId);
+        await _db.llenadoDao.getCuestionariosDisponiblesParaActivo(activoId);
     return Right(cuestionarios
         .map((cuest) => Cuestionario(
             id: cuest.id, tipoDeInspeccion: cuest.tipoDeInspeccion))

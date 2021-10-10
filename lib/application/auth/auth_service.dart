@@ -23,8 +23,8 @@ final authProvider =
           ref.watch(appRepositoryProvider),
         ));
 
-final authListenableProvider =
-    Provider((ref) => LoginInfo(ref.watch(authProvider.notifier)));
+final authListenableProvider = ChangeNotifierProvider(
+    (ref) => LoginInfo(ref.watch(authProvider.notifier)));
 
 final userProvider =
     Provider<Usuario?>((ref) => ref.watch(authProvider).whenOrNull(
