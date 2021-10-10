@@ -7,11 +7,13 @@ import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
+import 'package:inspecciones/infrastructure/daos/carga_inspeccion_dao.dart';
 import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
-import 'package:inspecciones/infrastructure/daos/llenado_dao.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:moor/moor.dart';
 import 'package:path/path.dart' as path;
+
+import 'daos/guardado_inspeccion_dao.dart';
 
 export 'database/shared.dart';
 
@@ -19,10 +21,8 @@ part 'datos_de_prueba.dart';
 part 'moor_database.moor.dart';
 part 'tablas.dart';
 
-///  Métodos de Database e inicialización de la DB
 @UseMoor(
   tables: [
-    /// Tablas necesarias para el CRUD
     Activos,
     CuestionarioDeModelos,
     Cuestionarios,
@@ -42,7 +42,12 @@ part 'tablas.dart';
     ProgramacionSistemasXActivo,
     TiposDeInspecciones,
   ],
-  daos: [LlenadoDao, CreacionDao, BorradoresDao],
+  daos: [
+    CargaDeInspeccionDao,
+    GuardadoDeInspeccionDao,
+    CreacionDao,
+    BorradoresDao
+  ],
 )
 class MoorDatabase extends _$MoorDatabase {
   final int _appId;

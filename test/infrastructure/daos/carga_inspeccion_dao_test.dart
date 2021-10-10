@@ -5,7 +5,7 @@ import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:mockito/annotations.dart';
 import 'package:moor/ffi.dart';
 
-import 'llenado_dao_test.mocks.dart';
+import 'carga_inspeccion_dao_test.mocks.dart';
 
 @GenerateMocks([FotosRepository])
 void main() {
@@ -25,9 +25,7 @@ void main() {
   tearDown(() async {
     await _db.close();
   });
-
   group("getCuestionariosDisponiblesParaActivo", () {
-    late CuestionariosCompanion cuestionarioInsercion;
     late int cuestionarioId;
 
     setUp(() async {
@@ -47,6 +45,7 @@ void main() {
           periodicidad: 1,
           cuestionarioId: cuestionarioId,
         ));
+
     Future<int> insertarActivo(String modelo) =>
         _db.into(_db.activos).insert(ActivosCompanion.insert(modelo: modelo));
 
@@ -55,8 +54,8 @@ void main() {
       await asociarModeloACuestionario("todos");
       final activoId = await insertarActivo("kenworth");
 
-      final res =
-          await _db.llenadoDao.getCuestionariosDisponiblesParaActivo(activoId);
+      final res = await _db.cargaDeInspeccionDao
+          .getCuestionariosDisponiblesParaActivo(activoId);
 
       expect(res.length, 1);
       expect(res.first.tipoDeInspeccion, "preoperacional");
@@ -68,8 +67,8 @@ void main() {
       await asociarModeloACuestionario(modelo);
       final activoId = await insertarActivo(modelo);
 
-      final res =
-          await _db.llenadoDao.getCuestionariosDisponiblesParaActivo(activoId);
+      final res = await _db.cargaDeInspeccionDao
+          .getCuestionariosDisponiblesParaActivo(activoId);
 
       expect(res.length, 1);
       expect(res.first.tipoDeInspeccion, "preoperacional");
@@ -80,8 +79,8 @@ void main() {
       await asociarModeloACuestionario("moto");
       final activoId = await insertarActivo("kenworth");
 
-      final res =
-          await _db.llenadoDao.getCuestionariosDisponiblesParaActivo(activoId);
+      final res = await _db.cargaDeInspeccionDao
+          .getCuestionariosDisponiblesParaActivo(activoId);
 
       expect(res.length, 0);
     });
@@ -91,7 +90,8 @@ void main() {
         () async {
       await asociarModeloACuestionario("todos");
 
-      final res = await _db.llenadoDao.getCuestionariosDisponiblesParaActivo(2);
+      final res = await _db.cargaDeInspeccionDao
+          .getCuestionariosDisponiblesParaActivo(2);
 
       expect(res.length, 0);
     });
@@ -104,8 +104,8 @@ void main() {
 
       final activoId = await insertarActivo("kenworth");
 
-      final res =
-          await _db.llenadoDao.getCuestionariosDisponiblesParaActivo(activoId);
+      final res = await _db.cargaDeInspeccionDao
+          .getCuestionariosDisponiblesParaActivo(activoId);
 
       expect(res.length, 1);
       expect(res.first.tipoDeInspeccion, "preoperacional");
@@ -132,32 +132,11 @@ void main() {
 
       final activoId = await insertarActivo("kenworth");
 
-      final res =
-          await _db.llenadoDao.getCuestionariosDisponiblesParaActivo(activoId);
+      final res = await _db.cargaDeInspeccionDao
+          .getCuestionariosDisponiblesParaActivo(activoId);
 
       expect(res.length, 2);
       expect(res[0] != res[1], true);
     });
   });
-
-  /*
-  test('users can be created', () async {
-    final id = await _db.createUser('some user');
-    final user = await _db.watchUserWithId(id).first;
-
-    expect(user.name, 'some user');
-  });
-
-  test('stream emits a new user when the name updates', () async {
-    final id = await _db.createUser('first name');
-
-    final expectation = expectLater(
-      _db.watchUserWithId(id).map((user) => user.name),
-      emitsInOrder(['first name', 'changed name']),
-    );
-
-    await _db.updateName(id, 'changed name');
-    await expectation;
-  });
-  */
 }

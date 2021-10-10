@@ -49,8 +49,8 @@ class InspeccionesRepository {
     } on FormatException {
       return Left(InspeccionesFailure('Activo invalido'));
     }
-    final cuestionarios =
-        await _db.llenadoDao.getCuestionariosDisponiblesParaActivo(activoId);
+    final cuestionarios = await _db.cargaDeInspeccionDao
+        .getCuestionariosDisponiblesParaActivo(activoId);
     return Right(cuestionarios
         .map((cuest) => Cuestionario(
             id: cuest.id, tipoDeInspeccion: cuest.tipoDeInspeccion))
@@ -64,7 +64,7 @@ class InspeccionesRepository {
       IdentificadorDeInspeccion id) async {
     developer.log("cargando inspeccion $id");
     try {
-      final inspeccionCompleta = await _db.llenadoDao
+      final inspeccionCompleta = await _db.cargaDeInspeccionDao
           .cargarInspeccion(id.cuestionarioId, int.parse(id.activo));
       final cuestionario =
           await _db.creacionDao.getCuestionario(id.cuestionarioId);
@@ -94,7 +94,8 @@ class InspeccionesRepository {
 
   Future<void> guardarInspeccion(List<Pregunta> preguntasRespondidas,
       {required Inspeccion inspeccion}) async {
-    _db.llenadoDao.guardarInspeccion(preguntasRespondidas, inspeccion,
+    _db.guardadoDeInspeccionDao.guardarInspeccion(
+        preguntasRespondidas, inspeccion,
         fotosManager: _fotosRepository);
   }
 }
