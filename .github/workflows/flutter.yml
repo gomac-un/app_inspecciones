@@ -27,6 +27,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386
         sudo cp -a sqlite-tools-linux-x86-3360000/. /usr/local/bin
+        echo "/usr/local/bin" >> $GITHUB_PATH
     - uses: actions/setup-java@v1
       with:
         java-version: '12.x'
@@ -49,9 +50,7 @@ jobs:
       run: flutter analyze
       
     - name: Run tests
-      run: |
-        export PATH="$PATH:/usr/local/bin"
-        flutter test --coverage
+      run: flutter test --coverage
 
     - name: Upload coverage to Codecov 
       uses: codecov/codecov-action@v1 
