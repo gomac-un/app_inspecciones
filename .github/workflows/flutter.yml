@@ -20,19 +20,18 @@ jobs:
       uses: actions/checkout@v2
     - name: Update sqlite
       run: |
-        echo $PATH
-        echo which sqlite
-        echo which sqlite3
         wget https://sqlite.org/2021/sqlite-tools-linux-x86-3360000.zip
         unzip sqlite-tools-linux-x86-3360000.zip
-        sudo dpkg --add-architecture i386
-        sudo apt  update
-        sudo apt install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libc6:i386 libncurses5:i386 libstdc++6:i386
         sudo cp -a sqlite-tools-linux-x86-3360000/. /usr/local/bin
         echo "/usr/local/bin" >> $GITHUB_PATH
         echo '/usr/local/bin' | cat - $GITHUB_PATH > temp && mv temp $GITHUB_PATH
         sudo \cp /usr/local/bin/sqlite3 /usr/bin/sqlite3
         sudo \cp /usr/local/bin/sqlite3 /usr/bin/sqlite
+    - name: permitir ejecutar programas x86
+      run: |
+        sudo dpkg --add-architecture i386
+        sudo apt update
+        sudo apt install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libc6:i386 libncurses5:i386 libstdc++6:i386
     - uses: actions/setup-java@v1
       with:
         java-version: '12.x'
@@ -55,7 +54,11 @@ jobs:
       run: flutter analyze
       
     - name: Run tests
-      run: flutter test --coverage
+      run: |
+        echo $PATH
+        echo which sqlite
+        echo which sqlite3
+        flutter test --coverage
 
     - name: Upload coverage to Codecov 
       uses: codecov/codecov-action@v1 
