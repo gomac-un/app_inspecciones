@@ -1,3 +1,5 @@
+@Skip(
+    "La máquina del CI de github actions no tiene la version mínima de sqlite requerida (3.35)")
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/bloques.dart'
     as bl_dom;
@@ -238,22 +240,28 @@ void main() {
       expect(listaBloques.length, 1);
       expect(listaBloques.first, isA<tit_dom.Titulo>());
     });
+
+    Future<int> _insertarPregunta(
+        [TipoDePregunta tipo = TipoDePregunta.unicaRespuesta]) async {
+      final bloqueId = await _db.into(_db.bloques).insert(
+          BloquesCompanion.insert(nOrden: 1, cuestionarioId: cuestionarioId));
+
+      return _db.into(_db.preguntas).insert(PreguntasCompanion.insert(
+          titulo: "titulo",
+          descripcion: "descripcion",
+          criticidad: 1,
+          bloqueId: bloqueId,
+          tipo: tipo));
+    }
+
     test('''si el cuestionario tiene asociada una pregunta de seleccion unica y 
     la inspeccion es nueva, cargarInspeccion debería cargar la pregunta con sus 
     opciones pero sin respuesta''', () async {
       final activoId2 = await _db
           .into(_db.activos)
           .insert(ActivosCompanion.insert(modelo: "moto"));
-      final bloqueId = await _db.into(_db.bloques).insert(
-          BloquesCompanion.insert(nOrden: 1, cuestionarioId: cuestionarioId));
 
-      final preguntaId = await _db.into(_db.preguntas).insert(
-          PreguntasCompanion.insert(
-              titulo: "titulo",
-              descripcion: "descripcion",
-              criticidad: 1,
-              bloqueId: bloqueId,
-              tipo: TipoDePregunta.unicaRespuesta));
+      final preguntaId = await _insertarPregunta();
 
       await _db.into(_db.opcionesDeRespuesta).insert(
           OpcionesDeRespuestaCompanion.insert(
@@ -280,17 +288,56 @@ void main() {
         la inspeccion ya tiene información guardada, cargarInspeccion debería 
         cargar la pregunta con sus opciones y con la respuesta guardada''',
         () async {
-      final bloqueId = await _db.into(_db.bloques).insert(
-          BloquesCompanion.insert(nOrden: 1, cuestionarioId: cuestionarioId));
+      final preguntaId = await _insertarPregunta();
 
-      final preguntaId = await _db.into(_db.preguntas).insert(
-          PreguntasCompanion.insert(
-              titulo: "titulo",
-              descripcion: "descripcion",
-              criticidad: 1,
-              bloqueId: bloqueId,
-              tipo: TipoDePregunta.unicaRespuesta));
+      final opcionId = await _db.into(_db.opcionesDeRespuesta).insert(
+          OpcionesDeRespuestaCompanion.insert(
+              preguntaId: Value(preguntaId), texto: "texto", criticidad: 1));
 
+      await _db.into(_db.respuestas).insert(RespuestasCompanion.insert(
+            inspeccionId: inspeccionId,
+            preguntaId: preguntaId,
+            observacion: const Value("observacion"),
+            opcionDeRespuestaId: Value(opcionId),
+          ));
+
+      final res = await _db.cargaDeInspeccionDao
+          .cargarInspeccion(cuestionarioId: cuestionarioId, activoId: activoId);
+
+      final listaBloques = res.value2;
+
+      expect(listaBloques.length, 1);
+      expect(
+        listaBloques.first,
+        isA<bl_dom.PreguntaDeSeleccionUnica>()
+            .having(
+              (p) => p.opcionesDeRespuesta,
+              "opciones de respuesta",
+              hasLength(1),
+            )
+            .having(
+              (p) => p.respuesta,
+              "respuesta",
+              isA<bl_dom.RespuestaDeSeleccionUnica>()
+                  .having(
+                    (r) => r.opcionSeleccionada!.id,
+                    "opcion seleccionada",
+                    opcionId,
+                  )
+                  .having(
+                    (r) => r.metaRespuesta.observaciones,
+                    "observaciones",
+                    "observacion",
+                  ),
+            ),
+      );
+    });
+    test(
+        '''si el cuestionario tiene asociada una pregunta de seleccion multiple y 
+        la inspeccion ya tiene información guardada, cargarInspeccion debería 
+        cargar la pregunta con sus opciones y con la respuesta guardada''',
+        () async {
+      final preguntaId = await _insertarPregunta();
       final opcionId = await _db.into(_db.opcionesDeRespuesta).insert(
           OpcionesDeRespuestaCompanion.insert(
               preguntaId: Value(preguntaId), texto: "texto", criticidad: 1));
