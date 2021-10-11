@@ -57,7 +57,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
   ///
   /// Incluye los titulos y las preguntas con sus respectivas opciones de respuesta y respuestas seleccionadas
   Future<Tuple2<Inspeccion, List<bloque_dom.Bloque>>> cargarInspeccion(
-      int cuestionarioId, int activoId) async {
+      {required int cuestionarioId, required int activoId}) async {
     final inspeccionExistente = await (select(inspecciones)
           ..where(
             (inspeccion) =>
@@ -94,6 +94,32 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
     ];
     bloques.sort((a, b) => a.value1.compareTo(b.value1));
     return Tuple2(inspeccion, bloques.map((e) => e.value2).toList());
+  }
+
+  /// Devuelve la inspección creada al guardarla por primera vez.
+  Future<Inspeccion> _crearInspeccion(
+    int cuestionarioId,
+
+    /// Activo al cual se le está realizando la inspección.
+    int activo,
+  ) async {
+    final ins = InspeccionesCompanion.insert(
+      id: Value(_generarInspeccionId(activo)),
+      cuestionarioId: cuestionarioId,
+      estado: insp_dom.EstadoDeInspeccion.borrador,
+      criticidadTotal: 0,
+      criticidadReparacion: 0,
+      activoId: activo,
+      momentoInicio: Value(DateTime.now()),
+      momentoBorradorGuardado: Value(DateTime.now()),
+    );
+    return into(inspecciones).insertReturning(ins);
+  }
+
+  /// Crea id para una inspección con el formato 'yyMMddHHmmss[activo]'
+  int _generarInspeccionId(int activo) {
+    final fechaFormateada = DateFormat("yyMMddHHmmss").format(DateTime.now());
+    return int.parse('$fechaFormateada$activo');
   }
 
   /// Devuelve los titulos que pertenecen al cuestionario
@@ -189,9 +215,9 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
   /// Junto con sus opciones de respuesta y las respuestas que haya insertado el inspector.
   Future<List<Tuple2<int, pr_dom.PreguntaDeSeleccion>>>
       _getPreguntasSeleccionSimple(
-    int cuestionarioId, [
-    int? inspeccionId,
-  ]) async {
+    int cuestionarioId,
+    int inspeccionId,
+  ) async {
     final opcionesPregunta = alias(opcionesDeRespuesta, 'op');
 
     final query = select(preguntas).join([
@@ -215,59 +241,33 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
     return Future.wait(
       groupBy<Tuple3<Bloque, Pregunta, OpcionDeRespuesta>, Pregunta>(
           res, (e) => e.value2).entries.map((entry) async {
-        if (entry.key.tipo == TipoDePregunta.multipleRespuesta) {
+        final pregunta = entry.key;
+        final opciones = entry.value;
+        if (pregunta.tipo == TipoDePregunta.multipleRespuesta) {
           return Tuple2(
-              entry.value.first.value1.nOrden,
+              opciones.first.value1.nOrden,
               await _buildPreguntaDeSeleccionMultiple(
-                entry.key,
-                entry.value.map((e) => e.value3).toList(),
+                pregunta,
+                opciones.map((e) => e.value3).toList(),
                 inspeccionId,
               ));
         }
         //TODO: OPCIÓN DE RESPUESTA NO TIENE DESCRIPCIÓN
         return Tuple2(
-            entry.value.first.value1.nOrden,
+            opciones.first.value1.nOrden,
             await _buildPreguntaDeSeleccionUnica(
-              entry.key,
-              entry.value.map((e) => e.value3).toList(),
+              pregunta,
+              opciones.map((e) => e.value3).toList(),
               inspeccionId,
             ));
       }),
     );
   }
 
-  /// Devuelve las respuestas que haya dado el inspector a [pregunta], es List
-  /// porque en el caso de las preguntas multiples, en la bd puede haber más d euna respuesta por pregunta
-  Future<List<Tuple2<Respuesta, OpcionDeRespuesta>>>
-      _getRespuestaDePreguntaSimple(
-          Pregunta pregunta, int? inspeccionId) async {
-    if (inspeccionId == null) {
-      return [];
-    }
-    final query = select(respuestas).join([
-      leftOuterJoin(
-        opcionesDeRespuesta,
-        opcionesDeRespuesta.id.equalsExp(respuestas.opcionDeRespuestaId),
-      ),
-    ])
-      ..where(
-        respuestas.preguntaId.equals(pregunta.id) &
-            respuestas.inspeccionId.equals(inspeccionId), //seleccion multiple
-      );
-    final res = await query
-        .map((row) => Tuple2(
-              row.readTable(respuestas),
-              row.readTable(opcionesDeRespuesta),
-            ))
-        .get();
-
-    return res;
-  }
-
   Future<bl_dom.PreguntaDeSeleccionMultiple> _buildPreguntaDeSeleccionMultiple(
     Pregunta pregunta,
     List<OpcionDeRespuesta> opciones,
-    int? inspeccionId,
+    int inspeccionId,
   ) async {
     final respuestas =
         await _getRespuestaDePreguntaSimple(pregunta, inspeccionId);
@@ -305,7 +305,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
   Future<bl_dom.PreguntaDeSeleccionUnica> _buildPreguntaDeSeleccionUnica(
     Pregunta pregunta,
     List<OpcionDeRespuesta> opciones,
-    int? inspeccionId,
+    int inspeccionId,
   ) async {
     final respuestas =
         await _getRespuestaDePreguntaSimple(pregunta, inspeccionId);
@@ -330,11 +330,35 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
     );
   }
 
+  /// Devuelve las respuestas que haya dado el inspector a [pregunta], es List
+  /// porque en el caso de las preguntas multiples, en la bd puede haber más de
+  /// una respuesta por pregunta
+  Future<List<Tuple2<Respuesta, OpcionDeRespuesta>>>
+      _getRespuestaDePreguntaSimple(Pregunta pregunta, int inspeccionId) async {
+    final query = select(respuestas).join([
+      leftOuterJoin(
+        opcionesDeRespuesta,
+        opcionesDeRespuesta.id.equalsExp(respuestas.opcionDeRespuestaId),
+      ),
+    ])
+      ..where(
+        respuestas.preguntaId.equals(pregunta.id) &
+            respuestas.inspeccionId.equals(inspeccionId), //seleccion multiple
+      );
+    final res = await query
+        .map((row) => Tuple2(
+              row.readTable(respuestas),
+              row.readTable(opcionesDeRespuesta),
+            ))
+        .get();
+
+    return res;
+  }
+
   /// Devuelve las cuadriculas de la inspección con sus respectivas preguntas y opciones de respuesta.
   /// También incluye las respuestas que ha dado el inspector.
   Future<List<Tuple2<int, bl_dom.Cuadricula>>> _getCuadriculas(
-      int cuestionarioId,
-      [int? inspeccionId]) async {
+      int cuestionarioId, int inspeccionId) async {
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
       innerJoin(cuadriculasDePreguntas,
@@ -370,10 +394,18 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
     );
   }
 
+  /// Devuelve las respuestas de la cuadricula con id=[cuadriculaId], es una lista para el caso de las cuadriculas
+  /// con respuesta multiple
+  Future<List<OpcionDeRespuesta>> _getRespuestasDeCuadricula(int cuadriculaId) {
+    final query = select(opcionesDeRespuesta)
+      ..where((or) => or.cuadriculaId.equals(cuadriculaId));
+    return query.get();
+  }
+
   Future<bl_dom.CuadriculaDeSeleccionUnica> _buildCuadriculaDeSeleccionUnica(
       List<Tuple3<Pregunta, Bloque, CuadriculaDePreguntas>> value,
       List<OpcionDeRespuesta> opciones,
-      int? inspeccionId) async {
+      int inspeccionId) async {
     return bl_dom.CuadriculaDeSeleccionUnica(
       await Future.wait(value
           .map((e) async => await _buildPreguntaDeSeleccionUnica(
@@ -396,7 +428,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
       _buildCuadriculaDeSeleccionMultiple(
           List<Tuple3<Pregunta, Bloque, CuadriculaDePreguntas>> value,
           List<OpcionDeRespuesta> opciones,
-          int? inspeccionId) async {
+          int inspeccionId) async {
     return bl_dom.CuadriculaDeSeleccionMultiple(
       await Future.wait(value
           .map((e) async => await _buildPreguntaDeSeleccionMultiple(
@@ -430,39 +462,4 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
           titulo: opcion.texto,
           descripcion: "",
           criticidad: opcion.criticidad);
-
-  /// Devuelve las respuestas de la cuadricula con id=[cuadriculaId], es una lista para el caso de las cuadriculas
-  /// con respuesta multiple
-  Future<List<OpcionDeRespuesta>> _getRespuestasDeCuadricula(int cuadriculaId) {
-    final query = select(opcionesDeRespuesta)
-      ..where((or) => or.cuadriculaId.equals(cuadriculaId));
-    return query.get();
-  }
-
-  /// Devuelve la inspección creada al guardarla por primera vez.
-  Future<Inspeccion> _crearInspeccion(
-    int cuestionarioId,
-
-    /// Activo al cual se le está realizando la inspección.
-    int activo,
-  ) async {
-    final ins = InspeccionesCompanion.insert(
-      id: Value(_generarInspeccionId(activo)),
-      cuestionarioId: cuestionarioId,
-      estado: insp_dom.EstadoDeInspeccion.borrador,
-      criticidadTotal: 0,
-      criticidadReparacion: 0,
-      activoId: activo,
-      momentoInicio: Value(DateTime.now()),
-      momentoBorradorGuardado: Value(DateTime.now()),
-    );
-    final inspeccion = await into(inspecciones).insertReturning(ins);
-    return inspeccion;
-  }
-
-  /// Crea id para una inspección con el formato 'yyMMddHHmmss[activo]'
-  int _generarInspeccionId(int activo) {
-    final fechaFormateada = DateFormat("yyMMddHHmmss").format(DateTime.now());
-    return int.parse('$fechaFormateada$activo');
-  }
 }

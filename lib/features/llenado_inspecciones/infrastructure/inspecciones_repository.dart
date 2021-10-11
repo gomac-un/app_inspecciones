@@ -65,7 +65,9 @@ class InspeccionesRepository {
     developer.log("cargando inspeccion $id");
     try {
       final inspeccionCompleta = await _db.cargaDeInspeccionDao
-          .cargarInspeccion(id.cuestionarioId, int.parse(id.activo));
+          .cargarInspeccion(
+              cuestionarioId: id.cuestionarioId,
+              activoId: int.parse(id.activo));
       final cuestionario =
           await _db.creacionDao.getCuestionario(id.cuestionarioId);
       final inspeccion = inspeccionCompleta.value1;
