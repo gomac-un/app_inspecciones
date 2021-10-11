@@ -21,7 +21,7 @@ jobs:
     - name: Update sqlite
       run: |
         sudo apt install unzip
-        wget sqlite-tools-linux-x86-3360000.zip
+        wget https://sqlite.org/2021/sqlite-tools-linux-x86-3360000.zip
         unzip sqlite-tools-linux-x86-3360000.zip
         sudo dpkg --add-architecture i386
         sudo apt-get update
