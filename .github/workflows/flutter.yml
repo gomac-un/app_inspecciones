@@ -29,6 +29,8 @@ jobs:
         sudo cp -a sqlite-tools-linux-x86-3360000/. /usr/local/bin
         echo "/usr/local/bin" >> $GITHUB_PATH
         echo '/usr/local/bin' | cat - $GITHUB_PATH > temp && mv temp $GITHUB_PATH
+        sudo \cp /usr/local/bin/sqlite3 /usr/bin/sqlite3
+        sudo \cp /usr/local/bin/sqlite3 /usr/bin/sqlite
     - uses: actions/setup-java@v1
       with:
         java-version: '12.x'
