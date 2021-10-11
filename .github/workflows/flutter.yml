@@ -20,14 +20,13 @@ jobs:
       uses: actions/checkout@v2
     - name: Update sqlite
       run: |
-        wget https://sqlite.org/2021/sqlite-autoconf-3360000.tar.gz
-        tar -xvf sqlite-autoconf-3360000.tar.gz && cd sqlite-autoconf-3360000
-        ./configure
-        make
-        sudo make install
-        export PATH="/usr/local/lib:$PATH"
-        sqlite3 --version
-        cd ..
+        sudo apt install unzip
+        wget sqlite-tools-linux-x86-3360000.zip
+        unzip sqlite-tools-linux-x86-3360000.zip
+        sudo dpkg --add-architecture i386
+        sudo apt-get update
+        sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386
+        sudo cp -a sqlite-tools-linux-x86-3360000/. /usr/local/bin
     - uses: actions/setup-java@v1
       with:
         java-version: '12.x'
@@ -50,7 +49,9 @@ jobs:
       run: flutter analyze
       
     - name: Run tests
-      run: flutter test --coverage
+      run: |
+        export PATH="$PATH:/usr/local/bin"
+        flutter test --coverage
 
     - name: Upload coverage to Codecov 
       uses: codecov/codecov-action@v1 
