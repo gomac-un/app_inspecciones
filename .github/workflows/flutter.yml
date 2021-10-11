@@ -13,10 +13,21 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+    - name: checkout repo
+      uses: actions/checkout@v2
+    - name: Update sqlite
+        run: |
+          wget https://sqlite.org/2021/sqlite-autoconf-3360000.tar.gz
+          tar -xvf sqlite-autoconf-3360000.tar.gz && cd sqlite-autoconf-3360000
+          ./configure
+          make
+          sudo make install
+          export PATH="/usr/local/lib:$PATH"
+          sqlite3 --version
+          cd ..
     - uses: actions/setup-java@v1
       with:
         java-version: '12.x'
