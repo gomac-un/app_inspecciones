@@ -94,10 +94,13 @@ class InspeccionesRepository {
     }
   }
 
-  Future<void> guardarInspeccion(List<Pregunta> preguntasRespondidas,
-      {required Inspeccion inspeccion}) async {
-    _db.guardadoDeInspeccionDao.guardarInspeccion(
-        preguntasRespondidas, inspeccion,
-        fotosManager: _fotosRepository);
-  }
+  Future<void> guardarInspeccion(
+    Iterable<Pregunta> preguntasRespondidas,
+    Inspeccion inspeccion,
+  ) =>
+      _db.guardadoDeInspeccionDao.guardarInspeccion(
+        preguntasRespondidas,
+        inspeccion,
+        _fotosRepository,
+      );
 }

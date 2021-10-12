@@ -18,6 +18,6 @@ class ControladorDePreguntaDeSeleccionUnica
   int? get criticidadRespuesta => respuestaEspecificaControl.value?.criticidad;
 
   @override
-  void accept(ControladorDePreguntaVisitor visitor) =>
+  R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>
       visitor.visitSeleccionUnica(this);
 }

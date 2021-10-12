@@ -1,17 +1,15 @@
 import '../controladores_de_pregunta/controladores_de_pregunta.dart';
 
-abstract class ControladorDePreguntaVisitor {
-  void visitSeleccionUnica(ControladorDePreguntaDeSeleccionUnica pregunta);
+abstract class ControladorDePreguntaVisitor<R> {
+  R visitSeleccionUnica(ControladorDePreguntaDeSeleccionUnica pregunta);
 
-  void visitCuadriculaSeleccionUnica(
+  R visitCuadriculaSeleccionUnica(
       ControladorDeCuadriculaDeSeleccionUnica pregunta);
 
-  void visitCuadriculaSeleccionMultiple(
+  R visitCuadriculaSeleccionMultiple(
       ControladorDeCuadriculaDeSeleccionMultiple pregunta);
 
-  void visitSeleccionMultiple(
-      ControladorDePreguntaDeSeleccionMultiple pregunta);
+  R visitSeleccionMultiple(ControladorDePreguntaDeSeleccionMultiple pregunta);
 
-  void visitControladorDePreguntaNumerica(
-      ControladorDePreguntaNumerica pregunta);
+  R visitControladorDePreguntaNumerica(ControladorDePreguntaNumerica pregunta);
 }

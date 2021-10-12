@@ -72,7 +72,7 @@ abstract class ControladorDePregunta<T extends Pregunta> {
   /// para que [criticidadCalculadaProvider] funcione bien
   int? get criticidadRespuesta;
 
-  void accept(ControladorDePreguntaVisitor visitor);
+  R accept<R>(ControladorDePreguntaVisitor<R> visitor);
 
   static double _porcentajeCalificacion(int calificacion) {
     switch (calificacion.round()) {

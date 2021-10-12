@@ -50,9 +50,8 @@ class ControladorDeCuadriculaDeSeleccionMultiple
       : super(pregunta);
 
   @override
-  void accept(ControladorDePreguntaVisitor visitor) {
-    visitor.visitCuadriculaSeleccionMultiple(this);
-  }
+  R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>
+      visitor.visitCuadriculaSeleccionMultiple(this);
 }
 
 class ControladorDeCuadriculaDeSeleccionUnica extends ControladorDeCuadricula<
@@ -69,7 +68,6 @@ class ControladorDeCuadriculaDeSeleccionUnica extends ControladorDeCuadricula<
       : super(pregunta);
 
   @override
-  void accept(ControladorDePreguntaVisitor visitor) {
-    visitor.visitCuadriculaSeleccionUnica(this);
-  }
+  R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>
+      visitor.visitCuadriculaSeleccionUnica(this);
 }

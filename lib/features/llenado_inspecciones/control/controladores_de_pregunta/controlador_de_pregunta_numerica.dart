@@ -31,7 +31,7 @@ class ControladorDePreguntaNumerica
         ).criticidad;
 
   @override
-  void accept(ControladorDePreguntaVisitor visitor) =>
+  R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>
       visitor.visitControladorDePreguntaNumerica(this);
 
   double? get valor => respuestaEspecificaControl.value;

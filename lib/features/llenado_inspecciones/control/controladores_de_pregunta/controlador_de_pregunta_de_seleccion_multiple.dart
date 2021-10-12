@@ -45,7 +45,7 @@ class ControladorDePreguntaDeSeleccionMultiple
   }
 
   @override
-  void accept(ControladorDePreguntaVisitor visitor) =>
+  R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>
       visitor.visitSeleccionMultiple(this);
 }
 
@@ -66,6 +66,6 @@ class ControladorDeSubPreguntaDeSeleccionMultiple
   bool get estaSeleccionada => respuestaEspecificaControl.value!;
 
   @override
-  void accept(ControladorDePreguntaVisitor visitor) =>
-      throw Exception("$runtimeType no recibe visitors");
+  R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>
+      throw UnsupportedError("$runtimeType no recibe visitors");
 }
