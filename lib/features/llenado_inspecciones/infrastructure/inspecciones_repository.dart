@@ -4,7 +4,7 @@ import 'dart:developer' as developer;
 import 'package:dartz/dartz.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart' as moor;
+import 'package:inspecciones/infrastructure/drift_database.dart' as drift;
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 
 import '../domain/bloques/bloques.dart';
@@ -14,7 +14,7 @@ import '../domain/identificador_inspeccion.dart';
 
 final inspeccionesRepositoryProvider = Provider(
   (ref) => InspeccionesRepository(
-    ref.watch(moor.moorDatabaseProvider),
+    ref.watch(drift.driftDatabaseProvider),
     ref.watch(fotosRepositoryProvider),
   ),
 );
@@ -30,7 +30,7 @@ class InspeccionesFailure {
 typedef FEF<C> = Future<Either<InspeccionesFailure, C>>;
 
 class InspeccionesRepository {
-  final moor.MoorDatabase _db;
+  final drift.Database _db;
   final FotosRepository _fotosRepository;
 
   InspeccionesRepository(this._db, this._fotosRepository);

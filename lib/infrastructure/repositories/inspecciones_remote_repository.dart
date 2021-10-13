@@ -8,14 +8,14 @@ import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.
 import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
 
 import '../datasources/inspecciones_remote_datasource.dart';
-import '../moor_database.dart' as moor;
+import '../drift_database.dart' as drift;
 import '../utils/transformador_excepciones_api.dart';
 import 'fotos_repository.dart';
 
 class InspeccionesRemoteRepository {
   final InspeccionesRemoteDataSource _api;
   final FotosRemoteDataSource _apiFotos;
-  final moor.MoorDatabase _db;
+  final drift.Database _db;
   final FotosRepository _fotosRepository;
 
   InspeccionesRemoteRepository(
@@ -42,7 +42,7 @@ class InspeccionesRemoteRepository {
       Inspeccion inspeccion) async {
     //TODO: mostrar el progreso en la ui
     /// Se obtiene un json con la info de la inspeción y sus respectivas respuestas
-    final inspAEnviar = moor.Inspeccion(
+    final inspAEnviar = drift.Inspeccion(
         id: inspeccion.id,
         estado: inspeccion.estado,
         activoId: int.parse(inspeccion.activo.id),

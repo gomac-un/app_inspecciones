@@ -1,4 +1,4 @@
-part of 'moor_database.dart';
+part of 'drift_database.dart';
 
 /// Definición de todas las tablas usadas en la Bd
 ///

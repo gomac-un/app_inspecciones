@@ -3,10 +3,10 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
-import 'package:moor/moor.dart';
+import 'package:drift/drift.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_validators.dart';

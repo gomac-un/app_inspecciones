@@ -6,7 +6,7 @@ import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_remote_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 
-import '../moor_database.dart';
+import '../drift_database.dart';
 import 'cuestionarios_repository.dart';
 
 final userRepositoryProvider = Provider(
@@ -22,7 +22,7 @@ final cuestionariosRepositoryProvider =
     Provider((ref) => CuestionariosRepository(
           ref.watch(cuestionariosRemoteDataSourceProvider),
           ref.watch(fotosRemoteDataSourceProvider),
-          ref.watch(moorDatabaseProvider),
+          ref.watch(driftDatabaseProvider),
           ref.watch(fotosRepositoryProvider),
         ));
 
@@ -30,6 +30,6 @@ final inspeccionesRemoteRepositoryProvider =
     Provider((ref) => InspeccionesRemoteRepository(
           ref.watch(inspeccionesRemoteDataSourceProvider),
           ref.watch(fotosRemoteDataSourceProvider),
-          ref.watch(moorDatabaseProvider),
+          ref.watch(driftDatabaseProvider),
           ref.watch(fotosRepositoryProvider),
         ));

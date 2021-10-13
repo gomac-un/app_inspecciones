@@ -1,19 +1,19 @@
 import 'package:dartz/dartz.dart';
+import 'package:drift/drift.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:inspecciones/core/error/errors.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/utils/iterable_x.dart';
-import 'package:moor/moor.dart';
 
-part 'creacion_dao.moor.dart';
+part 'creacion_dao.drift.dart';
 
 /// Acceso a los datos de la Bd.
 ///
 /// Incluye los métodos necesarios para  insertar, actualizar, borrar y consultar la información
 /// relacionada con la creación de cuestionarios.
-@UseDao(tables: [
+@DriftAccessor(tables: [
   /// Definición de las tablas a las que necesitamos acceder para obtener la información
   Activos,
   CuestionarioDeModelos,
@@ -30,11 +30,10 @@ part 'creacion_dao.moor.dart';
   SubSistemas,
   CriticidadesNumericas,
 ])
-class CreacionDao extends DatabaseAccessor<MoorDatabase>
-    with _$CreacionDaoMixin {
+class CreacionDao extends DatabaseAccessor<Database> with _$CreacionDaoMixin {
   // this constructor is required so that the main database can create an instance
   // of this object.
-  CreacionDao(MoorDatabase db) : super(db);
+  CreacionDao(Database db) : super(db);
 
   //datos para la creacion de cuestionarios
   /// El cuestionario trae el sistemaId [id], para poder mostrar el [Sistema] en el formulario de creación, se obtiene así

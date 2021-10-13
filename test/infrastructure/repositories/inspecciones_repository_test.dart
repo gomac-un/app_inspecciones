@@ -7,7 +7,7 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/modelos.dart';
 import 'package:inspecciones/infrastructure/core/api_exceptions.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/inspecciones_remote_datasource.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart' as moor;
+import 'package:inspecciones/infrastructure/drift_database.dart' as drift;
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_remote_repository.dart';
 import 'package:mockito/annotations.dart';
@@ -20,21 +20,21 @@ import 'inspecciones_repository_test.mocks.dart';
   [
     InspeccionesRemoteDataSource,
     FotosRemoteDataSource,
-    moor.MoorDatabase,
+    drift.Database,
     FotosRepository
   ],
 )
 main() {
   late MockInspeccionesRemoteDataSource _api;
   late MockFotosRemoteDataSource _apiFotos;
-  late MockMoorDatabase _db;
+  late MockDatabase _db;
   late MockFotosRepository _fotosRepository;
   late InspeccionesRemoteRepository repository;
 
   setUp(() {
     _api = MockInspeccionesRemoteDataSource();
     _apiFotos = MockFotosRemoteDataSource();
-    _db = MockMoorDatabase();
+    _db = MockDatabase();
     _fotosRepository = MockFotosRepository();
     repository =
         InspeccionesRemoteRepository(_api, _apiFotos, _db, _fotosRepository);
@@ -136,17 +136,3 @@ main() {
     });
   });
 }
-/*
-class FakeDjangoJsonApi extends Fake implements DjangoJsonApi {
-  @override
-  Future<JsonObject> getInspeccion(int id) async =>
-      id == 1 ? {} : throw const ErrorDeConexion("");
-}
-
-class FakeMoorDatabase extends Fake implements MoorDatabase {
-  @override
-  Future<void> guardarInspeccionBD(Map<String, dynamic> json) async {}
-}
-
-class FakeFotosRepository extends Fake implements FotosRepository {}
-*/

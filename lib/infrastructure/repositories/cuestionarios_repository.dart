@@ -7,17 +7,17 @@ import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/flutter_downloader/errors.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
 import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
-import 'package:moor/moor.dart';
+import 'package:drift/drift.dart';
 
 class CuestionariosRepository {
   final CuestionariosRemoteDataSource _api;
   final FotosRemoteDataSource _apiFotos;
-  final MoorDatabase _db;
+  final Database _db;
   final FotosRepository _fotosRepository;
 
   CuestionariosRepository(

@@ -1,29 +1,29 @@
 # se tuvo que configurar este archivo porque estaba ocurriendo este bug entre
-# moor y mockito: sentry.io/organizations/shepherdator/issues/?project=5925032
-# la solucion fue sacada de la documentacion de moor: 
-# https://moor.simonbinder.eu/docs/advanced-features/builder_options/#using-moor-classes-in-other-builders
+# drift y mockito: sentry.io/organizations/shepherdator/issues/?project=5925032
+# la solucion fue sacada de la documentacion de drift: 
+# https://drift.simonbinder.eu/docs/advanced-features/builder_options/#using-drift-classes-in-other-builders
 targets:
   $default:
-    # disable the default generators, we'll only use the non-shared moor generator here
+    # disable the default generators, we'll only use the non-shared drift generator here
     auto_apply_builders: false
     builders:
-      moor_generator|moor_generator_not_shared:
+      drift_dev|not_shared:
         enabled: true
         # If needed, you can configure the builder like this:
         # options:
         #   skip_verification_code: true
         #   use_experimental_inference: true
-      # This builder is necessary for moor-file preprocessing. You can disable it if you're not
-      # using .moor files with type converters.
-      moor_generator|preparing_builder:
+      # This builder is necessary for drift-file preprocessing. You can disable it if you're not
+      # using .drift files with type converters.
+      drift_dev|preparing_builder:
         enabled: true
   
   run_built_value:
     dependencies: ['mockito']
     builders:
-      # Disable moor builders. By default, those would run on each target
-      moor_generator:
+      # Disable drift builders. By default, those would run on each target
+      drift_dev:
         enabled: false
-      moor_generator|preparing_builder:
+      drift_dev|preparing_builder:
         enabled: false
-      # we don't need to disable moor_generator_not_shared, because it's disabled by default
+      # we don't need to disable drift_generator_not_shared, because it's disabled by default

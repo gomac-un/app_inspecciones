@@ -1,9 +1,9 @@
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:mockito/annotations.dart';
 import 'package:test/test.dart';
 
 @GenerateMocks(
-  [MoorDatabase],
+  [Database],
 )
 void main() {
   setUp(() async {});

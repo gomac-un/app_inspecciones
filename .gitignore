@@ -3,7 +3,7 @@ pubspec.lock
 **/*.g.dart
 **/*.gr.dart
 **/*.freezed.dart
-**/*.moor.dart
+**/*.drift.dart
 **/*.mocks.dart
 **/injection.config.dart
 

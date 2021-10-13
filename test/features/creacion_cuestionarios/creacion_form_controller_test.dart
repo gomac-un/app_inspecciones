@@ -1,6 +1,6 @@
 import 'package:inspecciones/features/creacion_cuestionarios/creacion_controls.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/creacion_form_controller.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';

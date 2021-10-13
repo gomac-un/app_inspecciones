@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:drift/drift.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/borrador.dart'
     as borr_dom;
 import 'package:inspecciones/features/llenado_inspecciones/domain/cuestionario.dart'
@@ -7,21 +8,20 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dar
     as insp_dom;
 import 'package:inspecciones/features/llenado_inspecciones/domain/modelos.dart'
     as act_dom;
-import 'package:inspecciones/infrastructure/moor_database.dart';
-import 'package:moor/moor.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 
-part 'borradores_dao.moor.dart';
+part 'borradores_dao.drift.dart';
 
-@UseDao(tables: [
+@DriftAccessor(tables: [
   Respuestas,
   Inspecciones,
   Activos,
 ])
-class BorradoresDao extends DatabaseAccessor<MoorDatabase>
+class BorradoresDao extends DatabaseAccessor<Database>
     with _$BorradoresDaoMixin {
   // this constructor is required so that the main database can create an instance
   // of this object.
-  BorradoresDao(MoorDatabase db) : super(db);
+  BorradoresDao(Database db) : super(db);
 
   /// Regresa el total de preguntas respondidas en una inspección con id=[id]
   /// (Se usa en la página de borradores para mostrar el avance)

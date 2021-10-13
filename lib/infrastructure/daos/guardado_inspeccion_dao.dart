@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:drift/drift.dart';
 import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/bloques.dart'
     as bl_dom;
@@ -6,20 +7,19 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/pregun
     as pr_dom;
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
     as insp_dom;
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
-import 'package:moor/moor.dart';
 
-part 'guardado_inspeccion_dao.moor.dart';
+part 'guardado_inspeccion_dao.drift.dart';
 
-@UseDao(tables: [
+@DriftAccessor(tables: [
   /// Tablas usadas en este DAO
   Inspecciones,
   Respuestas,
 ])
-class GuardadoDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
+class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
     with _$GuardadoDeInspeccionDaoMixin {
-  GuardadoDeInspeccionDao(MoorDatabase db) : super(db);
+  GuardadoDeInspeccionDao(Database db) : super(db);
 
   /// Realiza el guardado de la inspección al presionar el botón guardar o finalizar en el llenado.
   Future<void> guardarInspeccion(

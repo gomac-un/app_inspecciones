@@ -1,8 +1,8 @@
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:drift/drift.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:meta/meta.dart';
-import 'package:moor/moor.dart';
 
-/// Clases que agrupan [Dataclass]es de moor que están relacionadas
+/// Clases que agrupan [Dataclass]es de drift que están relacionadas
 /// Las que tienen sufijo Companion, contienen tipos [UpdateCompanion], los
 /// cuales se suelen usar para información editable que puede estar en un estado
 ///  parcial, mientras que las [Dataclass]es normales son útiles para

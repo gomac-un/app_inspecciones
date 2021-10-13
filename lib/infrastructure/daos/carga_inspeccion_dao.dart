@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
+import 'package:drift/drift.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/bloque.dart'
     as bloque_dom;
@@ -12,14 +13,13 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/titulo
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
     as insp_dom;
 import 'package:inspecciones/features/llenado_inspecciones/domain/metarespuesta.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/utils/iterable_x.dart';
 import 'package:intl/intl.dart';
-import 'package:moor/moor.dart';
 
-part 'carga_inspeccion_dao.moor.dart';
+part 'carga_inspeccion_dao.drift.dart';
 
-@UseDao(tables: [
+@DriftAccessor(tables: [
   /// Definición de las tablas necesarias para obtener la información
   Cuestionarios,
   Inspecciones,
@@ -31,9 +31,9 @@ part 'carga_inspeccion_dao.moor.dart';
   OpcionesDeRespuesta,
   Respuestas,
 ])
-class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
+class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     with _$CargaDeInspeccionDaoMixin {
-  CargaDeInspeccionDao(MoorDatabase db) : super(db);
+  CargaDeInspeccionDao(Database db) : super(db);
 
   /// Trae una lista con todos los cuestionarios disponibles para un activo,
   /// incluyendo los cuestionarios que son asignados a todos los activos
@@ -51,7 +51,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
       WHERE (cuestionario_de_modelos.modelo = 'Todos' OR cuestionario_de_modelos.modelo = 'todos') AND 
         EXISTS (SELECT * FROM activos WHERE activos.id = $activoId)
       ;''',
-    ).map((row) => Cuestionario.fromData(row.data, db)).get();
+    ).map((row) => Cuestionario.fromData(row.data)).get();
   }
 
   /// Devuelve todos los bloques de la inspeccion del cuestionario con id=[cuestionarioId] para [activoId]

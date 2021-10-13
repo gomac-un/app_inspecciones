@@ -2,26 +2,26 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
+import 'package:drift/drift.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
-import 'package:inspecciones/infrastructure/daos/borradores_dao.dart';
-import 'package:inspecciones/infrastructure/daos/carga_inspeccion_dao.dart';
-import 'package:inspecciones/infrastructure/daos/creacion_dao.dart';
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
-import 'package:moor/moor.dart';
 import 'package:path/path.dart' as path;
 
+import 'daos/borradores_dao.dart';
+import 'daos/carga_inspeccion_dao.dart';
+import 'daos/creacion_dao.dart';
 import 'daos/guardado_inspeccion_dao.dart';
+import 'repositories/fotos_repository.dart';
 
 export 'database/shared.dart';
 
 part 'datos_de_prueba.dart';
-part 'moor_database.moor.dart';
+part 'drift_database.drift.dart';
 part 'tablas.dart';
 
-@UseMoor(
+@DriftDatabase(
   tables: [
     Activos,
     CuestionarioDeModelos,
@@ -49,13 +49,13 @@ part 'tablas.dart';
     BorradoresDao
   ],
 )
-class MoorDatabase extends _$MoorDatabase {
+class Database extends _$Database {
   final int _appId;
   //TODO: eliminar la dependencia con fotosRepository
   final FotosRepository fotosRepository;
   // En el caso de que la db crezca mucho y las consultas empiecen a relentizar
-  //la UI se debe considerar el uso de los isolates https://moor.simonbinder.eu/docs/advanced-features/isolates/
-  MoorDatabase(QueryExecutor e, this._appId, this.fotosRepository) : super(e);
+  //la UI se debe considerar el uso de los isolates https://drift.simonbinder.eu/docs/advanced-features/isolates/
+  Database(QueryExecutor e, this._appId, this.fotosRepository) : super(e);
 
   @override
   int get schemaVersion => 1;

@@ -1,5 +1,7 @@
 @Skip(
     "La máquina del CI de github actions no tiene la version mínima de sqlite requerida (3.35)")
+import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/native.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/bloques.dart'
     as bl_dom;
@@ -8,12 +10,10 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/titulo
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
     as insp_dom;
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:moor/ffi.dart';
-import 'package:moor/moor.dart' hide isNull;
 import 'package:test/test.dart';
 
 // Fake class
@@ -21,14 +21,14 @@ class FakeFotosRepository extends Fake implements FotosRepository {}
 
 @GenerateMocks([FotosRepository])
 void main() {
-  late MoorDatabase _db;
+  late Database _db;
   late FakeFotosRepository _fotosRepository;
 
   setUp(() {
     _fotosRepository = FakeFotosRepository();
 
-    _db = MoorDatabase(
-      VmDatabase.memory(),
+    _db = Database(
+      NativeDatabase.memory(),
       1,
       _fotosRepository,
     );

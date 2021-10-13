@@ -8,7 +8,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
-import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
@@ -28,7 +28,7 @@ class SincronizacionController extends StateNotifier<SincronizacionState> {
       DescargaCuestionariosStep(read(cuestionariosRepositoryProvider));
 
   late final InstalarDatabaseStep instalarDatabaseStep =
-      InstalarDatabaseStep(read(moorDatabaseProvider));
+      InstalarDatabaseStep(read(driftDatabaseProvider));
 
   late final DescargaFotosStep descargaFotosStep =
       DescargaFotosStep(read(cuestionariosRepositoryProvider));
@@ -118,7 +118,7 @@ class InstalarDatabaseStep extends SincronizacionStep {
   @override
   String get titulo => 'Instalación base de datos';
 
-  final MoorDatabase _db;
+  final Database _db;
 
   InstalarDatabaseStep(this._db)
       : super(const SincronizacionStepState.initial());

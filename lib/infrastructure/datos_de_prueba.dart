@@ -1,14 +1,14 @@
-part of 'moor_database.dart';
+part of 'drift_database.dart';
 /* otra posible forma del closure
 Function initialize(db) {
   return (batch) => (Batch batch, db) {
         batch.insertAll(db.activos, [
           ...*/
 
-Future<void> Function(Batch) initialize(MoorDatabase db) =>
+Future<void> Function(Batch) initialize(Database db) =>
     (Batch batch) => _initialize(batch, db);
 
-Future<void> _initialize(Batch batch, MoorDatabase db) async {
+Future<void> _initialize(Batch batch, Database db) async {
   batch.insertAll(db.activos, [
     ActivosCompanion.insert(modelo: 'DT-Kenworth', id: const Value(1)),
     ActivosCompanion.insert(modelo: 'sencillo-Kenworth', id: const Value(2)),

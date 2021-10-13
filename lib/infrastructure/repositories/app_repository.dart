@@ -6,7 +6,7 @@ import 'package:inspecciones/features/login/credenciales.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../datasources/local_preferences_datasource.dart';
 import '../datasources/providers.dart';
-import '../moor_database.dart';
+import '../drift_database.dart';
 import '../utils/future_either_x.dart';
 import '../utils/transformador_excepciones_api.dart';
 
@@ -17,7 +17,7 @@ final appRepositoryProvider = Provider((ref) => AppRepository(
 
 class AppRepository {
   AuthRemoteDataSource get _api => _read(authRemoteDataSourceProvider);
-  MoorDatabase get _db => _read(moorDatabaseProvider);
+  Database get _db => _read(driftDatabaseProvider);
   final Reader _read;
 
   final LocalPreferencesDataSource _localPreferences;
