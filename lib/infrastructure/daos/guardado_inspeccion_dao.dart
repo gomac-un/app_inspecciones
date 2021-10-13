@@ -107,10 +107,13 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
     bl_dom.OpcionDeRespuesta? opcion,
     required FotosRepository fotosManager,
   }) async {
-    if (opcion == null && valor == null) {
-      throw Exception(
+    //TODO: hacer tests que verifiquen que si se envia la opcion y el valor cuando
+    // el dato es no nulo
+    /*if (opcion == null && valor == null) {
+      throw ArgumentError(
           "La respuesta debe estar asociada a una opcion o tener un valor");
-    }
+    }*/
+
     final fotosBaseProcesadas = await fotosManager.organizarFotos(
       IList.from(respuesta.metaRespuesta.fotosBase),
       Categoria.inspeccion,

@@ -1,8 +1,10 @@
 import 'package:dartz/dartz.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:inspecciones/infrastructure/utils/iterable_x.dart';
 import 'package:moor/moor.dart';
 
 part 'creacion_dao.moor.dart';
@@ -58,15 +60,17 @@ class CreacionDao extends DatabaseAccessor<MoorDatabase>
       ..where(cuestionarioDeModelos.cuestionarioId.equals(cuestionarioId));
 
     final res = await query
-        .map((row) => Tuple2(row.readTable(cuestionarioDeModelos),
-            row.readTableOrNull(contratistas)))
+        .map((row) => Tuple2(
+              row.readTable(cuestionarioDeModelos),
+              row.readTableOrNull(contratistas),
+            ))
         .get();
     final cuestionario = await getCuestionario(cuestionarioId);
 
     return CuestionarioConContratistaYModelos(
       cuestionario,
       res.map((cu) => cu.value1).toList(),
-      res.first.value2!, //! se asume que es el mismo contratista para todos
+      res.first.value2, //! se asume que es el mismo contratista para todos
     );
   }
 
@@ -209,17 +213,17 @@ class CreacionDao extends DatabaseAccessor<MoorDatabase>
           preguntas.esCondicional.equals(false));
     final res = await query
         .map((row) => Tuple3(row.readTable(bloques), row.readTable(preguntas),
-            row.readTable(opcionesPregunta)))
+            row.readTableOrNull(opcionesPregunta)))
         .get();
 
-    return groupBy<Tuple3<Bloque, Pregunta, OpcionDeRespuesta>, Pregunta>(
+    return groupBy<Tuple3<Bloque, Pregunta, OpcionDeRespuesta?>, Pregunta>(
         res, (e) => e.value2).entries.map(
       (entry) {
         return BloqueConPreguntaSimple(
           entry.value.first.value1,
           PreguntaConOpcionesDeRespuesta(
             entry.key,
-            entry.value.map((e) => e.value3).toList(),
+            entry.value.map((e) => e.value3).allNullToEmpty().toList(),
           ),
         );
       },
@@ -381,7 +385,8 @@ class CreacionDao extends DatabaseAccessor<MoorDatabase>
     CuadriculaDePreguntas? cuadricula,
   }) async {
     if (pregunta == null && cuadricula == null) {
-      throw Exception("debe enviar ya sea una pregunta o una cuadricula");
+      throw TaggedUnionError(
+          "debe enviar ya sea una pregunta o una cuadricula");
     }
 
     /// Inserción de la opciones de respuesta de la pregunta
@@ -410,7 +415,8 @@ class CreacionDao extends DatabaseAccessor<MoorDatabase>
     } else if (cuadricula != null) {
       asociada = (rxor) => rxor.cuadriculaId.equals(cuadricula.id);
     } else {
-      throw Exception("debe enviar ya sea una pregunta o una cuadricula");
+      throw TaggedUnionError(
+          "debe enviar ya sea una pregunta o una cuadricula");
     }
 
     /// Se eliminan de la bd las opciones de respuesta que fueron eliminadas desde el form
@@ -526,13 +532,10 @@ class CreacionDao extends DatabaseAccessor<MoorDatabase>
           if (element is TitulosCompanion) {
             final titulo = element.copyWith(bloqueId: Value(bloque.id));
             await into(titulos).insertOnConflictUpdate(titulo);
-          }
-
-          if (element is PreguntaConOpcionesDeRespuestaCompanion) {
+          } else if (element is PreguntaConOpcionesDeRespuestaCompanion) {
             await procesarPregunta(element.pregunta, cuestionario, bloque,
                 opcionesDeRespuesta: element.opcionesDeRespuesta);
-          }
-          if (element
+          } else if (element
               is CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion) {
             final cuadricula = await upsertCuadricula(
                 element.cuadricula.copyWith(bloqueId: Value(bloque.id)));
@@ -550,17 +553,16 @@ class CreacionDao extends DatabaseAccessor<MoorDatabase>
               element.opcionesDeRespuesta,
               cuadricula: cuadricula,
             );
-          }
-          if (element is PreguntaNumericaCompanion) {
+          } else if (element is PreguntaNumericaCompanion) {
             await procesarPregunta(
               element.pregunta,
               cuestionario,
               bloque,
               criticidades: element.criticidades,
             );
+          } else {
+            throw TaggedUnionError(element);
           }
-
-          throw UnimplementedError("Tipo de elemento no reconocido: $element");
         });
       },
     );

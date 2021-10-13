@@ -1,9 +1,10 @@
+import 'dart:convert';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/presentation/widgets/alertas.dart';
-import 'package:inspecciones/presentation/widgets/loading_dialog.dart';
 import 'package:inspecciones/presentation/widgets/reactive_filter_chip_selection.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -174,9 +175,9 @@ class EdicionForm extends ConsumerWidget {
             ],
           ),
         ),
-        floatingActionButton: BotonesGuardado(
-          estado: controller.estado,
-        ),
+        floatingActionButton: controller.estado == EstadoDeCuestionario.borrador
+            ? const BotonesGuardado()
+            : null,
       ),
     );
   }
@@ -185,11 +186,7 @@ class EdicionForm extends ConsumerWidget {
 /// TODO: reestructurar el flujo de estos botones
 /// Row con botón de guardar borrador y finalizar cuestionario
 class BotonesGuardado extends ConsumerWidget {
-  const BotonesGuardado({
-    Key? key,
-    required this.estado,
-  }) : super(key: key);
-  final EstadoDeCuestionario estado;
+  const BotonesGuardado({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
@@ -201,119 +198,127 @@ class BotonesGuardado extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          /// Solo aparece guardar cuando no se ha finalizado el cuestionario.
-          if (estado == EstadoDeCuestionario.borrador)
-            FloatingActionButton.extended(
-              key: const ValueKey("borrador"),
-              icon: const Icon(Icons.archive),
-              label: const Text('Guardar'),
-              onPressed: () async {
-                /// Que haya seleccionado modelos y tipo de inspeccion
-                if (controller.modelosControl.value!.isEmpty ||
-                    controller.tipoDeInspeccionControl.value!.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text(
-                          "Seleccione el tipo de inspección y elija por lo menos un modelo antes de guardar el cuestionario")));
-                } else {
-                  /// Muestra que errores hay
-
-                  await controller.guardarCuestionarioEnLocal(estado);
-                  //TODO: Mostrar tambien cuando hay un error.
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        content: const Text("Guardado exitoso"),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('Aceptar'),
-                          )
-                        ],
-                      );
-                    },
-                  );
-                }
-              },
-            ),
           FloatingActionButton.extended(
+            heroTag: null,
+            icon: const Icon(Icons.archive),
+            label: const Text('Guardar'),
+            onPressed: () => _guardar(context, controller),
+          ),
+          FloatingActionButton.extended(
+            heroTag: null,
             icon: const Icon(Icons.done_all_outlined),
-            label: Text(estado == EstadoDeCuestionario.borrador
-                ? 'Finalizar'
-
-                /// Solo se puede finalizar una vez.
-                : 'Aceptar'),
-            onPressed: !form.valid
-                ? () {
-                    if (estado == EstadoDeCuestionario.borrador) {
-                      form.markAllAsTouched();
-
-                      /// Si tiene errores y aunn no está finalizado
-                      mostrarErrores(context, form);
-                    } else {
-                      /// Cuando ya está finalizado y el label es 'Aceptar', no sé que tan necesaria sea esta parte
-                      Navigator.of(context).pop();
-                    }
-                  }
-                : () {
-                    finalizarCuestionario(context, controller);
-                  },
+            label: const Text('Finalizar'),
+            onPressed: () => _finalizar(context, controller),
           ),
         ],
       ),
     );
   }
 
-  /// Muestra alerta de finalización de cuestionario (error o éxito), o retrocede a la pantalla
-  /// principal si el cuestionario ya esta finalizado.
-  void finalizarCuestionario(
-      BuildContext context, CreacionFormController controller) {
-    // set up the buttons
-    final cancelButton = TextButton(
-      onPressed: () => Navigator.of(context).pop(),
-      child: const Text("Cancelar"), // OJO con el context
-    );
-    final Widget continueButton = TextButton(
-      onPressed: () async {
-        Navigator.of(context).pop();
-
-        if (estado == EstadoDeCuestionario.borrador) {
-          LoadingDialog.show(context);
-          await controller
-              .guardarCuestionarioEnLocal(EstadoDeCuestionario.finalizada);
-          LoadingDialog.hide(context);
-          mostrarMensaje(
-              context, TipoDeMensaje.exito, 'Cuestionario creado exitosamente');
-        }
-      },
-      child: const Text("Aceptar"),
-    );
-    // set up the AlertDialog
-    final alert = AlertDialog(
-      title: const Text("Alerta"),
-      content: const Text(
-          "¿Está seguro que desea finalizar este cuestionario? Si lo hace, no podrá editarlo después"),
-      actions: [
-        cancelButton,
-        continueButton,
-      ],
-    );
-
-    /// Se guarda si es borrador
-    if (estado == EstadoDeCuestionario.borrador) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return alert;
-        },
-      );
+  Future<void> _guardar(
+      BuildContext context, CreacionFormController controller) async {
+    /// Que haya seleccionado modelos y tipo de inspeccion
+    if (controller.modelosControl.value!.isEmpty ||
+        controller.tipoDeInspeccionControl.value!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              "Seleccione el tipo de inspección y elija por lo menos un modelo antes de guardar el cuestionario")));
+      return;
     }
 
-    /// Se retrocede hasta la principal de cuestionarios cuando ya esta finalizado
-    else {
-      Navigator.of(context).pop();
+    await controller.guardarCuestionarioEnLocal(EstadoDeCuestionario.borrador);
+    //TODO: Mostrar tambien cuando hay un error.
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: const Text("Guardado exitoso"),
+          actions: [
+            TextButton(
+              onPressed: Navigator.of(context).pop,
+              child: const Text('Aceptar'),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  /// Muestra alerta de finalización de cuestionario (error o éxito), o retrocede a la pantalla
+  /// principal si el cuestionario ya esta finalizado.
+  Future<void> _finalizar(
+      BuildContext context, CreacionFormController controller) async {
+    final form = controller.control;
+    form.markAllAsTouched();
+    return !form.valid
+        ? showDialog(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+              title: const Text("Alerta"),
+              content:
+                  const Text("El cuestionario tiene errores, por favor revise"),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    //TODO: hacer primero scroll hasta abajo para que el control
+                    // que falla quede en la parte de arriba de la pantalla si
+                    // es que estaba abajo
+                    try {
+                      _focusFirstError(form);
+                    } on StateError {
+                      showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                                content: Text(const JsonEncoder.withIndent('  ')
+                                    .convert(form.errors)),
+                              ));
+                    }
+                  },
+                  child: const Text("Ok"),
+                ),
+              ],
+            ),
+          )
+        : showDialog(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+              title: const Text("Alerta"),
+              content: const Text(
+                  "¿Está seguro que desea finalizar este cuestionario? Si lo hace, no podrá editarlo después"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text("Cancelar"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+
+                    await controller.guardarCuestionarioEnLocal(
+                        EstadoDeCuestionario.finalizada);
+
+                    mostrarMensaje(context, TipoDeMensaje.exito,
+                        'Cuestionario creado exitosamente');
+                  },
+                  child: const Text("Aceptar"),
+                ),
+              ],
+            ),
+          );
+  }
+
+  void _focusFirstError(AbstractControl control) {
+    // esto solo deberia pasar si el controlador superior no tiene ningun descendiente invalido
+    if (control.valid) return;
+
+    if (control is FormControl) {
+      control.focus();
+    } else if (control is FormArray) {
+      _focusFirstError(control.controls.firstWhere((e) => e.invalid));
+    } else if (control is FormGroup) {
+      _focusFirstError(control.controls.values.firstWhere((e) => e.invalid));
     }
   }
 }

@@ -63,35 +63,32 @@ class InspeccionesRepository {
   FEF<CuestionarioInspeccionado> cargarInspeccionLocal(
       IdentificadorDeInspeccion id) async {
     developer.log("cargando inspeccion $id");
-    try {
-      final inspeccionCompleta = await _db.cargaDeInspeccionDao
-          .cargarInspeccion(
-              cuestionarioId: id.cuestionarioId,
-              activoId: int.parse(id.activo));
-      final cuestionario =
-          await _db.creacionDao.getCuestionario(id.cuestionarioId);
-      final inspeccion = inspeccionCompleta.value1;
-      final activo =
-          await _db.borradoresDao.getActivoPorId(inspeccion.activoId);
-      final cuestionarioInspeccionado = CuestionarioInspeccionado(
-          Cuestionario(
-              id: cuestionario.id,
-              tipoDeInspeccion: cuestionario.tipoDeInspeccion),
-          Inspeccion(
-              id: inspeccion.id,
-              estado: EstadoDeInspeccion.values.firstWhere(
-                  (element) => element.index == inspeccion.estado.index),
-              activo: activo,
-              momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
-              momentoEnvio: inspeccion.momentoEnvio,
-              criticidadTotal: inspeccion.criticidadTotal,
-              criticidadReparacion: inspeccion.criticidadReparacion,
-              esNueva: inspeccion.esNueva),
-          inspeccionCompleta.value2);
-      return Right(cuestionarioInspeccionado);
-    } catch (e) {
-      return Left(InspeccionesFailure(e.toString()));
-    }
+    // try {
+    final inspeccionCompleta = await _db.cargaDeInspeccionDao.cargarInspeccion(
+        cuestionarioId: id.cuestionarioId, activoId: int.parse(id.activo));
+    final cuestionario =
+        await _db.creacionDao.getCuestionario(id.cuestionarioId);
+    final inspeccion = inspeccionCompleta.value1;
+    final activo = await _db.borradoresDao.getActivoPorId(inspeccion.activoId);
+    final cuestionarioInspeccionado = CuestionarioInspeccionado(
+        Cuestionario(
+            id: cuestionario.id,
+            tipoDeInspeccion: cuestionario.tipoDeInspeccion),
+        Inspeccion(
+            id: inspeccion.id,
+            estado: EstadoDeInspeccion.values.firstWhere(
+                (element) => element.index == inspeccion.estado.index),
+            activo: activo,
+            momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
+            momentoEnvio: inspeccion.momentoEnvio,
+            criticidadTotal: inspeccion.criticidadTotal,
+            criticidadReparacion: inspeccion.criticidadReparacion,
+            esNueva: inspeccion.esNueva),
+        inspeccionCompleta.value2);
+    return Right(cuestionarioInspeccionado);
+    // } catch (e) {
+    //   return Left(InspeccionesFailure(e.toString()));
+    // }
   }
 
   Future<void> guardarInspeccion(

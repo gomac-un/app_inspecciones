@@ -54,8 +54,10 @@ void mostrarMensaje(BuildContext context, TipoDeMensaje tipo, String mensaje,
 }
 
 /// Usada para mostrar los errores de la creación de cuestionarios.
-void mostrarErrores(BuildContext context, AbstractControl<dynamic> form) {
-  Alert(
+Future<void> mostrarErrores(
+    BuildContext context, AbstractControl<dynamic> form) {
+  
+  return Alert(
     context: context,
     style: AlertStyle(
       overlayColor: Theme.of(context).primaryColorLight,

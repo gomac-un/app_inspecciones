@@ -1,10 +1,12 @@
 import 'package:dartz/dartz.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:inspecciones/infrastructure/utils/iterable_x.dart';
 import 'package:moor/moor.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -138,7 +140,7 @@ class CreacionFormController {
         todosLosModelos,
         todosLosSistemas,
         todosLosTiposDeInspeccion,
-        await _cargarBloques(repository, null, null),
+        (await _cargarBloques(repository, null, null)).toList(),
         // para que retorne un bloque por defecto ya que es nuevo cuestionario
       );
     }
@@ -158,13 +160,13 @@ class CreacionFormController {
       todosLosModelos,
       todosLosSistemas,
       todosLosTiposDeInspeccion,
-      controllersBloques,
+      controllersBloques.toList(),
       datosIniciales: CuestionarioConContratistaYModelosCompanion.fromDataClass(
           datosIniciales),
     );
   }
 
-  /// TODO: reducir el numero de argumentos agrupandolos de alguna manera
+  /// TODO: reducir el numero de parámetros agrupandolos de alguna manera
   CreacionFormController._(
     this.repository,
     this.todosLosContratistas,
@@ -208,7 +210,7 @@ class CreacionFormController {
   /// El flujo es: desde la Bd se devuelve [bloquesBD] al invocar ([CreacionDao.cargarCuestionario()]),
   /// luego se recorren y dependiendo del tipo especifico de IBloqueOrdenable que sea, se devuelve el control correspondiente
   /// para que [ControlWidget] en creacion_card.dart pueda devolver la card adecuada para cada tipo
-  static Future<List<CreacionController>> _cargarBloques(
+  static Future<Iterable<CreacionController>> _cargarBloques(
       CuestionariosRepository repository,
       Cuestionario? cuestionario,
       List<IBloqueOrdenable>? bloquesBD) async {
@@ -219,10 +221,10 @@ class CreacionFormController {
 
     /// Si es un cuestionario que ya existía y se va a editar
     ///Ordenamiento y creacion de los controles dependiendo del tipo de elemento
-    return Stream.fromIterable((bloquesBD
+    return (bloquesBD
           ..sort(
             (a, b) => a.nOrden.compareTo(b.nOrden),
-          )))
+          ))
         .asyncMap<CreacionController>((e) async {
       ///! aca pueden haber errores de tiempo de ejecucion si el bloque no tiene al
       ///menos una pregunta o si la primera no tiene sistemaId, aunque
@@ -233,9 +235,9 @@ class CreacionFormController {
       if (e is BloqueConPreguntaSimple) {
         return CreadorPreguntaController(
           repository,
-          await repository.getSistemaPorId(e.pregunta.pregunta.sistemaId!),
-          await repository
-              .getSubSistemaPorId(e.pregunta.pregunta.subSistemaId!),
+          await _maybeGetSistema(e.pregunta.pregunta.sistemaId, repository),
+          await _maybeGetSubSistema(
+              e.pregunta.pregunta.subSistemaId, repository),
           datosIniciales:
               PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(e.pregunta),
         );
@@ -243,10 +245,10 @@ class CreacionFormController {
       if (e is BloqueConCuadricula) {
         return CreadorPreguntaCuadriculaController(
           repository,
-          await repository
-              .getSistemaPorId(e.preguntas.first.pregunta.sistemaId!),
-          await repository
-              .getSubSistemaPorId(e.preguntas.first.pregunta.subSistemaId!),
+          await _maybeGetSistema(
+              e.preguntas.first.pregunta.sistemaId, repository),
+          await _maybeGetSubSistema(
+              e.preguntas.first.pregunta.subSistemaId, repository),
           datosIniciales: CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion
               .fromDataClass(CuadriculaConPreguntasYConOpcionesDeRespuesta(
             e.cuadricula.cuadricula,
@@ -258,14 +260,36 @@ class CreacionFormController {
       if (e is BloqueConPreguntaNumerica) {
         return CreadorPreguntaNumericaController(
           repository,
-          await repository.getSistemaPorId(e.pregunta.pregunta.sistemaId!),
-          await repository
-              .getSubSistemaPorId(e.pregunta.pregunta.subSistemaId!),
+          await _maybeGetSistema(e.pregunta.pregunta.sistemaId, repository),
+          await _maybeGetSubSistema(
+              e.pregunta.pregunta.subSistemaId, repository),
           datosIniciales: PreguntaNumericaCompanion.fromDataClass(e.pregunta),
         );
       }
-      throw UnimplementedError("Tipo de bloque no reconocido");
-    }).toList();
+      throw TaggedUnionError(e);
+    });
+  }
+
+  static Future<Sistema?> _maybeGetSistema(
+      int? sistemaId, CuestionariosRepository repository) async {
+    final Sistema? sistema;
+    if (sistemaId == null) {
+      sistema = null;
+    } else {
+      sistema = await repository.getSistemaPorId(sistemaId);
+    }
+    return sistema;
+  }
+
+  static Future<SubSistema?> _maybeGetSubSistema(
+      int? subSistemaId, CuestionariosRepository repository) async {
+    final SubSistema? subSistema;
+    if (subSistemaId == null) {
+      subSistema = null;
+    } else {
+      subSistema = await repository.getSubSistemaPorId(subSistemaId);
+    }
+    return subSistema;
   }
 
   /// Agrega un nuevo bloque despues de [despuesDe]
@@ -293,7 +317,7 @@ class CreacionFormController {
   /// Se realizan muchas excepciones al null safety pero estas deben ser evitadas
   /// con los validators, si no se hace esta función tirará errores en tiempo
   /// de ejecución
-  Future guardarCuestionarioEnLocal(EstadoDeCuestionario estado) async {
+  Future<void> guardarCuestionarioEnLocal(EstadoDeCuestionario estado) async {
     control.markAllAsTouched();
 
     final int contratistaId =

@@ -13,6 +13,7 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dar
     as insp_dom;
 import 'package:inspecciones/features/llenado_inspecciones/domain/metarespuesta.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:inspecciones/infrastructure/utils/iterable_x.dart';
 import 'package:intl/intl.dart';
 import 'package:moor/moor.dart';
 
@@ -234,12 +235,12 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
         .map((row) => Tuple3(
               row.readTable(bloques),
               row.readTable(preguntas),
-              row.readTable(opcionesPregunta),
+              row.readTableOrNull(opcionesPregunta),
             ))
         .get();
 
     return Future.wait(
-      groupBy<Tuple3<Bloque, Pregunta, OpcionDeRespuesta>, Pregunta>(
+      groupBy<Tuple3<Bloque, Pregunta, OpcionDeRespuesta?>, Pregunta>(
           res, (e) => e.value2).entries.map((entry) async {
         final pregunta = entry.key;
         final opciones = entry.value;
@@ -248,7 +249,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
               opciones.first.value1.nOrden,
               await _buildPreguntaDeSeleccionMultiple(
                 pregunta,
-                opciones.map((e) => e.value3).toList(),
+                opciones.map((o) => o.value3).allNullToEmpty().toList(),
                 inspeccionId,
               ));
         }
@@ -257,7 +258,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<MoorDatabase>
             opciones.first.value1.nOrden,
             await _buildPreguntaDeSeleccionUnica(
               pregunta,
-              opciones.map((e) => e.value3).toList(),
+              opciones.map((o) => o.value3).allNullToEmpty().toList(),
               inspeccionId,
             ));
       }),

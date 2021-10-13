@@ -294,7 +294,7 @@ class MoorDatabase extends _$MoorDatabase {
   }
 
   /// Cuando se sincroniza con GOMAC, se insertan todos los datos a la bd.
-  Future instalarBD(Map<String, dynamic> json) async {
+  Future<void> instalarBD(Map<String, dynamic> json) async {
     /*TODO: hacer este proceso sin repetir tanto codigo, por ejemplo usando una estructura asi:
     final tablasPorActualizar = [
       InstaladorHelper("Activo", Activo, activos),

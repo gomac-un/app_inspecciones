@@ -1,5 +1,5 @@
-import 'package:meta/meta.dart';
 import 'package:inspecciones/infrastructure/moor_database.dart';
+import 'package:meta/meta.dart';
 import 'package:moor/moor.dart';
 
 /// Clases que agrupan [Dataclass]es de moor que están relacionadas
@@ -53,7 +53,7 @@ class PreguntaNumericaCompanion {
 class CuestionarioConContratistaYModelos {
   final Cuestionario cuestionario;
   final List<CuestionarioDeModelo> cuestionarioDeModelo;
-  final Contratista contratista;
+  final Contratista? contratista;
 
   const CuestionarioConContratistaYModelos(
     this.cuestionario,

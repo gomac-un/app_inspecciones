@@ -56,7 +56,7 @@ ValidatorFunction nuevoTipoDeInspeccionValidator(
 
       final error = {ValidationMessage.required: true};
 
-      if (ti == CreacionFormController.otroTipoDeInspeccion ||
+      if (ti == CreacionFormController.otroTipoDeInspeccion &&
           nti.trim().isEmpty) {
         nuevoTipoDeInspeccionControl.setErrors(error);
         //nuevoTipoDeinspeccion.markAsTouched();

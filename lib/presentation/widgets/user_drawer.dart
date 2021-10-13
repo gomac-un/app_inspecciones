@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/infrastructure/repositories/app_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/presentation/pages/inspecciones_db_viewer_screen.dart';
 import 'package:inspecciones/theme.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -50,6 +51,14 @@ class UserDrawer extends ConsumerWidget {
                       icon: Icons.storage_outlined,
                       onTap: () => Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => const InspeccionesDbViewerPage())),
+                    ),
+                  if (user.esAdmin)
+                    MenuItem(
+                      texto: 'Insertar datos de prueba',
+                      icon: Icons.science_outlined,
+                      onTap: () => ref
+                          .read(cuestionariosRepositoryProvider)
+                          .insertarDatosDePrueba(),
                     ),
                   MenuItem(
                     texto: 'Limpiar datos de la app',

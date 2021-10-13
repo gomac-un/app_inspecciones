@@ -12,25 +12,10 @@ import 'package:moor/moor.dart';
 
 part 'borradores_dao.moor.dart';
 
-/// Acceso a los datos de la Bd.
-///
-/// Incluye los métodos necesarios para  insertar, actualizar, borrar y consultar la información
-/// relacionada con las inspecciones y cuestionarios.
 @UseDao(tables: [
-  /// Definición de las tablas a las que necesitamos acceder para obtener la información
-  Activos,
-  CuestionarioDeModelos,
-  Cuestionarios,
-  Bloques,
-  Titulos,
-  CuadriculasDePreguntas,
-  Preguntas,
-  OpcionesDeRespuesta,
-  Inspecciones,
   Respuestas,
-  Contratistas,
-  Sistemas,
-  SubSistemas,
+  Inspecciones,
+  Activos,
 ])
 class BorradoresDao extends DatabaseAccessor<MoorDatabase>
     with _$BorradoresDaoMixin {
@@ -107,9 +92,11 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
 
   Future<void> eliminarHistorialEnviados() async {
     //TODO: implement
+    throw UnimplementedError();
   }
 
-  /// Elimina la inspección donde inspeccion.id = [borrador.inspeccion.id] y en cascada las respuestas asociadas
+  /// Elimina la inspección donde inspeccion.id = [borrador.inspeccion.id] y
+  /// en cascada las respuestas asociadas
   Future<void> eliminarBorrador(borr_dom.Borrador borrador) async {
     await (delete(inspecciones)
           ..where((ins) => ins.id.equals(borrador.inspeccion.id)))
@@ -132,13 +119,5 @@ class BorradoresDao extends DatabaseAccessor<MoorDatabase>
     await (delete(respuestas)
           ..where((res) => res.inspeccionId.equals(inspeccionId)))
         .go();
-  }
-}
-
-/// TODO: probar esta extension
-extension AsyncMappings<E> on Iterable<E> {
-  //Iterable<T> map<T>(T toElement(E e)) => MappedIterable<E, T>(this, toElement);
-  Future<Iterable<T>> asyncMap<T>(Future<T> Function(E e) toElement) {
-    return Future.wait(map((e) => toElement(e)));
   }
 }
