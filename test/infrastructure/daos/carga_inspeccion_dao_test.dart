@@ -1,5 +1,3 @@
-@Skip(
-    "La máquina del CI de github actions no tiene la version mínima de sqlite requerida (3.35)")
 import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:inspecciones/core/enums.dart';

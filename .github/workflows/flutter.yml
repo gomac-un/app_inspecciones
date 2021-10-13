@@ -12,6 +12,43 @@ on:
     branches: [ actualizacion_flutter ]
 
 jobs:
+   # Compile the latest sqlite3 library, which will be used to run tests in moor
+  # and sqlparser
+  compile_sqlite3:
+    name: "Compile sqlite3 for tests"
+    runs-on: ubuntu-20.04
+    env:
+      SQLITE_VERSION: "3350500"
+    
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        id: cache_build
+        with:
+          path: /tmp/sqlite/out/
+          key: ${{ runner.os }}-${{ env.SQLITE_VERSION }}
+      - name: Compile sqlite3
+        if: steps.cache_build.outputs.cache-hit != 'true'
+        run: |
+          cd /tmp/
+          mkdir sqlite
+          cd sqlite
+          curl https://sqlite.org/2021/sqlite-autoconf-$SQLITE_VERSION.tar.gz --output sqlite.tar.gz
+          tar zxvf sqlite.tar.gz
+          cd sqlite-autoconf-$SQLITE_VERSION
+          ./configure
+          make
+          mkdir ../out
+          cp sqlite3 ../out
+          cp .libs/libsqlite3.so ../out
+      - name: Upload built sqlite3 binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: sqlite3
+          path: /tmp/sqlite/out/
+          if-no-files-found: error
+          retention-days: 7
+
   build:
     runs-on: ubuntu-20.04
 
@@ -25,6 +62,19 @@ jobs:
       with:
         flutter-version: '2.6'
         channel: 'beta'
+    
+    - name: Download sqlite3
+      uses: actions/download-artifact@v2
+      with:
+        name: sqlite3
+        path: /tmp/sqlite/out/
+    - name: Use downloaded sqlite3
+      run: |
+        chmod a+x /tmp/sqlite/out/sqlite3
+        echo "/tmp/sqlite/out" >> $GITHUB_PATH
+        echo "LD_LIBRARY_PATH=/tmp/sqlite/out" >> $GITHUB_ENV
+    - name: Check sqlite3 version
+      run: sqlite3 --version
 
     - name: Install dependencies
       run: flutter pub get
