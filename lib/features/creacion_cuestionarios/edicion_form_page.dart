@@ -30,7 +30,7 @@ class EdicionFormPage extends ConsumerWidget {
         return formController.when(
             data: (_) => const EdicionForm(),
             loading: (prev) => const CircularProgressIndicator(),
-            error: (e, s, prev) => Text("Error cargando el cuestionario: $e"));
+            error: (e, s, prev) => throw e);
       }),
     );
   }

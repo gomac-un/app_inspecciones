@@ -216,12 +216,12 @@ class Database extends _$Database {
     ])
       ..where(respuestas.inspeccionId.equals(inspeccion.id));
     final res = await queryRes
-        .map((row) => Tuple2(
-            row.readTable(respuestas), row.readTable(opcionesDeRespuesta).id))
+        .map((row) => Tuple2(row.readTable(respuestas),
+            row.readTableOrNull(opcionesDeRespuesta)?.id))
         .get();
 
     final resAgrupadas =
-        groupBy<Tuple2<Respuesta, int>, Respuesta>(res, (e) => e.value1)
+        groupBy<Tuple2<Respuesta, int?>, Respuesta>(res, (e) => e.value1)
             .entries
             .map((entry) {
       //solo enviar el filename al server

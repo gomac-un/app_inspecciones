@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_controls.dart';
-import 'creacion_form_controller.dart';
 import 'creacion_widgets.dart';
 import 'creador_seleccion_simple_card.dart';
 import 'pregunta_card.dart';
@@ -48,11 +46,12 @@ class WidgetPreguntas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context).size;
+    final formControl = controlCuadricula.preguntasControl;
 
     /// Como las preguntas se van añadiendo dinámicamente, este  ReactiveValueListenableBuilder escucha, por decirlo asi,
     /// el length del control 'preguntas' [formControl], así cada que se va añadiendo una opción, se muestra el nuevo widget en la UI
     return ReactiveValueListenableBuilder(
-        formControl: controlCuadricula.preguntasControl,
+        formControl: formControl,
         builder: (context, control, child) {
           final controllersPreguntas = controlCuadricula.controllersPreguntas;
           return Column(
@@ -109,16 +108,11 @@ class WidgetPreguntas extends StatelessWidget {
                                       context: maincontext,
                                       builder: (context) => AlertDialog(
                                         content: SingleChildScrollView(
-                                            child: Provider.value(
-                                          // se vuelve a proveer el control del formulario principal ya que el nuevo contexto no tiene acceso, supongo
-                                          value: maincontext
-                                              .watch<CreacionFormController>(),
-
-                                          child: SizedBox(
-                                            width: media.width * 0.7,
-                                            child: CreadorSeleccionSimpleCard(
-                                              controller: controllerPregunta,
-                                            ),
+                                            child: SizedBox(
+                                          width: media.width * 0.7,
+                                          //TODO: arreglar este dialog
+                                          child: CreadorSeleccionSimpleCard(
+                                            controller: controllerPregunta,
                                           ),
                                         )),
                                         actions: [
@@ -132,12 +126,13 @@ class WidgetPreguntas extends StatelessWidget {
                                     );
                                   },
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  tooltip: 'Borrar pregunta',
-                                  onPressed: () => controlCuadricula
-                                      .borrarPregunta(controllerPregunta),
-                                ),
+                                if (formControl.enabled)
+                                  IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    tooltip: 'Borrar pregunta',
+                                    onPressed: () => controlCuadricula
+                                        .borrarPregunta(controllerPregunta),
+                                  ),
                               ],
                             ),
                           ],
@@ -156,16 +151,17 @@ class WidgetPreguntas extends StatelessWidget {
 
               /// Se muestra este botón por defecto, al presionarlo se añade un nuevo control al FormArray [formGroup.control('preguntas')]
               /// Y así se va actualizando la lista
-              OutlinedButton(
-                onPressed: controlCuadricula.agregarPregunta,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.add),
-                    Text("Agregar pregunta"),
-                  ],
+              if (formControl.enabled)
+                OutlinedButton(
+                  onPressed: controlCuadricula.agregarPregunta,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.add),
+                      Text("Agregar pregunta"),
+                    ],
+                  ),
                 ),
-              ),
             ],
           );
         });

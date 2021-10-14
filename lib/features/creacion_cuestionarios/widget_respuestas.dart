@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:simple_tooltip/simple_tooltip.dart';
 
@@ -16,8 +15,9 @@ class WidgetRespuestas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// Como las respuestas se van añadiendo dinámicamente, este  ReactiveValueListenableBuilder escucha, por decirlo asi,
-    /// el length del control respuestas [formControl], así cada que se va añadiendo una opción, se muestra el nuevo widget en la UI
+    /// Como las respuestas se van añadiendo dinámicamente, este
+    /// [ReactiveValueListenableBuilder] escucha cambios en el control respuestas
+    /// así cada que se va añadiendo una opción, se muestra el nuevo widget en la UI
     return ReactiveValueListenableBuilder(
         formControl: controlPregunta.respuestasControl,
         builder: (context, formControl, child) {
@@ -30,8 +30,7 @@ class WidgetRespuestas extends StatelessWidget {
               ),
 
               /// Si no se ha añadido ninguna opción de respuesta
-              if (formControl.invalid &&
-                  formControl.errors.entries.first.key == 'minLength')
+              if (formControl.errors.containsKey(ValidationMessage.minLength))
                 const Text(
                   'Agregue una opción de respuesta',
                   style: TextStyle(color: Colors.red),
@@ -109,12 +108,13 @@ class WidgetRespuestas extends StatelessWidget {
                                     TextCapitalization.sentences,
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              tooltip: 'Borrar respuesta',
-                              onPressed: () => controlPregunta
-                                  .borrarRespuesta(controlRespuesta),
-                            ),
+                            if (formControl.enabled)
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                tooltip: 'Borrar respuesta',
+                                onPressed: () => controlPregunta
+                                    .borrarRespuesta(controlRespuesta),
+                              ),
                           ],
                         ),
                         ReactiveSlider(
@@ -134,16 +134,17 @@ class WidgetRespuestas extends StatelessWidget {
 
               /// Se muestra este botón por defecto, al presionarlo se añade un
               ///  nuevo control al FormArray [controlesRespuestas]
-              OutlinedButton(
-                onPressed: () => controlPregunta.agregarRespuesta(),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.add),
-                    Text("Agregar respuesta"),
-                  ],
+              if (formControl.enabled)
+                OutlinedButton(
+                  onPressed: () => controlPregunta.agregarRespuesta(),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.add),
+                      Text("agregar respuesta"),
+                    ],
+                  ),
                 ),
-              ),
             ],
           );
         });

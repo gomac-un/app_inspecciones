@@ -249,10 +249,14 @@ class CreacionFormController {
       if (e is BloqueConCuadricula) {
         return CreadorPreguntaCuadriculaController(
           repository,
-          await _maybeGetSistema(
-              e.preguntas.first.pregunta.sistemaId, repository),
-          await _maybeGetSubSistema(
-              e.preguntas.first.pregunta.subSistemaId, repository),
+          e.preguntas.isEmpty
+              ? null
+              : await _maybeGetSistema(
+                  e.preguntas.first.pregunta.sistemaId, repository),
+          e.preguntas.isEmpty
+              ? null
+              : await _maybeGetSubSistema(
+                  e.preguntas.first.pregunta.subSistemaId, repository),
           datosIniciales: CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion
               .fromDataClass(CuadriculaConPreguntasYConOpcionesDeRespuesta(
             e.cuadricula.cuadricula,

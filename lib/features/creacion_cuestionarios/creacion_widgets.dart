@@ -120,7 +120,8 @@ class CamposGenerales extends ConsumerWidget {
           textCapitalization: TextCapitalization.sentences,
         ),
         const SizedBox(height: 10),
-
+        //TODO: averiguar por que los siguientes reactive widgets que son nullables
+        // no se deshabilitan en la ui cuando el cuestionario está finalizado
         /// Dependiendo del sistema elegido, se cargan los subsistemas asociados.
         ReactiveDropdownField<Sistema?>(
           formControl: controller.sistemaControl,
@@ -283,6 +284,7 @@ class BotonesDeBloque extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
+    if (controllerActual.control.disabled) return const SizedBox.shrink();
     final formController = ref.watch(creacionFormControllerProvider);
     final animatedList = AnimatedList.of(context);
     return Row(

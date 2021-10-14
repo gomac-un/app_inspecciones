@@ -170,18 +170,18 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
         .map((row) => Tuple3(
               row.readTable(bloques),
               row.readTable(preguntas),
-              row.readTable(criticidadesNumericas),
+              row.readTableOrNull(criticidadesNumericas),
             ))
         .get();
 
-    return groupBy<Tuple3<Bloque, Pregunta, CriticidadesNumerica>, Pregunta>(
+    return groupBy<Tuple3<Bloque, Pregunta, CriticidadesNumerica?>, Pregunta>(
             res, (e) => e.value2)
         .entries
         .map((entry) => BloqueConPreguntaNumerica(
               entry.value.first.value1,
               PreguntaNumerica(
                 entry.key,
-                entry.value.map((item) => item.value3).toList(),
+                entry.value.map((e) => e.value3).allNullToEmpty().toList(),
               ),
             ))
         .toList();
@@ -236,14 +236,14 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
 
     final res = await query1
         .map((row) => Tuple3(
-              row.readTable(preguntas),
+              row.readTableOrNull(preguntas),
               row.readTable(bloques),
               row.readTable(cuadriculasDePreguntas),
             ))
         .get();
 
     return Future.wait(
-      groupBy<Tuple3<Pregunta, Bloque, CuadriculaDePreguntas>, Bloque>(
+      groupBy<Tuple3<Pregunta?, Bloque, CuadriculaDePreguntas>, Bloque>(
           res, (e) => e.value2).entries.map((entry) async {
         return BloqueConCuadricula(
           entry.key,
@@ -254,11 +254,11 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
             await getRespuestasDeCuadricula(entry.value.first.value3.id),
           ),
           entry.value
+              .map((e) => e.value1)
+              .allNullToEmpty()
               .map(
-                (item) =>
-
-                    /// Envia lista vacia en las opciones de respuesta, porque ya van en [CuadriculaDePreguntasConOpcionesDeRespuesta]
-                    PreguntaConOpcionesDeRespuesta(item.value1, const []),
+                (e) => PreguntaConOpcionesDeRespuesta(e,
+                    const []), // Envia lista vacia en las opciones de respuesta, porque ya van en [CuadriculaDePreguntasConOpcionesDeRespuesta]
               )
               .toList(),
         );
