@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:reactive_multi_image_picker/reactive_multi_image_picker.dart';
 
 import '../../control/controlador_de_pregunta.dart';
 import '../../control/controlador_llenado_inspeccion.dart';
@@ -33,6 +37,19 @@ class WidgetRespuesta extends StatelessWidget {
           keyboardType: TextInputType.multiline,
           textCapitalization: TextCapitalization.sentences,
         ),
+        ReactiveMultiImagePicker<AppImage, AppImage>(
+          formControl: control.fotosBaseControl,
+          //valueAccessor: FileValueAccessor(),
+          decoration: const InputDecoration(labelText: 'Fotos base'),
+          maxImages: 3,
+          imageBuilder: (image) => image.when(
+            remote: (url) => Image.network(url),
+            mobile: (path) => Image.file(File(path)),
+            web: (path) => Image.network(path),
+          ),
+          xFileConverter: (file) =>
+              kIsWeb ? AppImage.web(file.path) : AppImage.mobile(file.path),
+        ),
         Consumer(builder: (context, ref, _) {
           final estadoDeInspeccion =
               ref.watch(estadoDeInspeccionProvider).state;
@@ -62,15 +79,36 @@ class WidgetRespuesta extends StatelessWidget {
                   child: SizedBox(
                     height: reparado ? null : 0,
                     child: reparado
-                        ? ReactiveTextField(
-                            formControl: control.observacionReparacionControl,
-                            decoration: const InputDecoration(
-                              labelText: 'Observaciones reparación',
-                              prefixIcon: Icon(Icons.remove_red_eye),
-                            ),
-                            maxLines: null,
-                            keyboardType: TextInputType.multiline,
-                            textCapitalization: TextCapitalization.sentences,
+                        ? Column(
+                            children: [
+                              ReactiveTextField(
+                                formControl:
+                                    control.observacionReparacionControl,
+                                decoration: const InputDecoration(
+                                  labelText: 'Observaciones reparación',
+                                  prefixIcon: Icon(Icons.remove_red_eye),
+                                ),
+                                maxLines: null,
+                                keyboardType: TextInputType.multiline,
+                                textCapitalization:
+                                    TextCapitalization.sentences,
+                              ),
+                              ReactiveMultiImagePicker<AppImage, AppImage>(
+                                formControl: control.fotosReparacionControl,
+                                //valueAccessor: FileValueAccessor(),
+                                decoration: const InputDecoration(
+                                    labelText: 'Fotos reparacion'),
+                                maxImages: 3,
+                                imageBuilder: (image) => image.when(
+                                  remote: (url) => Image.network(url),
+                                  mobile: (path) => Image.file(File(path)),
+                                  web: (path) => Image.network(path),
+                                ),
+                                xFileConverter: (file) => kIsWeb
+                                    ? AppImage.web(file.path)
+                                    : AppImage.mobile(file.path),
+                              ),
+                            ],
                           )
                         : const SizedBox.shrink(),
                   ),

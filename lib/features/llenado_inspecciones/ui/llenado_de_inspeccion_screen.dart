@@ -34,7 +34,7 @@ class InspeccionPage extends ConsumerWidget {
             backgroundColor: Theme.of(context).backgroundColor,
             drawer: estadoDeInspeccion == EstadoDeInspeccion.finalizada
                 ? const UserDrawer()
-                : null,
+                : const UserDrawer(), //TODO: mirar si es necesario deshabilitar el drawer mientras se está llenando una inspeccion
             appBar: AppBar(
               title: Text(
                 "Inspección " +

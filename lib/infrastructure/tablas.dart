@@ -387,7 +387,7 @@ class ListOfImagesInColumnConverter extends TypeConverter<ListImages, String> {
     if (value.length() == 0) return "[]";
 
     final str = value.foldLeft<String>("[",
-        (acc, val) => acc + val.when(remote: id, mobile: id, web: id) + ",");
+        (acc, val) => acc + '"${val.when(remote: id, mobile: id, web: id)}",');
     return str.replaceRange(str.length - 1, str.length, ']');
   }
 }

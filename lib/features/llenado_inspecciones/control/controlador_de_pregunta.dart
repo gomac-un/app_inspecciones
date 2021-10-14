@@ -53,8 +53,10 @@ abstract class ControladorDePregunta<T extends Pregunta> {
 
   MetaRespuesta guardarMetaRespuesta() => MetaRespuesta(
         observaciones: observacionControl.value!,
+        fotosBase: fotosBaseControl.value!,
         reparada: reparadoControl.value!,
         observacionesReparacion: observacionReparacionControl.value!,
+        fotosReparacion: fotosReparacionControl.value!,
       );
 
   /// solo se puede usar para leer el calculo, para componentes de la ui que deben
