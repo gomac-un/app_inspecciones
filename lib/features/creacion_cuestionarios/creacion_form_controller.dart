@@ -203,6 +203,10 @@ class CreacionFormController {
             tipoDeInspeccionControl, nuevoTipoDeInspeccionControl)
       ],
     );
+    if (datosIniciales.cuestionario.estado.value ==
+        EstadoDeCuestionario.finalizada) {
+      control.markAsDisabled();
+    }
   }
 
   /// Carga los bloques del cuestionario

@@ -18,6 +18,7 @@ class ReactiveFilterChipSelection<ModelDataType, ViewDataType>
     InputDecoration? decoration,
     required this.posibleItems,
     required this.labelAccesor,
+    bool readOnly = false,
   }) : super(
             key: key,
             formControl: formControl,
@@ -28,10 +29,11 @@ class ReactiveFilterChipSelection<ModelDataType, ViewDataType>
             builder: (field) {
               final selectedItems = field.value;
               if (selectedItems == null) return const SizedBox.shrink();
+              final isDisabled = readOnly || field.control.disabled;
               return InputDecorator(
                 decoration: (decoration ?? const InputDecoration()).copyWith(
                   filled: false,
-                  enabled: field.control.enabled,
+                  enabled: !isDisabled,
                   border: InputBorder.none,
                 ),
                 child: Wrap(
@@ -43,15 +45,17 @@ class ReactiveFilterChipSelection<ModelDataType, ViewDataType>
                           showCheckmark: false,
                           label: Text(labelAccesor(e)),
                           selected: selectedItems.contains(e),
-                          onSelected: (selected) {
-                            if (selected) {
-                              field.didChange([...?field.value, e]);
-                            } else {
-                              field.didChange(
-                                [...?field.value]..remove(e),
-                              );
-                            }
-                          },
+                          onSelected: isDisabled
+                              ? null
+                              : (selected) {
+                                  if (selected) {
+                                    field.didChange([...?field.value, e]);
+                                  } else {
+                                    field.didChange(
+                                      [...?field.value]..remove(e),
+                                    );
+                                  }
+                                },
                         ),
                       )
                       .toList(),

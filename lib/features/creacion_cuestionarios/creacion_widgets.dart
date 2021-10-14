@@ -121,8 +121,7 @@ class CamposGenerales extends ConsumerWidget {
         ),
         const SizedBox(height: 10),
 
-        /// Se puede elegir a que sistema está asociado la pregunta, dependiendo
-        ///  de ese sistema elegido, se cargan los subsistemas
+        /// Dependiendo del sistema elegido, se cargan los subsistemas asociados.
         ReactiveDropdownField<Sistema?>(
           formControl: controller.sistemaControl,
           items: formController.todosLosSistemas

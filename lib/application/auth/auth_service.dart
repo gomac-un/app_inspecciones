@@ -33,12 +33,12 @@ final userProvider =
 
 class LoginInfo extends ChangeNotifier {
   final AuthService authService;
-  late final VoidCallback remover;
+  late final VoidCallback remove;
 
   bool _loggedIn = false;
 
   LoginInfo(this.authService) {
-    remover = authService.addListener((auth) {
+    remove = authService.addListener((auth) {
       auth.map(
         authenticated: (_) => _loggedIn = true,
         unauthenticated: (_) => _loggedIn = false,
@@ -52,7 +52,7 @@ class LoginInfo extends ChangeNotifier {
 
   @override
   void dispose() {
-    remover();
+    remove();
     super.dispose();
   }
 }

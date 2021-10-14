@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -85,10 +84,8 @@ Future<void> _ejecutarAppConRiverpod() async {
         if (!kIsWeb) ...androidOverrides,
       ],
       observers: [RiverpodLogger()],
-      child: RemoveFocusOnTap(
-        child: Consumer(builder: (context, ref, _) {
-          return AppRouter(loginInfo: ref.watch(authListenableProvider));
-        }),
+      child: const RemoveFocusOnTap(
+        child: AppRouter(),
       ),
     ),
   );

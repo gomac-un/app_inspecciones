@@ -655,7 +655,7 @@ class CamposGeneralesPreguntaController {
     [if (!parteDeCuadricula) Validators.required],
   );
 
-  late final control = fb.group({
+  late final FormGroup control = fb.group({
     'titulo': tituloControl,
     'descripcion': descripcionControl,
     'sistema': sistemaControl,
