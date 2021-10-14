@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:meta/meta.dart';
 
@@ -81,7 +82,8 @@ class CuestionarioConContratistaYModelosCompanion {
             e.cuestionarioDeModelo.map((o) => o.toCompanion(true)).toList(),
         contratista = e.contratista;
   const CuestionarioConContratistaYModelosCompanion.vacio()
-      : cuestionario = const CuestionariosCompanion(),
+      : cuestionario = const CuestionariosCompanion(
+            estado: Value(EstadoDeCuestionario.borrador)),
         cuestionarioDeModelo = const [],
         contratista = null;
 
