@@ -58,7 +58,7 @@ class CuestionariosPage extends ConsumerWidget {
                     ),
                   ),
                   tileColor: Theme.of(context).cardColor,
-                  title: Text(cuestionario.tipoDeInspeccion),
+                  title: Text(cuestionario.tipoDeInspeccion ?? ''),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

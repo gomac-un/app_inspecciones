@@ -58,7 +58,7 @@ Future<void> _initialize(Batch batch, Database db) async {
   batch.insertAll(db.cuestionarios, [
     CuestionariosCompanion.insert(
       id: const Value(1),
-      tipoDeInspeccion: "preoperacional",
+      tipoDeInspeccion: const Value("preoperacional"),
       estado: EstadoDeCuestionario.finalizada,
       esLocal: true,
     ),

@@ -42,7 +42,7 @@ void main() {
       cuestionarioId = await _db
           .into(_db.cuestionarios)
           .insert(CuestionariosCompanion.insert(
-            tipoDeInspeccion: "preoperacional",
+            tipoDeInspeccion: const Value("preoperacional"),
             estado: EstadoDeCuestionario.finalizada,
             esLocal: false,
           ));
@@ -128,7 +128,7 @@ void main() {
       final cuestionarioId2 = await _db
           .into(_db.cuestionarios)
           .insert(CuestionariosCompanion.insert(
-            tipoDeInspeccion: "motor",
+            tipoDeInspeccion: const Value("motor"),
             estado: EstadoDeCuestionario.finalizada,
             esLocal: false,
           ));
@@ -157,7 +157,7 @@ void main() {
     setUp(() async {
       cuestionarioId = await _db.into(_db.cuestionarios).insert(
           CuestionariosCompanion.insert(
-              tipoDeInspeccion: "preoperacional",
+              tipoDeInspeccion: const Value("preoperacional"),
               estado: EstadoDeCuestionario.finalizada,
               esLocal: false));
 

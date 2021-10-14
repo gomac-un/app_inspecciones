@@ -71,7 +71,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
                 ),
                 cuest_dom.Cuestionario(
                     id: cuestionario.id,
-                    tipoDeInspeccion: cuestionario.tipoDeInspeccion),
+                    tipoDeInspeccion: cuestionario.tipoDeInspeccion!),
 
                 /// Cantidad de preguntas respondidas
                 avance: await getTotalRespuesta(inspeccion.id),

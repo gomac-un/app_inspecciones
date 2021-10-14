@@ -20,7 +20,6 @@ import 'package:intl/intl.dart';
 part 'carga_inspeccion_dao.drift.dart';
 
 @DriftAccessor(tables: [
-  /// Definición de las tablas necesarias para obtener la información
   Cuestionarios,
   Inspecciones,
   Bloques,

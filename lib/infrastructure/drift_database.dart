@@ -10,8 +10,9 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dar
 import 'package:path/path.dart' as path;
 
 import 'daos/borradores_dao.dart';
+import 'daos/carga_cuestionario_dao.dart';
 import 'daos/carga_inspeccion_dao.dart';
-import 'daos/creacion_dao.dart';
+import 'daos/guardado_cuestionario_dao.dart';
 import 'daos/guardado_inspeccion_dao.dart';
 import 'repositories/fotos_repository.dart';
 
@@ -45,8 +46,9 @@ part 'tablas.dart';
   daos: [
     CargaDeInspeccionDao,
     GuardadoDeInspeccionDao,
-    CreacionDao,
-    BorradoresDao
+    CargaDeCuestionarioDao,
+    GuardadoDeCuestionarioDao,
+    BorradoresDao,
   ],
 )
 class Database extends _$Database {
@@ -87,7 +89,7 @@ class Database extends _$Database {
   }
 
   /// Elimina todos los datos de la BD
-  Future limpiezaBD() async {
+  Future<void> recrearTodasLasTablas() async {
     final m = createMigrator();
     await customStatement('PRAGMA foreign_keys = OFF');
 

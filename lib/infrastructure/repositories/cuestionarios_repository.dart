@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:drift/drift.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
@@ -12,7 +13,6 @@ import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
 import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
-import 'package:drift/drift.dart';
 
 class CuestionariosRepository {
   final CuestionariosRemoteDataSource _api;
@@ -49,7 +49,7 @@ class CuestionariosRepository {
         .insert(ContratistasCompanion.insert(nombre: "gomac"));
     return guardarCuestionario(
         CuestionariosCompanion.insert(
-            tipoDeInspeccion: "preoperacional",
+            tipoDeInspeccion: const Value("preoperacional"),
             estado: EstadoDeCuestionario.finalizada,
             esLocal: true),
         [
@@ -178,44 +178,45 @@ class CuestionariosRepository {
   }
 
   Stream<List<Cuestionario>> getCuestionariosLocales() =>
-      _db.creacionDao.watchCuestionarios();
+      _db.cargaDeCuestionarioDao.watchCuestionarios();
 
   Future eliminarCuestionario(Cuestionario cuestionario) =>
-      _db.creacionDao.eliminarCuestionario(cuestionario);
+      _db.cargaDeCuestionarioDao.eliminarCuestionario(cuestionario);
 
   Future<CuestionarioConContratistaYModelos> getModelosYContratista(
           int cuestionarioId) =>
-      _db.creacionDao.getModelosYContratista(cuestionarioId);
+      _db.cargaDeCuestionarioDao.getModelosYContratista(cuestionarioId);
 
   Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId) =>
-      _db.creacionDao.cargarCuestionario(cuestionarioId);
+      _db.cargaDeCuestionarioDao.cargarCuestionario(cuestionarioId);
 
   Future<List<Cuestionario>> getCuestionarios(
           String tipoDeInspeccion, List<String> modelos) =>
-      _db.creacionDao.getCuestionarios(tipoDeInspeccion, modelos);
+      _db.cargaDeCuestionarioDao.getCuestionarios(tipoDeInspeccion, modelos);
 
   Future<List<String>> getTiposDeInspecciones() =>
-      _db.creacionDao.getTiposDeInspecciones();
+      _db.cargaDeCuestionarioDao.getTiposDeInspecciones();
 
-  Future<List<String>> getModelos() => _db.creacionDao.getModelos();
+  Future<List<String>> getModelos() => _db.cargaDeCuestionarioDao.getModelos();
 
   Future<List<Contratista>> getContratistas() =>
-      _db.creacionDao.getContratistas();
+      _db.cargaDeCuestionarioDao.getContratistas();
 
-  Future<List<Sistema>> getSistemas() => _db.creacionDao.getSistemas();
+  Future<List<Sistema>> getSistemas() =>
+      _db.cargaDeCuestionarioDao.getSistemas();
   Future<Sistema> getSistemaPorId(int sistemaId) =>
-      _db.creacionDao.getSistemaPorId(sistemaId);
+      _db.cargaDeCuestionarioDao.getSistemaPorId(sistemaId);
   Future<SubSistema> getSubSistemaPorId(int subSistemaId) =>
-      _db.creacionDao.getSubSistemaPorId(subSistemaId);
+      _db.cargaDeCuestionarioDao.getSubSistemaPorId(subSistemaId);
   Future<List<SubSistema>> getSubSistemas(Sistema sistema) =>
-      _db.creacionDao.getSubSistemas(sistema);
+      _db.cargaDeCuestionarioDao.getSubSistemas(sistema);
 
   Future<void> guardarCuestionario(
     CuestionariosCompanion cuestionario,
     List<CuestionarioDeModelosCompanion> cuestionariosDeModelos,
     List<Object> bloquesForm,
   ) =>
-      _db.creacionDao.guardarCuestionario(
+      _db.guardadoDeCuestionarioDao.guardarCuestionario(
         cuestionario,
         cuestionariosDeModelos,
         bloquesForm,

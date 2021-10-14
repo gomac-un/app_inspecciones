@@ -53,7 +53,9 @@ class InspeccionesRepository {
         .getCuestionariosDisponiblesParaActivo(activoId);
     return Right(cuestionarios
         .map((cuest) => Cuestionario(
-            id: cuest.id, tipoDeInspeccion: cuest.tipoDeInspeccion))
+              id: cuest.id,
+              tipoDeInspeccion: cuest.tipoDeInspeccion!,
+            ))
         .toList());
   }
 
@@ -67,13 +69,13 @@ class InspeccionesRepository {
     final inspeccionCompleta = await _db.cargaDeInspeccionDao.cargarInspeccion(
         cuestionarioId: id.cuestionarioId, activoId: int.parse(id.activo));
     final cuestionario =
-        await _db.creacionDao.getCuestionario(id.cuestionarioId);
+        await _db.cargaDeCuestionarioDao.getCuestionario(id.cuestionarioId);
     final inspeccion = inspeccionCompleta.value1;
     final activo = await _db.borradoresDao.getActivoPorId(inspeccion.activoId);
     final cuestionarioInspeccionado = CuestionarioInspeccionado(
         Cuestionario(
             id: cuestionario.id,
-            tipoDeInspeccion: cuestionario.tipoDeInspeccion),
+            tipoDeInspeccion: cuestionario.tipoDeInspeccion!),
         Inspeccion(
             id: inspeccion.id,
             estado: EstadoDeInspeccion.values.firstWhere(

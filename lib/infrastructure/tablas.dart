@@ -49,7 +49,7 @@ class SubSistemas extends Table {
 class Cuestionarios extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  TextColumn get tipoDeInspeccion => text()();
+  TextColumn get tipoDeInspeccion => text().nullable()();
 
   IntColumn get estado => intEnum<EstadoDeCuestionario>()();
 
@@ -68,6 +68,7 @@ class CuestionarioDeModelos extends Table {
   ///El modelo especial "Todos" aplica para todos los vehiculos.
   TextColumn get modelo => text()();
 
+  /// En la UI por defecto el valor es 0
   IntColumn get periodicidad => integer()();
 
   @JsonKey('cuestionario')
@@ -107,7 +108,7 @@ class Bloques extends Table {
 class Titulos extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  TextColumn get titulo => text().withLength(min: 1, max: 100)();
+  TextColumn get titulo => text().withLength(min: 0, max: 100)();
 
   TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
 
@@ -148,7 +149,7 @@ class CuadriculasDePreguntas extends Table {
 class Preguntas extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  TextColumn get titulo => text().withLength(min: 1, max: 100)();
+  TextColumn get titulo => text().withLength(min: 0, max: 100)();
 
   TextColumn get descripcion => text().withLength(min: 0, max: 1500)();
 

@@ -11,7 +11,7 @@ import 'creacion_form_controller.dart';
 ///! Sera que el validator va en el modelosControl??
 AsyncValidatorFunction cuestionariosExistentes(
   int? cuestionarioId,
-  FormControl<String> tipoDeInspeccionControl,
+  FormControl<String?> tipoDeInspeccionControl,
   FormControl<List<String>> modelosControl,
   CuestionariosRepository repository,
 ) =>
@@ -46,8 +46,8 @@ AsyncValidatorFunction cuestionariosExistentes(
 /// Marca como requerido el textField de 'nuevoTipoDeInspeccion',
 /// en caso de que se haya seleccionado 'Otra' como tipo de inspeccion.
 ValidatorFunction nuevoTipoDeInspeccionValidator(
-  FormControl<String> tipoDeInspeccionControl,
-  FormControl<String> nuevoTipoDeInspeccionControl,
+  FormControl<String?> tipoDeInspeccionControl,
+  FormControl<String?> nuevoTipoDeInspeccionControl,
 ) =>
     (AbstractControl<dynamic> control) {
       final ti = tipoDeInspeccionControl.value;

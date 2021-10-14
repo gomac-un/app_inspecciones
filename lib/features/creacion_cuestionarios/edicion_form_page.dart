@@ -59,7 +59,7 @@ class EdicionForm extends ConsumerWidget {
                 titulo: 'Tipo de inspección',
                 child: Column(
                   children: [
-                    ReactiveDropdownField<String>(
+                    ReactiveDropdownField<String?>(
                       formControl: controller.tipoDeInspeccionControl,
                       validationMessages: (control) => {
                         ValidationMessage.required: 'Este valor es requerido'
@@ -82,7 +82,7 @@ class EdicionForm extends ConsumerWidget {
                     const SizedBox(height: 10),
 
                     /// En caso de que se seleccione 'Otra', se activa textfield para que escriba el tipo de inspeccion
-                    ReactiveValueListenableBuilder<String>(
+                    ReactiveValueListenableBuilder<String?>(
                         formControl: controller.tipoDeInspeccionControl,
                         builder: (context, value, child) {
                           if (value.value ==
@@ -183,7 +183,6 @@ class EdicionForm extends ConsumerWidget {
   }
 }
 
-/// TODO: reestructurar el flujo de estos botones
 /// Row con botón de guardar borrador y finalizar cuestionario
 class BotonesGuardado extends ConsumerWidget {
   const BotonesGuardado({Key? key}) : super(key: key);
@@ -215,15 +214,6 @@ class BotonesGuardado extends ConsumerWidget {
 
   Future<void> _guardar(
       BuildContext context, CreacionFormController controller) async {
-    /// Que haya seleccionado modelos y tipo de inspeccion
-    if (controller.modelosControl.value!.isEmpty ||
-        controller.tipoDeInspeccionControl.value!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              "Seleccione el tipo de inspección y elija por lo menos un modelo antes de guardar el cuestionario")));
-      return;
-    }
-
     await controller.guardarCuestionarioEnLocal(EstadoDeCuestionario.borrador);
     //TODO: Mostrar tambien cuando hay un error.
 

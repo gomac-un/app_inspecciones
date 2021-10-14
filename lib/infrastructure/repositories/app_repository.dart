@@ -24,7 +24,7 @@ class AppRepository {
 
   AppRepository(this._read, this._localPreferences);
 
-  Future<void> limpiarDatosLocales() => _db.limpiezaBD();
+  Future<void> limpiarDatosLocales() => _db.recrearTodasLasTablas();
 
   /// genera el código unico que identifica cada instalación de la app
   /// en caso de que no exista uno ya

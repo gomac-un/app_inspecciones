@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/core/error/errors.dart';
@@ -7,7 +8,6 @@ import 'package:inspecciones/infrastructure/repositories/cuestionarios_repositor
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/utils/iterable_x.dart';
-import 'package:drift/drift.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_controls.dart';
@@ -45,12 +45,12 @@ class CreacionFormController {
   final CuestionarioConContratistaYModelosCompanion datosIniciales;
 
   /// inicialización de los campos del cuestionario usando los valores guardados
-  /// en caso de que sea una edicion y si es uno nuevo se definen valores por defecto
-  late final tipoDeInspeccionControl = fb.control<String>(
-    datosIniciales.cuestionario.tipoDeInspeccion.valueOrDefault(''),
+  /// en caso de que sea una edicion. si es uno nuevo se definen valores por defecto
+  late final tipoDeInspeccionControl = fb.control<String?>(
+    datosIniciales.cuestionario.tipoDeInspeccion.value,
     [Validators.required],
   );
-  late final nuevoTipoDeInspeccionControl = fb.control<String>('');
+  late final nuevoTipoDeInspeccionControl = fb.control<String?>(null);
   late final contratistaControl = fb.control<Contratista?>(
     datosIniciales.contratista,
     [Validators.required],
@@ -313,20 +313,15 @@ class CreacionFormController {
     control.dispose();
   }
 
-  /// Cuando se presiona guardar o finalizar cuestionario.
-  /// Se realizan muchas excepciones al null safety pero estas deben ser evitadas
-  /// con los validators, si no se hace esta función tirará errores en tiempo
-  /// de ejecución
+  /// Esta función guarda el cuestionario como esté, sin realizar validaciones,
+  /// pero si es una finalización, si se deben hacer todas las validaciones previas.
   Future<void> guardarCuestionarioEnLocal(EstadoDeCuestionario estado) async {
-    control.markAllAsTouched();
+    final String? tipoDeInspeccion = tipoDeInspeccionControl.value != null &&
+            tipoDeInspeccionControl.value == otroTipoDeInspeccion
+        ? nuevoTipoDeInspeccionControl.value
+        : tipoDeInspeccionControl.value;
 
-    final int contratistaId =
-        contratistaControl.value!.id; // Validado en el control
-
-    final String tipoDeInspeccion =
-        tipoDeInspeccionControl.value! == otroTipoDeInspeccion
-            ? nuevoTipoDeInspeccionControl.value!
-            : tipoDeInspeccionControl.value!;
+    final int? contratistaId = contratistaControl.value?.id;
 
     final CuestionariosCompanion cuestionario =
         datosIniciales.cuestionario.copyWith(
