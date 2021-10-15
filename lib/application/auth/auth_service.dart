@@ -10,18 +10,16 @@ import 'package:inspecciones/features/login/credenciales.dart';
 import 'package:inspecciones/infrastructure/repositories/app_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
-import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
+import 'package:inspecciones/utils/future_either_x.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'auth_service.freezed.dart';
 part 'auth_state.dart';
 
 /// Maneja el estado de autenticación en la app
-final authProvider =
-    StateNotifierProvider<AuthService, AuthState>((ref) => AuthService(
-          ref.watch(userRepositoryProvider),
-          ref.watch(appRepositoryProvider),
-        ));
+final StateNotifierProvider<AuthService, AuthState> authProvider =
+    StateNotifierProvider<AuthService, AuthState>(
+        (ref) => AuthService(ref.read));
 
 final authListenableProvider = ChangeNotifierProvider(
     (ref) => LoginInfo(ref.watch(authProvider.notifier)));
@@ -58,34 +56,37 @@ class LoginInfo extends ChangeNotifier {
 }
 
 class AuthService extends StateNotifier<AuthState> {
-  final UserRepository _userRepository;
-  final AppRepository _appRepository;
+  final Reader _read;
+  UserRepository get _userRepository => _read(userRepositoryProvider);
+  AppRepository get _appRepository => _read(appRepositoryProvider);
 
-  AuthService(this._userRepository, this._appRepository)
-      : super(const AuthState.loading()) {
-    init();
-  }
-
-  Future init() async {
+  AuthService(this._read) : super(const AuthState.loading()) {
     //TODO: eliminar duplicacion de codigo con login
-    // TODO: registrar de alguna manera el token en la api
     final usuario = _userRepository.getLocalUser();
 
     state = usuario.fold(
       () => const AuthState.unauthenticated(),
-      (usuario) => AuthState.authenticated(usuario: usuario),
+      (usuario) {
+        //_appRepository.registrarToken();
+        return AuthState.authenticated(usuario: usuario);
+      },
     );
   }
 
-  Future login(
+  Future<void> login(
     Credenciales credenciales, {
     required bool offline,
     void Function(AuthFailure failure)? onFailure,
     VoidCallback? onSuccess,
   }) async {
-    /// TODO: mover la logica de authenticateUser de el userRepository aqui o a un usecase
-    final autentication = await _userRepository.authenticateUser(
-        credenciales: credenciales, offline: offline);
+    final autentication = await _userRepository
+        // automaticamente guarda y registra el token
+        .authenticateUser(credenciales: credenciales, offline: offline)
+        // registro del AppId
+        .flatMap((usuario) => _appRepository
+            .getOrRegisterAppId()
+            .leftMap(apiFailureToAuthFailure)
+            .flatMap((_) async => Right(usuario)));
 
     autentication.fold(
       (failure) => onFailure?.call(failure),
@@ -104,7 +105,7 @@ class AuthService extends StateNotifier<AuthState> {
     );
   }
 
-  Future logout() async {
+  Future<void> logout() async {
     /// Se borra la info del usuario, lo que hace que deba iniciar sesión la próxima vez
     await _userRepository.deleteLocalUser();
 
@@ -113,6 +114,7 @@ class AuthService extends StateNotifier<AuthState> {
           scope.user = scope.user?.copyWith(extras: {'logged_out': true}),
     );
     state = const AuthState.unauthenticated();
+    await _appRepository.guardarToken(null);
   }
 
   /// Informacion usada por la vista para evitar login sin haber obtenido el AppId

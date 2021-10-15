@@ -3,25 +3,28 @@ import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/flutter_downloader/errors.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
+import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
-import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
 import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
+import 'package:inspecciones/utils/future_either_x.dart';
 
 class CuestionariosRepository {
-  final CuestionariosRemoteDataSource _api;
-  final FotosRemoteDataSource _apiFotos;
-  final Database _db;
-  final FotosRepository _fotosRepository;
+  final Reader _read;
+  CuestionariosRemoteDataSource get _api =>
+      _read(cuestionariosRemoteDataSourceProvider);
+  FotosRemoteDataSource get _apiFotos => _read(fotosRemoteDataSourceProvider);
+  Database get _db => _read(driftDatabaseProvider);
+  FotosRepository get _fotosRepository => _read(fotosRepositoryProvider);
 
-  CuestionariosRepository(
-      this._api, this._apiFotos, this._db, this._fotosRepository);
+  CuestionariosRepository(this._read);
 
   Future<Either<ApiFailure, Unit>> subirCuestionariosPendientes() async {
     //TODO: subir cada uno, o todos a la vez para mas eficiencia

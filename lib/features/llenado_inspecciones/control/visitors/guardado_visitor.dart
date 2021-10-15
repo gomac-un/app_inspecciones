@@ -19,9 +19,9 @@ class GuardadoVisitor implements ControladorDePreguntaVisitor<Pregunta> {
   /// hacer este proceso inmutable.
   GuardadoVisitor(
     this._repository,
-    this._controladores, {
-    required Inspeccion inspeccion,
-  }) : _inspeccion = inspeccion;
+    this._controladores, 
+    this._inspeccion,
+  );
 
   Future<void> guardarInspeccion() {
     final preguntasRespondidas = _controladores.map((c) => c.accept(this));

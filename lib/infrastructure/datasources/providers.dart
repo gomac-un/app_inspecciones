@@ -1,5 +1,4 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:http/http.dart' as http;
 import 'package:inspecciones/infrastructure/core/directorio_de_datos.dart';
 import 'package:inspecciones/infrastructure/datasources/auth_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
@@ -17,21 +16,15 @@ final apiUriProvider = Provider<Uri>(
 final directorioDeDatosProvider = Provider<DirectorioDeDatos>(
     (ref) => throw Exception("no se ha inicializado el directorio de datos"));
 
+/*
 /// Parte de la autenticación de Django para acceder a los servicios de la Api
 /// https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
 /// Es [null] si el usuario no se ha autenticado
-final tokenProvider = StateProvider<String?>((ref) => null);
+final tokenProvider =
+    Provider<String?>((ref) => ref.read(appRepositoryProvider).getToken());*/
 
-//TODO: implementar el dispose
-final _httpClientProvider = Provider<http.Client>((ref) {
-  final token = ref.watch(tokenProvider).state;
-  return token == null
-      ? http.Client()
-      : DjangoJsonApiAuthenticatedClient(token);
-});
-
-final _djangoJsonApiProvider = Provider((ref) =>
-    DjangoJsonApi(ref.watch(_httpClientProvider), ref.watch(apiUriProvider)));
+final _djangoJsonApiProvider =
+    Provider((ref) => DjangoJsonApi(ref.read, ref.watch(apiUriProvider)));
 
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) =>
     ref.watch(

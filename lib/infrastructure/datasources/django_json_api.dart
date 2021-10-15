@@ -5,12 +5,14 @@ import 'dart:io';
 import 'package:cross_file/cross_file.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter_archive/flutter_archive.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/infrastructure/core/api_exceptions.dart';
 import 'package:inspecciones/infrastructure/core/typedefs.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:path/path.dart' as path;
 
 import 'auth_remote_datasource.dart';
@@ -18,23 +20,28 @@ import 'cuestionarios_remote_datasource.dart';
 import 'flutter_downloader/flutter_downloader_as_future.dart';
 import 'inspecciones_remote_datasource.dart';
 
+//TODO: implementar el dispose
+final _httpClientProvider =
+    Provider<http.Client>((ref) => DjangoJsonApiClient(ref.read));
+
 class DjangoJsonApi
     implements
         AuthRemoteDataSource,
         CuestionariosRemoteDataSource,
         FotosRemoteDataSource,
         InspeccionesRemoteDataSource {
-  final http.Client _client;
+  final Reader _read;
+  http.Client get _client => _read(_httpClientProvider);
   final Uri _apiUri;
 
   /// Repositorio que se comunica con la api de inspecciones en la uri [_apiUri].
   ///  La dependencia [_client] es la encargada de autenticar las peticiones,
-  /// ver [DjangoJsonApiAuthenticatedClient]
+  /// ver [DjangoJsonApiClient]
   /// Las excepciones lanzadas por todos los métodos de esta clase deberían ser
   /// unicamente los definidos en [core/errors.dart], aunque podrían pasar algunos
   /// otros inesperadamente.
   /// Es importante llamar [dispose] para cerrar las conexiones al final.
-  DjangoJsonApi(this._client, this._apiUri);
+  DjangoJsonApi(this._read, this._apiUri);
 
   void dispose() => _client.close();
 
@@ -218,18 +225,81 @@ class DjangoJsonApi
 
 /// cliente http que agrega el [_token] a todas las peticiones enviadas
 /// funciona con la TokenAuthentication de django rest framework
-class DjangoJsonApiAuthenticatedClient extends http.BaseClient {
-  final String _token;
+class DjangoJsonApiClient extends http.BaseClient {
+  final Reader _read;
+  String? get _token => _read(appRepositoryProvider).getToken();
   final http.Client _inner;
 
-  DjangoJsonApiAuthenticatedClient(this._token, [http.Client? inner])
+  DjangoJsonApiClient(this._read, [http.Client? inner])
       : _inner = inner ?? http.Client();
+
+  static const sendJsonHeader = {
+    HttpHeaders.contentTypeHeader: "application/json; charset=utf-8"
+  };
+  // se deben sobreescribir los metodos que retornan
+  @override
+  Future<http.Response> post(Uri url,
+          {Map<String, String>? headers, Object? body, Encoding? encoding}) =>
+      _sendUnstreamed('POST', url, {...sendJsonHeader}..addAll(headers ?? {}),
+          body, encoding);
+
+  @override
+  Future<http.Response> put(Uri url,
+          {Map<String, String>? headers, Object? body, Encoding? encoding}) =>
+      _sendUnstreamed('PUT', url, {...sendJsonHeader}..addAll(headers ?? {}),
+          body, encoding);
+
+  @override
+  Future<http.Response> patch(Uri url,
+          {Map<String, String>? headers, Object? body, Encoding? encoding}) =>
+      _sendUnstreamed('PATCH', url, {...sendJsonHeader}..addAll(headers ?? {}),
+          body, encoding);
+
+  @override
+  Future<http.Response> delete(Uri url,
+          {Map<String, String>? headers, Object? body, Encoding? encoding}) =>
+      _sendUnstreamed('DELETE', url, {...sendJsonHeader}..addAll(headers ?? {}),
+          body, encoding);
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
-    request.headers[HttpHeaders.authorizationHeader] = "Token $_token";
-    request.headers[HttpHeaders.acceptHeader] = "application/json";
+    if (_token != null) {
+      request.headers[HttpHeaders.authorizationHeader] = "Token $_token";
+    }
+    request.headers[HttpHeaders.acceptHeader] =
+        "application/json; charset=utf-8";
+
     return _inner.send(request);
+  }
+
+  /// Sends a non-streaming [Request] and returns a non-streaming [Response].
+  Future<http.Response> _sendUnstreamed(
+      String method, Uri url, Map<String, String>? headers,
+      [body, Encoding? encoding]) async {
+    var request = http.Request(method, url);
+
+    if (headers != null) request.headers.addAll(headers);
+    if (encoding != null) request.encoding = encoding;
+    if (body != null) {
+      if (request.headers.containsKey(HttpHeaders.contentTypeHeader) &&
+          request.headers[HttpHeaders.contentTypeHeader] ==
+              "application/json; charset=utf-8") {
+        body = json.encode(body as JsonObject);
+      }
+      if (body is String) {
+        request.body = body;
+      } else {
+        if (body is List) {
+          request.bodyBytes = body.cast<int>();
+        } else if (body is Map) {
+          request.bodyFields = body.cast<String, String>();
+        } else {
+          throw ArgumentError('Invalid request body "$body".');
+        }
+      }
+    }
+
+    return http.Response.fromStream(await send(request));
   }
 }
 

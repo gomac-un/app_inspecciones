@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/domain/inspecciones/inspecciones_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/cuestionario.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/infrastructure/inspecciones_repository.dart';
@@ -224,7 +225,7 @@ _mostrarError(
               'No se pudo encontrar la inspección, asegúrese de escribir el código correctamente: $m',
           orElse: () => 'error: $apiFailure',
         )
-      : f!.msg;
+      : f!.toString();
   showDialog(
     context: context,
     builder: (context) => AlertDialog(

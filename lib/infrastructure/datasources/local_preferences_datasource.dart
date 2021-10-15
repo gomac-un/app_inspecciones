@@ -17,12 +17,15 @@ abstract class LocalPreferencesDataSource {
   DateTime? getUltimaSincronizacion();
   Future<bool> saveAppId(int appId);
   int? getAppId();
+  Future<bool> saveToken(String? token);
+  String? getToken();
 }
 
 class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
-  static const userKey = 'user';
-  static const appIdKey = 'appId';
-  static const ultimaActualizacionKey = 'ultimaActualizacion';
+  static const _userKey = 'user';
+  static const _appIdKey = 'appId';
+  static const _ultimaActualizacionKey = 'ultimaActualizacion';
+  static const _tokenKey = 'token';
   //TODO: si hay que guardar mas preferencias considerar guardarlas todas en un solo json
   final SharedPreferences _preferences;
 
@@ -31,16 +34,16 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
   /// Guarda usuario para que no se deba iniciar sesión cada vez que se abra la app
   @override
   Future<bool> saveUser(Usuario user) async =>
-      _preferences.setString(userKey, json.encode(user.toJson()));
+      _preferences.setString(_userKey, json.encode(user.toJson()));
 
   /// Borra el usuario cuando se presiona cerrar sesión, la proxima vez que se abra la app deberá inciar sesión de nuevo
   @override
-  Future<bool> deleteUser() async => _preferences.remove(userKey);
+  Future<bool> deleteUser() async => _preferences.remove(_userKey);
 
   /// Devuelve el usuario guardado localmente
   @override
   Usuario? getUser() {
-    final mayBeUser = _preferences.getString(userKey);
+    final mayBeUser = _preferences.getString(_userKey);
     if (mayBeUser == null) return null;
     return Usuario.fromJson(json.decode(mayBeUser) as Map<String, dynamic>);
   }
@@ -51,24 +54,31 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
   @override
   Future<bool> saveUltimaSincronizacion(DateTime momento) {
     final date = DateFormat(dateformat).format(momento);
-    return _preferences.setString(ultimaActualizacionKey, date);
+    return _preferences.setString(_ultimaActualizacionKey, date);
   }
 
   /// Devuelve el momento de la ultima sincronización con Gomac
   @override
   DateTime? getUltimaSincronizacion() {
     final rawUltimaActualizacion =
-        _preferences.getString(ultimaActualizacionKey);
+        _preferences.getString(_ultimaActualizacionKey);
     if (rawUltimaActualizacion == null) return null;
     return DateFormat(dateformat).parse(rawUltimaActualizacion);
   }
 
   /// Guarda localmente el id de la instalación de la app en el dispositivo.
   @override
-  Future<bool> saveAppId(int appId) async =>
-      _preferences.setInt(appIdKey, appId);
+  Future<bool> saveAppId(int appId) => _preferences.setInt(_appIdKey, appId);
 
   /// Devuelve el id de la instalación de la app en el dispositivo
   @override
-  int? getAppId() => _preferences.getInt(appIdKey);
+  int? getAppId() => _preferences.getInt(_appIdKey);
+
+  @override
+  String? getToken() => _preferences.getString(_tokenKey);
+
+  @override
+  Future<bool> saveToken(String? token) => token != null
+      ? _preferences.setString(_tokenKey, token)
+      : _preferences.remove(_tokenKey);
 }

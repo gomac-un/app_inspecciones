@@ -87,7 +87,7 @@ final goRouterProvider = Provider((ref) => GoRouter(
 
       // redirect to the login page if the user is not logged in
       redirect: (state) {
-        final loggedIn = ref.watch(authListenableProvider).loggedIn;
+        final loggedIn = ref.read(authListenableProvider).loggedIn;
 
         final goingToLogin = state.subloc == '/login';
 
@@ -100,7 +100,7 @@ final goRouterProvider = Provider((ref) => GoRouter(
         // no need to redirect at all
         return null;
       },
-      refreshListenable: ref.watch(authListenableProvider),
+      refreshListenable: ref.watch(authListenableProvider.notifier),
       observers: [
         ClearFocusOnPop(),
         SentryNavigatorObserver(),

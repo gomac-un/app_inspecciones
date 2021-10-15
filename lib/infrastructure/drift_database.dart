@@ -417,30 +417,6 @@ class Database extends _$Database {
     await customStatement('PRAGMA foreign_keys = ON');
   }
 
-  /// Se usa en [BorradoresDao.borradores()]
-  ///
-  /// Al cargar todas las inspecciones, se consulta cual es el cuestionario asociado a [inspeccion]
-  Future<Cuestionario> getCuestionario(Inspeccion inspeccion) {
-    final query = select(cuestionarios)
-      ..where((c) => c.id.equals(inspeccion.cuestionarioId));
-    return query.getSingle();
-  }
-
-  /// Devuelve la cantidad total de preguntas que tiene el cuestionario con id=[id]
-  Future<int> getTotalPreguntas(int id) async {
-    final bloq = await (select(bloques)
-          ..where((b) => b.cuestionarioId.equals(id)))
-        .get();
-    final bloquesId = bloq.map((e) => e.id).toList();
-
-    /// Va a contar las preguntas cuyos bloques estan en [bloquesId] que son los bloques del cuestionario
-    final count = countAll(filter: preguntas.bloqueId.isIn(bloquesId));
-    final res = (selectOnly(preguntas)..addColumns([count]))
-        .map((row) => row.read(count))
-        .getSingle();
-    return res;
-  }
-
   /// Esta funcion deberá exportar TODAS las inspecciones llenadas de manera
   /// local al servidor
   Future exportarInspeccion() async {
@@ -528,6 +504,10 @@ class CustomSerializer extends ValueSerializer {
       return estadoDeCuestionarioConverter.mapToSql(value);
     }
 
+    if (value is ListImages) {
+      return value.map((a) => a.when(remote: id, mobile: id, web: id)).toList();
+    }
+
     if (value is IList) {
       return value.toList();
     }
@@ -550,5 +530,5 @@ extension DefaultGetter<T> on Value<T> {
 AppImage _soloBasename(AppImage f) => f.map(
       remote: id,
       mobile: (e) => e.copyWith(path: path.basename(e.path)),
-      web: throw UnimplementedError("subida de imagenes web"),
+      web: (_) => throw UnimplementedError("subida de imagenes web"),
     );

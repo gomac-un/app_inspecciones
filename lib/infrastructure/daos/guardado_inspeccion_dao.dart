@@ -31,19 +31,15 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
       await (update(inspecciones)..where((i) => i.id.equals(inspeccion.id)))
           .write(
         InspeccionesCompanion(
-          momentoFinalizacion:
-              inspeccion.estado == insp_dom.EstadoDeInspeccion.finalizada
-                  ? Value(DateTime.now())
-                  : const Value.absent(),
           estado: Value(inspeccion.estado),
           criticidadTotal: Value(inspeccion.criticidadTotal),
           criticidadReparacion: Value(inspeccion.criticidadReparacion),
-          momentoBorradorGuardado:
-              /*  estado == insp_dom.EstadoDeInspeccion.borrador
-                  ? const Value.absent()
-                  :  */
-              //Todo: ¿El momento guardado se actualiza siempre?
-              Value(DateTime.now()),
+          momentoBorradorGuardado: inspeccion.momentoBorradorGuardado != null
+              ? Value(inspeccion.momentoBorradorGuardado)
+              : const Value.absent(),
+          momentoFinalizacion: inspeccion.momentoEnvio != null
+              ? Value(inspeccion.momentoEnvio)
+              : const Value.absent(),
         ),
       );
       final inspeccionId = inspeccion.id;

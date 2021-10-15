@@ -3,6 +3,8 @@ import 'dart:developer' as developer;
 
 import 'package:dartz/dartz.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/domain/inspecciones/inspecciones_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart' as drift;
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
@@ -19,13 +21,6 @@ final inspeccionesRepositoryProvider = Provider(
   ),
 );
 
-//TODO: pasar a freezed
-class InspeccionesFailure {
-  final String msg;
-
-  InspeccionesFailure(this.msg);
-}
-
 // FEF: Future Either Fail
 typedef FEF<C> = Future<Either<InspeccionesFailure, C>>;
 
@@ -35,10 +30,14 @@ class InspeccionesRepository {
 
   InspeccionesRepository(this._db, this._fotosRepository);
 
-  Stream<List<Borrador>> getBorradores() => _db.borradoresDao.borradores(false);
+  Stream<List<Borrador>> getBorradores() =>
+      _db.borradoresDao.borradores(enviadas: false);
 
-  Future eliminarRespuestas(Borrador borrador) =>
-      _db.borradoresDao.eliminarRespuestas(borrador.inspeccion.id);
+  FEF<Unit> eliminarRespuestas(Borrador borrador) => _db.borradoresDao
+      .eliminarRespuestas(borrador.inspeccion.id)
+      .then((_) => const Right(unit),
+          onError: (e, s) =>
+              Left(InspeccionesFailure.unexpectedError(e.toString())));
 
   //FEF<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
   Future<Either<InspeccionesFailure, List<Cuestionario>>>
@@ -47,7 +46,7 @@ class InspeccionesRepository {
     try {
       activoId = int.parse(activo);
     } on FormatException {
-      return Left(InspeccionesFailure('Activo invalido'));
+      return const Left(InspeccionesFailure.activoInvalido());
     }
     final cuestionarios = await _db.cargaDeInspeccionDao
         .getCuestionariosDisponiblesParaActivo(activoId);
@@ -59,8 +58,11 @@ class InspeccionesRepository {
         .toList());
   }
 
-  Future eliminarBorrador(Borrador borrador) =>
-      _db.borradoresDao.eliminarBorrador(borrador);
+  FEF<Unit> eliminarBorrador(Borrador borrador) => _db.borradoresDao
+      .eliminarBorrador(borrador)
+      .then((_) => const Right(unit),
+          onError: (e, s) =>
+              Left(InspeccionesFailure.unexpectedError(e.toString())));
 
   FEF<CuestionarioInspeccionado> cargarInspeccionLocal(
       IdentificadorDeInspeccion id) async {
@@ -71,7 +73,7 @@ class InspeccionesRepository {
     final cuestionario =
         await _db.cargaDeCuestionarioDao.getCuestionario(id.cuestionarioId);
     final inspeccion = inspeccionCompleta.value1;
-    final activo = await _db.borradoresDao.getActivoPorId(inspeccion.activoId);
+    final activo = await _db.borradoresDao.getActivo(inspeccion.activoId);
     final cuestionarioInspeccionado = CuestionarioInspeccionado(
         Cuestionario(
             id: cuestionario.id,
@@ -103,3 +105,17 @@ class InspeccionesRepository {
         _fotosRepository,
       );
 }
+
+InspeccionesFailure apiFailureToInspeccionesFailure(ApiFailure apiFailure) =>
+    apiFailure.map(
+      errorDeConexion: (_) =>
+          const InspeccionesFailure.noHayConexionAlServidor(),
+      errorInesperadoDelServidor: (e) => InspeccionesFailure.unexpectedError(e),
+      errorDecodificandoLaRespuesta: (e) =>
+          InspeccionesFailure.unexpectedError(e),
+      errorDeCredenciales: (e) => InspeccionesFailure.unexpectedError(e),
+      errorDePermisos: (e) => InspeccionesFailure.noTienePermisos(e),
+      errorDeComunicacionConLaApi: (e) =>
+          InspeccionesFailure.unexpectedError(e),
+      errorDeProgramacion: (e) => InspeccionesFailure.unexpectedError(e),
+    );

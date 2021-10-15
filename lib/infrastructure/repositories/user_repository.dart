@@ -10,25 +10,25 @@ import 'package:inspecciones/infrastructure/core/network_info.dart';
 import 'package:inspecciones/infrastructure/datasources/auth_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
-import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
+import 'package:inspecciones/infrastructure/network_info/shared.dart';
 import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
+import 'package:inspecciones/utils/future_either_x.dart';
 
 import 'app_repository.dart';
+import 'providers.dart';
 
 class UserRepository {
-  AuthRemoteDataSource get _api => _read(authRemoteDataSourceProvider);
-  final LocalPreferencesDataSource _localPreferences;
-  final NetworkInfo _networkInfo;
-  final AppRepository _appRepository;
   final Reader _read;
+  AuthRemoteDataSource get _api => _read(authRemoteDataSourceProvider);
+  LocalPreferencesDataSource get _localPreferences =>
+      _read(localPreferencesDataSourceProvider);
+  NetworkInfo get _networkInfo => _read(networkInfoProvider);
+  AppRepository get _appRepository => _read(appRepositoryProvider);
 
-  UserRepository(
-    this._read,
-    this._localPreferences,
-    this._networkInfo,
-    this._appRepository,
-  );
+  UserRepository(this._read);
 
+  /// si [offline] no es false, consulta en la api si el usuario y la contraseña
+  /// coinciden, obtiene y registra el token de la api.
   Future<Either<AuthFailure, Usuario>> authenticateUser(
       {required Credenciales credenciales, bool offline = false}) async {
     if (offline) {
@@ -42,30 +42,35 @@ class UserRepository {
       return const Left(AuthFailure.noHayInternet());
     }
 
-    return getUsuario(credenciales).leftMap(apiFailureToAuthFailure).flatMap(
-        (usuario) => _appRepository
-            .getOrRegisterAppId()
-            .leftMap(apiFailureToAuthFailure)
-            .then((r) => r.fold((l) => Left(l), (_) => Right(usuario))));
+    return _validarUsuario(credenciales)
+        .leftMap(apiFailureToAuthFailure)
+        // se registra el token aqui porque inmediatamente despues hay que realizar
+        // [_getPermisos] que necesita ese token
+        .nestedEvaluatedMap((token) => _appRepository.guardarToken(token))
+        .flatMap((_) => _getPermisos(credenciales.username)
+            .leftMap(apiFailureToAuthFailure))
+        .nestedMap((esAdmin) => _buildUsuarioOnline(credenciales, esAdmin));
   }
 
-  /// verifica que el usuario y la contraseña coincidan y además recibe y guarda
-  /// el token de autenticacion de la api
-  Future<Either<ApiFailure, Usuario>> getUsuario(Credenciales credenciales) =>
-      _appRepository.registrarToken(credenciales).flatMap(
-            (token) => apiExceptionToApiFailure(() async => Usuario.online(
-                  documento: credenciales.username,
-                  password: credenciales.password,
-                  esAdmin: await _getPermisos(credenciales.username),
-                )),
-          );
+  /// Consulta en la api si el usuario y la contraseña coincide, de ser asi
+  /// retorna el token para usar la api
+  Future<Either<ApiFailure, String>> _validarUsuario(
+          Credenciales credenciales) =>
+      _appRepository.getTokenFromApi(credenciales);
 
   /// Devuelve bool que indica si puede o no crear cuestionarios.
   /// Se usa [token] para poder enviar en el header de la petición
-  Future<bool> _getPermisos(String username) async {
-    final resMap = await _api.getPermisos(username);
-    return resMap['esAdmin'] as bool;
-  }
+  Future<Either<ApiFailure, bool>> _getPermisos(String username) =>
+      apiExceptionToApiFailure(() async {
+        final resMap = await _api.getPermisos(username);
+        return resMap['esAdmin'] as bool;
+      });
+
+  Usuario _buildUsuarioOnline(Credenciales credenciales, bool esAdmin) =>
+      Usuario.online(
+          documento: credenciales.username,
+          password: credenciales.password,
+          esAdmin: esAdmin);
 
   Future<void> saveLocalUser({required Usuario user}) async {
     await _localPreferences.saveUser(user);
@@ -74,8 +79,8 @@ class UserRepository {
   /// Elimina user guardado localmente cuando se presiona cerrar sesión,
   /// el usuario deberá iniciar sesión la próxima vez que abra la app
   Future<void> deleteLocalUser() {
-    _read(tokenProvider.notifier).state =
-        null; // esto puede que sea tarea de otra clase
+    _read(appRepositoryProvider)
+        .guardarToken(null); // esto puede que sea tarea de otra clase
     return _localPreferences.deleteUser();
   }
 
@@ -86,7 +91,7 @@ class UserRepository {
   Future<bool> _hayInternet() => _networkInfo.isConnected;
 }
 
-AuthFailure apiFailureToAuthFailure(apiFailure) => apiFailure.map(
+AuthFailure apiFailureToAuthFailure(ApiFailure apiFailure) => apiFailure.map(
       errorDeConexion: (_) => const AuthFailure.noHayConexionAlServidor(),
       errorInesperadoDelServidor: (e) => AuthFailure.unexpectedError(e),
       errorDecodificandoLaRespuesta: (e) => AuthFailure.unexpectedError(e),

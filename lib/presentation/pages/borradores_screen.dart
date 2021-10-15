@@ -8,17 +8,18 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dar
 import 'package:inspecciones/features/llenado_inspecciones/infrastructure/inspecciones_repository.dart';
 import 'package:inspecciones/features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
+import 'package:inspecciones/utils/future_either_x.dart';
 
 import '../widgets/user_drawer.dart';
 import 'inicio_inspeccion_form_widget.dart';
 
-//TODO: A futuro, Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
+//TODO: Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 /// Pantalla con lista de todas las inspecciones pendientes por subir.
 class BorradoresPage extends ConsumerWidget {
   const BorradoresPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, ref) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inspecciones'),
@@ -89,7 +90,7 @@ class BorradoresPage extends ConsumerWidget {
                       "Estado: ${EnumToString.convertToString(borrador.inspeccion.estado, camelCase: true)}",
                     ),
                     Text(
-                      "Avance del cuestionario: ${((borrador.avance / borrador.total) * 100).round()}%",
+                      "Avance: ${((borrador.avance / borrador.total) * 100).round()}%",
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),
@@ -114,55 +115,11 @@ class BorradoresPage extends ConsumerWidget {
                       Icons.cloud_upload,
                       color: Theme.of(context).colorScheme.secondary,
                     ),
-                    onPressed: () async {
-                      //TODO: eliminar esta duplicacion de codigo
-                      final remoteRepo =
-                          ref.read(inspeccionesRemoteRepositoryProvider);
-                      final localRepo =
-                          ref.read(inspeccionesRepositoryProvider);
-                      final res =
-                          await remoteRepo.subirInspeccion(borrador.inspeccion);
-                      final restxt =
-                          res.fold((f) => f.toString(), (u) => "exito");
-                      if (restxt == 'exito') {
-                        await localRepo.eliminarRespuestas(borrador);
-                      }
-                      restxt == 'exito'
-                          ? showDialog(
-                              context: context,
-                              barrierColor: Theme.of(context).primaryColorLight,
-                              barrierDismissible: false,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  contentTextStyle:
-                                      Theme.of(context).textTheme.headline5,
-                                  title: const Icon(Icons.done_sharp,
-                                      size: 100, color: Colors.green),
-                                  actions: [
-                                    Center(
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text('Aceptar'),
-                                      ),
-                                    )
-                                  ],
-                                  content: const Text(
-                                    'Inspección enviada correctamente',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                );
-                              },
-                            )
-                          : ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(restxt),
-                            ));
-                    }),
+                    onPressed: () => _subirInspeccion(context, ref, borrador)),
                 trailing: borrador.inspeccion.esNueva
                     ? IconButton(
                         icon: const Icon(Icons.delete),
-                        onPressed: () => eliminarBorrador(
+                        onPressed: () => _eliminarBorrador(
                           borrador,
                           context,
                           ref.read(inspeccionesRepositoryProvider),
@@ -178,45 +135,85 @@ class BorradoresPage extends ConsumerWidget {
     );
   }
 
-  ///Elimia [borrador].
-  void eliminarBorrador(
-      Borrador borrador, BuildContext context, InspeccionesRepository repo) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Alerta"),
-          content: const Text("¿Está seguro que desea eliminar este borrador?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancelar"), // OJO con el context
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-
-                final res = await repo.eliminarBorrador(borrador);
-                res.fold(
-                  (f) =>
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text("Error eliminando borrador"),
-                    duration: Duration(seconds: 3),
-                  )),
-                  (_) =>
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text("Borrador eliminado"),
-                    duration: Duration(seconds: 3),
-                  )),
+  Future<void> _subirInspeccion(
+      BuildContext context, WidgetRef ref, Borrador borrador) async {
+    final remoteRepo = ref.read(inspeccionesRemoteRepositoryProvider);
+    final localRepo = ref.read(inspeccionesRepositoryProvider);
+    await remoteRepo
+        .subirInspeccion(borrador.inspeccion, borrador.cuestionario)
+        .leftMap((f) => apiFailureToInspeccionesFailure(f))
+        .flatMap((_) => localRepo.eliminarRespuestas(borrador))
+        .leftMap((f) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("$f"),
+            )))
+        .nestedEvaluatedMap((_) => showDialog(
+              context: context,
+              barrierColor: Theme.of(context).primaryColorLight,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  contentTextStyle: Theme.of(context).textTheme.headline5,
+                  title: const Icon(Icons.done_sharp,
+                      size: 100, color: Colors.green),
+                  actions: [
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Aceptar'),
+                      ),
+                    )
+                  ],
+                  content: const Text(
+                    'Inspección enviada correctamente',
+                    textAlign: TextAlign.center,
+                  ),
                 );
               },
-              child: const Text("Eliminar"),
-            ),
-          ],
-        );
-      },
-    );
+            ));
   }
+
+  Future<void> _eliminarBorrador(
+    Borrador borrador,
+    BuildContext context,
+    InspeccionesRepository repo,
+  ) =>
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Alerta"),
+            content:
+                const Text("¿Está seguro que desea eliminar este borrador?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("Cancelar"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+
+                  final res = await repo.eliminarBorrador(borrador);
+                  res.fold(
+                    (f) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text("Error eliminando borrador: $f"),
+                      duration: const Duration(seconds: 3),
+                    )),
+                    (_) => ScaffoldMessenger.of(context)
+                        .showSnackBar(const SnackBar(
+                      content: Text("Borrador eliminado"),
+                      duration: Duration(seconds: 3),
+                    )),
+                  );
+                },
+                child: const Text("Eliminar"),
+              ),
+            ],
+          );
+        },
+      );
 }
 
 /// Botón de creación de inspecciones

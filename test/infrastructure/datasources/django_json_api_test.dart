@@ -49,8 +49,8 @@ void main() {
   group("DjangoJsonApiClient", () {
     test('una peticion GET deberia usar el token asignado en el header',
         () async {
-      final DjangoJsonApiAuthenticatedClient client =
-          DjangoJsonApiAuthenticatedClient(
+      final DjangoJsonApiClient client =
+          DjangoJsonApiClient(
         "123",
         http_test.MockClient((request) async {
           expect(request.headers[HttpHeaders.authorizationHeader], "Token 123");
@@ -62,8 +62,8 @@ void main() {
     });
     test("debería lanzar las excepciones generadas por el cliente interno",
         () async {
-      final DjangoJsonApiAuthenticatedClient client =
-          DjangoJsonApiAuthenticatedClient(
+      final DjangoJsonApiClient client =
+          DjangoJsonApiClient(
         "123",
         http_test.MockClient((request) => throw const SocketException("")),
       );
@@ -83,7 +83,7 @@ void main() {
         () async {
       String authHeader = "";
       final api = DjangoJsonApi(
-        DjangoJsonApiAuthenticatedClient("123",
+        DjangoJsonApiClient("123",
             http_test.MockClient((request) async {
           authHeader = request.headers[HttpHeaders.authorizationHeader]!;
           return http.Response("{}", 200);

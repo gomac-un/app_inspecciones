@@ -15,8 +15,4 @@ class Borrador {
 
   Borrador(this.inspeccion, this.cuestionario,
       {required this.avance, required this.total});
-
-  @override
-  String toString() =>
-      'Borrador(inspeccion: $inspeccion, cuestionario: $cuestionario)';
 }

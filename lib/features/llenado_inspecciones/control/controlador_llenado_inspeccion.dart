@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/domain/inspecciones/inspecciones_failure.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import '../domain/bloques/pregunta.dart';
@@ -59,11 +60,13 @@ final filtroDisponibleProvider = StateProvider((_) => FiltroPreguntas.values);
 final filtroPreguntasProvider = StateProvider((_) => FiltroPreguntas.todas);
 
 class ControladorLlenadoInspeccion {
+  InspeccionesRepository get repository =>
+      _read(inspeccionesRepositoryProvider);
   final ControladorFactory factory;
   final CuestionarioInspeccionado cuestionario;
 
   /// usado para leer providers
-  final Reader read;
+  final Reader _read;
 
   late final List<ControladorDePregunta> controladores = cuestionario.bloques
       .whereType<Pregunta>()
@@ -76,9 +79,9 @@ class ControladorLlenadoInspeccion {
   ControladorLlenadoInspeccion(
     this.cuestionario,
     this.factory,
-    this.read,
+    this._read,
   ) {
-    read(estadoDeInspeccionProvider).state = cuestionario.inspeccion.estado;
+    _read(estadoDeInspeccionProvider).state = cuestionario.inspeccion.estado;
   }
 
   @pragma('vm:notify-debugger-on-exception')
@@ -90,11 +93,23 @@ class ControladorLlenadoInspeccion {
   }) async {
     try {
       onStart?.call();
-      final repository = read(inspeccionesRepositoryProvider);
+      final i = cuestionario.inspeccion;
+      final estado = _read(estadoDeInspeccionProvider).state;
+      final inspeccionAGuardar = Inspeccion(
+        id: i.id,
+        estado: estado,
+        activo: i.activo,
+        momentoBorradorGuardado: DateTime.now(),
+        momentoEnvio:
+            estado == EstadoDeInspeccion.finalizada ? DateTime.now() : null,
+        criticidadTotal: 0, //TODO: calcular
+        criticidadReparacion: 0, //TODO: calcular
+        esNueva: i.esNueva,
+      );
       final visitor = GuardadoVisitor(
         repository,
         controladores,
-        inspeccion: cuestionario.inspeccion,
+        inspeccionAGuardar,
       );
       await visitor.guardarInspeccion();
       onSuccess?.call("Inspeccion guardada");
@@ -120,36 +135,41 @@ class ControladorLlenadoInspeccion {
 
   void iniciarReparaciones(
       {VoidCallback? onInvalid, VoidCallback? mensajeReparacion}) {
-    final esValida = _validarInspeccion(onInvalid: onInvalid);
-    if (!esValida) return;
+    final esValida = _validarInspeccion();
+    if (!esValida) {
+      onInvalid?.call();
+      return;
+    }
 
     mensajeReparacion?.call();
-    read(estadoDeInspeccionProvider).state = EstadoDeInspeccion.enReparacion;
-    read(filtroPreguntasProvider).state = FiltroPreguntas.criticas;
+    _read(estadoDeInspeccionProvider).state = EstadoDeInspeccion.enReparacion;
+    _read(filtroPreguntasProvider).state = FiltroPreguntas.criticas;
   }
 
   void finalizar(
       {required Future<bool?> Function() confirmation,
       required EjecucionCallback ejecutarGuardado,
       VoidCallback? onInvalid}) async {
-    final esValida = _validarInspeccion(onInvalid: onInvalid);
-    if (!esValida) return;
+    final esValida = _validarInspeccion();
+    if (!esValida) {
+      onInvalid?.call();
+      return;
+    }
 
     final c = await confirmation();
     if (c == null || !c) return;
-    read(estadoDeInspeccionProvider).state = EstadoDeInspeccion.finalizada;
+    _read(estadoDeInspeccionProvider).state = EstadoDeInspeccion.finalizada;
 
     await ejecutarGuardado(
         guardarInspeccion); //TODO: si falla se debe devolver al estado inicial
 
     formArray.markAsDisabled();
-    read(filtroPreguntasProvider).state = FiltroPreguntas.todas;
+    _read(filtroPreguntasProvider).state = FiltroPreguntas.todas;
   }
 
-  bool _validarInspeccion({VoidCallback? onInvalid}) {
+  bool _validarInspeccion() {
     formArray.markAllAsTouched();
     if (!formArray.valid) {
-      onInvalid?.call();
       return false;
     }
     return true;

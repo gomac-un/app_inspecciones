@@ -3,7 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
-import 'package:inspecciones/infrastructure/utils/iterable_x.dart';
+import 'package:inspecciones/utils/iterable_x.dart';
 
 part 'carga_cuestionario_dao.drift.dart';
 

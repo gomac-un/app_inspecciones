@@ -7,7 +7,7 @@ import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
-import 'package:inspecciones/infrastructure/utils/iterable_x.dart';
+import 'package:inspecciones/utils/iterable_x.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_controls.dart';

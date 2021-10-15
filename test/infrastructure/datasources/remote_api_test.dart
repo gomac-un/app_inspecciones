@@ -23,7 +23,7 @@ main() {
   setUp(() async {
     noLoggedClient = http.Client();
     loggedClient =
-        DjangoJsonApiAuthenticatedClient(await _localLogin(), noLoggedClient);
+        DjangoJsonApiClient(await _localLogin(), noLoggedClient);
   });
   tearDown(() {
     noLoggedClient.close();

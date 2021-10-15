@@ -16,6 +16,9 @@ part 'borradores_dao.drift.dart';
   Respuestas,
   Inspecciones,
   Activos,
+  Bloques,
+  Preguntas,
+  Cuestionarios,
 ])
 class BorradoresDao extends DatabaseAccessor<Database>
     with _$BorradoresDaoMixin {
@@ -23,31 +26,27 @@ class BorradoresDao extends DatabaseAccessor<Database>
   // of this object.
   BorradoresDao(Database db) : super(db);
 
-  /// Regresa el total de preguntas respondidas en una inspección con id=[id]
-  /// (Se usa en la página de borradores para mostrar el avance)
-  Future<int> getTotalRespuesta(int inspeccionId) async {
-    final query = selectOnly(respuestas, distinct: true)
-      ..addColumns([respuestas.preguntaId])
-      ..where(respuestas.inspeccionId.equals(inspeccionId));
-    final res = await query.map((row) => row.read(respuestas.preguntaId)).get();
-    return res.length;
-  }
-
   /// Devuelve [List<Borrador>] con todas las inspecciones que han sido guardadas
   /// para mostrar en la UI en borradores_screen.dart
-  Stream<List<borr_dom.Borrador>> borradores(bool toHistoryScreen) {
+  Stream<List<borr_dom.Borrador>> borradores({required bool enviadas}) {
     final query = select(inspecciones).join([
       innerJoin(activos, activos.id.equalsExp(inspecciones.activoId)),
+      innerJoin(cuestionarios,
+          cuestionarios.id.equalsExp(inspecciones.cuestionarioId)),
     ])
 
-      /// Se filtran los que tengan momentoEnvio nulo, esto, porque también están quedando guardadas las enviadas para el historial
+      /// Se filtran los que tengan momentoEnvio nulo, esto, porque también están
+      /// quedando guardadas las enviadas para el historial
       /// y estas no se muestran en la pantalla de borradores.
-      ..where(toHistoryScreen
+      ..where(enviadas
           ? inspecciones.momentoEnvio.isNotNull()
           : inspecciones.momentoEnvio.isNull());
     final borradores = query
-        .map((row) => Tuple2<Activo, Inspeccion>(
-            row.readTable(activos), row.readTable(inspecciones)))
+        .map((row) => Tuple3<Inspeccion, Activo, Cuestionario>(
+              row.readTable(inspecciones),
+              row.readTable(activos),
+              row.readTable(cuestionarios),
+            ))
         .watch();
 
     /// Agrupación del resultado de la consulta en la clase Borrador para manejarlo mejor en la UI
@@ -55,36 +54,76 @@ class BorradoresDao extends DatabaseAccessor<Database>
       (l) async => Future.wait<borr_dom.Borrador>(
         l.map(
           (b) async {
-            final inspeccion = b.value2;
-
-            /// Se consulta el cuestionario asociado a cada inspección, para saber de que tipo es
-            final cuestionario = await db.getCuestionario(inspeccion);
+            final inspeccion = b.value1;
+            final cuestionario = b.value3;
             return borr_dom.Borrador(
                 insp_dom.Inspeccion(
                   id: inspeccion.id,
                   momentoEnvio: inspeccion.momentoEnvio,
-                  activo: await getActivoPorId(inspeccion.activoId),
+                  activo: await getActivo(inspeccion.activoId),
                   estado: inspeccion.estado,
                   esNueva: inspeccion.esNueva,
                   criticidadReparacion: inspeccion.criticidadReparacion,
                   criticidadTotal: inspeccion.criticidadTotal,
                 ),
                 cuest_dom.Cuestionario(
-                    id: cuestionario.id,
-                    tipoDeInspeccion: cuestionario.tipoDeInspeccion!),
+                  id: cuestionario.id,
+                  tipoDeInspeccion: cuestionario.tipoDeInspeccion!,
+                ),
 
                 /// Cantidad de preguntas respondidas
-                avance: await getTotalRespuesta(inspeccion.id),
+                avance: await _getNroPreguntasRespondidas(inspeccion.id),
 
                 /// Total de preguntas del cuestionario
-                total: await db.getTotalPreguntas(cuestionario.id));
+                total: await _getNroPreguntas(cuestionario.id));
           },
         ),
       ),
     );
   }
 
-  Future<act_dom.Activo> getActivoPorId(int id) async {
+  /// Devuelve la cantidad total de preguntas que tiene el cuestionario con id=[cuestionarioId]
+  Future<int> _getNroPreguntas(int cuestionarioId) {
+    final count = countAll();
+    final query = selectOnly(preguntas).join([
+      innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
+    ])
+      ..where(bloques.cuestionarioId.equals(cuestionarioId))
+      ..addColumns([count]);
+    return query.map((row) => row.read(count)).getSingle();
+/*
+    final bloq = await (select(bloques)
+          ..where((b) => b.cuestionarioId.equals(cuestionarioId)))
+        .get();
+    final bloquesId = bloq.map((e) => e.id).toList();
+
+    /// Va a contar las preguntas cuyos bloques estan en [bloquesId] que son los bloques del cuestionario
+    final count = countAll(filter: preguntas.bloqueId.isIn(bloquesId));
+    final res = (selectOnly(preguntas)..addColumns([count]))
+        .map((row) => row.read(count))
+        .getSingle();
+    return res;*/
+  }
+
+  /// Regresa el total de preguntas respondidas en una inspección con id=[id]
+  /// (Se usa en la página de borradores para mostrar el avance)
+  Future<int> _getNroPreguntasRespondidas(int inspeccionId) async {
+    final count = countAll();
+    final query = selectOnly(respuestas)
+      ..where(respuestas.inspeccionId.equals(inspeccionId) &
+          (respuestas.opcionDeRespuestaId.isNotNull() |
+              respuestas.valor.isNotNull()))
+      ..addColumns([count]);
+    return query.map((row) => row.read(count)).getSingle();
+    /*
+    final query = selectOnly(respuestas, distinct: true)
+      ..addColumns([respuestas.preguntaId])
+      ..where(respuestas.inspeccionId.equals(inspeccionId));
+    final res = await query.map((row) => row.read(respuestas.preguntaId)).get();
+    return res.length;*/
+  }
+
+  Future<act_dom.Activo> getActivo(int id) async {
     final query = select(activos)..where((tbl) => tbl.id.equals(id));
     final activo = await query.getSingle();
     return act_dom.Activo(id: activo.id.toString(), modelo: activo.modelo);

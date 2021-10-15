@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/bloque.dart'
     as bloque_dom;
 import 'package:inspecciones/features/llenado_inspecciones/domain/bloques/bloques.dart'
@@ -14,7 +15,7 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dar
     as insp_dom;
 import 'package:inspecciones/features/llenado_inspecciones/domain/metarespuesta.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
-import 'package:inspecciones/infrastructure/utils/iterable_x.dart';
+import 'package:inspecciones/utils/iterable_x.dart';
 import 'package:intl/intl.dart';
 
 part 'carga_inspeccion_dao.drift.dart';
@@ -274,13 +275,13 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     return bl_dom.PreguntaDeSeleccionMultiple(
       opciones.map((opcion) => _buildOpcionDeRespuesta(opcion)).toList(),
       opciones.map((op) {
-        final respuesta = respuestas
-            .firstWhereOrNull((element) => element.value2.id == op.id);
+        final respuesta =
+            respuestas.firstWhereOrNull((ryo) => op.id == ryo.value2?.id);
         return bl_dom.SubPreguntaDeSeleccionMultiple(
           _buildOpcionDeRespuesta(op),
           id: 3,
           titulo: op.texto,
-          descripcion: '', //Todo: descripción de la opción de respuesta
+          descripcion: '', //TODO: descripción de la opción de respuesta
           criticidad: op.criticidad,
           posicion:
               '${pregunta.eje} / ${pregunta.lado} / ${pregunta.posicionZ}',
@@ -309,6 +310,11 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   ) async {
     final respuestas =
         await _getRespuestaDePreguntaSimple(pregunta, inspeccionId);
+    if (respuestas.length > 1) {
+      throw DatabaseInconsistencyError(
+          "hay mas de una respuesta asociada a una pregunta de seleccion unica");
+    }
+    final respuesta = respuestas.isNotEmpty ? respuestas.first : null;
     final listaOpciones =
         opciones.map((e) => _buildOpcionDeRespuesta(e)).toList();
     return pr_dom.PreguntaDeSeleccionUnica(
@@ -319,13 +325,12 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
       posicion: '${pregunta.eje} / ${pregunta.lado} / ${pregunta.posicionZ}',
       titulo: pregunta.titulo,
       descripcion: '', //TODO: añadir en la creación
-      respuesta: respuestas.isEmpty
+      respuesta: respuesta == null
           ? null
-          : //Se supone que para las unicas solo debe haber una respuesta.
-          bl_dom.RespuestaDeSeleccionUnica(
-              _buildMetaRespuesta(respuestas.first.value1),
+          : bl_dom.RespuestaDeSeleccionUnica(
+              _buildMetaRespuesta(respuesta.value1),
               listaOpciones.firstWhereOrNull(
-                  (opcion) => opcion.id == respuestas.first.value2.id),
+                  (opcion) => opcion.id == respuesta.value2?.id),
             ),
     );
   }
@@ -333,7 +338,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   /// Devuelve las respuestas que haya dado el inspector a [pregunta], es List
   /// porque en el caso de las preguntas multiples, en la bd puede haber más de
   /// una respuesta por pregunta
-  Future<List<Tuple2<Respuesta, OpcionDeRespuesta>>>
+  Future<List<Tuple2<Respuesta, OpcionDeRespuesta?>>>
       _getRespuestaDePreguntaSimple(Pregunta pregunta, int inspeccionId) async {
     final query = select(respuestas).join([
       leftOuterJoin(
@@ -348,7 +353,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     final res = await query
         .map((row) => Tuple2(
               row.readTable(respuestas),
-              row.readTable(opcionesDeRespuesta),
+              row.readTableOrNull(opcionesDeRespuesta),
             ))
         .get();
 

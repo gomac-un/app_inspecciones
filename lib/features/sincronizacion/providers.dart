@@ -1,5 +1,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/infrastructure/repositories/app_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
 
 import 'sincronizacion_controller.dart';
 

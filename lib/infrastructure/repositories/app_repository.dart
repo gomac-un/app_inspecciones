@@ -3,26 +3,21 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/login/credenciales.dart';
 
+import '../../utils/future_either_x.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../datasources/local_preferences_datasource.dart';
 import '../datasources/providers.dart';
 import '../drift_database.dart';
-import '../utils/future_either_x.dart';
 import '../utils/transformador_excepciones_api.dart';
 
-final appRepositoryProvider = Provider((ref) => AppRepository(
-      ref.read,
-      ref.watch(localPreferencesDataSourceProvider),
-    ));
-
 class AppRepository {
+  final Reader _read;
   AuthRemoteDataSource get _api => _read(authRemoteDataSourceProvider);
   Database get _db => _read(driftDatabaseProvider);
-  final Reader _read;
+  LocalPreferencesDataSource get _localPreferences =>
+      _read(localPreferencesDataSourceProvider);
 
-  final LocalPreferencesDataSource _localPreferences;
-
-  AppRepository(this._read, this._localPreferences);
+  AppRepository(this._read);
 
   Future<void> limpiarDatosLocales() => _db.recrearTodasLasTablas();
 
@@ -44,21 +39,27 @@ class AppRepository {
     );
   }
 
-  /// obtiene y registra el token usado para la autenticacion en el servicio
-  Future<Either<ApiFailure, String>> registrarToken(
-      Credenciales credenciales) async {
-    return apiExceptionToApiFailure(() async {
-      final resMap = await _api.getToken(credenciales.toJson());
-      final token = resMap['token'] as String;
-      // esto puede que sea tarea de otra clase
-      _read(tokenProvider.notifier).state = token;
-      return token;
-    });
+  /// obtiene el token usado para la autenticacion en el servicio
+  Future<Either<ApiFailure, String>> getTokenFromApi(
+          Credenciales credenciales) =>
+      apiExceptionToApiFailure(() async {
+        final resMap = await _api.getToken(credenciales.toJson());
+        return resMap['token'] as String;
+      });
+
+  /// Guarda el [token] en el almacenamiento persistente y además lo registra
+  Future<void> guardarToken(String? token) =>
+      _localPreferences.saveToken(token).then((_) => getToken());
+
+  /// Obtiene el token almacenado
+  String? getToken() {
+    return _localPreferences.getToken();
+    //_read(tokenProvider).state = token;
   }
 
   DateTime? getUltimaSincronizacion() =>
       _localPreferences.getUltimaSincronizacion();
 
-  Future<bool> saveUltimaSincronizacion(DateTime momento) =>
+  Future<void> saveUltimaSincronizacion(DateTime momento) =>
       _localPreferences.saveUltimaSincronizacion(momento);
 }

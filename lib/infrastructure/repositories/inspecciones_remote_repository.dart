@@ -1,11 +1,14 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/cuestionario.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
-import 'package:inspecciones/infrastructure/utils/future_either_x.dart';
+import 'package:inspecciones/infrastructure/datasources/providers.dart';
+import 'package:inspecciones/utils/future_either_x.dart';
 
 import '../datasources/inspecciones_remote_datasource.dart';
 import '../drift_database.dart' as drift;
@@ -13,13 +16,14 @@ import '../utils/transformador_excepciones_api.dart';
 import 'fotos_repository.dart';
 
 class InspeccionesRemoteRepository {
-  final InspeccionesRemoteDataSource _api;
-  final FotosRemoteDataSource _apiFotos;
-  final drift.Database _db;
-  final FotosRepository _fotosRepository;
+  final Reader _read;
+  InspeccionesRemoteDataSource get _api =>
+      _read(inspeccionesRemoteDataSourceProvider);
+  FotosRemoteDataSource get _apiFotos => _read(fotosRemoteDataSourceProvider);
+  drift.Database get _db => _read(drift.driftDatabaseProvider);
+  FotosRepository get _fotosRepository => _read(fotosRepositoryProvider);
 
-  InspeccionesRemoteRepository(
-      this._api, this._apiFotos, this._db, this._fotosRepository);
+  InspeccionesRemoteRepository(this._read);
 
   /// Descarga desde el servidor una inspección identificadada con [id] para
   ///  poder continuarla en la app.
@@ -39,19 +43,20 @@ class InspeccionesRemoteRepository {
 
   /// Envia [inspeccion] al server
   Future<Either<ApiFailure, Unit>> subirInspeccion(
-      Inspeccion inspeccion) async {
+      Inspeccion inspeccion, Cuestionario cuestionario) async {
     //TODO: mostrar el progreso en la ui
     /// Se obtiene un json con la info de la inspeción y sus respectivas respuestas
     final inspAEnviar = drift.Inspeccion(
-        id: inspeccion.id,
-        estado: inspeccion.estado,
-        activoId: int.parse(inspeccion.activo.id),
-        momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
-        momentoEnvio: DateTime.now(),
-        criticidadTotal: inspeccion.criticidadTotal,
-        criticidadReparacion: inspeccion.criticidadReparacion,
-        esNueva: inspeccion.esNueva,
-        cuestionarioId: inspeccion.cuestionario.cuestionario.id);
+      id: inspeccion.id,
+      estado: inspeccion.estado,
+      activoId: int.parse(inspeccion.activo.id),
+      momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
+      momentoEnvio: DateTime.now(),
+      criticidadTotal: inspeccion.criticidadTotal,
+      criticidadReparacion: inspeccion.criticidadReparacion,
+      esNueva: inspeccion.esNueva,
+      cuestionarioId: cuestionario.id,
+    );
     final inspeccionMap = await _db.getInspeccionConRespuestas(inspAEnviar);
 
     /// [inspeccion.esNueva] es un campo usado localmente para saber si fue creada o se descaargó desde el server.
