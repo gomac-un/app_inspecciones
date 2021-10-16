@@ -11,7 +11,7 @@ import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/utils/future_either_x.dart';
 
 import '../widgets/user_drawer.dart';
-import 'inicio_inspeccion_form_widget.dart';
+import '../../features/llenado_inspecciones/ui/inicio_inspeccion_form_widget.dart';
 
 //TODO: Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 /// Pantalla con lista de todas las inspecciones pendientes por subir.

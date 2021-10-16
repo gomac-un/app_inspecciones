@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-//TODO: mirar si se debe convertir esto en un popup
-class AyudaPage extends StatelessWidget {
-  const AyudaPage({Key? key}) : super(key: key);
+class AyudaPosicion extends StatelessWidget {
+  const AyudaPosicion({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -13,17 +12,12 @@ class AyudaPage extends StatelessWidget {
           'Ayuda',
         ),
       ),
-      /* media.size.width <= 600 || media.size.height <= 600
-          ? UserDrawer()
-          : null, */
       body: Scrollbar(
         child: SingleChildScrollView(
           child: Column(
             children: [
               Card(
                 elevation: 2,
-
-                // Dentro de esta propiedad usamos ClipRRect
                 child: ClipRRect(
                   // Los bordes del contenido del card se cortan usando BorderRadius
                   borderRadius: BorderRadius.circular(15),

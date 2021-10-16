@@ -1,12 +1,16 @@
+import 'package:dartz/dartz.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/edicion_form_page.dart';
+import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
 import '../../core/enums.dart';
 import '../../infrastructure/drift_database.dart';
-import '../../viewmodel/cuestionario_list_view_model.dart';
+
 import '../widgets/alertas.dart';
 
 /// Pantalla que muestra la lista de cuestionarios subidos y en proceso.
@@ -15,7 +19,7 @@ class CuestionariosPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final viewModel = ref.watch(cuestionarioListViewModelProvider);
+    final viewModel = ref.watch(_cuestionarioListViewModelProvider);
     return Scaffold(
         appBar: AppBar(
           title: const Text('Cuestionarios'),
@@ -136,7 +140,7 @@ class CuestionariosPage extends ConsumerWidget {
 
   void _subirCuestionarioFinalizado(
     BuildContext context,
-    CuestionarioListViewModel viewModel,
+    _CuestionarioListViewModel viewModel,
     Cuestionario cuestionario,
   ) async {
     final subida = await viewModel.subirCuestionario(cuestionario);
@@ -160,7 +164,7 @@ class CuestionariosPage extends ConsumerWidget {
 
   /// Elimina [cuestionario] y todas sus preguntas
   void _eliminarCuestionario(BuildContext context, Cuestionario cuestionario,
-      CuestionarioListViewModel viewModel) {
+      _CuestionarioListViewModel viewModel) {
     // show the dialog
     showDialog(
       context: context,
@@ -220,4 +224,23 @@ class FloatingActionButtonCreacionCuestionario extends StatelessWidget {
       label: const Text("Cuestionario"),
     );
   }
+}
+
+final _cuestionarioListViewModelProvider = Provider((ref) =>
+    _CuestionarioListViewModel(ref.watch(cuestionariosRepositoryProvider)));
+
+class _CuestionarioListViewModel {
+  final CuestionariosRepository _cuestionariosRepository;
+
+  _CuestionarioListViewModel(this._cuestionariosRepository);
+
+  Stream<List<Cuestionario>> getCuestionarios() =>
+      _cuestionariosRepository.getCuestionariosLocales();
+
+  Future<Either<ApiFailure, Unit>> subirCuestionario(
+          Cuestionario cuestionario) =>
+      _cuestionariosRepository.subirCuestionario(cuestionario);
+
+  Future eliminarCuestionario(Cuestionario cuestionario) =>
+      _cuestionariosRepository.eliminarCuestionario(cuestionario);
 }
