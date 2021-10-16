@@ -149,10 +149,10 @@ class DjangoJsonApi
   /// Descarga todas las fotos de todos los cuestionarios
   @override
   Future<void> descargarTodasLasFotos(String token) async {
-    final uri = _apiUri.appendSegment(
-      '/media/fotos-app-inspecciones/cuestionarios.zip',
-      addTrailingSlash: false,
-    );
+    final uri = _apiUri
+        .appendSegment('media', addTrailingSlash: false)
+        .appendSegment('fotos-app-inspecciones', addTrailingSlash: false)
+        .appendSegment('cuestionarios.zip', addTrailingSlash: false);
     final zipFotos = await flutterDownloaderAsFuture(
       uri,
       'cuestionarios.zip',

@@ -167,11 +167,6 @@ class Preguntas extends Table {
         const Constant("[]"),
       )(); // en la dataclass es una IList<String> para mantener la igualdad por valor
 
-  /// Campo usado paraa preguntas que activan otras dependiendo de laa respuesta.
-  //TODO: implementar
-  BoolColumn get esCondicional =>
-      boolean().withDefault(const Constant(false))();
-
   @JsonKey('sistema')
   IntColumn get sistemaId =>
       integer().nullable().customConstraint('REFERENCES sistemas(id)')();

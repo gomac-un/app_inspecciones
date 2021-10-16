@@ -315,16 +315,13 @@ class Database extends _$Database {
         .map((e) => Sistema.fromJson(e as Map<String, dynamic>))
         .toList();
 
-    final tipoInspeccionParseados = (json["TipoInspeccion"] as List)
-        .map((e) => TiposDeInspeccione.fromJson(e as Map<String, dynamic>))
-        .toList();
-
     final subSistemasParseados = (json["Subsistema"] as List)
         .map((e) => SubSistema.fromJson(e as Map<String, dynamic>))
         .toList();
 
     final cuestionariosParseados = (json["Cuestionario"] as List)
-        .map((e) => Cuestionario.fromJson(e as Map<String, dynamic>,
+        .map((e) => Cuestionario.fromJson(
+            (e as Map<String, dynamic>)..["esLocal"] = false,
             serializer: const CustomSerializer()))
         .map((c) => c.copyWith(esLocal: false))
         .toList();
@@ -411,7 +408,6 @@ class Database extends _$Database {
         b.insertAll(preguntas, preguntasParseados);
         b.insertAll(opcionesDeRespuesta, opcionesDeRespuestaParseados);
         b.insertAll(criticidadesNumericas, criticidadesNumericasParseadas);
-        b.insertAll(tiposDeInspecciones, tipoInspeccionParseados);
       });
     });
     await customStatement('PRAGMA foreign_keys = ON');
@@ -443,8 +439,8 @@ class CustomSerializer extends ValueSerializer {
 
     /// TODO: revisar si aca pueden llegar imagenes de web
     if (T == ListImages) {
-      return IList.from(json as List<String>).map((path) =>
-          path.startsWith('http')
+      return IList.from(json as List).map((path) =>
+          (path as String).startsWith('http')
               ? AppImage.remote(path)
               : AppImage.mobile(path)) as T;
     } /*

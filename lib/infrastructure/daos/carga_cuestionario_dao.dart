@@ -202,8 +202,7 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
       ..where(bloques.cuestionarioId.equals(cuestionarioId) &
 
           /// Toma solo [TipoDePregunta.unicaRespuesta] o [TipoDePregunta.multipleRespuesta]
-          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)) &
-          preguntas.esCondicional.equals(false));
+          (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)));
     final res = await query
         .map((row) => Tuple3(row.readTable(bloques), row.readTable(preguntas),
             row.readTableOrNull(opcionesPregunta)))

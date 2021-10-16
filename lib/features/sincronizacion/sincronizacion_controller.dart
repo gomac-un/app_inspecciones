@@ -59,8 +59,6 @@ class SincronizacionController extends StateNotifier<SincronizacionState> {
       step++;
       return descargaFotosStep.run(token);
     }).map((_) {
-      step++;
-
       /// En caso de éxito, guarda el momento actual como fecha de la ultima actualización
       read(momentoDeSincronizacionProvider.notifier).sincronizar();
       return const Right(unit);

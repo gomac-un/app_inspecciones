@@ -180,7 +180,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
                     .toList(),
                 id: entry.key.id,
                 //Todo: modificar la bd para que sean calificables.
-                calificable: entry.key.esCondicional,
+                calificable: true, //TODO: solucionar #19
                 criticidad: entry.key.criticidad,
                 posicion:
                     '${entry.key.eje} / ${entry.key.lado} / ${entry.key.posicionZ}',
@@ -227,7 +227,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
           opcionesPregunta.preguntaId.equalsExp(preguntas.id)),
     ])
       ..where(bloques.cuestionarioId.equals(cuestionarioId) &
-          preguntas.esCondicional.equals(false) &
 
           /// Carga solo las preguntas unicaRespuesta/multipleRespuesta
           (preguntas.tipo.equals(0) | preguntas.tipo.equals(1)));
@@ -295,7 +294,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         );
       }).toList(),
       id: pregunta.id,
-      calificable: pregunta.esCondicional,
+      calificable: true, //TODO: solucionar #19
       criticidad: pregunta.criticidad,
       posicion: '${pregunta.eje} / ${pregunta.lado} / ${pregunta.posicionZ}',
       titulo: pregunta.titulo,
@@ -320,7 +319,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     return pr_dom.PreguntaDeSeleccionUnica(
       listaOpciones,
       id: pregunta.id,
-      calificable: pregunta.esCondicional,
+      calificable: true, //TODO: solucionar #19
       criticidad: pregunta.criticidad,
       posicion: '${pregunta.eje} / ${pregunta.lado} / ${pregunta.posicionZ}',
       titulo: pregunta.titulo,
