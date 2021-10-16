@@ -7,7 +7,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 import 'login_control.dart';
 
-final loadingProvider = StateProvider((ref) => false);
+final _loadingProvider = StateProvider((ref) => false);
 
 /// Pantalla de inicio de sesión.
 class LoginPage extends StatelessWidget {
@@ -82,7 +82,7 @@ class LoginForm extends ConsumerWidget {
           ReactiveFormConsumer(
             builder: (context, _, child) {
               return Consumer(builder: (context, ref, _) {
-                final loadingCtrl = ref.watch(loadingProvider);
+                final loadingCtrl = ref.watch(_loadingProvider);
                 final isLoading = loadingCtrl.state;
                 return ElevatedButton(
                   onPressed: !form.valid || isLoading

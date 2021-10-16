@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/features/registro_usuario/registro_usuario_page.dart';
 import 'package:inspecciones/features/sincronizacion/sincronizacion_page.dart';
 import 'package:inspecciones/presentation/pages/cuestionarios_screen.dart';
 import 'package:inspecciones/presentation/pages/history_screen.dart';
@@ -76,6 +77,14 @@ final goRouterProvider = Provider((ref) => GoRouter(
           pageBuilder: (context, state) => MaterialPage<void>(
             key: state.pageKey,
             child: const SincronizacionPage(),
+          ),
+        ),
+        GoRoute(
+          path: '/registro',
+          name: 'registro',
+          pageBuilder: (context, state) => MaterialPage<void>(
+            key: state.pageKey,
+            child: const RegistroUsuarioPage(),
           ),
         ),
       ],

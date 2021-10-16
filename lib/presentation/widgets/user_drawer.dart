@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/application/auth/auth_service.dart';
-import 'package:inspecciones/infrastructure/repositories/app_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/presentation/pages/inspecciones_db_viewer_screen.dart';
 import 'package:inspecciones/theme.dart';
@@ -28,6 +27,11 @@ class UserDrawer extends ConsumerWidget {
             Expanded(
               child: ListView(
                 children: [
+                  MenuItem(
+                    texto: 'Registro',
+                    icon: Icons.how_to_reg_outlined,
+                    onTap: () => context.goNamed("registro"),
+                  ),
                   if (user.esAdmin)
                     MenuItem(
                       texto:
