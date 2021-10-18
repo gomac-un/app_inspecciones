@@ -126,6 +126,7 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
       inspeccionId: inspeccionId,
       fotosBase: Value(fotosBaseProcesadas),
       fotosReparacion: Value(fotosReparacionProcesadas),
+      momentoRespuesta: Value(respuesta.metaRespuesta.momentoRespuesta),
       observacion: Value(respuesta.metaRespuesta.observaciones),
       observacionReparacion:
           Value(respuesta.metaRespuesta.observacionesReparacion),
