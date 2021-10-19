@@ -7,6 +7,7 @@ class MetaRespuesta {
   final bool reparada;
   final String observacionesReparacion;
   final List<AppImage> fotosReparacion;
+  final DateTime? momentoRespuesta;
 
   MetaRespuesta({
     this.criticidadInspector = 1,
@@ -15,6 +16,7 @@ class MetaRespuesta {
     this.reparada = false,
     this.observacionesReparacion = "",
     this.fotosReparacion = const [],
+    this.momentoRespuesta,
   });
 
   MetaRespuesta.vacia() : this();

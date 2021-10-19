@@ -7,7 +7,8 @@ import 'visitors/controlador_de_pregunta_visitor.dart';
 
 abstract class ControladorDePregunta<T extends Pregunta> {
   final T pregunta;
-
+  late DateTime? momentoRespuesta =
+      pregunta.respuesta?.metaRespuesta.momentoRespuesta;
   late final MetaRespuesta respuesta =
       pregunta.respuesta?.metaRespuesta ?? MetaRespuesta.vacia();
 
@@ -23,7 +24,6 @@ abstract class ControladorDePregunta<T extends Pregunta> {
       fb.control<List<AppImage>>(respuesta.fotosReparacion);
 
   abstract final AbstractControl respuestaEspecificaControl;
-
   late final metaRespuestaControl = fb.group({
     "criticidadInspector": criticidadInspectorControl,
     "observacion": observacionControl,
@@ -47,17 +47,20 @@ abstract class ControladorDePregunta<T extends Pregunta> {
       'metaRespuesta': metaRespuestaControl,
       "respuestaEspecifica": respuestaEspecificaControl,
     });
+    respuestaEspecificaControl.valueChanges.listen((_) {
+      momentoRespuesta = DateTime.now();
+    }); //guarda el momento de la ultima edicion
   }
 
   bool esValido() => control.valid;
 
   MetaRespuesta guardarMetaRespuesta() => MetaRespuesta(
-        observaciones: observacionControl.value!,
-        fotosBase: fotosBaseControl.value!,
-        reparada: reparadoControl.value!,
-        observacionesReparacion: observacionReparacionControl.value!,
-        fotosReparacion: fotosReparacionControl.value!,
-      );
+      observaciones: observacionControl.value!,
+      fotosBase: fotosBaseControl.value!,
+      reparada: reparadoControl.value!,
+      observacionesReparacion: observacionReparacionControl.value!,
+      fotosReparacion: fotosReparacionControl.value!,
+      momentoRespuesta: momentoRespuesta);
 
   /// solo se puede usar para leer el calculo, para componentes de la ui que deben
   /// reaccionar a cambios de este calculo se debe usar [criticidadCalculadaProvider]
