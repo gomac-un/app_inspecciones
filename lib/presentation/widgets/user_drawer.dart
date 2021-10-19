@@ -32,6 +32,11 @@ class UserDrawer extends ConsumerWidget {
                     icon: Icons.how_to_reg_outlined,
                     onTap: () => context.goNamed("registro"),
                   ),
+                  MenuItem(
+                    texto: 'Organizacion',
+                    icon: Icons.corporate_fare_outlined,
+                    onTap: () => context.goNamed("organizacion"),
+                  ),
                   if (user.esAdmin)
                     MenuItem(
                       texto:
@@ -51,18 +56,9 @@ class UserDrawer extends ConsumerWidget {
                   ),
                   if (user.esAdmin)
                     MenuItem(
-                      texto: 'Ver base de datos',
-                      icon: Icons.storage_outlined,
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const InspeccionesDbViewerPage())),
-                    ),
-                  if (user.esAdmin)
-                    MenuItem(
-                      texto: 'Insertar datos de prueba',
-                      icon: Icons.science_outlined,
-                      onTap: () => ref
-                          .read(cuestionariosRepositoryProvider)
-                          .insertarDatosDePrueba(),
+                      texto: 'Herramientas de desarrollador',
+                      icon: Icons.bug_report_outlined,
+                      onTap: () => _mostrarHerramientasDeDesarrollo(context),
                     ),
                   MenuItem(
                     texto: 'Limpiar datos de la app',
@@ -202,3 +198,29 @@ Future<void> _mostrarConfirmacionLimpieza({required BuildContext context}) =>
                 }),
               ],
             ));
+Future<void> _mostrarHerramientasDeDesarrollo(BuildContext context) =>
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Consumer(builder: (context, ref, _) {
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Wrap(
+              children: [
+                ElevatedButton(
+                    child: const Text("Ver base de datos"),
+                    onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const InspeccionesDbViewerPage()),
+                        )),
+                ElevatedButton(
+                    child: const Text("Insertar datos de prueba"),
+                    onPressed: () => ref
+                        .read(cuestionariosRepositoryProvider)
+                        .insertarDatosDePrueba())
+              ],
+            ),
+          );
+        }),
+      ),
+    );

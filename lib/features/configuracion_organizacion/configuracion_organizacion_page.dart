@@ -4,24 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
-import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:reactive_multi_image_picker/reactive_multi_image_picker.dart';
 
-import 'registro_usuario_control.dart';
+import 'configuracion_organizacion_control.dart';
 
 final _loadingProvider = StateProvider((ref) => false);
 
-class RegistroUsuarioPage extends StatelessWidget {
-  const RegistroUsuarioPage({Key? key}) : super(key: key);
+class ConfiguracionOrganizacionPage extends StatelessWidget {
+  const ConfiguracionOrganizacionPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registro de usuario'),
+        title: const Text("configuración de organización"),
       ),
-      drawer: const UserDrawer(),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
@@ -29,7 +27,7 @@ class RegistroUsuarioPage extends StatelessWidget {
             child: const Card(
               child: Padding(
                 padding: EdgeInsets.all(8.0),
-                child: _RegistroForm(),
+                child: ConfOrgForm(),
               ),
             ),
           ),
@@ -39,51 +37,20 @@ class RegistroUsuarioPage extends StatelessWidget {
   }
 }
 
-class _RegistroForm extends ConsumerWidget {
-  const _RegistroForm({Key? key}) : super(key: key);
+class ConfOrgForm extends ConsumerWidget {
+  const ConfOrgForm({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
-    final form = ref.watch(registroUsuarioProvider);
+    final form = ref.watch(configuracionOrganizacionProvider);
     return ReactiveForm(
       formGroup: form.control,
       child: Column(
         children: [
-          const Text(
-                  "Por favor llene el formulario para comenzar a usar la aplicación de inspecciones:")
-              .padding(const EdgeInsets.symmetric(vertical: 8.0)),
-          ReactiveTextField(
-            textInputAction: TextInputAction.next,
-            formControl: form.nombreControl,
-            decoration: const InputDecoration(labelText: 'Nombre(s)'),
-          ).padding(const EdgeInsets.symmetric(vertical: 4.0)),
-          ReactiveTextField(
-            textInputAction: TextInputAction.next,
-            formControl: form.apellidoControl,
-            decoration: const InputDecoration(labelText: 'Apellido(s)'),
-          ).padding(const EdgeInsets.symmetric(vertical: 4.0)),
-          ReactiveTextField(
-            textInputAction: TextInputAction.next,
-            formControl: form.emailControl,
-            decoration: const InputDecoration(labelText: 'correo electrónico'),
-          ).padding(const EdgeInsets.symmetric(vertical: 4.0)),
-          ReactiveTextField(
-            textInputAction: TextInputAction.next,
-            formControl: form.passwordControl,
-            obscureText: true,
-            decoration:
-                const InputDecoration(labelText: 'Ingrese su contraseña'),
-          ).padding(const EdgeInsets.symmetric(vertical: 4.0)),
-          ReactiveTextField(
-            textInputAction: TextInputAction.done,
-            formControl: form.passwordConfControl,
-            obscureText: true,
-            decoration:
-                const InputDecoration(labelText: 'Confirme su contraseña'),
-          ).padding(const EdgeInsets.symmetric(vertical: 4.0)),
           ReactiveMultiImagePicker<AppImage, AppImage>(
-            formControl: form.fotoControl,
-            decoration: const InputDecoration(labelText: 'Foto (opcional)'),
+            formControl: form.logoControl,
+            //valueAccessor: FileValueAccessor(),
+            decoration: const InputDecoration(labelText: 'Logo'),
             maxImages: 1,
             imageBuilder: (image) => image.when(
               remote: (url) => Image.network(url),
@@ -93,6 +60,15 @@ class _RegistroForm extends ConsumerWidget {
             xFileConverter: (file) =>
                 kIsWeb ? AppImage.web(file.path) : AppImage.mobile(file.path),
           ),
+          ReactiveTextField(
+            textInputAction: TextInputAction.next,
+            formControl: form.nombreControl,
+            decoration: const InputDecoration(
+              labelText: 'Nombre de la organización',
+              fillColor: Colors.transparent,
+            ),
+          ),
+
           const SizedBox(
             height: 15,
           ),
@@ -104,7 +80,7 @@ class _RegistroForm extends ConsumerWidget {
                 final loadingCtrl = ref.watch(_loadingProvider);
                 final isLoading = loadingCtrl.state;
                 return ElevatedButton(
-                  onPressed: !form.control.valid || isLoading
+                  onPressed: !form.nombreControl.valid || isLoading
                       ? null
                       : () => form.submit(
                             onStart: () => loadingCtrl.state = true,
@@ -176,11 +152,4 @@ class _RegistroForm extends ConsumerWidget {
                       onPressed: Navigator.of(context).pop, child: Text('ok'))
                 ],
               ));
-}
-
-extension PaddingX on Widget {
-  Widget padding(EdgeInsetsGeometry padding) => Padding(
-        padding: padding,
-        child: this,
-      );
 }

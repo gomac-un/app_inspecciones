@@ -4,27 +4,20 @@ import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-final registroUsuarioProvider =
-    Provider((ref) => RegistroUsuarioControl(ref.read));
+final configuracionOrganizacionProvider =
+    Provider((ref) => ConfiguracionOrganizacionControl(ref.read));
 
-class RegistroUsuarioControl {
+class ConfiguracionOrganizacionControl {
   final Reader read;
-  final nombreControl = fb.control('', [Validators.required]);
-  final apellidoControl = fb.control('');
-  final emailControl = fb.control('', [Validators.required, Validators.email]);
-  final passwordControl = fb.control('', [Validators.required]);
-  final passwordConfControl = fb.control('', [Validators.required]);
-  final fotoControl = fb.control<List<AppImage>>([]);
 
-  late final control = fb.group({
-    'nombre': fb.control('', [Validators.required]),
-    'apellido': fb.control(''),
-    'email': fb.control('', [Validators.required, Validators.email]),
-    'password': fb.control('', [Validators.required]),
-    'password_conf': fb.control('', [Validators.required]),
-    'foto': fotoControl,
+  final logoControl = fb.control<List<AppImage>>([]);
+  final nombreControl = fb.control('', [Validators.required]);
+
+  late final control = FormGroup({
+    'logo': logoControl,
+    'nombre': nombreControl,
   });
-  RegistroUsuarioControl(this.read);
+  ConfiguracionOrganizacionControl(this.read);
 
   Future<void> submit({
     VoidCallback? onStart,

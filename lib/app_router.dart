@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/features/registro_usuario/registro_usuario_page.dart';
-import 'package:inspecciones/features/sincronizacion/sincronizacion_page.dart';
-import 'package:inspecciones/presentation/pages/cuestionarios_screen.dart';
-import 'package:inspecciones/presentation/pages/history_screen.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'application/auth/auth_service.dart';
+import 'features/configuracion_organizacion/organizacion_page.dart';
 import 'features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
 import 'features/login/login_page.dart';
+import 'features/registro_usuario/registro_usuario_page.dart';
+import 'features/sincronizacion/sincronizacion_page.dart';
 import 'presentation/pages/borradores_screen.dart';
+import 'presentation/pages/cuestionarios_screen.dart';
+import 'presentation/pages/history_screen.dart';
 import 'theme.dart';
 import 'utils.dart';
 
@@ -85,6 +86,14 @@ final goRouterProvider = Provider((ref) => GoRouter(
           pageBuilder: (context, state) => MaterialPage<void>(
             key: state.pageKey,
             child: const RegistroUsuarioPage(),
+          ),
+        ),
+        GoRoute(
+          path: '/organizacion',
+          name: 'organizacion',
+          pageBuilder: (context, state) => MaterialPage<void>(
+            key: state.pageKey,
+            child: const OrganizacionPage(),
           ),
         ),
       ],
