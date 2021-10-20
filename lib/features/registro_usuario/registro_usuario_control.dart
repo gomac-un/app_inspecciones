@@ -14,7 +14,7 @@ class RegistroUsuarioControl {
   final emailControl = fb.control('', [Validators.required, Validators.email]);
   final passwordControl = fb.control('', [Validators.required]);
   final passwordConfControl = fb.control('', [Validators.required]);
-  final fotoControl = fb.control<List<AppImage>>([]);
+  final fotoControl = fb.control<AppImage?>(null);
 
   late final control = fb.group({
     'nombre': fb.control('', [Validators.required]),

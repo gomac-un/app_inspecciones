@@ -4,11 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
+import 'package:inspecciones/presentation/widgets/app_image_multi_image_picker.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:reactive_multi_image_picker/reactive_multi_image_picker.dart';
 
 import 'registro_usuario_control.dart';
+
+//TODO: aceptar politica de proteccion de datos
+// celular para recuperar contraseña
 
 final _loadingProvider = StateProvider((ref) => false);
 
@@ -81,17 +85,9 @@ class _RegistroForm extends ConsumerWidget {
             decoration:
                 const InputDecoration(labelText: 'Confirme su contraseña'),
           ).padding(const EdgeInsets.symmetric(vertical: 4.0)),
-          ReactiveMultiImagePicker<AppImage, AppImage>(
+          AppImageImagePicker(
             formControl: form.fotoControl,
-            decoration: const InputDecoration(labelText: 'Foto (opcional)'),
-            maxImages: 1,
-            imageBuilder: (image) => image.when(
-              remote: (url) => Image.network(url),
-              mobile: (path) => Image.file(File(path)),
-              web: (path) => Image.network(path),
-            ),
-            xFileConverter: (file) =>
-                kIsWeb ? AppImage.web(file.path) : AppImage.mobile(file.path),
+            label: 'Foto (opcional)',
           ),
           const SizedBox(
             height: 15,

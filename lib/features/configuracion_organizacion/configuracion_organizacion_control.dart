@@ -10,7 +10,7 @@ final configuracionOrganizacionProvider =
 class ConfiguracionOrganizacionControl {
   final Reader read;
 
-  final logoControl = fb.control<List<AppImage>>([]);
+  final logoControl = fb.control<AppImage?>(null, [Validators.required]);
   final nombreControl = fb.control('', [Validators.required]);
 
   late final control = FormGroup({

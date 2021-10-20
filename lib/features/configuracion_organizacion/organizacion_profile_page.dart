@@ -10,6 +10,7 @@ class OrganizacionProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       children: [
+        const SizedBox(height: 24),
         ProfileWidget(
           imagePath:
               "https://media-exp1.licdn.com/dms/image/C4E0BAQF84UhDY_5h-w/company-logo_200_200/0/1615608683611?e=2159024400&v=beta&t=scH2oRc6wLO_1QOGX6-fj5mBxG5pyNZ65vLKQyyNSaA",

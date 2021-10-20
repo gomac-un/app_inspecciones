@@ -1,16 +1,15 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
+import 'package:inspecciones/presentation/widgets/app_image_multi_image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:reactive_multi_image_picker/reactive_multi_image_picker.dart';
 
 import 'configuracion_organizacion_control.dart';
 
 final _loadingProvider = StateProvider((ref) => false);
 
+//TODO: link
+// industria
 class ConfiguracionOrganizacionPage extends StatelessWidget {
   const ConfiguracionOrganizacionPage({Key? key}) : super(key: key);
 
@@ -47,18 +46,9 @@ class ConfOrgForm extends ConsumerWidget {
       formGroup: form.control,
       child: Column(
         children: [
-          ReactiveMultiImagePicker<AppImage, AppImage>(
+          AppImageImagePicker(
             formControl: form.logoControl,
-            //valueAccessor: FileValueAccessor(),
-            decoration: const InputDecoration(labelText: 'Logo'),
-            maxImages: 1,
-            imageBuilder: (image) => image.when(
-              remote: (url) => Image.network(url),
-              mobile: (path) => Image.file(File(path)),
-              web: (path) => Image.network(path),
-            ),
-            xFileConverter: (file) =>
-                kIsWeb ? AppImage.web(file.path) : AppImage.mobile(file.path),
+            label: 'Logo',
           ),
           ReactiveTextField(
             textInputAction: TextInputAction.next,
