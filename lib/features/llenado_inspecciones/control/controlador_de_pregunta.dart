@@ -17,8 +17,9 @@ abstract class ControladorDePregunta<T extends Pregunta> {
   late final observacionControl = fb.control(respuesta.observaciones);
   late final reparadoControl = fb.control(respuesta.reparada);
 
-  late final observacionReparacionControl =
-      fb.control(respuesta.observacionesReparacion);
+  late final observacionReparacionControl = fb.control(
+    respuesta.observacionesReparacion,
+  );
   late final fotosBaseControl = fb.control<List<AppImage>>(respuesta.fotosBase);
   late final fotosReparacionControl =
       fb.control<List<AppImage>>(respuesta.fotosReparacion);
@@ -31,7 +32,10 @@ abstract class ControladorDePregunta<T extends Pregunta> {
     "reparado": reparadoControl,
     "fotosBase": fotosBaseControl,
     "fotosReparacion": fotosReparacionControl,
-  });
+  }, [
+    // Aunque un control sea inválido, el grupo es válido. Se valida el grupo entero.
+    ReparadoValidator().validate
+  ]);
 
   /// el control de reactive forms que debe contener directa o indirectamente
   /// todos los controles asociados a este [ControladorDePregunta], si algun
@@ -97,5 +101,31 @@ abstract class ControladorDePregunta<T extends Pregunta> {
         throw Exception(
             "el valor de calificacion mayor a 4, revise el reactive_slider");
     }
+  }
+}
+
+class ReparadoValidator extends Validator<dynamic> {
+  @override
+  Map<String, dynamic>? validate(AbstractControl<dynamic> control) {
+    final metaRespuestaControl = control as FormGroup;
+    final reparado =
+        metaRespuestaControl.control('reparado') as FormControl<bool>;
+    final observacion = metaRespuestaControl.control('observacionReparacion')
+        as FormControl<String>;
+    final fotosReparacion = metaRespuestaControl.control('fotosReparacion')
+        as FormControl<List<AppImage>>;
+    final error = {ValidationMessage.required: true};
+    if (reparado.value != null && reparado.value!) {
+      if (observacion.value!.trim().isEmpty) {
+        observacion.setErrors(error);
+      }
+      if (fotosReparacion.value!.isEmpty) {
+        fotosReparacion.setErrors(error);
+      }
+    } else {
+      observacion.removeError(ValidationMessage.required);
+      fotosReparacion.removeError(ValidationMessage.required);
+    }
+    return null;
   }
 }
