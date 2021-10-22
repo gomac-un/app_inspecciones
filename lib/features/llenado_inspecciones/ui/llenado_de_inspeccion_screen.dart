@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
+import 'package:inspecciones/features/llenado_inspecciones/ui/avance_card.dart';
 
 import '../control/controlador_llenado_inspeccion.dart';
 import '../domain/inspeccion.dart';
@@ -29,7 +30,6 @@ class InspeccionPage extends ConsumerWidget {
           final estadoDeInspeccion =
               ref.watch(estadoDeInspeccionProvider).state;
           final mostrarFab = kIsWeb && ref.watch(showFABProvider).state;
-
           return Scaffold(
             backgroundColor: Theme.of(context).backgroundColor,
             drawer: estadoDeInspeccion == EstadoDeInspeccion.finalizada
@@ -43,10 +43,7 @@ class InspeccionPage extends ConsumerWidget {
                       camelCase: true,
                     ).toLowerCase(),
               ),
-              backgroundColor:
-                  estadoDeInspeccion == EstadoDeInspeccion.enReparacion
-                      ? Colors.deepOrange
-                      : null,
+              backgroundColor: const Color.fromRGBO(28, 44, 60, 1),
               actions: [
                 const FilterWidget(),
                 if (estadoDeInspeccion != EstadoDeInspeccion.finalizada) ...[
@@ -77,7 +74,16 @@ class InspeccionPage extends ConsumerWidget {
                 ]
               ],
             ),
-            body: PaginadorYFiltradorDePreguntas(control),
+            body: Column(children: [
+              AvanceCard(
+                  control.formArray,
+                  control.controladores
+                      .where((c) => c.criticidadCalculada > 0)
+                      .toList()
+                      .length),
+              const SizedBox(height: 3),
+              Expanded(child: PaginadorYFiltradorDePreguntas(control)),
+            ]),
             floatingActionButton: mostrarFab ? const FABNavigation() : null,
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerFloat,

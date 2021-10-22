@@ -15,6 +15,7 @@ class ThemeNotifier extends StateNotifier<ThemeData> {
 }
 
 ThemeData _buildGomacTheme(Brightness brightness) {
+  //TODO: usar colores del logo de Gomac.
   const color1 = Colors.indigo;
   const color2 = Colors.orange;
   final primaryColor = brightness == Brightness.light ? color1 : color2;
