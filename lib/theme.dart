@@ -34,6 +34,7 @@ ThemeData _buildGomacTheme(Brightness brightness) {
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
     ),
+    textTheme: TextTheme(headline6: TextStyle(color: Colors.grey[700])),
   );
 }
 

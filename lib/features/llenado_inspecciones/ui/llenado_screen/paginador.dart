@@ -29,27 +29,28 @@ class PaginadorYFiltradorDePreguntas extends ConsumerWidget {
     final bool paginar;
     switch (filtro) {
       case FiltroPreguntas.todas:
-        widgets = control.cuestionario.bloques
-            .map(
-              (b) => factory.crearCard(
-                b,
-                control.controladores.singleWhereOrNull((e) => e.pregunta == b),
-              ),
-            )
-            .toList();
+        widgets = control.cuestionario.bloques.map((b) {
+          return factory.crearCard(
+              b,
+              control.controladores.singleWhereOrNull((e) => e.pregunta == b),
+              control.cuestionario.bloques.indexOf(b));
+        }).toList();
+
         paginar = true;
         break;
       case FiltroPreguntas.criticas:
         widgets = control.controladores
             .where((c) => c.criticidadCalculada > 0)
-            .map((c) => factory.crearCard(c.pregunta, c))
+            .map((c) => factory.crearCard(c.pregunta, c,
+                control.cuestionario.bloques.indexOf(c.pregunta)))
             .toList();
         paginar = false;
         break;
       case FiltroPreguntas.invalidas:
         widgets = control.controladores
             .where((c) => !c.esValido())
-            .map((c) => factory.crearCard(c.pregunta, c))
+            .map((c) => factory.crearCard(c.pregunta, c,
+                control.cuestionario.bloques.indexOf(c.pregunta)))
             .toList();
         paginar = false;
         break;
@@ -61,9 +62,10 @@ class PaginadorYFiltradorDePreguntas extends ConsumerWidget {
         .map((pag) => pag
             .map(
               (b) => factory.crearCard(
-                b,
-                control.controladores.singleWhereOrNull((e) => e.pregunta == b),
-              ),
+                  b,
+                  control.controladores
+                      .singleWhereOrNull((e) => e.pregunta == b),
+                  control.cuestionario.bloques.indexOf(b)),
             )
             .toList())
         .toList();
