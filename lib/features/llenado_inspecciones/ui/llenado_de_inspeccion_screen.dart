@@ -14,6 +14,7 @@ import 'llenado_screen/paginador.dart';
 
 class InspeccionPage extends ConsumerWidget {
   final IdentificadorDeInspeccion inspeccionId;
+
   const InspeccionPage({Key? key, required this.inspeccionId})
       : super(key: key);
 
@@ -78,9 +79,15 @@ class InspeccionPage extends ConsumerWidget {
               ],
             ),
             body: PaginadorYFiltradorDePreguntas(control),
-            floatingActionButton: mostrarFab ? const FABNavigation() : null,
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.centerFloat,
+            floatingActionButton: mostrarFab
+                ? const FABNavigation()
+                : FloatingActionButton(
+                    child: Icon(Icons.warning_amber_rounded),
+                    onPressed: () => _showAlert(context),
+                  ),
+            floatingActionButtonLocation: mostrarFab
+                ? FloatingActionButtonLocation.centerFloat
+                : FloatingActionButtonLocation.endFloat,
           );
         });
   }
@@ -119,4 +126,23 @@ class InspeccionPage extends ConsumerWidget {
           ),
         ),
       );
+
+  void _showAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+            title: Text('Información'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('Criticidad: Criticidad total', textAlign: TextAlign.left),
+                Text('Tiempo transcurrido: 2m', textAlign: TextAlign.left),
+                Text('Número de pregunas: 65', textAlign: TextAlign.left),
+              ],
+            ));
+      },
+    );
+  }
 }
