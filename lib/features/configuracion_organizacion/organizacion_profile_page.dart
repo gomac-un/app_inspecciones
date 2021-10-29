@@ -1,44 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
 
 import 'configuracion_organizacion_page.dart';
+import 'domain/entities.dart';
 import 'widgets/profile_widget.dart';
+import 'widgets/simple_future_provider_refreshable_builder.dart';
 
-class OrganizacionProfilePage extends StatelessWidget {
+final miOrganizacionProvider = FutureProvider.autoDispose((ref) =>
+    ref.watch(organizacionRemoteRepositoryProvider).getMiOrganizacion());
+
+class OrganizacionProfilePage extends ConsumerWidget {
   const OrganizacionProfilePage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        const SizedBox(height: 24),
-        ProfileWidget(
-          imagePath:
-              "https://media-exp1.licdn.com/dms/image/C4E0BAQF84UhDY_5h-w/company-logo_200_200/0/1615608683611?e=2159024400&v=beta&t=scH2oRc6wLO_1QOGX6-fj5mBxG5pyNZ65vLKQyyNSaA",
-          onClicked: () => Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => const ConfiguracionOrganizacionPage())),
-        ),
-        const SizedBox(height: 24),
-        buildName(),
-        const SizedBox(height: 24),
-        Center(child: buildUpgradeButton()),
-        const SizedBox(height: 24),
-        const NumbersWidget(),
-        const SizedBox(height: 48),
-        buildAbout(),
-      ],
-    );
+  Widget build(BuildContext context, ref) {
+    return SimpleFutureProviderRefreshableBuilder(
+        provider: miOrganizacionProvider,
+        builder: (context, Organizacion organizacion) => ListView(
+              children: [
+                const SizedBox(height: 24),
+                ProfileWidget(
+                  imagePath: organizacion.logo,
+                  onClicked: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => ConfiguracionOrganizacionPage(
+                            organizacion: organizacion,
+                          ))),
+                ),
+                const SizedBox(height: 24),
+                buildName(organizacion.nombre, organizacion.link),
+                const SizedBox(height: 24),
+                Center(child: buildUpgradeButton()),
+                const SizedBox(height: 24),
+                const _EstadisticasWidget(),
+                const SizedBox(height: 48),
+                buildAbout(organizacion.acerca),
+              ],
+            ));
   }
 
-  Widget buildName() => Column(
-        children: const [
+  Widget buildName(String nombre, String link) => Column(
+        children: [
           Text(
-            'Gomac',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+            nombre,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
-            'gomac@gmail.com', //email
-            style: TextStyle(color: Colors.grey),
+            link, //email
+            style: const TextStyle(color: Colors.grey),
           )
         ],
       );
@@ -48,37 +58,37 @@ class OrganizacionProfilePage extends StatelessWidget {
         onPressed: () {},
       );
 
-  Widget buildAbout() => Container(
+  Widget buildAbout(String acerca) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 48),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
+          children: [
+            const Text(
               'Acerca de',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
-              "detalles de la organizacion",
-              style: TextStyle(fontSize: 16, height: 1.4),
+              acerca,
+              style: const TextStyle(fontSize: 16, height: 1.4),
             ),
           ],
         ),
       );
 }
 
-class NumbersWidget extends StatelessWidget {
-  const NumbersWidget({Key? key}) : super(key: key);
+class _EstadisticasWidget extends StatelessWidget {
+  const _EstadisticasWidget({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) => Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          buildButton(context, '4.8', 'Ranking'),
+        children: [
+          buildButton(context, '0', 'Ranking'), //TODO: implementar
           buildDivider(),
-          buildButton(context, '35', 'Inspecciones'),
+          buildButton(context, '0', 'Inspecciones'),
           buildDivider(),
-          buildButton(context, '50', 'Reparaciones'),
+          buildButton(context, '0', 'Reparaciones'),
         ],
       );
   Widget buildDivider() => const SizedBox(
@@ -93,8 +103,7 @@ class NumbersWidget extends StatelessWidget {
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
+          children: [
             Text(
               value,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),

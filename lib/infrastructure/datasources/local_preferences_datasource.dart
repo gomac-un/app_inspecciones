@@ -15,10 +15,21 @@ abstract class LocalPreferencesDataSource {
   Usuario? getUser();
   Future<bool> saveUltimaSincronizacion(DateTime momento);
   DateTime? getUltimaSincronizacion();
+
+  /// Guarda localmente el id de la instalación de la app en el dispositivo.
   Future<bool> saveAppId(int appId);
+
+  /// Devuelve el id de la instalación de la app en el dispositivo
   int? getAppId();
+
   Future<bool> saveToken(String? token);
   String? getToken();
+
+  /// Obtiene el tema, false es dark y true es bright
+  bool? getTema();
+
+  /// Guarda el tema, false es dark y true es bright
+  Future<bool> saveTema(bool tema);
 }
 
 class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
@@ -26,6 +37,7 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
   static const _appIdKey = 'appId';
   static const _ultimaActualizacionKey = 'ultimaActualizacion';
   static const _tokenKey = 'token';
+  static const _temaKey = 'tema';
   //TODO: si hay que guardar mas preferencias considerar guardarlas todas en un solo json
   final SharedPreferences _preferences;
 
@@ -66,11 +78,9 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
     return DateFormat(dateformat).parse(rawUltimaActualizacion);
   }
 
-  /// Guarda localmente el id de la instalación de la app en el dispositivo.
   @override
   Future<bool> saveAppId(int appId) => _preferences.setInt(_appIdKey, appId);
 
-  /// Devuelve el id de la instalación de la app en el dispositivo
   @override
   int? getAppId() => _preferences.getInt(_appIdKey);
 
@@ -81,4 +91,10 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
   Future<bool> saveToken(String? token) => token != null
       ? _preferences.setString(_tokenKey, token)
       : _preferences.remove(_tokenKey);
+
+  @override
+  bool? getTema() => _preferences.getBool(_temaKey);
+
+  @override
+  Future<bool> saveTema(bool tema) => _preferences.setBool(_temaKey, tema);
 }

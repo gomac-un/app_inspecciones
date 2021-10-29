@@ -1,23 +1,19 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:go_router/src/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/core/entities/app_image.dart';
-import 'package:inspecciones/domain/auth/auth_failure.dart';
+import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/presentation/extensions.dart';
 import 'package:inspecciones/presentation/widgets/app_image_multi_image_picker.dart';
-import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:reactive_multi_image_picker/reactive_multi_image_picker.dart';
 
 import 'registro_usuario_control.dart';
-
-//TODO: aceptar politica de proteccion de datos
-// celular para recuperar contraseña
 
 final _loadingProvider = StateProvider((ref) => false);
 
 class RegistroUsuarioPage extends StatelessWidget {
-  const RegistroUsuarioPage({Key? key}) : super(key: key);
+  final int organizacionId;
+  const RegistroUsuarioPage({Key? key, required this.organizacionId})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,15 +21,16 @@ class RegistroUsuarioPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Registro de usuario'),
       ),
-      drawer: const UserDrawer(),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
-            child: const Card(
+            child: Card(
               child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: _RegistroForm(),
+                padding: const EdgeInsets.all(8.0),
+                child: _RegistroForm(
+                  organizacionId: organizacionId,
+                ),
               ),
             ),
           ),
@@ -44,7 +41,9 @@ class RegistroUsuarioPage extends StatelessWidget {
 }
 
 class _RegistroForm extends ConsumerWidget {
-  const _RegistroForm({Key? key}) : super(key: key);
+  final int organizacionId;
+  const _RegistroForm({Key? key, required this.organizacionId})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
@@ -73,6 +72,17 @@ class _RegistroForm extends ConsumerWidget {
           ).padding(const EdgeInsets.symmetric(vertical: 4.0)),
           ReactiveTextField(
             textInputAction: TextInputAction.next,
+            formControl: form.celularControl,
+            decoration: const InputDecoration(labelText: 'celular'),
+          ).padding(const EdgeInsets.symmetric(vertical: 4.0)),
+          ReactiveTextField(
+            textInputAction: TextInputAction.next,
+            formControl: form.usernameControl,
+            decoration: const InputDecoration(
+                labelText: 'nombre de usuario (opcional)'),
+          ).padding(const EdgeInsets.symmetric(vertical: 4.0)),
+          ReactiveTextField(
+            textInputAction: TextInputAction.next,
             formControl: form.passwordControl,
             obscureText: true,
             decoration:
@@ -88,6 +98,11 @@ class _RegistroForm extends ConsumerWidget {
           AppImageImagePicker(
             formControl: form.fotoControl,
             label: 'Foto (opcional)',
+          ),
+          ReactiveCheckboxListTile(
+            formControl: form.aceptoControl,
+            controlAffinity: ListTileControlAffinity.leading,
+            title: const Text('Acepto la política de protección de datos'),
           ),
           const SizedBox(
             height: 15,
@@ -105,11 +120,11 @@ class _RegistroForm extends ConsumerWidget {
                       : () => form.submit(
                             onStart: () => loadingCtrl.state = true,
                             onFinish: () => loadingCtrl.state = false,
-                            onSuccess: () {
-                              //TODO: implementar
-                            },
+                            onSuccess: (username) =>
+                                _onSuccess(context, username),
                             onFailure: (failure) =>
                                 _onFailure(context, ref.read, failure),
+                            organizacionId: organizacionId,
                           ),
                   child: isLoading
                       ? const SizedBox.square(
@@ -119,47 +134,32 @@ class _RegistroForm extends ConsumerWidget {
               });
             },
           ),
-
-          const SizedBox(
-            height: 15,
-          ),
         ],
       ),
     );
   }
 
-  Future<void> _onFailure(
-      BuildContext context, Reader read, AuthFailure failure) async {
-    failure.when(
-      usuarioOPasswordInvalidos: () {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            content: const Text("Usuario o contraseña invalidos"),
+  Future<void> _onSuccess(BuildContext context, username) => showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+            title: const Text('Usuario creado'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Su nombre de usuario es $username'),
+                const Text('Ahora puede iniciar sesión'),
+              ],
+            ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text("ok"),
-              )
+                  onPressed: () => context.goNamed('organizacion'),
+                  child: const Text('ok'))
             ],
-          ),
-        );
-      },
-      noHayInternet: () => _mostrarError(
-        context: context,
-        mensaje: 'No tiene conexión a internet',
-      ),
-      noHayConexionAlServidor: () => _mostrarError(
-        context: context,
-        mensaje:
-            'No se puede conectar al servidor, por favor informe al encargado',
-      ),
-      unexpectedError: (e) => _mostrarError(
-        context: context,
-        mensaje: 'Ocurrió un error inesperado: $e',
-      ),
-    );
-  }
+          ));
+
+  Future<void> _onFailure(
+          BuildContext context, Reader read, ApiFailure failure) =>
+      _mostrarError(context: context, mensaje: failure.mensaje);
 
   Future<void> _mostrarError(
           {required BuildContext context, required String mensaje}) =>
@@ -169,14 +169,8 @@ class _RegistroForm extends ConsumerWidget {
                 content: Text(mensaje),
                 actions: [
                   TextButton(
-                      onPressed: Navigator.of(context).pop, child: Text('ok'))
+                      onPressed: Navigator.of(context).pop,
+                      child: const Text('ok'))
                 ],
               ));
-}
-
-extension PaddingX on Widget {
-  Widget padding(EdgeInsetsGeometry padding) => Padding(
-        padding: padding,
-        child: this,
-      );
 }

@@ -1,24 +1,38 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
 
+import 'domain/entities.dart';
 import 'inspector_profile_page.dart';
+import 'widgets/simple_future_provider_refreshable_builder.dart';
 
-class ListaDeInspectoresPage extends StatelessWidget {
+final _listaDeUsuariosProvider = FutureProvider.autoDispose((ref) =>
+    ref.watch(organizacionRemoteRepositoryProvider).getListaDeUsuarios());
+
+class ListaDeInspectoresPage extends ConsumerWidget {
   const ListaDeInspectoresPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return ListView.separated(
-      itemCount: 2,
-      separatorBuilder: (context, index) => const Divider(),
-      itemBuilder: (context, index) => ListTile(
-        leading: CircleAvatar(child: Text(index.toString())),
-        title: Hero(tag: "nombre$index", child: Text('Persona $index')),
-        subtitle: const Text('inspector'),
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => InspectorProfilePage(
-                  index: index,
-                ))),
+  Widget build(BuildContext context, ref) {
+    return SimpleFutureProviderRefreshableBuilder(
+      provider: _listaDeUsuariosProvider,
+      builder: (context, List<UsuarioEnLista> l) => ListView.separated(
+        itemCount: l.length,
+        separatorBuilder: (context, index) => const Divider(),
+        itemBuilder: (context, index) {
+          final usuario = l[index];
+          return ListTile(
+            leading:
+                CircleAvatar(backgroundImage: NetworkImage(usuario.fotoUrl)),
+            title: Hero(tag: usuario.id, child: Text(usuario.nombre)),
+            subtitle: Text(usuario.rol),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => InspectorProfilePage(
+                      id: usuario.id,
+                    ))),
+          );
+        },
       ),
     );
   }

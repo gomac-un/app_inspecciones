@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/infrastructure/datasources/providers.dart';
 
-final themeProvider =
-    StateNotifierProvider<ThemeNotifier, ThemeData>((ref) => ThemeNotifier(
-          _buildGomacTheme(Brightness
-              .light), //TODO: guardarlo y traerlo de un almacenamiento permanente
-        ));
+final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeData>((ref) =>
+    ThemeNotifier(
+        _buildGomacTheme(
+            ref.watch(localPreferencesDataSourceProvider).getTema() ?? true
+                ? Brightness.light
+                : Brightness.dark),
+        ref.read));
 
 class ThemeNotifier extends StateNotifier<ThemeData> {
-  ThemeNotifier(ThemeData state) : super(state);
-  switchTheme() => state.brightness == Brightness.light
-      ? state = _buildGomacTheme(Brightness.dark)
-      : state = _buildGomacTheme(Brightness.light);
+  final Reader read;
+  ThemeNotifier(ThemeData state, this.read) : super(state);
+  void switchTheme() {
+    state.brightness == Brightness.light
+        ? _setTheme(Brightness.dark)
+        : _setTheme(Brightness.light);
+  }
+
+  void _setTheme(Brightness brightness) {
+    read(localPreferencesDataSourceProvider)
+        .saveTema(brightness == Brightness.light);
+    state = _buildGomacTheme(brightness);
+  }
 }
 
 ThemeData _buildGomacTheme(Brightness brightness) {

@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -59,12 +60,11 @@ class PaginadorYFiltradorDePreguntas extends ConsumerWidget {
         _paginarBloquesPorTitulo(control.cuestionario.bloques);
     final widgetsPaginados = bloquesPaginados
         .map((pag) => pag
-            .map(
-              (b) => factory.crearCard(
-                b,
-                control.controladores.singleWhereOrNull((e) => e.pregunta == b),
-              ),
-            )
+            .map((b) => factory.crearCard(
+                  b,
+                  control.controladores
+                      .singleWhereOrNull((e) => e.pregunta == b),
+                ))
             .toList())
         .toList();
 
@@ -99,15 +99,5 @@ class PaginadorYFiltradorDePreguntas extends ConsumerWidget {
     }
     bloquesPaginados.add(bloquesPagina);
     return bloquesPaginados;
-  }
-}
-
-extension NullableWhere<E> on Iterable<E> {
-  E? singleWhereOrNull(bool Function(E element) test) {
-    try {
-      return singleWhere(test);
-    } catch (e) {
-      return null;
-    }
   }
 }

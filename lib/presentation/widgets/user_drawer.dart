@@ -28,11 +28,6 @@ class UserDrawer extends ConsumerWidget {
               child: ListView(
                 children: [
                   MenuItem(
-                    texto: 'Registro',
-                    icon: Icons.how_to_reg_outlined,
-                    onTap: () => context.goNamed("registro"),
-                  ),
-                  MenuItem(
                     texto: 'Organizacion',
                     icon: Icons.corporate_fare_outlined,
                     onTap: () => context.goNamed("organizacion"),
