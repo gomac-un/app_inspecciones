@@ -7,6 +7,7 @@ import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
 import '../control/controlador_llenado_inspeccion.dart';
 import '../domain/inspeccion.dart';
+import 'icon_menu.dart';
 import 'llenado_screen/actions.dart';
 import 'llenado_screen/filter_widget.dart';
 import 'llenado_screen/floating_action_button.dart';
@@ -21,21 +22,28 @@ class InspeccionPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controlFuture =
-        ref.watch(controladorLlenadoInspeccionProvider(inspeccionId));
+    ref.watch(controladorLlenadoInspeccionProvider(inspeccionId));
 
     return controlFuture.when(
         loading: (prev) => const Center(child: CircularProgressIndicator()),
         error: (e, s, prev) => Text(e.toString()),
         data: (control) {
           final estadoDeInspeccion =
-              ref.watch(estadoDeInspeccionProvider).state;
-          final mostrarFab = kIsWeb && ref.watch(showFABProvider).state;
+              ref
+                  .watch(estadoDeInspeccionProvider)
+                  .state;
+          final mostrarFab = kIsWeb && ref
+              .watch(showFABProvider)
+              .state;
 
           return Scaffold(
-            backgroundColor: Theme.of(context).backgroundColor,
+            backgroundColor: Theme
+                .of(context)
+                .backgroundColor,
             drawer: estadoDeInspeccion == EstadoDeInspeccion.finalizada
                 ? const UserDrawer()
-                : const UserDrawer(), //TODO: mirar si es necesario deshabilitar el drawer mientras se está llenando una inspeccion
+                : const UserDrawer(),
+            //TODO: mirar si es necesario deshabilitar el drawer mientras se está llenando una inspeccion
             appBar: AppBar(
               title: Text(
                 "Inspección " +
@@ -45,46 +53,50 @@ class InspeccionPage extends ConsumerWidget {
                     ).toLowerCase(),
               ),
               backgroundColor:
-                  estadoDeInspeccion == EstadoDeInspeccion.enReparacion
-                      ? Colors.deepOrange
-                      : null,
+              estadoDeInspeccion == EstadoDeInspeccion.enReparacion
+                  ? Colors.deepOrange
+                  : null,
               actions: [
                 const FilterWidget(),
-                if (estadoDeInspeccion != EstadoDeInspeccion.finalizada) ...[
-                  BotonGuardar(
-                    guardar: control.guardarInspeccion,
-                    icon: const Icon(Icons.save),
-                    tooltip: "Guardar borrador",
-                  ),
-                  IconButton(
-                    // TODO: mostrar solo si hay preguntas que necesiten reparacion
-                    onPressed: () => control.iniciarReparaciones(
-                      onInvalid: () => mostrarInvalido(context),
-                      mensajeReparacion: () =>
-                          mostrarMensajeReparacion(context),
-                    ),
-                    icon: const Icon(Icons.home_repair_service),
-                    tooltip: "Iniciar reparaciones",
-                  ),
-                  IconButton(
-                    onPressed: () => control.finalizar(
-                      confirmation: () => _confirmarFinalizacion(context),
-                      ejecutarGuardado: agregarMensajesAccion(context),
-                      onInvalid: () => mostrarInvalido(context),
-                    ),
-                    icon: const Icon(Icons.done),
-                    tooltip: "Finalizar",
-                  ),
-                ]
+                PopupMenuButton<IconMenu>(
+                    onSelected: (value) {
+                      switch (value) {
+                        case IconsMenu.Reparar:
+                          control.iniciarReparaciones(
+                            onInvalid: () => mostrarInvalido(context),
+                            mensajeReparacion: () =>
+                                mostrarMensajeReparacion(context),
+                          );
+                          break;
+                        case IconsMenu.Finalizar:
+                          control.finalizar(confirmation: () =>
+                              _confirmarFinalizacion(context),
+                              ejecutarGuardado: agregarMensajesAccion(context),
+                              onInvalid: () => mostrarInvalido(context));
+                          break;
+                        case IconsMenu.Informacion:
+                          _showAlert(context);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) =>
+                        IconsMenu.items
+                            .map((item) =>
+                            PopupMenuItem<IconMenu>(
+                                value: item,
+                                child: ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: Icon(item.icon),
+                                    title: Text(item.text))))
+                            .toList()),
               ],
             ),
             body: PaginadorYFiltradorDePreguntas(control),
-            floatingActionButton: mostrarFab
-                ? const FABNavigation()
-                : FloatingActionButton(
-                    child: Icon(Icons.warning_amber_rounded),
-                    onPressed: () => _showAlert(context),
-                  ),
+            floatingActionButton: mostrarFab ? FABNavigation(control)  :  BotonGuardar(
+              guardar: control.guardarInspeccion,
+              icon: const Icon(Icons.save),
+              tooltip: "Guardar borrador",
+            ),
             floatingActionButtonLocation: mostrarFab
                 ? FloatingActionButtonLocation.centerFloat
                 : FloatingActionButtonLocation.endFloat,
@@ -99,28 +111,37 @@ class InspeccionPage extends ConsumerWidget {
           text: TextSpan(
             text: '¿Está seguro que desea finalizar esta inspección?\n',
             style: TextStyle(
-                color: Theme.of(context).hintColor,
+                color: Theme
+                    .of(context)
+                    .hintColor,
                 fontSize: 18,
                 fontWeight: FontWeight.bold),
             children: <TextSpan>[
               TextSpan(
                 text: 'Si lo hace, no podrá editarla después.\n\n',
                 style:
-                    TextStyle(color: Theme.of(context).hintColor, fontSize: 17),
+                TextStyle(color: Theme
+                    .of(context)
+                    .hintColor, fontSize: 17),
               ),
               TextSpan(
                 text: 'IMPORTANTE: ',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme
+                      .of(context)
+                      .colorScheme
+                      .secondary,
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               TextSpan(
                 text:
-                    'En caso de que otro usuario deba terminar la inspección, presione cancelar, guarde el avance y envíela sin finalizar',
+                'En caso de que otro usuario deba terminar la inspección, presione cancelar, guarde el avance y envíela sin finalizar',
                 style:
-                    TextStyle(color: Theme.of(context).hintColor, fontSize: 15),
+                TextStyle(color: Theme
+                    .of(context)
+                    .hintColor, fontSize: 15),
               ),
             ],
           ),
