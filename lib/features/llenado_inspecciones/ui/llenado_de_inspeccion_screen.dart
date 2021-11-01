@@ -2,6 +2,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/features/llenado_inspecciones/ui/avance_card.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
 import '../control/controlador_llenado_inspeccion.dart';
@@ -11,6 +12,7 @@ import 'llenado_screen/actions.dart';
 import 'llenado_screen/filter_widget.dart';
 import 'llenado_screen/floating_action_button.dart';
 import 'llenado_screen/paginador.dart';
+import 'pregunta_card_factory.dart';
 
 class InspeccionPage extends ConsumerWidget {
   final IdentificadorDeInspeccion inspeccionId;
@@ -29,7 +31,6 @@ class InspeccionPage extends ConsumerWidget {
           final estadoDeInspeccion =
               ref.watch(estadoDeInspeccionProvider).state;
           final mostrarFab = kIsWeb && ref.watch(showFABProvider).state;
-
           return Scaffold(
             backgroundColor: Theme.of(context).backgroundColor,
             drawer: estadoDeInspeccion == EstadoDeInspeccion.finalizada
@@ -45,7 +46,7 @@ class InspeccionPage extends ConsumerWidget {
               ),
               backgroundColor:
                   estadoDeInspeccion == EstadoDeInspeccion.enReparacion
-                      ? Colors.deepOrange
+                      ? const Color.fromRGBO(240, 184, 35, 1)
                       : null,
               actions: [
                 const FilterWidget(),
@@ -77,7 +78,18 @@ class InspeccionPage extends ConsumerWidget {
                 ]
               ],
             ),
-            body: PaginadorYFiltradorDePreguntas(control),
+            body: Column(children: [
+              AvanceCard(
+                  control.formArray,
+                  control.controladores
+                      .where((c) => c.criticidadCalculada > 0)
+                      .toList()
+                      .length),
+              const SizedBox(height: 3),
+              Expanded(
+                  child: PaginadorYFiltradorDePreguntas(control,
+                      factory: ref.watch(preguntaCardFactoryProvider))),
+            ]),
             floatingActionButton: mostrarFab ? const FABNavigation() : null,
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerFloat,

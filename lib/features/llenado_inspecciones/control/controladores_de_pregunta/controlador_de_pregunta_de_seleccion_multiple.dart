@@ -12,8 +12,9 @@ class ControladorDePreguntaDeSeleccionMultiple
           .toList();
 
   @override
-  late final FormArray respuestaEspecificaControl =
-      fb.array(controladoresPreguntas.map((c) => c.control).toList());
+  late final FormArray respuestaEspecificaControl = fb.array(
+      controladoresPreguntas.map((c) => c.control).toList(),
+      [MultipleValidator().validate]);
 
   ControladorDePreguntaDeSeleccionMultiple(PreguntaDeSeleccionMultiple pregunta)
       : super(pregunta);
@@ -68,4 +69,17 @@ class ControladorDeSubPreguntaDeSeleccionMultiple
   @override
   R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>
       throw UnsupportedError("$runtimeType no recibe visitors");
+}
+
+class MultipleValidator extends Validator<dynamic> {
+  @override
+  Map<String, dynamic>? validate(AbstractControl<dynamic> control) {
+    final respuestas = control as FormArray;
+    final contestadas = respuestas.controls
+        .where((x) => (x as FormGroup).control('respuestaEspecifica').value);
+    if (contestadas.isEmpty) {
+      return <String, dynamic>{ValidationMessage.minLength: true};
+    }
+    return null;
+  }
 }

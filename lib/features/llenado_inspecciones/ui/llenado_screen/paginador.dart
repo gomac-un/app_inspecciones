@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/features/llenado_inspecciones/control/controlador_de_pregunta.dart';
 
 import '../../control/controlador_llenado_inspeccion.dart';
 import '../../domain/bloque.dart';
@@ -17,74 +18,76 @@ final pageStorageBucketProvider =
 //TODO: separar la responsabilidad de paginar y de filtrar en widges diferentes
 class PaginadorYFiltradorDePreguntas extends ConsumerWidget {
   final ControladorLlenadoInspeccion control;
+  final PreguntaCardFactory factory;
 
-  const PaginadorYFiltradorDePreguntas(this.control, {Key? key})
+  const PaginadorYFiltradorDePreguntas(this.control,
+      {Key? key, required this.factory})
       : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
-    final factory = ref.watch(preguntaCardFactoryProvider);
     final filtro = ref.watch(filtroPreguntasProvider).state;
 
-    final List<Widget> widgets;
-    final bool paginar;
     switch (filtro) {
       case FiltroPreguntas.todas:
-        widgets = control.cuestionario.bloques
-            .map(
-              (b) => factory.crearCard(
-                b,
-                control.controladores.singleWhereOrNull((e) => e.pregunta == b),
-              ),
-            )
-            .toList();
-        paginar = true;
-        break;
+        return _buildInspeccionPaginada();
       case FiltroPreguntas.criticas:
-        widgets = control.controladores
-            .where((c) => c.criticidadCalculada > 0)
-            .map((c) => factory.crearCard(c.pregunta, c))
-            .toList();
-        paginar = false;
-        break;
+        return _buildInspeccionEnUnaSolaPagina(
+            control.controladores.where((c) => c.criticidadCalculada > 0));
       case FiltroPreguntas.invalidas:
-        widgets = control.controladores
-            .where((c) => !c.esValido())
-            .map((c) => factory.crearCard(c.pregunta, c))
-            .toList();
-        paginar = false;
-        break;
+        return _buildInspeccionEnUnaSolaPagina(
+            control.controladores.where((c) => !c.esValido()));
     }
+  }
 
+  Widget _buildInspeccionEnUnaSolaPagina(
+          Iterable<ControladorDePregunta> controladoresFiltrados) =>
+      ListViewPreguntas(
+        widgets: _buildCardsFromControladores(controladoresFiltrados),
+      );
+
+  Widget _buildInspeccionPaginada() {
     final bloquesPaginados =
         _paginarBloquesPorTitulo(control.cuestionario.bloques);
-    final widgetsPaginados = bloquesPaginados
-        .map((pag) => pag
-            .map((b) => factory.crearCard(
-                  b,
-                  control.controladores
-                      .singleWhereOrNull((e) => e.pregunta == b),
-                ))
-            .toList())
-        .toList();
 
-    return PageStorage(
-      bucket: ref.watch(pageStorageBucketProvider),
-      child: paginar
-          ? PageView.builder(
-              controller: ref.watch(llenadoPageControllerProvider),
-              itemCount: widgetsPaginados.length,
-              itemBuilder: (context, i) => ListViewPreguntas(
-                key: PageStorageKey<int>(i),
-                widgets: widgetsPaginados[i],
-              ),
-            )
-          : ListViewPreguntas(
-              key: const PageStorageKey<int>(-1),
-              widgets: widgets,
+    /// TODO: agregar la posibilidad de filtrar en este metodo
+    final widgetsPaginados =
+        bloquesPaginados.map((pag) => _buildCardsFromBloques(pag)).toList();
+
+    return Consumer(builder: (context, ref, _) {
+      return PageStorage(
+          bucket: ref.watch(pageStorageBucketProvider),
+          child: PageView.builder(
+            controller: ref.watch(llenadoPageControllerProvider),
+            itemCount: widgetsPaginados.length,
+            itemBuilder: (context, i) => ListViewPreguntas(
+              key: PageStorageKey<int>(i),
+              widgets: widgetsPaginados[i],
             ),
-    );
+          ));
+    });
   }
+
+  List<Widget> _buildCardsFromBloques(Iterable<Bloque> bloquesFiltrados) =>
+      bloquesFiltrados
+          .map(
+            (b) => factory.crearCard(b,
+                controlador: control.controladores
+                    .singleWhereOrNull((e) => e.pregunta == b),
+                nOrden: _getNroOrdenBloque(b)),
+          )
+          .toList();
+
+  List<Widget> _buildCardsFromControladores(
+          Iterable<ControladorDePregunta> controladoresFiltrados) =>
+      controladoresFiltrados
+          .map(
+            (c) => factory.crearCard(c.pregunta,
+                controlador: c, nOrden: _getNroOrdenBloque(c.pregunta)),
+          )
+          .toList();
+
+  int _getNroOrdenBloque(Bloque b) => control.cuestionario.bloques.indexOf(b);
 
   static List<List<Bloque>> _paginarBloquesPorTitulo(List<Bloque> bloques) {
     List<Bloque> bloquesPagina = [];

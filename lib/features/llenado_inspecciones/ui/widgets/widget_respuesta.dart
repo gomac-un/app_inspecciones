@@ -73,6 +73,10 @@ class WidgetRespuesta extends StatelessWidget {
                               ReactiveTextField(
                                 formControl:
                                     control.observacionReparacionControl,
+                                validationMessages: (control) => {
+                                  ValidationMessage.required:
+                                      'La observación es requerida'
+                                },
                                 decoration: const InputDecoration(
                                   labelText: 'Observaciones reparación',
                                   prefixIcon: Icon(Icons.remove_red_eye),
