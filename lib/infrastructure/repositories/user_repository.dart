@@ -7,6 +7,7 @@ import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/features/login/credenciales.dart';
 import 'package:inspecciones/infrastructure/core/network_info.dart';
+import 'package:inspecciones/infrastructure/core/typedefs.dart';
 import 'package:inspecciones/infrastructure/datasources/auth_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/local_preferences_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
@@ -47,8 +48,7 @@ class UserRepository {
         // se registra el token aqui porque inmediatamente despues hay que realizar
         // [_getPermisos] que necesita ese token
         .nestedEvaluatedMap((token) => _appRepository.guardarToken(token))
-        .flatMap((_) => _getPermisos(credenciales.username)
-            .leftMap(apiFailureToAuthFailure))
+        .flatMap((_) => _esAdmin().leftMap(apiFailureToAuthFailure))
         .nestedMap((esAdmin) => _buildUsuarioOnline(credenciales, esAdmin));
   }
 
@@ -58,12 +58,10 @@ class UserRepository {
           Credenciales credenciales) =>
       _appRepository.getTokenFromApi(credenciales);
 
-  /// Devuelve bool que indica si puede o no crear cuestionarios.
-  /// Se usa [token] para poder enviar en el header de la petición
-  Future<Either<ApiFailure, bool>> _getPermisos(String username) =>
+  Future<Either<ApiFailure, bool>> _esAdmin() =>
       apiExceptionToApiFailure(() async {
-        final resMap = await _api.getPermisos(username);
-        return resMap['esAdmin'] as bool;
+        final resMap = await _api.getPerfil(null);
+        return resMap['rol'] == 'administrador';
       });
 
   Usuario _buildUsuarioOnline(Credenciales credenciales, bool esAdmin) =>
@@ -88,6 +86,15 @@ class UserRepository {
   /// en caso contrario null (Aparece login_screen).
   Option<Usuario> getLocalUser() => optionOf(_localPreferences.getUser());
 
+  Future<Either<ApiFailure, String>> registrarUsuario(
+          {required JsonMap formulario}) =>
+      apiExceptionToApiFailure(() =>
+          _api.registrarUsuario(formulario).then((res) => res['username']));
+
+  Future<Either<ApiFailure, Perfil>> getPerfil(int id) =>
+      apiExceptionToApiFailure(
+          () => _api.getPerfil(id).then((res) => Perfil.fromJson(res)));
+
   Future<bool> _hayInternet() => _networkInfo.isConnected;
 }
 
@@ -100,3 +107,30 @@ AuthFailure apiFailureToAuthFailure(ApiFailure apiFailure) => apiFailure.map(
       errorDeComunicacionConLaApi: (e) => AuthFailure.unexpectedError(e),
       errorDeProgramacion: (e) => AuthFailure.unexpectedError(e),
     );
+
+class Perfil {
+  final bool estaActivo;
+  final DateTime fechaRegistro;
+  final String username;
+  final String nombre;
+  final String email;
+  final String foto;
+  final String celular;
+  final String organizacion;
+  final String rol;
+
+  Perfil(this.estaActivo, this.fechaRegistro, this.username, this.nombre,
+      this.email, this.foto, this.celular, this.organizacion, this.rol);
+
+  factory Perfil.fromJson(Map<String, dynamic> json) => Perfil(
+        json['esta_activo'],
+        DateTime.parse(json['fecha_registro']),
+        json['username'],
+        json['nombre'],
+        json['email'],
+        json['foto'],
+        json['celular'],
+        json['organizacion'],
+        json['rol'],
+      );
+}

@@ -47,15 +47,12 @@ class AppRepository {
         return resMap['token'] as String;
       });
 
-  /// Guarda el [token] en el almacenamiento persistente y además lo registra
+  /// Guarda el [token] en el almacenamiento persistente
   Future<void> guardarToken(String? token) =>
       _localPreferences.saveToken(token).then((_) => getToken());
 
   /// Obtiene el token almacenado
-  String? getToken() {
-    return _localPreferences.getToken();
-    //_read(tokenProvider).state = token;
-  }
+  String? getToken() => _localPreferences.getToken();
 
   DateTime? getUltimaSincronizacion() =>
       _localPreferences.getUltimaSincronizacion();

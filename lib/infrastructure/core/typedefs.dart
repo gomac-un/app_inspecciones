@@ -1,1 +1,2 @@
-typedef JsonObject = Map<String, dynamic>;
+typedef JsonMap = Map<String, dynamic>;
+typedef JsonList = List<dynamic>;

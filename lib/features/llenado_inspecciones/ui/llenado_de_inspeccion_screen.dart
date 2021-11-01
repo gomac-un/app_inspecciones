@@ -2,10 +2,10 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
 import '../control/controlador_llenado_inspeccion.dart';
+import '../domain/identificador_inspeccion.dart';
 import '../domain/inspeccion.dart';
 import 'llenado_screen/actions.dart';
 import 'llenado_screen/filter_widget.dart';

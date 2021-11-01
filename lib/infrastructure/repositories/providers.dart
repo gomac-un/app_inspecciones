@@ -1,5 +1,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_remote_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/organizacion_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 
 import 'app_repository.dart';
@@ -14,3 +15,6 @@ final cuestionariosRepositoryProvider =
 
 final inspeccionesRemoteRepositoryProvider =
     Provider((ref) => InspeccionesRemoteRepository(ref.read));
+
+final organizacionRemoteRepositoryProvider =
+    Provider((ref) => OrganizacionRepository(ref.read));

@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:inspecciones/core/entities/app_image.dart';
+import 'package:inspecciones/presentation/widgets/app_image_multi_image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:reactive_multi_image_picker/reactive_multi_image_picker.dart';
 
 import 'creacion_controls.dart';
 import 'creacion_widgets.dart';
@@ -68,18 +65,10 @@ class TipoPreguntaCard extends StatelessWidget {
             activeColor: Colors.red,
           ),
         ),
-        ReactiveMultiImagePicker<AppImage, AppImage>(
+        AppImageMultiImagePicker(
           formControl: preguntaController.fotosGuiaControl,
-          //valueAccessor: FileValueAccessor(),
-          decoration: const InputDecoration(labelText: 'Fotos guía'),
+          label: 'Fotos guía',
           maxImages: 3,
-          imageBuilder: (image) => image.when(
-            remote: (url) => Image.network(url),
-            mobile: (path) => Image.file(File(path)),
-            web: (path) => Image.network(path),
-          ),
-          xFileConverter: (file) =>
-              kIsWeb ? AppImage.web(file.path) : AppImage.mobile(file.path),
         ),
       ],
     );

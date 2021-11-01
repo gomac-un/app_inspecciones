@@ -4,6 +4,6 @@ import '../core/typedefs.dart';
 import '../repositories/fotos_repository.dart';
 
 abstract class FotosRemoteDataSource {
-  Future<JsonObject> subirFotos(
+  Future<JsonMap> subirFotos(
       Iterable<AppImage> fotos, String idDocumento, Categoria tipoDocumento);
 }

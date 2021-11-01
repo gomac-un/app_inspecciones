@@ -7,9 +7,8 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 import 'login_control.dart';
 
-final loadingProvider = StateProvider((ref) => false);
+final _loadingProvider = StateProvider((ref) => false);
 
-/// Pantalla de inicio de sesión.
 class LoginPage extends StatelessWidget {
   final String? from;
   const LoginPage({Key? key, this.from}) : super(key: key);
@@ -27,7 +26,7 @@ class LoginPage extends StatelessWidget {
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: LoginForm(from: from),
+                child: _LoginForm(from: from),
               ),
             ),
           ),
@@ -37,9 +36,9 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-class LoginForm extends ConsumerWidget {
+class _LoginForm extends ConsumerWidget {
   final String? from;
-  const LoginForm({Key? key, this.from}) : super(key: key);
+  const _LoginForm({Key? key, this.from}) : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
@@ -82,7 +81,7 @@ class LoginForm extends ConsumerWidget {
           ReactiveFormConsumer(
             builder: (context, _, child) {
               return Consumer(builder: (context, ref, _) {
-                final loadingCtrl = ref.watch(loadingProvider);
+                final loadingCtrl = ref.watch(_loadingProvider);
                 final isLoading = loadingCtrl.state;
                 return ElevatedButton(
                   onPressed: !form.valid || isLoading
