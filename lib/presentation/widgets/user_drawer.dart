@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -37,17 +38,20 @@ class UserDrawer extends ConsumerWidget {
                       texto:
                           'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
                       icon: Icons.app_registration_outlined,
-                      onTap: () => context.goNamed("cuestionarios"),
+                      onTap: kIsWeb
+                          ? null
+                          : () => context.goNamed("cuestionarios"),
                     ),
                   MenuItem(
                     texto: 'Borradores',
                     icon: Icons.list_alt_outlined,
-                    onTap: () => context.goNamed("borradores"),
+                    onTap: kIsWeb ? null : () => context.goNamed("borradores"),
                   ),
                   MenuItem(
                     texto: 'Sincronizar con GOMAC',
                     icon: Icons.sync_outlined,
-                    onTap: () => context.goNamed("sincronizacion"),
+                    onTap:
+                        kIsWeb ? null : () => context.goNamed("sincronizacion"),
                   ),
                   if (user.esAdmin)
                     MenuItem(
@@ -58,9 +62,11 @@ class UserDrawer extends ConsumerWidget {
                   MenuItem(
                     texto: 'Limpiar datos de la app',
                     icon: Icons.cleaning_services_outlined,
-                    onTap: () => _mostrarConfirmacionLimpieza(
-                      context: context,
-                    ),
+                    onTap: kIsWeb
+                        ? null
+                        : () => _mostrarConfirmacionLimpieza(
+                              context: context,
+                            ),
                   ),
                   MenuItem(
                     texto: 'Cambiar el tema',
@@ -85,7 +91,7 @@ class UserDrawer extends ConsumerWidget {
 class MenuItem extends StatelessWidget {
   final String texto;
   final IconData icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   const MenuItem(
       {Key? key, required this.texto, required this.icon, required this.onTap})
       : super(key: key);

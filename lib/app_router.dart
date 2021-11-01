@@ -16,6 +16,8 @@ import 'presentation/pages/history_screen.dart';
 import 'theme.dart';
 import 'utils.dart';
 
+/// para deeplink se puede usar
+/// adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d "http://gomac.com/registro?org=1"
 final goRouterProvider = Provider((ref) => GoRouter(
       debugLogDiagnostics: true,
       routes: [
