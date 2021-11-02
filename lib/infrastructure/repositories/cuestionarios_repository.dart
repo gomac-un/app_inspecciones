@@ -102,8 +102,17 @@ class CuestionariosRepository {
             [
               PreguntaConOpcionesDeRespuestaCompanion(
                   PreguntasCompanion.insert(
-                    titulo: "titulo",
-                    descripcion: "descripcion",
+                    titulo: "titulo1",
+                    descripcion: "descripcion1",
+                    criticidad: 1,
+                    bloqueId: 1,
+                    tipo: TipoDePregunta.parteDeCuadriculaUnica,
+                  ),
+                  const []),
+              PreguntaConOpcionesDeRespuestaCompanion(
+                  PreguntasCompanion.insert(
+                    titulo: "titulo2",
+                    descripcion: "descripcion2",
                     criticidad: 1,
                     bloqueId: 1,
                     tipo: TipoDePregunta.parteDeCuadriculaUnica,
@@ -111,7 +120,42 @@ class CuestionariosRepository {
                   const []),
             ],
             [
-              OpcionesDeRespuestaCompanion.insert(texto: "texto", criticidad: 1)
+              OpcionesDeRespuestaCompanion.insert(
+                  texto: "texto1", criticidad: 1),
+              OpcionesDeRespuestaCompanion.insert(
+                  texto: "texto2", criticidad: 1)
+            ],
+          ),
+          TitulosCompanion.insert(
+              titulo: "titulo2", descripcion: "descripcion2", bloqueId: 1),
+          CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
+            CuadriculasDePreguntasCompanion.insert(
+                titulo: "titulo", descripcion: "descripcion", bloqueId: 1),
+            [
+              PreguntaConOpcionesDeRespuestaCompanion(
+                  PreguntasCompanion.insert(
+                    titulo: "titulo1",
+                    descripcion: "descripcion1",
+                    criticidad: 1,
+                    bloqueId: 1,
+                    tipo: TipoDePregunta.parteDeCuadriculaMultiple,
+                  ),
+                  const []),
+              PreguntaConOpcionesDeRespuestaCompanion(
+                  PreguntasCompanion.insert(
+                    titulo: "titulo2",
+                    descripcion: "descripcion2",
+                    criticidad: 1,
+                    bloqueId: 1,
+                    tipo: TipoDePregunta.parteDeCuadriculaMultiple,
+                  ),
+                  const []),
+            ],
+            [
+              OpcionesDeRespuestaCompanion.insert(
+                  texto: "texto1", criticidad: 1),
+              OpcionesDeRespuestaCompanion.insert(
+                  texto: "texto2", criticidad: 1)
             ],
           ),
         ]);

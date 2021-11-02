@@ -61,7 +61,7 @@ class PaginadorYFiltradorDePreguntas extends ConsumerWidget {
             controller: ref.watch(llenadoPageControllerProvider),
             itemCount: widgetsPaginados.length,
             itemBuilder: (context, i) => ListViewPreguntas(
-              key: PageStorageKey<int>(i),
+              key: PageStorageKey(i),
               widgets: widgetsPaginados[i],
             ),
           ));
