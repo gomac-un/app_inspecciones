@@ -12,13 +12,8 @@ import 'package:path/path.dart' as path;
 import '../drift_database.dart';
 
 final driftDatabaseProvider = Provider((ref) {
-  final appId = ref.read(localPreferencesDataSourceProvider).getAppId();
-  if (appId == null) {
-    throw Exception("no se ha definido el appId antes de crear la DB");
-  }
   return Database(
     _getQueryExecutor(ref.read(directorioDeDatosProvider)),
-    appId,
     ref.watch(fotosRepositoryProvider),
   );
 });

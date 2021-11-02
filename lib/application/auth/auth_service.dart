@@ -81,12 +81,7 @@ class AuthService extends StateNotifier<AuthState> {
   }) async {
     final autentication = await _userRepository
         // automaticamente guarda y registra el token
-        .authenticateUser(credenciales: credenciales, offline: offline)
-        // registro del AppId
-        .flatMap((usuario) => _appRepository
-            .getOrRegisterAppId()
-            .leftMap(apiFailureToAuthFailure)
-            .flatMap((_) async => Right(usuario)));
+        .authenticateUser(credenciales: credenciales, offline: offline);
 
     autentication.fold(
       (failure) => onFailure?.call(failure),
@@ -116,9 +111,4 @@ class AuthService extends StateNotifier<AuthState> {
     state = const AuthState.unauthenticated();
     await _appRepository.guardarToken(null);
   }
-
-  /// Informacion usada por la vista para evitar login sin haber obtenido el AppId
-
-  Future<Either<AuthFailure, int>> getOrRegisterAppId() =>
-      _appRepository.getOrRegisterAppId().leftMap(apiFailureToAuthFailure);
 }

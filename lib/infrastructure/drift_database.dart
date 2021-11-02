@@ -52,12 +52,11 @@ part 'tablas.dart';
   ],
 )
 class Database extends _$Database {
-  final int _appId;
   //TODO: eliminar la dependencia con fotosRepository
   final FotosRepository fotosRepository;
   // En el caso de que la db crezca mucho y las consultas empiecen a relentizar
   //la UI se debe considerar el uso de los isolates https://drift.simonbinder.eu/docs/advanced-features/isolates/
-  Database(QueryExecutor e, this._appId, this.fotosRepository) : super(e);
+  Database(QueryExecutor e, this.fotosRepository) : super(e);
 
   @override
   int get schemaVersion => 1;
@@ -67,12 +66,6 @@ class Database extends _$Database {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
-        for (final table in allTables) {
-          // Inicializa todos los autoincrement con el prefijo del appId desde el digito 14
-          await customStatement(
-              "insert into SQLITE_SEQUENCE (name,seq) values('${table.actualTableName}',${_appId}00000000000000);"); //1e14
-
-        }
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
@@ -96,13 +89,9 @@ class Database extends _$Database {
     for (final table in allTables) {
       await m.deleteTable(table.actualTableName);
       await m.createTable(table);
-      await customStatement(
-          "insert into SQLITE_SEQUENCE (name,seq) values('${table.actualTableName}',${_appId}00000000000000);"); //1e14
     }
 
     await customStatement('PRAGMA foreign_keys = ON');
-
-    //await batch(initialize(this));
   }
 
   /// Obtiene el [cuestionario] completo con sus bloques para subir al server

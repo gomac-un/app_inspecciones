@@ -131,42 +131,27 @@ class _LoginForm extends ConsumerWidget {
       },
       noHayInternet: () => _problemaDialog(
         context: context,
-        onContinuar: () => _appIdValidation(context, read),
+        onContinuar: () => _loginOffline(context, read),
         razon: 'No tiene conexión a internet',
       ),
       noHayConexionAlServidor: () => _problemaDialog(
         context: context,
-        onContinuar: () => _appIdValidation(context, read),
+        onContinuar: () => _loginOffline(context, read),
         razon:
             'No se puede conectar al servidor, por favor informe al encargado',
       ),
       unexpectedError: (e) => _problemaDialog(
         context: context,
-        onContinuar: () => _appIdValidation(context, read),
+        onContinuar: () => _loginOffline(context, read),
         razon: 'Ocurrió un error inesperado: $e',
       ),
     );
   }
 
-  _appIdValidation(BuildContext context, Reader read) async {
+  Future<void> _loginOffline(BuildContext context, Reader read) async {
     final authService = read(authProvider.notifier);
-    final appIdStatus = await authService.getOrRegisterAppId();
-    appIdStatus.fold(
-      (failure) => showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          content: const Text(
-              'Debe tener conexión a internet para ingresar por primera vez'),
-          actions: [
-            TextButton(
-                child: const Text("Aceptar"),
-                onPressed: () => Navigator.of(context).pop()),
-          ],
-        ),
-      ),
-      (appid) => authService.login(read(loginControlProvider).getCredenciales(),
-          offline: true),
-    );
+    return authService.login(read(loginControlProvider).getCredenciales(),
+        offline: true);
   }
 
   /// Cuando ocurre un problema en la autenticación, el usuario puede ingresar como inspector y llenar inspecciones.
