@@ -14,7 +14,7 @@
         "editor.suggestSelection": "first",
         "editor.tabCompletion": "onlySnippets",
     },
-    "dart.previewLsp": true,
+    "dart.useLsp": true,
     "dart.debugSdkLibraries": false,
     "dart.debugExternalPackageLibraries": true,
     

@@ -8,6 +8,7 @@ import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 import '../control/controlador_llenado_inspeccion.dart';
 import '../domain/identificador_inspeccion.dart';
 import '../domain/inspeccion.dart';
+import 'icon_menu.dart';
 import 'llenado_screen/actions.dart';
 import 'llenado_screen/filter_widget.dart';
 import 'llenado_screen/floating_action_button.dart';
@@ -16,6 +17,7 @@ import 'pregunta_card_factory.dart';
 
 class InspeccionPage extends ConsumerWidget {
   final IdentificadorDeInspeccion inspeccionId;
+
   const InspeccionPage({Key? key, required this.inspeccionId})
       : super(key: key);
 
@@ -30,12 +32,15 @@ class InspeccionPage extends ConsumerWidget {
         data: (control) {
           final estadoDeInspeccion =
               ref.watch(estadoDeInspeccionProvider).state;
-          final mostrarFab = kIsWeb && ref.watch(showFABProvider).state;
+          final mostrarBotonesDeNavegacion =
+              kIsWeb && ref.watch(showFABProvider).state;
+
           return Scaffold(
             backgroundColor: Theme.of(context).backgroundColor,
             drawer: estadoDeInspeccion == EstadoDeInspeccion.finalizada
                 ? const UserDrawer()
-                : const UserDrawer(), //TODO: mirar si es necesario deshabilitar el drawer mientras se está llenando una inspeccion
+                : const UserDrawer(),
+            //TODO: mirar si es necesario deshabilitar el drawer mientras se está llenando una inspeccion
             appBar: AppBar(
               title: Text(
                 "Inspección " +
@@ -50,34 +55,39 @@ class InspeccionPage extends ConsumerWidget {
                       : null,
               actions: [
                 const FilterWidget(),
-                if (estadoDeInspeccion != EstadoDeInspeccion.finalizada) ...[
-                  BotonGuardar(
-                    guardar: control.guardarInspeccion,
-                    icon: const Icon(Icons.save),
-                    tooltip: "Guardar borrador",
-                  ),
-                  IconButton(
-                    // TODO: mostrar solo si hay preguntas que necesiten reparacion
-                    onPressed: () => control.iniciarReparaciones(
-                      onInvalid: () => mostrarInvalido(context),
-                      mensajeReparacion: () =>
-                          mostrarMensajeReparacion(context),
-                    ),
-                    icon: const Icon(Icons.home_repair_service),
-                    tooltip: "Iniciar reparaciones",
-                  ),
-                  IconButton(
-                    onPressed: () => control.finalizar(
-                      confirmation: () => _confirmarFinalizacion(context),
-                      ejecutarGuardado: agregarMensajesAccion(context),
-                      onInvalid: () => mostrarInvalido(context),
-                    ),
-                    icon: const Icon(Icons.done),
-                    tooltip: "Finalizar",
-                  ),
-                ]
+                PopupMenuButton<IconMenu>(
+                    onSelected: (value) {
+                      switch (value) {
+                        case IconsMenu.Reparar:
+                          control.iniciarReparaciones(
+                            onInvalid: () => mostrarInvalido(context),
+                            mensajeReparacion: () =>
+                                mostrarMensajeReparacion(context),
+                          );
+                          break;
+                        case IconsMenu.Finalizar:
+                          control.finalizar(
+                              confirmation: () =>
+                                  _confirmarFinalizacion(context),
+                              ejecutarGuardado: agregarMensajesAccion(context),
+                              onInvalid: () => mostrarInvalido(context));
+                          break;
+                        case IconsMenu.Informacion:
+                          _mostrarInformacionInspeccion(context);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => IconsMenu.items
+                        .map((item) => PopupMenuItem<IconMenu>(
+                            value: item,
+                            child: ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: Icon(item.icon),
+                                title: Text(item.text))))
+                        .toList()),
               ],
             ),
+
             body: Column(children: [
               AvanceCard(
                   control.formArray,
@@ -90,11 +100,24 @@ class InspeccionPage extends ConsumerWidget {
                   child: PaginadorYFiltradorDePreguntas(control,
                       factory: ref.watch(preguntaCardFactoryProvider))),
             ]),
-            floatingActionButton: mostrarFab ? const FABNavigation() : null,
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.centerFloat,
+            floatingActionButton: mostrarBotonesDeNavegacion
+                ? FABNavigation(
+                    botonGuardar: _buildBotonGuardar(control),
+                  )
+                : _buildBotonGuardar(control),
+            floatingActionButtonLocation: mostrarBotonesDeNavegacion
+                ? FloatingActionButtonLocation.centerFloat
+                : FloatingActionButtonLocation.endFloat,
           );
         });
+  }
+
+  Widget _buildBotonGuardar(ControladorLlenadoInspeccion control) {
+    return BotonGuardar(
+      guardar: control.guardarInspeccion,
+      icon: const Icon(Icons.save),
+      tooltip: "Guardar borrador",
+    );
   }
 
   Future<bool?> _confirmarFinalizacion(BuildContext context) =>
@@ -131,4 +154,23 @@ class InspeccionPage extends ConsumerWidget {
           ),
         ),
       );
+
+  void _mostrarInformacionInspeccion(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+            title: const Text('Información'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const <Widget>[
+                Text('Criticidad: Criticidad total', textAlign: TextAlign.left),
+                Text('Tiempo transcurrido: 2m', textAlign: TextAlign.left),
+                Text('Número de preguntas: 65', textAlign: TextAlign.left),
+              ],
+            ));
+      },
+    );
+  }
 }

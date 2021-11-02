@@ -14,9 +14,9 @@ class BotonGuardar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    return FloatingActionButton(
       onPressed: () => agregarMensajesAccion(context)(guardar),
-      icon: icon,
+      child: icon,
       tooltip: tooltip,
     );
   }
