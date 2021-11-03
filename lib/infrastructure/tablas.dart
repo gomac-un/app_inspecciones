@@ -1,15 +1,33 @@
 part of 'drift_database.dart';
 
-/// Definición de todas las tablas usadas en la Bd
-///
+// Definición de todas las tablas usadas en la Bd
+
+const _uuid = Uuid();
 
 class Activos extends Table {
-  IntColumn get id => integer()();
-
-  TextColumn get modelo => text()();
+  TextColumn get id => text()();
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('ActivoXEtiqueta')
+class ActivosXEtiquetas extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get activoId => text()
+      .customConstraint('NOT NULL REFERENCES activos(id) ON DELETE CASCADE')();
+  IntColumn get etiquetaId => integer().customConstraint(
+      'NOT NULL REFERENCES etiquetas_de_activo(id) ON DELETE RESTRICT')();
+}
+
+@DataClassName('EtiquetaDeActivo')
+class EtiquetasDeActivo extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get clave => text()();
+  TextColumn get valor => text()();
+
+  @override
+  List<String> get customConstraints => ["UNIQUE (clave, valor)"];
 }
 
 class Contratistas extends Table {

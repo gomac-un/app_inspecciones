@@ -27,7 +27,6 @@ void main() {
 
     _db = Database(
       NativeDatabase.memory(),
-      1,
       _fotosRepository,
     );
   });

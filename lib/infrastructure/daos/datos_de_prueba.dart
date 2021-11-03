@@ -1,4 +1,4 @@
-part of 'drift_database.dart';
+part of 'por_organizar_dao.dart';
 /* otra posible forma del closure
 Function initialize(db) {
   return (batch) => (Batch batch, db) {
@@ -10,8 +10,8 @@ Future<void> Function(Batch) initialize(Database db) =>
 
 Future<void> _initialize(Batch batch, Database db) async {
   batch.insertAll(db.activos, [
-    ActivosCompanion.insert(modelo: 'DT-Kenworth', id: const Value(1)),
-    ActivosCompanion.insert(modelo: 'sencillo-Kenworth', id: const Value(2)),
+    ActivosCompanion.insert(id: "1"),
+    ActivosCompanion.insert(id: "2"),
   ]);
 
   batch.insertAll(db.sistemas, [
