@@ -31,7 +31,7 @@ class HistoryInspeccionesPage extends ConsumerWidget {
         ],
       ),
       body: StreamBuilder<List<Borrador>>(
-          stream: ref.watch(borradoresDaoProvider).borradores(enviadas: true),
+          stream: ref.watch(borradoresDaoProvider).borradores(mostrarSoloEnviadas: true),
           builder: (context, snapshot) {
             final textTheme = Theme.of(context).textTheme;
 

@@ -3,7 +3,7 @@ import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/cuestionario.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/modelos.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/activo.dart';
 import 'package:inspecciones/infrastructure/core/api_exceptions.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/inspecciones_remote_datasource.dart';

@@ -1,3 +1,6 @@
+import 'package:inspecciones/core/entities/app_image.dart';
+
+import '../../etiqueta.dart';
 import '../pregunta.dart';
 import 'opcion_de_respuesta.dart';
 import 'pregunta_de_seleccion.dart';
@@ -9,11 +12,12 @@ class PreguntaDeSeleccionMultiple
   PreguntaDeSeleccionMultiple(
     List<OpcionDeRespuesta> opcionesDeRespuesta,
     this.respuestas, {
-    required int id,
+    required String id,
     required String titulo,
     required String descripcion,
+    required List<AppImage> fotosGuia,
     required int criticidad,
-    required String posicion,
+    required List<Etiqueta> etiquetas,
     required bool calificable,
     RespuestaDeSeleccionMultiple? respuesta,
   }) : super(
@@ -22,8 +26,9 @@ class PreguntaDeSeleccionMultiple
           respuesta: respuesta,
           titulo: titulo,
           descripcion: descripcion,
+          fotosGuia: fotosGuia,
           criticidad: criticidad,
-          posicion: posicion,
+          etiquetas: etiquetas,
           calificable: calificable,
         );
 }
@@ -33,11 +38,12 @@ class SubPreguntaDeSeleccionMultiple
   final OpcionDeRespuesta opcion;
   SubPreguntaDeSeleccionMultiple(
     this.opcion, {
-    required int id,
+    required String id,
     required String titulo,
     required String descripcion,
+    required List<AppImage> fotosGuia,
     required int criticidad,
-    required String posicion,
+    required List<Etiqueta> etiquetas,
     required bool calificable,
     SubRespuestaDeSeleccionMultiple? respuesta,
   }) : super(
@@ -45,8 +51,9 @@ class SubPreguntaDeSeleccionMultiple
           respuesta: respuesta,
           titulo: titulo,
           descripcion: descripcion,
+          fotosGuia: fotosGuia,
           criticidad: criticidad,
-          posicion: posicion,
+          etiquetas: etiquetas,
           calificable: calificable,
         );
 }

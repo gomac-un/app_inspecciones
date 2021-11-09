@@ -31,29 +31,23 @@ class InspeccionesRepository {
   InspeccionesRepository(this._db, this._fotosRepository);
 
   Stream<List<Borrador>> getBorradores() =>
-      _db.borradoresDao.borradores(enviadas: false);
+      _db.borradoresDao.borradores(mostrarSoloEnviadas: false);
 
   FEF<Unit> eliminarRespuestas(Borrador borrador) => _db.borradoresDao
-      .eliminarRespuestas(borrador.inspeccion.id)
+      .eliminarRespuestas(inspeccionId: borrador.inspeccion.id)
       .then((_) => const Right(unit),
           onError: (e, s) =>
               Left(InspeccionesFailure.unexpectedError(e.toString())));
 
   //FEF<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
   Future<Either<InspeccionesFailure, List<Cuestionario>>>
-      cuestionariosParaActivo(String activo) async {
-    final int activoId;
-    try {
-      activoId = int.parse(activo);
-    } on FormatException {
-      return const Left(InspeccionesFailure.activoInvalido());
-    }
+      cuestionariosParaActivo(String activoId) async {
     final cuestionarios = await _db.cargaDeInspeccionDao
         .getCuestionariosDisponiblesParaActivo(activoId);
     return Right(cuestionarios
         .map((cuest) => Cuestionario(
               id: cuest.id,
-              tipoDeInspeccion: cuest.tipoDeInspeccion!,
+              tipoDeInspeccion: cuest.tipoDeInspeccion,
             ))
         .toList());
   }
@@ -86,8 +80,7 @@ class InspeccionesRepository {
             momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
             momentoEnvio: inspeccion.momentoEnvio,
             criticidadTotal: inspeccion.criticidadTotal,
-            criticidadReparacion: inspeccion.criticidadReparacion,
-            esNueva: inspeccion.esNueva),
+            criticidadReparacion: inspeccion.criticidadReparacion),
         inspeccionCompleta.value2);
     return Right(cuestionarioInspeccionado);
     // } catch (e) {

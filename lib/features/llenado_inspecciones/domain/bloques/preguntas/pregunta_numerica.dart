@@ -1,25 +1,30 @@
+import 'package:inspecciones/core/entities/app_image.dart';
+
+import '../../etiqueta.dart';
 import '../pregunta.dart';
 
 class PreguntaNumerica extends Pregunta<RespuestaNumerica> {
   final List<RangoDeCriticidad> rangosDeCriticidad;
   final String unidades;
   PreguntaNumerica(
-    this.rangosDeCriticidad, {
-    required int id,
+    this.rangosDeCriticidad,
+    this.unidades, {
+    required String id,
     required String titulo,
     required String descripcion,
+    required List<AppImage> fotosGuia,
     required int criticidad,
-    required String posicion,
+    required List<Etiqueta> etiquetas,
     required bool calificable,
     RespuestaNumerica? respuesta,
-    required this.unidades,
   }) : super(
           id: id,
           respuesta: respuesta,
           titulo: titulo,
           descripcion: descripcion,
+          fotosGuia: fotosGuia,
           criticidad: criticidad,
-          posicion: posicion,
+          etiquetas: etiquetas,
           calificable: calificable,
         );
 }

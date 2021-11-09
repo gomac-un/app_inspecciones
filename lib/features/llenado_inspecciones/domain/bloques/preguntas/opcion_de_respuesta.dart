@@ -1,5 +1,5 @@
 class OpcionDeRespuesta {
-  final int id;
+  final String id;
   final String titulo;
   final String descripcion;
   final int criticidad;

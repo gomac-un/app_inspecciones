@@ -13,9 +13,7 @@ import 'organizacion_remote_datasource.dart';
 final apiUriProvider = Provider<Uri>(
     (ref) => throw Exception("no se ha designado la url de la Api"));
 
-/// Este se inicializa en el main y se entrega al [ProviderScope]
-final directorioDeDatosProvider = Provider<DirectorioDeDatos>(
-    (ref) => throw Exception("no se ha inicializado el directorio de datos"));
+
 
 final _djangoJsonApiProvider =
     Provider((ref) => DjangoJsonApi(ref.read, ref.watch(apiUriProvider)));
