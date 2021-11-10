@@ -102,9 +102,6 @@ class ControladorLlenadoInspeccion {
         momentoBorradorGuardado: DateTime.now(),
         momentoEnvio:
             estado == EstadoDeInspeccion.finalizada ? DateTime.now() : null,
-        criticidadTotal: 0, //TODO: calcular
-        criticidadReparacion: 0, //TODO: calcular
-        esNueva: i.esNueva,
       );
       final visitor = GuardadoVisitor(
         repository,

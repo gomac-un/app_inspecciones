@@ -63,24 +63,19 @@ class InspeccionesRepository {
     developer.log("cargando inspeccion $id");
     // try {
     final inspeccionCompleta = await _db.cargaDeInspeccionDao.cargarInspeccion(
-        cuestionarioId: id.cuestionarioId, activoId: int.parse(id.activo));
+      cuestionarioId: id.cuestionarioId,
+      activoId: id.activo,
+      inspectorId: "1", //TODO: traer el id del inspector
+    );
     final cuestionario =
         await _db.cargaDeCuestionarioDao.getCuestionario(id.cuestionarioId);
     final inspeccion = inspeccionCompleta.value1;
-    
+
     final cuestionarioInspeccionado = CuestionarioInspeccionado(
         Cuestionario(
             id: cuestionario.id,
-            tipoDeInspeccion: cuestionario.tipoDeInspeccion!),
-        Inspeccion(
-            id: inspeccion.id,
-            estado: EstadoDeInspeccion.values.firstWhere(
-                (element) => element.index == inspeccion.estado.index),
-            activo: activo,
-            momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
-            momentoEnvio: inspeccion.momentoEnvio,
-            criticidadTotal: inspeccion.criticidadTotal,
-            criticidadReparacion: inspeccion.criticidadReparacion),
+            tipoDeInspeccion: cuestionario.tipoDeInspeccion),
+        inspeccion,
         inspeccionCompleta.value2);
     return Right(cuestionarioInspeccionado);
     // } catch (e) {
@@ -92,11 +87,8 @@ class InspeccionesRepository {
     Iterable<Pregunta> preguntasRespondidas,
     Inspeccion inspeccion,
   ) =>
-      _db.guardadoDeInspeccionDao.guardarInspeccion(
-        preguntasRespondidas,
-        inspeccion,
-        _fotosRepository,
-      );
+      _db.guardadoDeInspeccionDao
+          .guardarInspeccion(preguntasRespondidas, inspeccion);
 }
 
 InspeccionesFailure apiFailureToInspeccionesFailure(ApiFailure apiFailure) =>

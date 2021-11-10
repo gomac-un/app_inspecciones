@@ -39,6 +39,10 @@ class Cuestionarios extends Table {
   TextColumn get tipoDeInspeccion => text()();
   IntColumn get version => integer()();
   IntColumn get periodicidadDias => integer()();
+  TextColumn get estado =>
+      text().map(const _EnumToStringConverter<EstadoDeCuestionario>(
+          EstadoDeCuestionario.values))();
+  BoolColumn get subido => boolean()();
 
   @override
   Set<Column> get primaryKey => {id};

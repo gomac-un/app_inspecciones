@@ -10,8 +10,8 @@ import 'package:inspecciones/features/llenado_inspecciones/ui/llenado_de_inspecc
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/utils/future_either_x.dart';
 
-import '../widgets/user_drawer.dart';
 import '../../features/llenado_inspecciones/ui/inicio_inspeccion_form_widget.dart';
+import '../widgets/user_drawer.dart';
 
 //TODO: Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 /// Pantalla con lista de todas las inspecciones pendientes por subir.
@@ -80,7 +80,7 @@ class BorradoresPage extends ConsumerWidget {
                 //TODO: mostrar la información de manera didáctica
                 tileColor: Theme.of(context).cardColor,
                 title: Text(
-                    "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.modelo} (${borrador.cuestionario.tipoDeInspeccion})",
+                    "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.etiquetas} (${borrador.cuestionario.tipoDeInspeccion})",
                     style: Theme.of(context).textTheme.subtitle1),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,12 +98,12 @@ class BorradoresPage extends ConsumerWidget {
                         ? ''
                         : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute}"),
                     Text(
-                      '$criticidad ${borrador.inspeccion.criticidadTotal}',
+                      '$criticidad ${borrador.criticidadTotal}',
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     Text(
-                      'Criticidad reparaciones pendientes: ${borrador.inspeccion.criticidadReparacion}',
+                      'Criticidad reparaciones pendientes: ${borrador.criticidadReparacion}',
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),
@@ -116,16 +116,17 @@ class BorradoresPage extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.secondary,
                     ),
                     onPressed: () => _subirInspeccion(context, ref, borrador)),
-                trailing: borrador.inspeccion.esNueva
-                    ? IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _eliminarBorrador(
-                          borrador,
-                          context,
-                          ref.read(inspeccionesRepositoryProvider),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+                trailing:
+                    borrador.inspeccion.estado == EstadoDeInspeccion.finalizada
+                        ? IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => _eliminarBorrador(
+                              borrador,
+                              context,
+                              ref.read(inspeccionesRepositoryProvider),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
               );
             },
           );

@@ -67,7 +67,7 @@ void main() {
             id: element, nombre: 'subsistema $element', sistemaId: element))
         .toList();
     when(repository.getTiposDeInspecciones()).thenAnswer((_) async => []);
-    when(repository.getModelos()).thenAnswer((_) async => ['mod 1', 'mod 2']);
+    when(repository.getEtiquetas()).thenAnswer((_) async => ['mod 1', 'mod 2']);
     when(repository.getContratistas()).thenAnswer((_) async => []);
     when(repository.getSistemas()).thenAnswer((_) async => []);
     when(repository.getSubSistemas(sistemas[0])).thenAnswer((_) async =>
@@ -95,7 +95,7 @@ void main() {
           ejeInicial: datosIniciales.eje,
           ladoInicial: datosIniciales.lado,
           posicionZInicial: datosIniciales.posicionZ,
-          tipoIncial: datosIniciales.tipo,
+          tipoInicial: datosIniciales.tipo,
           parteDeCuadricula: parteDeCuadricula,
         );
     setUp(() {
@@ -157,23 +157,23 @@ void main() {
       respuesta = CreadorRespuestaController();
     });
     test('texto de la respuesta es obligatorio', () {
-      expect(hasErrorRequired(respuesta.textoControl, ''), isTrue);
+      expect(hasErrorRequired(respuesta.tituloControl, ''), isTrue);
     });
     test(
         'copy devuelve otro CreadorRespuestaController con los mismos datos de la original sin referencias unicas',
         () {
-      respuesta.textoControl.value = 'Hola';
+      respuesta.tituloControl.value = 'Hola';
       final respuestaCopiada = respuesta.copy();
-      expect(respuestaCopiada.textoControl.value, respuesta.textoControl.value);
+      expect(respuestaCopiada.tituloControl.value, respuesta.tituloControl.value);
       expect(respuestaCopiada, isA<CreadorRespuestaController>());
     });
 
     test(
         'toDb devuelve otro OpcionesDeRespuestaCompanion con los datos introducidos en el form',
         () {
-      respuesta.textoControl.value = 'Hola';
+      respuesta.tituloControl.value = 'Hola';
       final toDb = respuesta.toDB();
-      expect(toDb.texto.value, respuesta.textoControl.value);
+      expect(toDb.texto.value, respuesta.tituloControl.value);
       expect(toDb, isA<OpcionesDeRespuestaCompanion>());
     });
   });

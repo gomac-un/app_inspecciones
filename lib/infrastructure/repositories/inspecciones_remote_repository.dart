@@ -37,7 +37,7 @@ class InspeccionesRemoteRepository {
 
     /// Al descargarla, se debe guardar en la bd para poder acceder a ella
     return inspeccionMap.nestedEvaluatedMap(
-      (ins) => _db.guardarInspeccionBD(ins),
+      (ins) => _db.sincronizacionDao.guardarInspeccionBD(ins),
     );
   }
 
@@ -49,25 +49,22 @@ class InspeccionesRemoteRepository {
     final inspAEnviar = drift.Inspeccion(
       id: inspeccion.id,
       estado: inspeccion.estado,
-      activoId: int.parse(inspeccion.activo.id),
+      activoId: inspeccion.activo.id,
+      momentoInicio: throw UnimplementedError(),
       momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
       momentoEnvio: DateTime.now(),
-      criticidadTotal: inspeccion.criticidadTotal,
-      criticidadReparacion: inspeccion.criticidadReparacion,
-      esNueva: inspeccion.esNueva,
       cuestionarioId: cuestionario.id,
+      inspectorId: throw UnimplementedError(),
     );
-    final inspeccionMap = await _db.getInspeccionConRespuestas(inspAEnviar);
-
-    /// [inspeccion.esNueva] es un campo usado localmente para saber si fue creada o se descaargó desde el server.
-    /// Se debe eliminar de [ins] porque genera un error en el server. (En proceso de mejora)
-    inspeccionMap.remove('esNueva');
+    final inspeccionMap =
+        await _db.sincronizacionDao.getInspeccionConRespuestas(inspAEnviar);
 
     /// Se hace la petición a diferentes urls dependiendo si es una inspección
     ///  creada o si es una edición de una que ya fue subida al server
-    crearInspeccion() => inspeccion.esNueva
-        ? _api.crearInspeccion(inspeccionMap)
-        : _api.actualizarInspeccion(inspeccion.id, inspeccionMap);
+    crearInspeccion() => //inspeccion.esNueva ?
+        _api.crearInspeccion(inspeccionMap)
+        //: _api.actualizarInspeccion(inspeccion.id, inspeccionMap)
+        ;
 
     subirFotos() async {
       /// Usado para el nombre de la carpeta de las fotos

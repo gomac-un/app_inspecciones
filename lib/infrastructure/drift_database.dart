@@ -1,15 +1,20 @@
 import 'dart:convert';
 
+import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
     show EstadoDeInspeccion;
+import 'package:inspecciones/infrastructure/daos/sincronizacion_dao.dart';
+import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 
 import 'daos/borradores_dao.dart';
 import 'daos/carga_cuestionario_dao.dart';
 import 'daos/carga_inspeccion_dao.dart';
+import 'daos/guardado_cuestionario_dao.dart';
 import 'daos/guardado_inspeccion_dao.dart';
 
 export 'database/shared.dart';
@@ -38,8 +43,9 @@ part 'tablas.dart';
     CargaDeInspeccionDao,
     GuardadoDeInspeccionDao,
     CargaDeCuestionarioDao,
-    // GuardadoDeCuestionarioDao,
+    GuardadoDeCuestionarioDao,
     BorradoresDao,
+    SincronizacionDao,
   ],
 )
 class Database extends _$Database {
@@ -83,3 +89,20 @@ class Database extends _$Database {
     await customStatement('PRAGMA foreign_keys = ON');
   }
 }
+
+// extension method usado para obtener el valor de un atributo de un companion
+extension DefaultGetter<T> on Value<T> {
+  T valueOrDefault(T def) {
+    return present ? value : def;
+  }
+
+  T? valueOrNull() {
+    return present ? value : null;
+  }
+}
+
+AppImage _soloBasename(AppImage f) => f.map(
+      remote: id,
+      mobile: (e) => e.copyWith(path: path.basename(e.path)),
+      web: (_) => throw UnimplementedError("subida de imagenes web"),
+    );

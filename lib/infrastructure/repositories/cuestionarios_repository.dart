@@ -2,10 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
-import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/infrastructure/core/typedefs.dart';
 import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/flutter_downloader/errors.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
@@ -185,7 +184,7 @@ class CuestionariosRepository {
           /// Como los cuestionarios quedan en el celular, se marca como subidos
           /// para que no se envíe al server un cuestionario que ya existe.
           /// cambia [cuestionario.esLocal] = false.
-          (_) => _db.marcarCuestionarioSubido(cuestionario),
+          (_) => _db.sincronizacionDao.marcarCuestionarioSubido(cuestionario),
         )
         .flatMap(
           (_) => apiExceptionToApiFailure(
@@ -193,6 +192,11 @@ class CuestionariosRepository {
           ),
         );
     //TODO: mirar como procesar los json de las respuestas intermedias
+  }
+
+  Future<JsonMap> _generarJsonCuestionario(Cuestionario cuestionario) async {
+    throw UnimplementedError();
+    return {}; //TODO: implementar
   }
 
   /// Descarga los cuestionarios y todo lo necesario para tratarlos:
@@ -230,42 +234,31 @@ class CuestionariosRepository {
   Future eliminarCuestionario(Cuestionario cuestionario) =>
       _db.cargaDeCuestionarioDao.eliminarCuestionario(cuestionario);
 
-  Future<CuestionarioConContratistaYModelos> getModelosYContratista(
-          int cuestionarioId) =>
-      _db.cargaDeCuestionarioDao.getModelosYContratista(cuestionarioId);
+  Future<CuestionarioConEtiquetas> getCuestionarioYEtiquetas(
+          String cuestionarioId) =>
+      _db.cargaDeCuestionarioDao.getCuestionarioYEtiquetas(cuestionarioId);
 
-  Future<List<IBloqueOrdenable>> cargarCuestionario(int cuestionarioId) =>
+  Future<List<IBloqueOrdenable>> cargarCuestionario(String cuestionarioId) =>
       _db.cargaDeCuestionarioDao.cargarCuestionario(cuestionarioId);
 
-  Future<List<Cuestionario>> getCuestionarios(
-          String tipoDeInspeccion, List<String> modelos) =>
-      _db.cargaDeCuestionarioDao.getCuestionarios(tipoDeInspeccion, modelos);
+  /*Future<List<Cuestionario>> getCuestionarios(
+          String tipoDeInspeccion, List<EtiquetaDeActivo> etiquetas) =>
+      _db.cargaDeCuestionarioDao.getCuestionarios(tipoDeInspeccion, modelos);*/
 
   Future<List<String>> getTiposDeInspecciones() =>
       _db.cargaDeCuestionarioDao.getTiposDeInspecciones();
 
-  Future<List<String>> getModelos() => _db.cargaDeCuestionarioDao.getModelos();
-
-  Future<List<Contratista>> getContratistas() =>
-      _db.cargaDeCuestionarioDao.getContratistas();
-
-  Future<List<Sistema>> getSistemas() =>
-      _db.cargaDeCuestionarioDao.getSistemas();
-  Future<Sistema> getSistemaPorId(int sistemaId) =>
-      _db.cargaDeCuestionarioDao.getSistemaPorId(sistemaId);
-  Future<SubSistema> getSubSistemaPorId(int subSistemaId) =>
-      _db.cargaDeCuestionarioDao.getSubSistemaPorId(subSistemaId);
-  Future<List<SubSistema>> getSubSistemas(Sistema sistema) =>
-      _db.cargaDeCuestionarioDao.getSubSistemas(sistema);
+  Future<List<EtiquetaDeActivo>> getEtiquetas() =>
+      _db.cargaDeCuestionarioDao.getEtiquetas();
 
   Future<void> guardarCuestionario(
     CuestionariosCompanion cuestionario,
-    List<CuestionarioDeModelosCompanion> cuestionariosDeModelos,
+    List<EtiquetasDeActivoCompanion> etiquetas,
     List<Object> bloquesForm,
   ) =>
       _db.guardadoDeCuestionarioDao.guardarCuestionario(
         cuestionario,
-        cuestionariosDeModelos,
+        etiquetas,
         bloquesForm,
       );
 }

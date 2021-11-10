@@ -1,20 +1,22 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
-import 'package:inspecciones/utils/iterable_x.dart';
 
 part 'carga_cuestionario_dao.drift.dart';
 
 @DriftAccessor(tables: [
+  EtiquetasDeActivo,
   Activos,
   Cuestionarios,
+  CuestionariosXEtiquetas,
   Bloques,
   Titulos,
   Preguntas,
   CriticidadesNumericas,
   OpcionesDeRespuesta,
+  EtiquetasDePregunta,
+  PreguntasXEtiquetas,
 ])
 class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
     with _$CargaDeCuestionarioDaoMixin {
@@ -77,33 +79,30 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
         bloques,
         bloques.id.equalsExp(preguntas.bloqueId),
       ),
-
-      /// Para que carguen también las numéricas a las que no se le han asignado lass criticidades
-      leftOuterJoin(criticidadesNumericas,
-          criticidadesNumericas.preguntaId.equalsExp(preguntas.id)),
     ])
       ..where(bloques.cuestionarioId.equals(cuestionarioId) &
           preguntas.tipoDePregunta.equalsValue(TipoDePregunta.numerica));
 
     final res = await query
-        .map((row) => Tuple3(
-              row.readTable(bloques),
-              row.readTable(preguntas),
-              row.readTableOrNull(criticidadesNumericas),
-            ))
+        .map((row) => Tuple2(row.readTable(bloques), row.readTable(preguntas)))
         .get();
 
-    return groupBy<Tuple3<Bloque, Pregunta, CriticidadNumerica?>, Pregunta>(
-            res, (e) => e.value2)
-        .entries
-        .map((entry) => BloqueConPreguntaNumerica(
-              entry.value.first.value1,
-              PreguntaNumerica(
-                entry.key,
-                entry.value.map((e) => e.value3).allNullToEmpty().toList(),
-              ),
-            ))
-        .toList();
+    return Future.wait(res.map((c) async {
+      final bloque = c.value1;
+      final pregunta = c.value2;
+
+      final criticidades = await _getCriticidades(pregunta.id);
+      final etiquetas = await _getEtiquetasDePregunta(pregunta.id);
+
+      return BloqueConPreguntaNumerica(
+        bloque,
+        PreguntaNumerica(
+          pregunta,
+          criticidades,
+          etiquetas,
+        ),
+      );
+    }));
   }
 
   /// Devuelve todas las preguntas de selección única o múltiple del cuestionario con id=[cuestionarioId]
@@ -111,35 +110,35 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
       String cuestionarioId) async {
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
-
-      /// Para que carguen las preguntas a las que no se les ha asociado una opción de respuesta
-      leftOuterJoin(opcionesDeRespuesta,
-          opcionesDeRespuesta.preguntaId.equalsExp(preguntas.id)),
     ])
       ..where(bloques.cuestionarioId.equals(cuestionarioId) &
           (preguntas.tipoDePregunta.equalsValue(TipoDePregunta.seleccionUnica) |
               preguntas.tipoDePregunta
                   .equalsValue(TipoDePregunta.seleccionMultiple)));
     final res = await query
-        .map((row) => Tuple3(row.readTable(bloques), row.readTable(preguntas),
-            row.readTableOrNull(opcionesDeRespuesta)))
+        .map((row) => Tuple2(row.readTable(bloques), row.readTable(preguntas)))
         .get();
 
-    return groupBy<Tuple3<Bloque, Pregunta, OpcionDeRespuesta?>, Pregunta>(
-        res, (e) => e.value2).entries.map(
-      (entry) {
-        return BloqueConPreguntaSimple(
-          entry.value.first.value1,
-          PreguntaConOpcionesDeRespuesta(
-            entry.key,
-            entry.value.map((e) => e.value3).allNullToEmpty().toList(),
-          ),
-        );
-      },
-    ).toList();
+    return Future.wait(res.map((c) async {
+      final bloque = c.value1;
+      final pregunta = c.value2;
+
+      final opciones = await _getOpciones(pregunta.id);
+      final etiquetas = await _getEtiquetasDePregunta(pregunta.id);
+
+      return BloqueConPreguntaSimple(
+        bloque,
+        PreguntaConOpcionesDeRespuesta(
+          pregunta,
+          opciones,
+          etiquetas,
+        ),
+      );
+    }));
   }
 
-  /// Devuelve todas las cuadriculas  del cuestionario con id=[cuestionarioId] con sus respectivas preguntas y opciones de respuesta
+  /// Devuelve todas las cuadriculas  del cuestionario con id=[cuestionarioId]
+  /// con sus respectivas preguntas y opciones de respuesta
   Future<List<BloqueConCuadricula>> _getCuadriculas(
       String cuestionarioId) async {
     final query = select(preguntas).join([
@@ -156,25 +155,74 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
       final bloque = c.value1;
       final cuadricula = c.value2;
 
-      final opciones = await (select(opcionesDeRespuesta)
-            ..where((o) => o.preguntaId.equals(cuadricula.id)))
-          .get();
-      final subPreguntas = await (select(preguntas)
-            ..where((p) => p.cuadriculaId.equals(cuadricula.id)))
-          .get();
+      final opciones = await _getOpciones(cuadricula.id);
+      final etiquetas = await _getEtiquetasDePregunta(cuadricula.id);
+      final subPreguntas = await _getSubPreguntas(cuadricula.id);
 
       return BloqueConCuadricula(
         bloque,
-        CuadriculaDePreguntasConOpcionesDeRespuesta(
-          cuadricula,
-          opciones,
+        CuadriculaConPreguntasYConOpcionesDeRespuesta(
+          PreguntaConOpcionesDeRespuesta(
+            cuadricula,
+            opciones,
+            etiquetas,
+          ),
+          subPreguntas
+              .map((p) => PreguntaConOpcionesDeRespuesta(p, const [], const []))
+              .toList(),
         ),
-        subPreguntas
-            .map((p) => PreguntaConOpcionesDeRespuesta(p, const []))
-            .toList(),
       );
     }));
   }
+
+  Future<List<OpcionDeRespuesta>> _getOpciones(String preguntaId) =>
+      (select(opcionesDeRespuesta)
+            ..where((o) => o.preguntaId.equals(preguntaId)))
+          .get();
+
+  Future<List<EtiquetaDePregunta>> _getEtiquetasDePregunta(String preguntaId) =>
+      (select(etiquetasDePregunta).join(
+        [
+          innerJoin(preguntasXEtiquetas,
+              preguntasXEtiquetas.etiquetaId.equalsExp(etiquetasDePregunta.id))
+        ],
+      )..where(preguntasXEtiquetas.preguntaId.equals(preguntaId)))
+          .map((row) => row.readTable(etiquetasDePregunta))
+          .get();
+
+  Future<List<EtiquetaDeActivo>> _getEtiquetasDeActivos(
+          String cuestionarioId) =>
+      (select(etiquetasDeActivo).join(
+        [
+          innerJoin(
+              cuestionariosXEtiquetas,
+              cuestionariosXEtiquetas.etiquetaId
+                  .equalsExp(etiquetasDeActivo.id))
+        ],
+      )..where(cuestionariosXEtiquetas.cuestionarioId.equals(cuestionarioId)))
+          .map((row) => row.readTable(etiquetasDeActivo))
+          .get();
+
+  Future<List<CriticidadNumerica>> _getCriticidades(String preguntaId) =>
+      (select(criticidadesNumericas)
+            ..where((c) => c.preguntaId.equals(preguntaId)))
+          .get();
+
+  Future<List<Pregunta>> _getSubPreguntas(String cuadriculaId) =>
+      (select(preguntas)..where((p) => p.cuadriculaId.equals(cuadriculaId)))
+          .get();
+
+  Future<CuestionarioConEtiquetas> getCuestionarioYEtiquetas(
+      String cuestionarioId) async {
+    final cuestionario = await _getCuestionario(cuestionarioId);
+    final etiquetas = await _getEtiquetasDeActivos(cuestionarioId);
+
+    return CuestionarioConEtiquetas(cuestionario, etiquetas);
+  }
+
+  Future<Cuestionario> _getCuestionario(String cuestionarioId) =>
+      (select(cuestionarios)..where((c) => c.id.equals(cuestionarioId)))
+          .getSingle();
 
   /// Devuelve todos los tipos de inspección existentes para la creación y edición.
   Future<List<String>> getTiposDeInspecciones() {
@@ -203,12 +251,16 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
         .go();
   }
 
-  /*
-  /// Devuelve los cuestionarios cuyo tipoDeInspeccion=[tipoDeInspeccion] y que sean aplicables a [modelos].
-  /// Es usado para hacer la validación de que no se cree un nuevo cuestionario con un [tipoDeInspeccion] que ya existe
-  /// y que está aplicada a los mismos [modelos].
+  Future<List<EtiquetaDeActivo>> getEtiquetas() =>
+      select(etiquetasDeActivo).get();
+/*
+/// Devuelve los cuestionarios cuyo tipoDeInspeccion=[tipoDeInspeccion] y que
+  ///  sean aplicables a [etiquetas].
+  /// Es usado para hacer la validación de que no se cree un nuevo cuestionario
+  ///  con un [tipoDeInspeccion] que ya existe
+  /// y que está aplicada a las mismas [etiquetas].
   Future<List<Cuestionario>> getCuestionarios(
-      String tipoDeInspeccion, List<String> modelos) {
+      String tipoDeInspeccion, List<EtiquetaDeActivo> etiquetas) {
     final query = select(cuestionarioDeModelos).join([
       innerJoin(cuestionarios,
           cuestionarios.id.equalsExp(cuestionarioDeModelos.cuestionarioId))

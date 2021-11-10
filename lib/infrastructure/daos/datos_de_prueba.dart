@@ -1,10 +1,9 @@
-part of 'por_organizar_dao.dart';
 /* otra posible forma del closure
 Function initialize(db) {
   return (batch) => (Batch batch, db) {
         batch.insertAll(db.activos, [
           ...*/
-
+/*
 Future<void> Function(Batch) initialize(Database db) =>
     (Batch batch) => _initialize(batch, db);
 
@@ -59,7 +58,7 @@ Future<void> _initialize(Batch batch, Database db) async {
     CuestionariosCompanion.insert(
       id: const Value(1),
       tipoDeInspeccion: const Value("preoperacional"),
-      estado: EstadoDeCuestionario.finalizada,
+      estado: EstadoDeCuestionario.finalizado,
       esLocal: true,
     ),
   ]);
@@ -206,3 +205,4 @@ Future<void> _initialize(Batch batch, Database db) async {
         cuadriculaId: const Value(1)),
   ]);
 }
+*/

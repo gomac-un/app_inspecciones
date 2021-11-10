@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
     show EstadoDeInspeccion;
 import 'package:inspecciones/infrastructure/drift_database.dart';
@@ -102,7 +103,11 @@ void main() {
   });
   Future<Cuestionario> _crearCuestionario() =>
       _db.into(_db.cuestionarios).insertReturning(CuestionariosCompanion.insert(
-          tipoDeInspeccion: "preoperacional", version: 1, periodicidadDias: 1));
+            tipoDeInspeccion: "preoperacional",
+            version: 1,
+            periodicidadDias: 1,
+            estado: EstadoDeCuestionario.finalizado,
+          ));
   test('''se pueden asociar cuestionarios con etiquetas''', () async {
     final cuestionario = await _crearCuestionario();
     final etiqueta = await _db.into(_db.etiquetasDeActivo).insertReturning(
@@ -115,12 +120,18 @@ void main() {
       '''No se pueden crear dos cuestionarios con el mismo tipo y la misma version''',
       () async {
     await _db.into(_db.cuestionarios).insert(CuestionariosCompanion.insert(
-        tipoDeInspeccion: "preoperacional", version: 1, periodicidadDias: 1));
+          tipoDeInspeccion: "preoperacional",
+          version: 1,
+          periodicidadDias: 1,
+          estado: EstadoDeCuestionario.finalizado,
+        ));
     await expectLater(
         () => _db.into(_db.cuestionarios).insert(CuestionariosCompanion.insert(
-            tipoDeInspeccion: "preoperacional",
-            version: 1,
-            periodicidadDias: 1)),
+              tipoDeInspeccion: "preoperacional",
+              version: 1,
+              periodicidadDias: 1,
+              estado: EstadoDeCuestionario.finalizado,
+            )),
         throwsA(isA<SqliteException>().having((e) => e.message,
             "unique violation", contains("UNIQUE constraint failed"))));
   });

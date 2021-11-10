@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
     show EstadoDeInspeccion;
 import 'package:inspecciones/infrastructure/drift_database.dart';
@@ -36,7 +37,10 @@ void main() {
 
   Future<Cuestionario> _crearCuestionario() =>
       _db.into(_db.cuestionarios).insertReturning(CuestionariosCompanion.insert(
-          tipoDeInspeccion: "preoperacional", version: 1, periodicidadDias: 1));
+          tipoDeInspeccion: "preoperacional",
+          version: 1,
+          periodicidadDias: 1,
+          estado: EstadoDeCuestionario.finalizado));
 
   Future<Bloque> _crearBloque(Cuestionario cuestionario) =>
       _db.into(_db.bloques).insertReturning(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:simple_tooltip/simple_tooltip.dart';
 
 import 'creacion_controls.dart';
 
@@ -51,49 +50,9 @@ class WidgetRespuestas extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            ValueListenableBuilder<bool>(
-                              valueListenable: controlRespuesta.mostrarToolTip,
-                              builder: (BuildContext context, mostrarToolTip,
-                                  child) {
-                                return SimpleTooltip(
-                                  show: mostrarToolTip,
-                                  tooltipDirection: TooltipDirection.right,
-                                  content: Text(
-                                    "Seleccione si el inspector puede asignar una criticidad propia al elegir esta respuesta",
-                                    style:
-                                        Theme.of(context).textTheme.subtitle2,
-                                  ),
-                                  ballonPadding: const EdgeInsets.all(2),
-                                  borderColor: Theme.of(context).primaryColor,
-                                  borderWidth: 0,
-                                  child: IconButton(
-                                      iconSize: 20,
-                                      icon: const Icon(
-                                        Icons.info,
-                                      ),
-                                      onPressed: () => controlRespuesta
-                                              .mostrarToolTip.value =
-                                          !controlRespuesta
-                                              .mostrarToolTip.value),
-                                );
-                              },
-                            ),
-                            Flexible(
-                              child: ReactiveCheckboxListTile(
-                                formControl:
-                                    controlRespuesta.calificableControl,
-                                title: const Text('Calificable'),
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
                             Expanded(
                               child: ReactiveTextField(
-                                formControl: controlRespuesta.textoControl,
+                                formControl: controlRespuesta.tituloControl,
                                 validationMessages: (control) => {
                                   ValidationMessage.required:
                                       'Este valor es requerido'

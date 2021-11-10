@@ -1,21 +1,19 @@
 import 'dart:convert';
 
-import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/presentation/widgets/alertas.dart';
-import 'package:inspecciones/presentation/widgets/reactive_filter_chip_selection.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:textfield_tags/textfield_tags.dart';
 
 import 'creacion_form_controller.dart';
 import 'creacion_widgets.dart';
 import 'pregunta_card.dart';
 
 /// pantalla de edicion de un cuestionario
-/// TODO: opcion para la creacion de cuestionarios con excel
 class EdicionFormPage extends ConsumerWidget {
-  final int? cuestionarioId;
+  final String? cuestionarioId;
 
   const EdicionFormPage({Key? key, this.cuestionarioId}) : super(key: key);
 
@@ -46,11 +44,7 @@ class EdicionForm extends ConsumerWidget {
       formGroup: controller.control,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            controller.estado == EstadoDeCuestionario.borrador
-                ? 'Creación de cuestionario'
-                : 'Visualización cuestionario',
-          ),
+          title: const Text("cuestionario"),
         ),
         body: SingleChildScrollView(
           child: Column(
@@ -106,43 +100,27 @@ class EdicionForm extends ConsumerWidget {
                 ),
               ),
               PreguntaCard(
-                titulo: 'Modelos de vehículo',
-                child: ReactiveFilterChipSelection(
-                  formControl: controller.modelosControl,
-                  posibleItems: controller.todosLosModelos,
-                  decoration: const InputDecoration(
-                    labelText: 'Modelos a los que aplica esta inspección',
-                  ),
-                  labelAccesor: id,
-                  validationMessages: (control) => {
-                    ValidationMessage.minLength:
-                        'Seleccione al menos un modelo',
-                    'yaExiste':
-                        'Ya existe un cuestionario de este tipo para este modelo'
-                  },
-                ),
-              ),
+                titulo: 'Etiquetas aplicables',
+                child: ReactiveTextFieldTags(
+                    formControl: controller.etiquetasControl,
+                    //etiquetasDisponibles: controller.todasLasEtiquetas,
+                    validator: (String tag) {
+                      if (tag.isEmpty) return "ingrese algo";
 
-              PreguntaCard(
-                titulo: 'Contratista',
-                child: ReactiveDropdownField(
-                  formControl: controller.contratistaControl,
-                  validationMessages: (control) =>
-                      {ValidationMessage.required: 'Seleccione un contratista'},
-                  items: controller.todosLosContratistas
-                      .map((e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(e.nombre),
-                          ))
-                      .toList(),
-                  decoration: const InputDecoration(
-                    labelText: 'Seleccione un contratista',
-                  ),
-                  onTap: () {
-                    FocusScope.of(context)
-                        .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-                  },
-                ),
+                      final splited = tag.split(":");
+
+                      if (splited.length == 1) {
+                        return "agregue : para separar la etiqueta";
+                      }
+
+                      if (splited.length > 2) return "solo se permite un :";
+
+                      if (splited[0].isEmpty || splited[1].isEmpty) {
+                        return "agregue texto antes y despues de :";
+                      }
+
+                      return null;
+                    }),
               ),
               PreguntaCard(
                 titulo: 'Periodicidad (en días)',
@@ -175,9 +153,10 @@ class EdicionForm extends ConsumerWidget {
             ],
           ),
         ),
-        floatingActionButton: controller.estado == EstadoDeCuestionario.borrador
-            ? const BotonesGuardado()
-            : null,
+        floatingActionButton: //controller.estado == EstadoDeCuestionario.borrador ?
+            const BotonesGuardado()
+        //: null
+        ,
       ),
     );
   }
@@ -285,7 +264,7 @@ class BotonesGuardado extends ConsumerWidget {
                     Navigator.of(context).pop();
 
                     await controller.guardarCuestionarioEnLocal(
-                        EstadoDeCuestionario.finalizada);
+                        EstadoDeCuestionario.finalizado);
 
                     mostrarMensaje(context, TipoDeMensaje.exito,
                         'Cuestionario creado exitosamente');

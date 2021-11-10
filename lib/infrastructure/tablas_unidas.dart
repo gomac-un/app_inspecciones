@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:meta/meta.dart';
 
@@ -18,8 +17,9 @@ import 'package:meta/meta.dart';
 class PreguntaNumerica {
   final Pregunta pregunta;
   final List<CriticidadNumerica> criticidades;
+  final List<EtiquetaDePregunta> etiquetas;
 
-  const PreguntaNumerica(this.pregunta, this.criticidades);
+  const PreguntaNumerica(this.pregunta, this.criticidades, this.etiquetas);
 }
 
 /// version con companions de la clase de arriba
@@ -27,75 +27,66 @@ class PreguntaNumerica {
 class PreguntaNumericaCompanion {
   final PreguntasCompanion pregunta;
   final List<CriticidadesNumericasCompanion> criticidades;
+  final List<EtiquetasDePreguntaCompanion> etiquetas;
 
   const PreguntaNumericaCompanion(
-    this.pregunta,
-    this.criticidades,
-  );
+      this.pregunta, this.criticidades, this.etiquetas);
   PreguntaNumericaCompanion.fromDataClass(PreguntaNumerica p)
       : pregunta = p.pregunta.toCompanion(true),
-        criticidades = p.criticidades.map((o) => o.toCompanion(true)).toList();
+        criticidades = p.criticidades.map((o) => o.toCompanion(true)).toList(),
+        etiquetas = p.etiquetas.map((o) => o.toCompanion(true)).toList();
+
   const PreguntaNumericaCompanion.vacio()
       : pregunta = const PreguntasCompanion(),
-        criticidades = const [];
+        criticidades = const [],
+        etiquetas = const [];
 
   PreguntaNumericaCompanion copyWith({
     PreguntasCompanion? pregunta,
     List<CriticidadesNumericasCompanion>? criticidades,
+    List<EtiquetasDePreguntaCompanion>? etiquetas,
   }) =>
       PreguntaNumericaCompanion(
         pregunta ?? this.pregunta,
         criticidades ?? this.criticidades,
+        etiquetas ?? this.etiquetas,
       );
 }
 
-/// Reune los modelos de un cuestionario y su respectivo contratista.
-@immutable
-class CuestionarioConContratistaYModelos {
+class CuestionarioConEtiquetas {
   final Cuestionario cuestionario;
-  final List<CuestionarioDeModelo> cuestionarioDeModelo;
-  final Contratista? contratista;
+  final List<EtiquetaDeActivo> etiquetas;
 
-  const CuestionarioConContratistaYModelos(
+  const CuestionarioConEtiquetas(
     this.cuestionario,
-    this.cuestionarioDeModelo,
-    this.contratista,
+    this.etiquetas,
   );
 }
 
 /// version con companions de la clase de arriba
 @immutable
-class CuestionarioConContratistaYModelosCompanion {
+class CuestionarioConEtiquetasCompanion {
   final CuestionariosCompanion cuestionario;
-  final List<CuestionarioDeModelosCompanion> cuestionarioDeModelo;
-  final Contratista? contratista;
+  final List<EtiquetaDeActivo> etiquetas;
 
-  const CuestionarioConContratistaYModelosCompanion(
+  const CuestionarioConEtiquetasCompanion(
     this.cuestionario,
-    this.cuestionarioDeModelo,
-    this.contratista,
+    this.etiquetas,
   );
-  CuestionarioConContratistaYModelosCompanion.fromDataClass(
-      CuestionarioConContratistaYModelos e)
+  CuestionarioConEtiquetasCompanion.fromDataClass(CuestionarioConEtiquetas e)
       : cuestionario = e.cuestionario.toCompanion(true),
-        cuestionarioDeModelo =
-            e.cuestionarioDeModelo.map((o) => o.toCompanion(true)).toList(),
-        contratista = e.contratista;
-  const CuestionarioConContratistaYModelosCompanion.vacio()
-      : cuestionario = const CuestionariosCompanion(
-            estado: Value(EstadoDeCuestionario.borrador)),
-        cuestionarioDeModelo = const [],
-        contratista = null;
+        etiquetas = e.etiquetas;
+  const CuestionarioConEtiquetasCompanion.vacio()
+      : cuestionario = const CuestionariosCompanion(),
+        etiquetas = const [];
 
-  CuestionarioConContratistaYModelosCompanion copyWith({
+  CuestionarioConEtiquetasCompanion copyWith({
     CuestionariosCompanion? cuestionario,
-    List<CuestionarioDeModelosCompanion>? cuestionarioDeModelo,
-    Contratista? contratista,
+    List<EtiquetaDeActivo>? etiquetas,
   }) =>
-      CuestionarioConContratistaYModelosCompanion(
+      CuestionarioConEtiquetasCompanion(
         cuestionario ?? this.cuestionario,
-        cuestionarioDeModelo ?? this.cuestionarioDeModelo,
-        contratista ?? this.contratista,
+        etiquetas ?? this.etiquetas,
       );
 }
 
@@ -108,10 +99,12 @@ class CuestionarioConContratistaYModelosCompanion {
 class PreguntaConOpcionesDeRespuesta {
   final Pregunta pregunta;
   final List<OpcionDeRespuesta> opcionesDeRespuesta;
+  final List<EtiquetaDePregunta> etiquetas;
 
   const PreguntaConOpcionesDeRespuesta(
     this.pregunta,
     this.opcionesDeRespuesta,
+    this.etiquetas,
   );
 }
 
@@ -120,27 +113,33 @@ class PreguntaConOpcionesDeRespuesta {
 class PreguntaConOpcionesDeRespuestaCompanion {
   final PreguntasCompanion pregunta;
   final List<OpcionesDeRespuestaCompanion> opcionesDeRespuesta;
+  final List<EtiquetasDePreguntaCompanion> etiquetas;
 
   const PreguntaConOpcionesDeRespuestaCompanion(
     this.pregunta,
     this.opcionesDeRespuesta,
+    this.etiquetas,
   );
   PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(
       PreguntaConOpcionesDeRespuesta p)
       : pregunta = p.pregunta.toCompanion(true),
         opcionesDeRespuesta =
-            p.opcionesDeRespuesta.map((o) => o.toCompanion(true)).toList();
+            p.opcionesDeRespuesta.map((o) => o.toCompanion(true)).toList(),
+        etiquetas = p.etiquetas.map((o) => o.toCompanion(true)).toList();
   const PreguntaConOpcionesDeRespuestaCompanion.vacio()
       : pregunta = const PreguntasCompanion(),
-        opcionesDeRespuesta = const [];
+        opcionesDeRespuesta = const [],
+        etiquetas = const [];
 
   PreguntaConOpcionesDeRespuestaCompanion copyWith({
     PreguntasCompanion? pregunta,
     List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
+    List<EtiquetasDePreguntaCompanion>? etiquetas,
   }) =>
       PreguntaConOpcionesDeRespuestaCompanion(
         pregunta ?? this.pregunta,
         opcionesDeRespuesta ?? this.opcionesDeRespuesta,
+        etiquetas ?? this.etiquetas,
       );
 }
 
@@ -213,7 +212,7 @@ class PreguntaConRespuestaConOpcionesDeRespuesta {
 
   PreguntaConRespuestaConOpcionesDeRespuesta(this.pregunta);
 }
-
+/*
 /// Reune [cuadricula] con sus posibles [opcionesDeRespuesta] (Columnas de la cuadrícula)
 class CuadriculaDePreguntasConOpcionesDeRespuesta {
   final Pregunta cuadricula;
@@ -221,57 +220,49 @@ class CuadriculaDePreguntasConOpcionesDeRespuesta {
 
   CuadriculaDePreguntasConOpcionesDeRespuesta(
       this.cuadricula, this.opcionesDeRespuesta);
-}
+}*/
 
 /// Reune [cuadricula] con sus respectivas [preguntas] (filas) y [opcionesDeRespuesta] (columnas)
 /// Se usa en el método [toDataClass()] y [toDB()] de la cuadricula en creacion_controls.
 @immutable
 class CuadriculaConPreguntasYConOpcionesDeRespuesta {
-  final CuadriculaDePreguntas cuadricula;
+  final PreguntaConOpcionesDeRespuesta cuadricula;
   final List<PreguntaConOpcionesDeRespuesta> preguntas;
-  final List<OpcionDeRespuesta> opcionesDeRespuesta;
 
   const CuadriculaConPreguntasYConOpcionesDeRespuesta(
-      this.cuadricula, this.preguntas, this.opcionesDeRespuesta);
+      this.cuadricula, this.preguntas);
 }
 
 /// version con companions de la clase de arriba
 @immutable
 class CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion {
-  final CuadriculasDePreguntasCompanion cuadricula;
+  final PreguntaConOpcionesDeRespuestaCompanion cuadricula;
   final List<PreguntaConOpcionesDeRespuestaCompanion> preguntas;
-  final List<OpcionesDeRespuestaCompanion> opcionesDeRespuesta;
 
   const CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
     this.cuadricula,
     this.preguntas,
-    this.opcionesDeRespuesta,
   );
   CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.fromDataClass(
       CuadriculaConPreguntasYConOpcionesDeRespuesta c)
-      : cuadricula = c.cuadricula.toCompanion(true),
+      : cuadricula =
+            PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(c.cuadricula),
         preguntas = c.preguntas
             .map(
                 (p) => PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(p))
-            .toList(),
-        opcionesDeRespuesta =
-            c.opcionesDeRespuesta.map((o) => o.toCompanion(true)).toList();
+            .toList();
+
   const CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.vacio()
-      : cuadricula = const CuadriculasDePreguntasCompanion(),
-        preguntas = const [
-          /* PreguntaConOpcionesDeRespuestaCompanion.vacio() */
-        ],
-        opcionesDeRespuesta = const [];
+      : cuadricula = const PreguntaConOpcionesDeRespuestaCompanion.vacio(),
+        preguntas = const [];
 
   CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion copyWith({
-    CuadriculasDePreguntasCompanion? cuadricula,
+    PreguntaConOpcionesDeRespuestaCompanion? cuadricula,
     List<PreguntaConOpcionesDeRespuestaCompanion>? preguntas,
-    List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
   }) =>
       CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
         cuadricula ?? this.cuadricula,
         preguntas ?? this.preguntas,
-        opcionesDeRespuesta ?? this.opcionesDeRespuesta,
       );
 }
 
@@ -320,13 +311,12 @@ class BloqueConPreguntaSimple extends IBloqueOrdenable {
 /// Reúne la cuadricula con sus
 class BloqueConCuadricula extends IBloqueOrdenable {
   /// Cuadricula y sus posibles opciones de respuesta (filas)
-  final CuadriculaDePreguntasConOpcionesDeRespuesta cuadricula;
+  final CuadriculaConPreguntasYConOpcionesDeRespuesta cuadricula;
 
-  /// Todas las preguntas (sin opciones de respuesta, porque ya estan en [cuadricula])
-  final List<PreguntaConOpcionesDeRespuesta> preguntas;
+  /*/// Todas las preguntas (sin opciones de respuesta, porque ya estan en [cuadricula])
+  final List<PreguntaConOpcionesDeRespuesta> preguntas;*/
 
-  const BloqueConCuadricula(Bloque bloque, this.cuadricula, this.preguntas)
-      : super(bloque);
+  const BloqueConCuadricula(Bloque bloque, this.cuadricula) : super(bloque);
 }
 
 class RespuestaconOpcionDeRespuestaId {
@@ -373,16 +363,4 @@ class Borrador {
         avance ?? this.avance,
         total ?? this.total,
       );
-}
-
-class Programacion {
-  ProgramacionSistemasCompanion programacion;
-  List<Sistema> sistemas;
-  Programacion(this.programacion, this.sistemas);
-}
-
-class GrupoXTipoInspeccion {
-  final TiposDeInspeccione tipoInspeccion;
-  final List<GruposInspecciones> grupos;
-  GrupoXTipoInspeccion(this.tipoInspeccion, this.grupos);
 }

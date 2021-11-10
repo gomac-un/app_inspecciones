@@ -69,7 +69,7 @@ final goRouterProvider = Provider((ref) => GoRouter(
             child: InspeccionPage(
               inspeccionId: IdentificadorDeInspeccion(
                 activo: state.params['activoid']!,
-                cuestionarioId: int.parse(state.params['cuestionarioid']!),
+                cuestionarioId: state.params['cuestionarioid']!,
               ),
             ),
           ),

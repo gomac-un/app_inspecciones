@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart'
     as dominio;
 import 'package:inspecciones/infrastructure/drift_database.dart';
@@ -26,6 +27,7 @@ void main() {
           tipoDeInspeccion: "preoperacional",
           version: 1,
           periodicidadDias: 1,
+          estado: EstadoDeCuestionario.finalizado,
         ));
 
     final inspeccionYBloques = await _db.cargaDeInspeccionDao.cargarInspeccion(
@@ -64,6 +66,7 @@ void main() {
           tipoDeInspeccion: "preoperacional",
           version: 1,
           periodicidadDias: 1,
+          estado: EstadoDeCuestionario.finalizado,
         ));
     final bloque = await _db.into(_db.bloques).insertReturning(
         BloquesCompanion.insert(nOrden: 1, cuestionarioId: cuestionario.id));
@@ -116,6 +119,7 @@ void main() {
           tipoDeInspeccion: "preoperacional",
           version: 1,
           periodicidadDias: 1,
+          estado: EstadoDeCuestionario.finalizado,
         ));
     final bloque = await _db.into(_db.bloques).insertReturning(
         BloquesCompanion.insert(nOrden: 1, cuestionarioId: cuestionario.id));

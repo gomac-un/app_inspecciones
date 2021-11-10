@@ -1,9 +1,7 @@
 /// Definición de todos los Controllers de los bloques en la creación de cuestionarios
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
-import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/tablas_unidas.dart';
@@ -130,7 +128,7 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
       datosIniciales.pregunta.criticidad.valueOrDefault(0).toDouble());
 
   late final fotosGuiaControl = fb.control<List<AppImage>>(
-    datosIniciales.pregunta.fotosGuia.valueOrDefault(const Nil()).toList(),
+    datosIniciales.pregunta.fotosGuia.valueOrDefault([]).toList(),
   );
 
   /// Son las opciones de respuesta.
@@ -162,22 +160,15 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
   late final camposGeneralesControl = controllerCamposGenerales.control;
 
   CreadorPreguntaController(
-    this._repository,
-    Sistema? sistemaInicial,
-    SubSistema? subSistemaInicial, {
+    this._repository, {
     this.datosIniciales = const PreguntaConOpcionesDeRespuestaCompanion.vacio(),
     this.parteDeCuadricula = false,
     this.esNumerica = false,
   }) : controllerCamposGenerales = CamposGeneralesPreguntaController(
-          _repository,
-          sistemaInicial,
-          subSistemaInicial,
           tituloInicial: datosIniciales.pregunta.titulo,
           descripcionInicial: datosIniciales.pregunta.descripcion,
-          ejeInicial: datosIniciales.pregunta.eje,
-          ladoInicial: datosIniciales.pregunta.lado,
-          posicionZInicial: datosIniciales.pregunta.posicionZ,
-          tipoIncial: datosIniciales.pregunta.tipo,
+          etiquetasIniciales: Value(datosIniciales.etiquetas),
+          tipoInicial: datosIniciales.pregunta.tipoDePregunta,
           parteDeCuadricula: parteDeCuadricula,
         );
 
@@ -187,8 +178,6 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
 
     return CreadorPreguntaController(
       _repository,
-      controllerCamposGenerales.sistemaControl.value,
-      controllerCamposGenerales.subSistemaControl.value,
       datosIniciales: copied.copyWith(
         pregunta: copied.pregunta.copyWith(
           id: const Value.absent(),
@@ -198,9 +187,9 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
             .map((o) => o.copyWith(
                   id: const Value.absent(),
                   preguntaId: const Value.absent(),
-                  cuadriculaId: const Value.absent(),
                 ))
             .toList(),
+        etiquetas: [...copied.etiquetas],
       ),
     );
   }
@@ -213,20 +202,18 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
   PreguntaConOpcionesDeRespuestaCompanion toDB() {
     final g = controllerCamposGenerales; // alias para escribir menos
     return PreguntaConOpcionesDeRespuestaCompanion(
-      datosIniciales.pregunta.copyWith(
-        titulo: Value(g.tituloControl.value!),
-        descripcion: Value(g.descripcionControl.value!),
-        sistemaId: Value(g.sistemaControl.value?.id),
-        subSistemaId: Value(g.subSistemaControl.value?.id),
-        eje: Value(g.ejeControl.value),
-        lado: Value(g.ladoControl.value),
-        posicionZ: Value(g.posicionZControl.value),
-        tipo: Value(g.tipoDePreguntaControl.value!),
-        criticidad: Value(criticidadControl.value!.round()),
-        fotosGuia: Value(IList.from(fotosGuiaControl.value!)),
-      ),
-      controllersRespuestas.map((e) => e.toDB()).toList(),
-    );
+        datosIniciales.pregunta.copyWith(
+          titulo: Value(g.tituloControl.value!),
+          descripcion: Value(g.descripcionControl.value!),
+          tipoDePregunta: Value(g.tipoDePreguntaControl.value!),
+          criticidad: Value(criticidadControl.value!.round()),
+          fotosGuia: Value(fotosGuiaControl.value!),
+        ),
+        controllersRespuestas.map((e) => e.toDB()).toList(),
+        g.etiquetasControl.value!
+            .map((e) => EtiquetasDePreguntaCompanion.insert(
+                clave: e.split(":").first, valor: e.split(":").last))
+            .toList());
   }
 }
 
@@ -237,24 +224,23 @@ class CreadorRespuestaController extends CreacionController {
   /// Cuando se usa copiar, [_respuestaDesdeDB] se obtiene desde el método [toDataClass()]
   final OpcionesDeRespuestaCompanion _respuestaDesdeDB;
 
-  late final textoControl = fb.control<String>(
-    _respuestaDesdeDB.texto.valueOrDefault(""),
+  late final tituloControl = fb.control<String>(
+    _respuestaDesdeDB.titulo.valueOrDefault(""),
+    [Validators.required],
+  );
+  late final descripcionControl = fb.control<String>(
+    _respuestaDesdeDB.descripcion.valueOrDefault(""),
     [Validators.required],
   );
   late final criticidadControl = fb.control<double>(
       _respuestaDesdeDB.criticidad.valueOrDefault(0).toDouble());
-  late final calificableControl =
-      fb.control<bool>(_respuestaDesdeDB.calificable.valueOrDefault(false));
 
   @override
   late final control = fb.group({
-    'texto': textoControl,
+    'titulo': tituloControl,
+    'descripcion': descripcionControl,
     'criticidad': criticidadControl,
-    'calificable': calificableControl,
   });
-
-  /// controla el Tooltip con descripcion de lo que significa que una opcion de respuesta sea calificable
-  final mostrarToolTip = ValueNotifier<bool>(false);
 
   CreadorRespuestaController(
       [this._respuestaDesdeDB = const OpcionesDeRespuestaCompanion()]);
@@ -269,9 +255,9 @@ class CreadorRespuestaController extends CreacionController {
   @override
   OpcionesDeRespuestaCompanion toDB() {
     return _respuestaDesdeDB.copyWith(
-        texto: Value(textoControl.value!),
-        criticidad: Value(criticidadControl.value!.round()),
-        calificable: Value(calificableControl.value!));
+        titulo: Value(tituloControl.value!),
+        descripcion: Value(descripcionControl.value!),
+        criticidad: Value(criticidadControl.value!.round()));
   }
 }
 
@@ -340,14 +326,9 @@ class CreadorPreguntaCuadriculaController extends CreacionController
   /// Info cuadricula y opciones de respuesta
   final CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion datosIniciales;
 
-  final Sistema? _sistemaInicial;
-  final SubSistema? _subSistemaInicial;
-
   late final controllersPreguntas = datosIniciales.preguntas
       .map((e) => CreadorPreguntaController(
             _repository,
-            _sistemaInicial,
-            _subSistemaInicial,
             datosIniciales: e,
             parteDeCuadricula: true,
           ))
@@ -365,7 +346,8 @@ class CreadorPreguntaCuadriculaController extends CreacionController
   /// Si es bloque copiado o viene de edición se pasa un FormArray con cada
   /// una de las opciones que ya existen para la pregutna
   @override
-  late final controllersRespuestas = datosIniciales.opcionesDeRespuesta
+  late final controllersRespuestas = datosIniciales
+      .cuadricula.opcionesDeRespuesta
       .map((e) => CreadorRespuestaController(e))
       .toList();
 
@@ -388,22 +370,14 @@ class CreadorPreguntaCuadriculaController extends CreacionController
   });
 
   CreadorPreguntaCuadriculaController(
-    this._repository,
-    this._sistemaInicial,
-    this._subSistemaInicial, {
+    this._repository, {
     this.datosIniciales =
         const CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.vacio(),
   }) : controllerCamposGenerales = CamposGeneralesPreguntaController(
-          _repository,
-          _sistemaInicial,
-          _subSistemaInicial,
-          tituloInicial: datosIniciales.cuadricula.titulo,
-          descripcionInicial: datosIniciales.cuadricula.descripcion,
-          ejeInicial: datosIniciales.preguntas.firstOrDefault.pregunta.eje,
-          ladoInicial: datosIniciales.preguntas.firstOrDefault.pregunta.lado,
-          posicionZInicial:
-              datosIniciales.preguntas.firstOrDefault.pregunta.posicionZ,
-          tipoIncial: datosIniciales.preguntas.firstOrDefault.pregunta.tipo,
+          tituloInicial: datosIniciales.cuadricula.pregunta.titulo,
+          descripcionInicial: datosIniciales.cuadricula.pregunta.descripcion,
+          etiquetasIniciales: Value(datosIniciales.cuadricula.etiquetas),
+          tipoInicial: datosIniciales.cuadricula.pregunta.tipoDePregunta,
           parteDeCuadricula: true,
         );
 
@@ -413,12 +387,23 @@ class CreadorPreguntaCuadriculaController extends CreacionController
 
     return CreadorPreguntaCuadriculaController(
       _repository,
-      controllerCamposGenerales.sistemaControl.value,
-      controllerCamposGenerales.subSistemaControl.value,
       datosIniciales: copied.copyWith(
         cuadricula: copied.cuadricula.copyWith(
-          id: const Value.absent(),
-          bloqueId: const Value.absent(),
+          pregunta: copied.cuadricula.pregunta.copyWith(
+            id: const Value.absent(),
+            bloqueId: const Value.absent(),
+          ),
+          opcionesDeRespuesta: copied.cuadricula.opcionesDeRespuesta
+              .map((o) => o.copyWith(
+                    id: const Value.absent(),
+                    preguntaId: const Value.absent(),
+                  ))
+              .toList(),
+          etiquetas: copied.cuadricula.etiquetas
+              .map((o) => o.copyWith(
+                    id: const Value.absent(),
+                  ))
+              .toList(),
         ),
         preguntas: copied.preguntas
             .map((p) => p.copyWith(
@@ -433,13 +418,6 @@ class CreadorPreguntaCuadriculaController extends CreacionController
                         ))
                     .toList()))
             .toList(),
-        opcionesDeRespuesta: copied.opcionesDeRespuesta
-            .map((o) => o.copyWith(
-                  id: const Value.absent(),
-                  preguntaId: const Value.absent(),
-                  cuadriculaId: const Value.absent(),
-                ))
-            .toList(),
       ),
     );
   }
@@ -449,32 +427,34 @@ class CreadorPreguntaCuadriculaController extends CreacionController
     final g = controllerCamposGenerales;
     return CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
       datosIniciales.cuadricula.copyWith(
-        titulo: Value(g.tituloControl.value!),
-        descripcion: Value(g.descripcionControl.value!),
+        pregunta: datosIniciales.cuadricula.pregunta.copyWith(
+          titulo: Value(g.tituloControl.value!),
+          descripcion: Value(
+            g.descripcionControl.value!,
+          ),
+          tipoDePregunta: const Value(TipoDePregunta.cuadricula),
+          tipoDeCuadricula: Value(
+              g.tipoDePreguntaControl.value! == TipoDePregunta.seleccionUnica
+                  ? TipoDeCuadricula.seleccionUnica
+                  : TipoDeCuadricula.seleccionMultiple),
+        ),
+        opcionesDeRespuesta:
+            controllersRespuestas.map((e) => e.toDB()).toList(),
       ),
       controllersPreguntas.map((e) {
         final e1 = e.toDB();
         return e1.copyWith(
           pregunta: e1.pregunta.copyWith(
-            sistemaId: Value(g.sistemaControl.value?.id),
-            subSistemaId: Value(g.subSistemaControl.value?.id),
-            eje: Value(g.ejeControl.value),
-            lado: Value(g.ladoControl.value),
-            posicionZ: Value(g.posicionZControl.value),
-            tipo: Value(g.tipoDePreguntaControl.value!),
+            tipoDePregunta: Value(g.tipoDePreguntaControl.value!),
           ),
         );
       }).toList(),
-      controllersRespuestas.map((e) => e.toDB()).toList(),
     );
   }
 
   void agregarPregunta() {
-    /// Se le agrega el sistema y subsistema por defecto de la cuadricula,
     final nuevoController = CreadorPreguntaController(
       _repository,
-      controllerCamposGenerales.sistemaControl.value,
-      controllerCamposGenerales.subSistemaControl.value,
       parteDeCuadricula: true,
     );
     controllersPreguntas.add(nuevoController);
@@ -496,7 +476,7 @@ class CreadorPreguntaNumericaController extends CreacionController {
   late final criticidadControl = fb.control<double>(
       datosIniciales.pregunta.criticidad.valueOrDefault(0).toDouble());
   late final fotosGuiaControl = fb.control<List<AppImage>>(
-    datosIniciales.pregunta.fotosGuia.valueOrDefault(const Nil()).toList(),
+    datosIniciales.pregunta.fotosGuia.valueOrDefault([]).toList(),
   );
 
   /// Rangos de criticidad
@@ -522,20 +502,13 @@ class CreadorPreguntaNumericaController extends CreacionController {
   });
 
   CreadorPreguntaNumericaController(
-    this._repository,
-    Sistema? sistemaInicial,
-    SubSistema? subSistemaInicial, {
+    this._repository, {
     this.datosIniciales = const PreguntaNumericaCompanion.vacio(),
   }) : controllerCamposGenerales = CamposGeneralesPreguntaController(
-          _repository,
-          sistemaInicial,
-          subSistemaInicial,
           tituloInicial: datosIniciales.pregunta.titulo,
           descripcionInicial: datosIniciales.pregunta.descripcion,
-          ejeInicial: datosIniciales.pregunta.eje,
-          ladoInicial: datosIniciales.pregunta.lado,
-          posicionZInicial: datosIniciales.pregunta.posicionZ,
-          tipoIncial: datosIniciales.pregunta.tipo,
+          etiquetasIniciales: Value(datosIniciales.etiquetas),
+          tipoInicial: datosIniciales.pregunta.tipoDePregunta,
           parteDeCuadricula: false,
         );
 
@@ -558,8 +531,6 @@ class CreadorPreguntaNumericaController extends CreacionController {
 
     return CreadorPreguntaNumericaController(
       _repository,
-      controllerCamposGenerales.sistemaControl.value,
-      controllerCamposGenerales.subSistemaControl.value,
       datosIniciales: copied.copyWith(
         pregunta: copied.pregunta.copyWith(
           id: const Value.absent(),
@@ -569,6 +540,11 @@ class CreadorPreguntaNumericaController extends CreacionController {
             .map((o) => o.copyWith(
                   id: const Value.absent(),
                   preguntaId: const Value.absent(),
+                ))
+            .toList(),
+        etiquetas: copied.etiquetas
+            .map((o) => o.copyWith(
+                  id: const Value.absent(),
                 ))
             .toList(),
       ),
@@ -585,23 +561,20 @@ class CreadorPreguntaNumericaController extends CreacionController {
       datosIniciales.pregunta.copyWith(
         titulo: Value(g.tituloControl.value!),
         descripcion: Value(g.descripcionControl.value!),
-        sistemaId: Value(g.sistemaControl.value?.id),
-        subSistemaId: Value(g.subSistemaControl.value?.id),
-        eje: Value(g.ejeControl.value),
-        lado: Value(g.ladoControl.value),
-        posicionZ: Value(g.posicionZControl.value),
         criticidad: Value(criticidadControl.value!.round()),
-        fotosGuia: Value(IList.from(fotosGuiaControl.value!)),
-        tipo: const Value(TipoDePregunta.numerica),
+        fotosGuia: Value(fotosGuiaControl.value!),
+        tipoDePregunta: const Value(TipoDePregunta.numerica),
       ),
       controllersCriticidades.map((e) => e.toDB()).toList(),
+      g.etiquetasControl.value!
+          .map((e) => EtiquetasDePreguntaCompanion.insert(
+              clave: e.split(":").first, valor: e.split(":").last))
+          .toList(),
     );
   }
 }
 
 class CamposGeneralesPreguntaController {
-  final CuestionariosRepository _repository;
-
   /// Diferencia las de selección y las que son de cuadricula
   final bool parteDeCuadricula;
 
@@ -616,66 +589,31 @@ class CamposGeneralesPreguntaController {
   late final descripcionControl =
       fb.control<String>(descripcionInicial.valueOrDefault(""));
 
-  final Sistema? _sistemaInicial;
-  late final sistemaControl = fb.control<Sistema?>(
-    _sistemaInicial,
-    [Validators.required],
-  )..valueChanges.listen((sistema) async {
-      subSistemasDisponibles.value =
-          sistema == null ? [] : await _repository.getSubSistemas(sistema);
-    });
-  final ValueNotifier<List<SubSistema>> subSistemasDisponibles =
-      ValueNotifier<List<SubSistema>>([]);
-
-  final SubSistema? _subSistemaInicial;
-  late final subSistemaControl = fb.control<SubSistema?>(
-    _subSistemaInicial,
-    [Validators.required],
-  );
-  final Value<String?> ejeInicial;
-  late final ejeControl = fb.control<String?>(
-    ejeInicial.valueOrDefault(""),
-    [Validators.required],
-  );
-  final Value<String?> ladoInicial;
-  late final ladoControl = fb.control<String?>(
-    ladoInicial.valueOrDefault(""),
-    [Validators.required],
-  );
-  final Value<String?> posicionZInicial;
-  late final posicionZControl = fb.control<String?>(
-    posicionZInicial.valueOrDefault(""),
-    [Validators.required],
-  );
+  final Value<List<EtiquetasDePreguntaCompanion>> etiquetasIniciales;
+  late final etiquetasControl = fb.control<Set<String>>(etiquetasIniciales
+      .valueOrDefault([])
+      .map((e) => '${e.clave}:${e.valor}')
+      .toSet());
 
   /// Si es de cuadricula, no se debe requerir que elija el tipo e pregunta
-  final Value<TipoDePregunta> tipoIncial;
+  final Value<TipoDePregunta> tipoInicial;
   late final tipoDePreguntaControl = fb.control<TipoDePregunta>(
-    tipoIncial.valueOrDefault(TipoDePregunta.unicaRespuesta),
+    tipoInicial.valueOrDefault(TipoDePregunta.seleccionUnica),
     [if (!parteDeCuadricula) Validators.required],
   );
 
   late final FormGroup control = fb.group({
     'titulo': tituloControl,
     'descripcion': descripcionControl,
-    'sistema': sistemaControl,
-    'subSistema': subSistemaControl,
-    'eje': ejeControl,
-    'lado': ladoControl,
-    'posicionZ': posicionZControl,
+    'etiquetas': etiquetasControl,
     'tipoDePregunta': tipoDePreguntaControl,
   });
 
-  CamposGeneralesPreguntaController(
-    this._repository,
-    this._sistemaInicial,
-    this._subSistemaInicial, {
+  CamposGeneralesPreguntaController({
     required this.tituloInicial,
     required this.descripcionInicial,
-    required this.ejeInicial,
-    required this.ladoInicial,
-    required this.posicionZInicial,
-    required this.tipoIncial,
+    required this.etiquetasIniciales,
+    required this.tipoInicial,
     this.parteDeCuadricula = false,
   });
 }

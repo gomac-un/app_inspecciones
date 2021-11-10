@@ -22,7 +22,7 @@ void main() {
         .map((element) => Sistema(id: element, nombre: 'Sistema $element'))
         .toList();
     when(repository.getTiposDeInspecciones()).thenAnswer((_) async => []);
-    when(repository.getModelos()).thenAnswer((_) async => ['mod 1', 'mod 2']);
+    when(repository.getEtiquetas()).thenAnswer((_) async => ['mod 1', 'mod 2']);
     when(repository.getContratistas()).thenAnswer((_) async => []);
     when(repository.getSistemas()).thenAnswer((_) async => []);
     when(repository.getSubSistemas(sistemas[0])).thenAnswer((_) async => []);
@@ -96,8 +96,8 @@ void main() {
   });
 
   test('lista de modelos del cuestionario no puede estar vacía', () {
-    controller.modelosControl.value = [];
-    expect(controller.modelosControl.hasError('minLength'), isTrue);
+    controller.etiquetasControl.value = [];
+    expect(controller.etiquetasControl.hasError('minLength'), isTrue);
   });
   test(
       'cuando se selecciona "Otra" en tipo de inspección el campo "nuevo tipo de inspección" es obligatorio',

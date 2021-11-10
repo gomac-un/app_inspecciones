@@ -1,14 +1,8 @@
-import 'dart:convert';
-
-import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
-import 'package:path/path.dart' as path;
-import 'package:uuid/uuid.dart';
 
 // import 'daos/borradores_dao.dart';
 // import 'daos/carga_cuestionario_dao.dart';
@@ -16,39 +10,43 @@ import 'package:uuid/uuid.dart';
 // import 'daos/guardado_cuestionario_dao.dart';
 // import 'daos/guardado_inspeccion_dao.dart';
 import '../drift_database.dart';
-import '../repositories/fotos_repository.dart';
 
 export '../database/shared.dart';
 
-part 'datos_de_prueba.dart';
-part 'por_organizar_dao.drift.dart';
+part 'sincronizacion_dao.drift.dart';
 
 @DriftAccessor(tables: [
   Activos,
   ActivosXEtiquetas,
   EtiquetasDeActivo,
-  CuestionarioDeModelos,
   Cuestionarios,
   Bloques,
   Titulos,
-  CuadriculasDePreguntas,
   Preguntas,
   OpcionesDeRespuesta,
   Inspecciones,
   Respuestas,
-  Contratistas,
-  Sistemas,
-  SubSistemas,
   CriticidadesNumericas,
-  GruposInspeccioness,
-  ProgramacionSistemas,
-  ProgramacionSistemasXActivo,
-  TiposDeInspecciones,
 ])
-class PorOrganizarDao extends DatabaseAccessor<Database>
-    with _$PorOrganizarDaoMixin {
-  PorOrganizarDao(Database db) : super(db);
+class SincronizacionDao extends DatabaseAccessor<Database>
+    with _$SincronizacionDaoMixin {
+  SincronizacionDao(Database db) : super(db);
 
+  /// marca [cuestionario.subido] = true cuando [cuestionario] es subido al server
+  Future<void> marcarCuestionarioSubido(Cuestionario cuestionario) =>
+      (update(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
+          .write(const CuestionariosCompanion(subido: Value(true)));
+
+  Future<IdentificadorDeInspeccion> guardarInspeccionBD(
+      Map<String, dynamic> json) async {
+    throw UnimplementedError();
+  }
+
+  Future<Map<String, dynamic>> getInspeccionConRespuestas(
+      Inspeccion inspeccion) async {
+    throw UnimplementedError();
+  }
+/*
   /// Obtiene el [cuestionario] completo con sus bloques para subir al server
   Future<Map<String, dynamic>> getCuestionarioCompletoAsJson(
       Cuestionario cuestionario) async {
@@ -142,12 +140,7 @@ class PorOrganizarDao extends DatabaseAccessor<Database>
     return cuestionarioJson;
   }
 
-  /// marca [cuestionario.esLocal] = false cuando [cuestionario] es subido al server
-  /// retorna el numero de cuestionarios afectados, deber ser 1, si es distinto
-  /// se debe considerar un error
-  Future<int> marcarCuestionarioSubido(Cuestionario cuestionario) =>
-      (update(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
-          .write(const CuestionariosCompanion(esLocal: Value(false)));
+  
 
   /// Devuelve json con [inspeccion] y sus respectivas respuestas
   Future<Map<String, dynamic>> getInspeccionConRespuestas(
@@ -361,114 +354,7 @@ class PorOrganizarDao extends DatabaseAccessor<Database>
   /// local al servidor
   Future exportarInspeccion() async {
     // TODO: Implementar
-  }
+  }*/
 }
 
-/// Serializer usado al invocar [.toJson()] o [fromJson()] que maneja los enum de tipoPregunta y estado de inspeccion y cuestionario.
-/// También maneja las fechas y las fotos.
-class CustomSerializer extends ValueSerializer {
-  const CustomSerializer();
-  static const tipoPreguntaConverter =
-      EnumIndexConverter<TipoDePregunta>(TipoDePregunta.values);
-  static const estadoDeInspeccionConverter =
-      EnumIndexConverter<EstadoDeInspeccion>(EstadoDeInspeccion.values);
-  static const estadoDeCuestionarioConverter =
-      EnumIndexConverter<EstadoDeCuestionario>(EstadoDeCuestionario.values);
 
-  @override
-  T fromJson<T>(dynamic json) {
-    if (json == null) {
-      return null as T;
-    }
-
-    /// TODO: revisar si aca pueden llegar imagenes de web
-    if (T == ListImages) {
-      return IList.from(json as List).map((path) =>
-          (path as String).startsWith('http')
-              ? AppImage.remote(path)
-              : AppImage.mobile(path)) as T;
-    } /*
-    if (json is List) {
-      // https://stackoverflow.com/questions/50188729/checking-what-type-is-passed-into-a-generic-method
-      // machetazo que convierte todas las listas a IListString dado que no
-      // se puede preguntar por T == IListString, puede que se pueda arreglar
-      // cuando los de dart implementen los alias de tipos https://github.com/dart-lang/language/issues/65
-      return IList.from(json.cast<String>()) as T;
-    }*/
-
-    if (T == TipoDePregunta) {
-      return tipoPreguntaConverter.mapToDart(json as int) as T;
-    }
-
-    if (T == EstadoDeInspeccion) {
-      return estadoDeInspeccionConverter.mapToDart(json as int) as T;
-    }
-
-    if (T == EstadoDeCuestionario) {
-      return estadoDeCuestionarioConverter.mapToDart(json as int) as T;
-    }
-
-    if (T == DateTime) {
-      return DateTime.parse(json as String) as T;
-    }
-
-    if (T == double && json is int) {
-      return json.toDouble() as T;
-    }
-
-    // blobs are encoded as a regular json array, so we manually convert that to
-    // a Uint8List
-    if (T == Uint8List && json is! Uint8List) {
-      final asList = (json as List).cast<int>();
-      return Uint8List.fromList(asList) as T;
-    }
-
-    return json as T;
-  }
-
-  @override
-  dynamic toJson<T>(T value) {
-    if (value is DateTime) {
-      return value.toIso8601String();
-    }
-
-    if (value is TipoDePregunta) {
-      return tipoPreguntaConverter.mapToSql(value);
-    }
-
-    if (value is EstadoDeInspeccion) {
-      return estadoDeInspeccionConverter.mapToSql(value);
-    }
-
-    if (value is EstadoDeCuestionario) {
-      return estadoDeCuestionarioConverter.mapToSql(value);
-    }
-
-    if (value is ListImages) {
-      return value.map((a) => a.when(remote: id, mobile: id, web: id)).toList();
-    }
-
-    if (value is IList) {
-      return value.toList();
-    }
-
-    return value;
-  }
-}
-
-// extension method usado para obtener el valor de un atributo de un companion
-extension DefaultGetter<T> on Value<T> {
-  T valueOrDefault(T def) {
-    return present ? value : def;
-  }
-
-  T? valueOrNull() {
-    return present ? value : null;
-  }
-}
-
-AppImage _soloBasename(AppImage f) => f.map(
-      remote: id,
-      mobile: (e) => e.copyWith(path: path.basename(e.path)),
-      web: (_) => throw UnimplementedError("subida de imagenes web"),
-    );

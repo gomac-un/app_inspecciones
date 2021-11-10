@@ -1,5 +1,4 @@
 //Custom Validators
-import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_form_controller.dart';
@@ -9,7 +8,7 @@ import 'creacion_form_controller.dart';
 /// Valida que no exista un [tipoDeInspeccion] aplicado a los mismos [modelos].
 /// TODO: analizar bien esto
 ///! Sera que el validator va en el modelosControl??
-AsyncValidatorFunction cuestionariosExistentes(
+/*AsyncValidatorFunction cuestionariosExistentes(
   int? cuestionarioId,
   FormControl<String?> tipoDeInspeccionControl,
   FormControl<List<String>> modelosControl,
@@ -41,7 +40,7 @@ AsyncValidatorFunction cuestionariosExistentes(
         modelosControl.removeError('yaExiste');
       }
       return null;
-    };
+    };*/
 
 /// Marca como requerido el textField de 'nuevoTipoDeInspeccion',
 /// en caso de que se haya seleccionado 'Otra' como tipo de inspeccion.

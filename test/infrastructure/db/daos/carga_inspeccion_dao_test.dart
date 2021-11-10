@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart'
     as dominio;
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
@@ -20,7 +21,10 @@ void main() {
 
   Future<Cuestionario> _crearCuestionario() =>
       _db.into(_db.cuestionarios).insertReturning(CuestionariosCompanion.insert(
-          tipoDeInspeccion: "preoperacional", version: 1, periodicidadDias: 1));
+          tipoDeInspeccion: "preoperacional",
+          version: 1,
+          periodicidadDias: 1,
+          estado: EstadoDeCuestionario.finalizado));
 
   Future<Activo> _crearActivo() =>
       _db.into(_db.activos).insertReturning(ActivosCompanion.insert(id: "1"));
@@ -82,7 +86,10 @@ void main() {
       await _asociarEtiquetaACuestionario(etiqueta, cuestionario1);
       final cuestionario2 = await _db.into(_db.cuestionarios).insertReturning(
           CuestionariosCompanion.insert(
-              tipoDeInspeccion: "general", version: 1, periodicidadDias: 1));
+              tipoDeInspeccion: "general",
+              version: 1,
+              periodicidadDias: 1,
+              estado: EstadoDeCuestionario.finalizado));
       await _asociarEtiquetaACuestionario(etiqueta, cuestionario2);
 
       final activo = await _crearActivo();

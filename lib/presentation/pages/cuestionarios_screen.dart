@@ -10,7 +10,6 @@ import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
 import '../../core/enums.dart';
 import '../../infrastructure/drift_database.dart';
-
 import '../widgets/alertas.dart';
 
 /// Pantalla que muestra la lista de cuestionarios subidos y en proceso.
@@ -62,31 +61,30 @@ class CuestionariosPage extends ConsumerWidget {
                     ),
                   ),
                   tileColor: Theme.of(context).cardColor,
-                  title: Text(cuestionario.tipoDeInspeccion ?? ''),
+                  title: Text(cuestionario.tipoDeInspeccion),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Código: ${cuestionario.id}'),
-                      Text(cuestionario.esLocal
-                          ? 'Sin subir \nEstado: ${EnumToString.convertToString(cuestionario.estado)}'
-                          : 'Subido \nEstado: ${EnumToString.convertToString(cuestionario.estado)}'),
+                      Text(
+                          'Estado: ${EnumToString.convertToString(cuestionario.estado)}'),
                     ],
                   ),
 
                   /// Si no se ha subido apaarece la opción de subir.
-                  leading: cuestionario.esLocal
+                  leading: !cuestionario.subido
                       ? IconButton(
                           icon: Icon(
                             Icons.cloud_upload,
                             color: cuestionario.estado ==
-                                    EstadoDeCuestionario.finalizada
+                                    EstadoDeCuestionario.finalizado
                                 ? Theme.of(context).colorScheme.secondary
                                 : Colors.grey,
                           ),
                           onPressed: () async {
                             /// Solo permite subirlo si está finalizado.
                             switch (cuestionario.estado) {
-                              case EstadoDeCuestionario.finalizada:
+                              case EstadoDeCuestionario.finalizado:
                                 _subirCuestionarioFinalizado(
                                     context, viewModel, cuestionario);
                                 break;
@@ -96,7 +94,7 @@ class CuestionariosPage extends ConsumerWidget {
                             }
                           })
                       : const SizedBox.shrink(),
-                  trailing: cuestionario.esLocal
+                  trailing: !cuestionario.subido
 
                       /// Los cuestionarios subidos ya no se pueden borrar
                       ? IconButton(
