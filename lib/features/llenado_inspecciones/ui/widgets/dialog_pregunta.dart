@@ -66,7 +66,8 @@ void mostrarDialogPregunta(
                   final factory = ref.watch(preguntaCardFactoryProvider);
                   return factory.crearCard(
                     controladorPregunta.pregunta,
-                    controladorPregunta,
+                    controlador: controladorPregunta,
+                    nOrden: 0,
                   );
                 }),
               ),

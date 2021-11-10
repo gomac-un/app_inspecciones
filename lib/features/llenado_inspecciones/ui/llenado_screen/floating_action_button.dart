@@ -7,36 +7,47 @@ import 'paginador.dart';
 final showFABProvider = StateProvider((ref) => true);
 
 class FABNavigation extends ConsumerWidget {
-  const FABNavigation({Key? key}) : super(key: key);
+  final Widget botonGuardar;
+
+  const FABNavigation({Key? key, required this.botonGuardar}) : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
     final pageController = ref.watch(llenadoPageControllerProvider);
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        FloatingActionButton(
-          heroTag: 'back',
-          onPressed: () {
-            pageController.previousPage(
-                duration: const Duration(milliseconds: 800),
-                curve: Curves.ease);
-          },
-          child: const Icon(Icons.navigate_before_outlined),
+        const Expanded(
+          flex: 2,
+          child: SizedBox(width: 1),
         ),
+        //if (pageController.page!.round() != 0)
+        if (pageController.position.pixels !=
+            pageController.position.minScrollExtent)
+          FloatingActionButton(
+            heroTag: 'back',
+            onPressed: () => pageController.previousPage(
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.ease),
+            child: const Icon(Icons.navigate_before_outlined),
+          ),
         const SizedBox(
           width: 10,
         ),
-        FloatingActionButton(
-          heroTag: 'next',
-          onPressed: () {
-            pageController.nextPage(
+        if (pageController.position.pixels !=
+            pageController.position.maxScrollExtent)
+          FloatingActionButton(
+            heroTag: 'next',
+            onPressed: () => pageController.nextPage(
                 duration: const Duration(milliseconds: 800),
-                curve: Curves.ease);
-          },
-          child: const Icon(Icons.navigate_next_outlined),
+                curve: Curves.ease),
+            child: const Icon(Icons.navigate_next_outlined),
+          ),
+        const Expanded(
+          flex: 1,
+          child: SizedBox(width: 1),
         ),
+        botonGuardar,
       ],
     );
   }

@@ -9,10 +9,10 @@ class PreguntaCard extends StatelessWidget {
   final Pregunta pregunta;
   final ControladorDePregunta controlador;
   final Widget child;
-  final int? nOrden;
+  final int nOrden;
   const PreguntaCard({
     Key? key,
-    this.nOrden,
+    required this.nOrden,
     required this.pregunta,
     required this.controlador,
     required this.child,
@@ -29,12 +29,10 @@ class PreguntaCard extends StatelessWidget {
               leading: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  nOrden != null
-                      ? Text(
-                          '$nOrden',
-                          style: Theme.of(context).textTheme.headline6,
-                        )
-                      : const SizedBox.shrink(),
+                  Text(
+                    '$nOrden',
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
                   const Icon(Icons.arrow_forward_ios),
                 ],
               ),

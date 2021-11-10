@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'floating_action_button.dart';
@@ -13,6 +14,9 @@ final listViewPreguntasScrollControllerProvider = ChangeNotifierProvider
     .family<ScrollController, List<Widget>>((ref, list) {
   final scrollController = ScrollController(debugLabel: list.length.toString());
 
+  // No hay necesidad de hacer un dispose del scrollController, porque
+  // [ChangeNotifierProvider] lo hace solito :3
+
   scrollController.addListener(() {
     if (scrollController.position.userScrollDirection ==
         ScrollDirection.reverse) {
@@ -23,10 +27,11 @@ final listViewPreguntasScrollControllerProvider = ChangeNotifierProvider
       ref.read(showFABProvider).state = true;
     }
   });
+
   return scrollController;
 });
 
-class ListViewPreguntas extends ConsumerWidget {
+class ListViewPreguntas extends HookConsumerWidget {
   const ListViewPreguntas({
     Key? key,
     required this.widgets,
@@ -38,6 +43,7 @@ class ListViewPreguntas extends ConsumerWidget {
   Widget build(BuildContext context, ref) {
     final controller =
         ref.watch(listViewPreguntasScrollControllerProvider(widgets));
+    final bucket = useMemoized(() => PageStorageBucket());
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 700),
@@ -46,7 +52,10 @@ class ListViewPreguntas extends ConsumerWidget {
             shrinkWrap: true,
             controller: controller,
             itemCount: widgets.length,
-            itemBuilder: (_, j) => widgets[j],
+            itemBuilder: (_, j) =>
+                // Es necesario usar otro PageStorage para que los scrollers
+                // de las preguntas no afecten el scroll de las paginas
+                PageStorage(bucket: bucket, child: widgets[j]),
           ),
         ),
       ),

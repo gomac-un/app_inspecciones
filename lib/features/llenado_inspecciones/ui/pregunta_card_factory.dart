@@ -15,7 +15,7 @@ class PreguntaCardFactory {
   const PreguntaCardFactory();
 
   Widget crearCard(Bloque bloque,
-      [ControladorDePregunta? controlador, int? nOrden]) {
+      {ControladorDePregunta? controlador, required int nOrden}) {
     if (bloque is Titulo) {
       return WidgetTitulo(
         bloque,

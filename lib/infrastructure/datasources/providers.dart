@@ -7,6 +7,7 @@ import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.
 import 'django_json_api.dart';
 import 'inspecciones_remote_datasource.dart';
 import 'local_preferences_datasource.dart';
+import 'organizacion_remote_datasource.dart';
 
 /// Este se inicializa en el main y se entrega al [ProviderScope]
 final apiUriProvider = Provider<Uri>(
@@ -16,31 +17,26 @@ final apiUriProvider = Provider<Uri>(
 final directorioDeDatosProvider = Provider<DirectorioDeDatos>(
     (ref) => throw Exception("no se ha inicializado el directorio de datos"));
 
-/*
-/// Parte de la autenticación de Django para acceder a los servicios de la Api
-/// https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
-/// Es [null] si el usuario no se ha autenticado
-final tokenProvider =
-    Provider<String?>((ref) => ref.read(appRepositoryProvider).getToken());*/
-
 final _djangoJsonApiProvider =
     Provider((ref) => DjangoJsonApi(ref.read, ref.watch(apiUriProvider)));
 
-final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) =>
-    ref.watch(
-        _djangoJsonApiProvider)); //TODO: este NO requiere un cliente http autenticado
+final authRemoteDataSourceProvider =
+    Provider<AuthRemoteDataSource>((ref) => ref.watch(_djangoJsonApiProvider));
 
 final inspeccionesRemoteDataSourceProvider =
-    Provider<InspeccionesRemoteDataSource>((ref) => ref.watch(
-        _djangoJsonApiProvider)); //TODO: este SI requiere un cliente http autenticado
+    Provider<InspeccionesRemoteDataSource>(
+        (ref) => ref.watch(_djangoJsonApiProvider));
 
 final cuestionariosRemoteDataSourceProvider =
-    Provider<CuestionariosRemoteDataSource>((ref) => ref.watch(
-        _djangoJsonApiProvider)); //TODO: este SI requiere un cliente http autenticado
+    Provider<CuestionariosRemoteDataSource>(
+        (ref) => ref.watch(_djangoJsonApiProvider));
 
-final fotosRemoteDataSourceProvider = Provider<FotosRemoteDataSource>((ref) =>
-    ref.watch(
-        _djangoJsonApiProvider)); //TODO: este SI requiere un cliente http autenticado
+final fotosRemoteDataSourceProvider =
+    Provider<FotosRemoteDataSource>((ref) => ref.watch(_djangoJsonApiProvider));
+
+final organizacionRemoteDataSourceProvider =
+    Provider<OrganizacionRemoteDataSource>(
+        (ref) => ref.watch(_djangoJsonApiProvider));
 
 final localPreferencesDataSourceProvider = Provider<LocalPreferencesDataSource>(
     (ref) =>

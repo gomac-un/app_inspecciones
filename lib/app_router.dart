@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/features/sincronizacion/sincronizacion_page.dart';
-import 'package:inspecciones/presentation/pages/cuestionarios_screen.dart';
-import 'package:inspecciones/presentation/pages/history_screen.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'application/auth/auth_service.dart';
+import 'features/configuracion_organizacion/organizacion_page.dart';
 import 'features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
 import 'features/login/login_page.dart';
+import 'features/registro_usuario/registro_usuario_page.dart';
+import 'features/sincronizacion/sincronizacion_page.dart';
 import 'presentation/pages/borradores_screen.dart';
+import 'presentation/pages/cuestionarios_screen.dart';
+import 'presentation/pages/history_screen.dart';
 import 'theme.dart';
 import 'utils.dart';
 
+/// para deeplink se puede usar
+/// adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d "http://gomac.com/registro?org=1"
 final goRouterProvider = Provider((ref) => GoRouter(
       debugLogDiagnostics: true,
       routes: [
@@ -30,7 +34,7 @@ final goRouterProvider = Provider((ref) => GoRouter(
           name: 'home',
           pageBuilder: (context, state) => MaterialPage<void>(
             key: state.pageKey,
-            child: const BorradoresPage(),
+            child: const OrganizacionPage(),
           ),
         ),
         GoRoute(
@@ -78,6 +82,24 @@ final goRouterProvider = Provider((ref) => GoRouter(
             child: const SincronizacionPage(),
           ),
         ),
+        GoRoute(
+          path: '/registro',
+          name: 'registro',
+          pageBuilder: (context, state) => MaterialPage<void>(
+            key: state.pageKey,
+            child: RegistroUsuarioPage(
+              organizacionId: int.parse(state.queryParams['org']!),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/organizacion',
+          name: 'organizacion',
+          pageBuilder: (context, state) => MaterialPage<void>(
+            key: state.pageKey,
+            child: const OrganizacionPage(),
+          ),
+        ),
       ],
 
       errorPageBuilder: (context, state) => MaterialPage<void>(
@@ -85,19 +107,23 @@ final goRouterProvider = Provider((ref) => GoRouter(
         child: Text(state.error.toString()),
       ),
 
-      // redirect to the login page if the user is not logged in
+      // redireccion automatica a la pantalla de login si el usuario no esta autenticado
       redirect: (state) {
-        final loggedIn = ref.read(authListenableProvider).loggedIn;
+        final logueado = ref.read(authListenableProvider).loggedIn;
 
-        final goingToLogin = state.subloc == '/login';
+        final urlsNoProtegidas = ['/login', '/registro'];
+        final vaHaciaProtegida = !urlsNoProtegidas.contains(state.subloc);
+        final vaHaciaLogin = state.subloc == '/login';
 
-        // the user is not logged in and not headed to /login, they need to login
-        if (!loggedIn && !goingToLogin) return '/login?from=${state.location}';
+        // si el usuario no esta logueado y va hacia una pagina protegida, se tiene que loguear primero
+        if (!logueado && vaHaciaProtegida) {
+          return '/login?from=${state.location}';
+        }
 
-        // the user is logged in and headed to /login, no need to login again
-        if (loggedIn && goingToLogin) return '/';
+        // si el usuario esta autenticado y va hacia login, no se tiene que loguear otra vez
+        if (logueado && vaHaciaLogin) return '/';
 
-        // no need to redirect at all
+        // no hay redireccion
         return null;
       },
       refreshListenable: ref.watch(authListenableProvider.notifier),

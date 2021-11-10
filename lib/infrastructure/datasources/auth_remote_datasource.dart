@@ -1,7 +1,8 @@
 import 'package:inspecciones/infrastructure/core/typedefs.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<JsonObject> getToken(JsonObject credenciales);
-  Future<JsonObject> getPermisos(String username);
-  Future<JsonObject> registrarApp();
+  Future<JsonMap> getToken(JsonMap credenciales);
+  Future<JsonMap> getPerfil(int? id);
+  Future<JsonMap> registrarApp();
+  Future<JsonMap> registrarUsuario(JsonMap form);
 }

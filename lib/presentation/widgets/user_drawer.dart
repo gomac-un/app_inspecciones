@@ -1,8 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/application/auth/auth_service.dart';
-import 'package:inspecciones/infrastructure/repositories/app_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/presentation/pages/inspecciones_db_viewer_screen.dart';
 import 'package:inspecciones/theme.dart';
@@ -28,44 +28,45 @@ class UserDrawer extends ConsumerWidget {
             Expanded(
               child: ListView(
                 children: [
+                  MenuItem(
+                    texto: 'Organizacion',
+                    icon: Icons.corporate_fare_outlined,
+                    onTap: () => context.goNamed("organizacion"),
+                  ),
                   if (user.esAdmin)
                     MenuItem(
                       texto:
                           'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
                       icon: Icons.app_registration_outlined,
-                      onTap: () => context.goNamed("cuestionarios"),
+                      onTap: kIsWeb
+                          ? null
+                          : () => context.goNamed("cuestionarios"),
                     ),
                   MenuItem(
                     texto: 'Borradores',
                     icon: Icons.list_alt_outlined,
-                    onTap: () => context.goNamed("borradores"),
+                    onTap: kIsWeb ? null : () => context.goNamed("borradores"),
                   ),
                   MenuItem(
                     texto: 'Sincronizar con GOMAC',
                     icon: Icons.sync_outlined,
-                    onTap: () => context.goNamed("sincronizacion"),
+                    onTap:
+                        kIsWeb ? null : () => context.goNamed("sincronizacion"),
                   ),
                   if (user.esAdmin)
                     MenuItem(
-                      texto: 'Ver base de datos',
-                      icon: Icons.storage_outlined,
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const InspeccionesDbViewerPage())),
-                    ),
-                  if (user.esAdmin)
-                    MenuItem(
-                      texto: 'Insertar datos de prueba',
-                      icon: Icons.science_outlined,
-                      onTap: () => ref
-                          .read(cuestionariosRepositoryProvider)
-                          .insertarDatosDePrueba(),
+                      texto: 'Herramientas de desarrollador',
+                      icon: Icons.bug_report_outlined,
+                      onTap: () => _mostrarHerramientasDeDesarrollo(context),
                     ),
                   MenuItem(
                     texto: 'Limpiar datos de la app',
                     icon: Icons.cleaning_services_outlined,
-                    onTap: () => _mostrarConfirmacionLimpieza(
-                      context: context,
-                    ),
+                    onTap: kIsWeb
+                        ? null
+                        : () => _mostrarConfirmacionLimpieza(
+                              context: context,
+                            ),
                   ),
                   MenuItem(
                     texto: 'Cambiar el tema',
@@ -90,7 +91,7 @@ class UserDrawer extends ConsumerWidget {
 class MenuItem extends StatelessWidget {
   final String texto;
   final IconData icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   const MenuItem(
       {Key? key, required this.texto, required this.icon, required this.onTap})
       : super(key: key);
@@ -198,3 +199,29 @@ Future<void> _mostrarConfirmacionLimpieza({required BuildContext context}) =>
                 }),
               ],
             ));
+Future<void> _mostrarHerramientasDeDesarrollo(BuildContext context) =>
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Consumer(builder: (context, ref, _) {
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Wrap(
+              children: [
+                ElevatedButton(
+                    child: const Text("Ver base de datos"),
+                    onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const InspeccionesDbViewerPage()),
+                        )),
+                ElevatedButton(
+                    child: const Text("Insertar datos de prueba"),
+                    onPressed: () => ref
+                        .read(cuestionariosRepositoryProvider)
+                        .insertarDatosDePrueba())
+              ],
+            ),
+          );
+        }),
+      ),
+    );
