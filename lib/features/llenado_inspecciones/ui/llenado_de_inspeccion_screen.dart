@@ -43,7 +43,6 @@ class InspeccionPage extends ConsumerWidget {
                       camelCase: true,
                     ).toLowerCase(),
               ),
-              backgroundColor: const Color.fromRGBO(28, 44, 60, 1),
               actions: [
                 const FilterWidget(),
                 if (estadoDeInspeccion != EstadoDeInspeccion.finalizada) ...[
