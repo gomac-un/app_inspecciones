@@ -46,13 +46,13 @@ class CreacionFormController {
   /// inicialización de los campos del cuestionario usando los valores guardados
   /// en caso de que sea una edicion. si es uno nuevo se definen valores por defecto
   late final tipoDeInspeccionControl = fb.control<String?>(
-    datosIniciales.cuestionario.tipoDeInspeccion.value,
+    datosIniciales.cuestionario.tipoDeInspeccion.valueOrDefault(""),
     [Validators.required],
   );
   late final nuevoTipoDeInspeccionControl = fb.control<String?>(null);
 
   late final periodicidadControl = fb.control<int>(
-    datosIniciales.cuestionario.periodicidadDias.value,
+    datosIniciales.cuestionario.periodicidadDias.valueOrDefault(1),
     [Validators.required],
   );
 
@@ -153,7 +153,8 @@ class CreacionFormController {
             tipoDeInspeccionControl, nuevoTipoDeInspeccionControl)
       ],
     );
-    if (datosIniciales.cuestionario.estado.value ==
+    if (datosIniciales.cuestionario.estado
+            .valueOrDefault(EstadoDeCuestionario.borrador) ==
         EstadoDeCuestionario.finalizado) {
       control.markAsDisabled();
     }
@@ -245,7 +246,10 @@ class CreacionFormController {
     final CuestionariosCompanion cuestionario =
         datosIniciales.cuestionario.copyWith(
       tipoDeInspeccion: Value(tipoDeInspeccion),
+      version: Value(datosIniciales.cuestionario.version.valueOrDefault(0) + 1),
+      periodicidadDias: Value(periodicidadControl.value!),
       estado: Value(estado),
+      subido: const Value(false),
     );
 
     final List<EtiquetasDeActivoCompanion> etiquetas = etiquetasControl.value!

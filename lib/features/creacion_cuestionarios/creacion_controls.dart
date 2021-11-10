@@ -71,11 +71,15 @@ class CreadorTituloController extends CreacionController {
   late final descripcionControl = fb.control<String>(
     _tituloCompanion.descripcion.valueOrDefault(""),
   );
+  late final fotosControl = fb.control<List<AppImage>>(
+    _tituloCompanion.fotos.valueOrDefault([]).toList(),
+  );
 
   @override
   late final control = FormGroup({
     'titulo': tituloControl,
     'descripcion': descripcionControl,
+    'fotos': fotosControl,
   });
 
   /// Recibe el companion de un titulo el cual puede(O DEBE?) contener valores
@@ -106,6 +110,7 @@ class CreadorTituloController extends CreacionController {
     return _tituloCompanion.copyWith(
       titulo: Value(tituloControl.value!),
       descripcion: Value(descripcionControl.value!),
+      fotos: Value(fotosControl.value!),
     );
   }
 }
@@ -592,7 +597,7 @@ class CamposGeneralesPreguntaController {
   final Value<List<EtiquetasDePreguntaCompanion>> etiquetasIniciales;
   late final etiquetasControl = fb.control<Set<String>>(etiquetasIniciales
       .valueOrDefault([])
-      .map((e) => '${e.clave}:${e.valor}')
+      .map((e) => '${e.clave.value}:${e.valor.value}')
       .toSet());
 
   /// Si es de cuadricula, no se debe requerir que elija el tipo e pregunta
