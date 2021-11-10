@@ -78,6 +78,9 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
 
     final titulos = await _getTitulos(cuestionarioId);
 
+    final numericas =
+        await _getPreguntasNumericas(cuestionarioId, inspeccionId);
+
     final preguntasSeleccionUnica =
         await _getPreguntasDeSeleccionUnica(cuestionarioId, inspeccionId);
 
@@ -90,15 +93,13 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     final cuadriculasDeSeleccionMultiple =
         await _getCuadriculasDeSeleccionMultiple(cuestionarioId, inspeccionId);
 
-    final numerica = await _getPreguntasNumericas(cuestionarioId, inspeccionId);
-
     final bloques = [
       ...titulos,
       ...preguntasSeleccionUnica,
       ...preguntasSeleccionMultiple,
       ...cuadriculasDeSeleccionUnica,
       ...cuadriculasDeSeleccionMultiple,
-      ...numerica,
+      ...numericas,
     ];
     bloques.sort((a, b) => a.value1.compareTo(b.value1));
 

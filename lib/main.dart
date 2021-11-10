@@ -11,6 +11,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_router.dart';
+import 'infrastructure/core/directorio_de_datos.dart';
 import 'infrastructure/datasources/local_preferences_datasource.dart';
 import 'infrastructure/datasources/providers.dart';
 import 'presentation/pages/splash_screen.dart';

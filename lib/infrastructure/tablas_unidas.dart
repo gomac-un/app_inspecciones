@@ -17,7 +17,7 @@ import 'package:meta/meta.dart';
 @immutable
 class PreguntaNumerica {
   final Pregunta pregunta;
-  final List<CriticidadesNumerica> criticidades;
+  final List<CriticidadNumerica> criticidades;
 
   const PreguntaNumerica(this.pregunta, this.criticidades);
 }
@@ -216,7 +216,7 @@ class PreguntaConRespuestaConOpcionesDeRespuesta {
 
 /// Reune [cuadricula] con sus posibles [opcionesDeRespuesta] (Columnas de la cuadrícula)
 class CuadriculaDePreguntasConOpcionesDeRespuesta {
-  final CuadriculaDePreguntas cuadricula;
+  final Pregunta cuadricula;
   final List<OpcionDeRespuesta> opcionesDeRespuesta;
 
   CuadriculaDePreguntasConOpcionesDeRespuesta(
@@ -298,9 +298,10 @@ class BloqueConTitulo extends IBloqueOrdenable {
 class BloqueConPreguntaNumerica extends IBloqueOrdenable {
   final PreguntaNumerica pregunta;
 
-  /// En este caso, la respuesta es [respuesta.valor], por eso no se hace uso de la clase [RespuestaConOpcionesDeRespuesta]
-
+  /// En este caso, la respuesta es [respuesta.valor], por eso no se hace uso de
+  ///  la clase [RespuestaConOpcionesDeRespuesta]
   final RespuestasCompanion? respuesta;
+
   const BloqueConPreguntaNumerica(Bloque bloque, this.pregunta,
       [this.respuesta])
       : super(bloque);
@@ -309,9 +310,6 @@ class BloqueConPreguntaNumerica extends IBloqueOrdenable {
 /// Reune las preguntas de seleccion [pregunta] con sus respectivas respuesta
 class BloqueConPreguntaSimple extends IBloqueOrdenable {
   final PreguntaConOpcionesDeRespuesta pregunta;
-
-  /// List para el caso de las multiples
-  /// TODO: mirar si se necesita esto (en la creacion no se necesita)
 
   const BloqueConPreguntaSimple(
     Bloque bloque,
@@ -327,15 +325,8 @@ class BloqueConCuadricula extends IBloqueOrdenable {
   /// Todas las preguntas (sin opciones de respuesta, porque ya estan en [cuadricula])
   final List<PreguntaConOpcionesDeRespuesta> preguntas;
 
-  /// En caso de que se use al cargar una inspeccion, trae las preguntas que se han contestado con su respectiva respuesta
-  final List<PreguntaConRespuestaConOpcionesDeRespuesta>? preguntasRespondidas;
-
-  const BloqueConCuadricula(
-    Bloque bloque,
-    this.cuadricula,
-    this.preguntas, {
-    this.preguntasRespondidas,
-  }) : super(bloque);
+  const BloqueConCuadricula(Bloque bloque, this.cuadricula, this.preguntas)
+      : super(bloque);
 }
 
 class RespuestaconOpcionDeRespuestaId {

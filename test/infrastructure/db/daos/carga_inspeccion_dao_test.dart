@@ -683,5 +683,6 @@ void main() {
             .having((p) => p.respuesta, "respuesta", isNull),
       );
     });
+    //TODO: probar las cuadriculas de seleccion multiple
   });
 }

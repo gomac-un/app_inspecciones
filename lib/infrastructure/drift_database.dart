@@ -8,6 +8,7 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dar
 import 'package:uuid/uuid.dart';
 
 import 'daos/borradores_dao.dart';
+import 'daos/carga_cuestionario_dao.dart';
 import 'daos/carga_inspeccion_dao.dart';
 import 'daos/guardado_inspeccion_dao.dart';
 
@@ -36,7 +37,7 @@ part 'tablas.dart';
   daos: [
     CargaDeInspeccionDao,
     GuardadoDeInspeccionDao,
-    // CargaDeCuestionarioDao,
+    CargaDeCuestionarioDao,
     // GuardadoDeCuestionarioDao,
     BorradoresDao,
   ],

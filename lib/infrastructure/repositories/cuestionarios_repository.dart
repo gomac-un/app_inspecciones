@@ -32,6 +32,7 @@ class CuestionariosRepository {
   }
 
   Future<void> insertarDatosDePrueba() async {
+    /*
     await _db.into(_db.activos).insert(
         ActivosCompanion.insert(id: const Value(1), modelo: "kenworth"));
     await _db
@@ -158,15 +159,14 @@ class CuestionariosRepository {
                   texto: "texto2", criticidad: 1)
             ],
           ),
-        ]);
+        ]);*/
   }
 
   /// Envia [cuestionario] al server.
   Future<Either<ApiFailure, Unit>> subirCuestionario(
       Cuestionario cuestionario) async {
     /// Json con info de [cuestionario] y sus respectivos bloques.
-    final cuestionarioMap =
-        await _db.getCuestionarioCompletoAsJson(cuestionario);
+    final cuestionarioMap = await _generarJsonCuestionario(cuestionario);
 
     Future<void> subirFotos() async {
       /// Usado para el nombre de la carpeta de las fotos
