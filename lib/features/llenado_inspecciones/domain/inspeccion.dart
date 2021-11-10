@@ -1,13 +1,13 @@
-import 'cuestionario.dart';
 import 'activo.dart';
+import 'cuestionario.dart';
 
 class Inspeccion {
   final String id;
   final EstadoDeInspeccion estado;
   final Activo activo;
   final DateTime? momentoBorradorGuardado;
+  final DateTime? momentoFinalizacion;
   final DateTime? momentoEnvio;
-
 
   //inspector //TODO: agregarle el dato del inspector que la esta haciendo
 
@@ -18,6 +18,7 @@ class Inspeccion {
     required this.estado,
     required this.activo,
     this.momentoBorradorGuardado,
+    this.momentoFinalizacion,
     this.momentoEnvio,
   });
 }

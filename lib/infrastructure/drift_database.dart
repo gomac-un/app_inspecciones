@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:enum_to_string/enum_to_string.dart';
+import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
     show EstadoDeInspeccion;
 import 'package:uuid/uuid.dart';
 
 import 'daos/borradores_dao.dart';
 import 'daos/carga_inspeccion_dao.dart';
+import 'daos/guardado_inspeccion_dao.dart';
 
 export 'database/shared.dart';
 
@@ -33,7 +35,7 @@ part 'tablas.dart';
   ],
   daos: [
     CargaDeInspeccionDao,
-    // GuardadoDeInspeccionDao,
+    GuardadoDeInspeccionDao,
     // CargaDeCuestionarioDao,
     // GuardadoDeCuestionarioDao,
     BorradoresDao,

@@ -73,7 +73,7 @@ class Titulos extends Table {
       'NOT NULL UNIQUE REFERENCES bloques(id) ON DELETE CASCADE')();
   TextColumn get titulo => text()();
   TextColumn get descripcion => text()();
-  TextColumn get fotos => text().map(const _ListToTextConverter())();
+  TextColumn get fotos => text().map(const _ListImagesToTextConverter())();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -99,7 +99,7 @@ class Preguntas extends Table {
   TextColumn get titulo => text()();
   TextColumn get descripcion => text()();
   IntColumn get criticidad => integer()();
-  TextColumn get fotosGuia => text().map(const _ListToTextConverter())();
+  TextColumn get fotosGuia => text().map(const _ListImagesToTextConverter())();
 
   TextColumn get bloqueId => text().nullable().customConstraint(
       'NULLABLE UNIQUE REFERENCES bloques(id) ON DELETE CASCADE')();
@@ -194,8 +194,9 @@ class Respuestas extends Table {
   TextColumn get observacionReparacion => text()();
   DateTimeColumn get momentoRespuesta => dateTime().nullable()();
 
-  TextColumn get fotosBase => text().map(const _ListToTextConverter())();
-  TextColumn get fotosReparacion => text().map(const _ListToTextConverter())();
+  TextColumn get fotosBase => text().map(const _ListImagesToTextConverter())();
+  TextColumn get fotosReparacion =>
+      text().map(const _ListImagesToTextConverter())();
 
   TextColumn get tipoDeRespuesta => text().map(
       const _EnumToStringConverter<TipoDeRespuesta>(TipoDeRespuesta.values))();
@@ -620,6 +621,35 @@ class _ListToTextConverter extends TypeConverter<List<String>, String> {
       return null;
     }
     return jsonEncode(value);
+  }
+}
+
+class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
+  const _ListImagesToTextConverter();
+  @override
+  List<AppImage>? mapToDart(fromDb) {
+    if (fromDb == null) {
+      return null;
+    }
+    return (jsonDecode(fromDb) as List)
+        .cast<String>()
+        .map((p) =>
+            p.startsWith("http") ? AppImage.remote(p) : AppImage.mobile(p))
+        .toList();
+  }
+
+  @override
+  String? mapToSql(value) {
+    if (value == null) {
+      return null;
+    }
+    return jsonEncode(value
+        .map((i) => i.when(
+            remote: (p) => p,
+            mobile: (p) => p,
+            web: (_) =>
+                throw UnsupportedError("No se puede guardar una imagen web")))
+        .toList());
   }
 }
 /*

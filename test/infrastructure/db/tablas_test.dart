@@ -136,11 +136,11 @@ void main() {
               bloqueId: bloque.id,
               titulo: "titulo",
               descripcion: "descripcion",
-              fotos: ["a", "b", "c"],
+              fotos: [],
             ));
 
     expect(titulo.bloqueId, bloque.id);
-    expect(titulo.fotos, ["a", "b", "c"]);
+    expect(titulo.fotos, []);
   });
   test('''un bloque puede estar asociado solo a un titulo''', () async {
     final bloque = await _crearBloque(await _crearCuestionario());
@@ -171,7 +171,7 @@ void main() {
               titulo: "titulo",
               descripcion: "descripcion",
               criticidad: 1,
-              fotosGuia: ["a", "b", "c"],
+              fotosGuia: [],
               bloqueId: Value(bloque.id),
               tipoDePregunta: TipoDePregunta.seleccionUnica,
             ));
@@ -194,7 +194,7 @@ void main() {
                 titulo: "titulo",
                 descripcion: "descripcion",
                 criticidad: 1,
-                fotosGuia: ["a", "b", "c"],
+                fotosGuia: [],
                 bloqueId: Value(bloque.id),
                 tipoDePregunta: TipoDePregunta.seleccionUnica,
               )));
@@ -216,7 +216,7 @@ void main() {
               titulo: "titulo",
               descripcion: "descripcion",
               criticidad: 1,
-              fotosGuia: ["a", "b", "c"],
+              fotosGuia: [],
               bloqueId: Value(bloque.id),
               tipoDePregunta: TipoDePregunta.numerica,
             ));
@@ -240,7 +240,7 @@ void main() {
               titulo: "titulo",
               descripcion: "descripcion",
               criticidad: 1,
-              fotosGuia: ["a", "b", "c"],
+              fotosGuia: [],
               bloqueId: Value(bloque.id),
               tipoDePregunta: TipoDePregunta.cuadricula,
               tipoDeCuadricula: const Value(TipoDeCuadricula.seleccionUnica),
@@ -258,7 +258,7 @@ void main() {
               titulo: "subtitulo",
               descripcion: "subdescripcion",
               criticidad: 1,
-              fotosGuia: ["a", "b", "c"],
+              fotosGuia: [],
               cuadriculaId: Value(cuadricula.id),
               tipoDePregunta: TipoDePregunta.parteDeCuadricula,
             ));
@@ -335,8 +335,8 @@ void main() {
           reparado: false,
           observacionReparacion: "observacionReparacion",
           momentoRespuesta: Value(DateTime.fromMillisecondsSinceEpoch(0)),
-          fotosBase: ["a", "b", "c"],
-          fotosReparacion: ["a", "b", "c"],
+          fotosBase: [],
+          fotosReparacion: [],
           tipoDeRespuesta: TipoDeRespuesta.seleccionUnica,
           inspeccionId: Value(inspeccion.id),
           opcionSeleccionadaId: Value(opcion.id),

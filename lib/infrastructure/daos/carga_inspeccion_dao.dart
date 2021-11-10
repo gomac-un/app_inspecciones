@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
-import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart'
     as dominio;
 import 'package:inspecciones/features/llenado_inspecciones/domain/metarespuesta.dart';
@@ -54,7 +53,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   /// Devuelve todos los bloques de la inspeccion del cuestionario con id=[cuestionarioId] para [activoId]
   ///
   /// Incluye los titulos y las preguntas con sus respectivas opciones de respuesta y respuestas seleccionadas
-  Future<Tuple2<Inspeccion, List<dominio.Bloque>>> cargarInspeccion(
+  Future<Tuple2<dominio.Inspeccion, List<dominio.Bloque>>> cargarInspeccion(
       {required String cuestionarioId,
       required String activoId,
       required String inspectorId}) async {
@@ -102,8 +101,20 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
       ...numerica,
     ];
     bloques.sort((a, b) => a.value1.compareTo(b.value1));
-    return Tuple2(inspeccion, bloques.map((e) => e.value2).toList());
+
+    return Tuple2(await _buildInspeccion(inspeccion),
+        bloques.map((e) => e.value2).toList());
   }
+
+  Future<dominio.Inspeccion> _buildInspeccion(Inspeccion inspeccion) async =>
+      dominio.Inspeccion(
+        id: inspeccion.id,
+        estado: inspeccion.estado,
+        activo: await db.borradoresDao.getActivo(activoId: inspeccion.activoId),
+        momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
+        momentoFinalizacion: inspeccion.momentoFinalizacion,
+        momentoEnvio: inspeccion.momentoEnvio,
+      );
 
   /// Devuelve la inspección creada al guardarla por primera vez.
   Future<Inspeccion> _crearInspeccion({
@@ -164,7 +175,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
       final criticidadesNumericas =
           await _getCriticidadesNumericas(pregunta.id);
       final etiquetas = await _getEtiquetasDePregunta(pregunta.id);
-      final respuesta = await _getRespuestaDePreguntaNumerica(
+      final respuesta = await _getRespuestaDePregunta(
         pregunta,
         inspeccionId,
       );
@@ -185,7 +196,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
           List<CriticidadNumerica> criticidadesNumericas,
           Pregunta pregunta,
           List<EtiquetaDePregunta> etiquetas,
-          dominio.RespuestaNumerica respuesta,
+          Respuesta? respuesta,
           String inspeccionId) =>
       dominio.PreguntaNumerica(
         criticidadesNumericas
@@ -196,12 +207,17 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         id: pregunta.id,
         titulo: pregunta.titulo,
         descripcion: pregunta.descripcion,
-        fotosGuia: pregunta.fotosGuia.map((e) => AppImage.mobile(e)).toList(),
+        fotosGuia: pregunta.fotosGuia,
         criticidad: pregunta.criticidad,
         etiquetas:
             etiquetas.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList(),
         calificable: true,
-        respuesta: respuesta,
+        respuesta: respuesta == null
+            ? null
+            : dominio.RespuestaNumerica(
+                _buildMetaRespuesta(respuesta),
+                respuestaNumerica: respuesta.valorNumerico,
+              ),
       );
 
   Future<List<CriticidadNumerica>> _getCriticidadesNumericas(
@@ -209,23 +225,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     final query = select(criticidadesNumericas)
       ..where((c) => c.preguntaId.equals(preguntaId));
     return query.get();
-  }
-
-  /// Devuelve la respuesta a [pregunta] de tipo numerica.
-  Future<dominio.RespuestaNumerica> _getRespuestaDePreguntaNumerica(
-      Pregunta pregunta, String inspeccionId) async {
-    final query = select(respuestas)
-      ..where(
-        (u) =>
-            u.preguntaId.equals(pregunta.id) &
-            u.inspeccionId.equals(inspeccionId),
-      );
-
-    final respuesta = await query.getSingle();
-    return dominio.RespuestaNumerica(
-      _buildMetaRespuesta(respuesta),
-      respuestaNumerica: respuesta.valorNumerico,
-    );
   }
 
   Future<List<Tuple2<int, dominio.PreguntaDeSeleccionUnica>>>
@@ -267,9 +266,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
       id: pregunta.id,
       titulo: pregunta.titulo,
       descripcion: pregunta.descripcion,
-      fotosGuia: pregunta.fotosGuia
-          .map((p) => AppImage.mobile(p))
-          .toList(), //TODO: averiguar que tipo de AppImage es
+      fotosGuia: pregunta.fotosGuia,
       criticidad: pregunta.criticidad,
       etiquetas:
           etiquetas.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList(),
@@ -320,8 +317,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
       final pregunta = e.value2;
       final opciones = await _getOpcionesDeRespuesta(pregunta.id);
       final etiquetas = await _getEtiquetasDePregunta(pregunta.id);
-      final respuesta =
-          await _getRespuestaDeSeleccionMultiple(pregunta, inspeccionId);
+      final respuesta = await _getRespuestaDePregunta(pregunta, inspeccionId);
       final subRespuestas =
           await _getSubRespuestasDeSeleccionMultiple(respuesta);
       return Tuple2(
@@ -340,26 +336,29 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     Pregunta pregunta,
     List<OpcionDeRespuesta> opciones,
     List<EtiquetaDePregunta> etiquetas,
-    Respuesta respuesta,
+    Respuesta? respuesta,
     List<Respuesta> subRespuestas,
   ) =>
       dominio.PreguntaDeSeleccionMultiple(
         opciones.map((opcion) => _buildOpcionDeRespuesta(opcion)).toList(),
         opciones.map((op) {
-          final respuesta =
-              subRespuestas.firstWhere((s) => op.id == s.opcionSeleccionadaId);
+          final respuesta = subRespuestas
+              .firstWhereOrNull((s) => op.id == s.opcionRespondidaId);
           return dominio.SubPreguntaDeSeleccionMultiple(
             _buildOpcionDeRespuesta(op),
-            id: respuesta.id,
+            id: "", // no aplica la id porque esta pregunta no existe en la bd, es generada a partir de la opcion de respuesta
             titulo: op.titulo,
             descripcion: op.descripcion,
             fotosGuia: [],
             criticidad: op.criticidad,
             etiquetas: [],
             calificable: false,
-            respuesta: dominio.SubRespuestaDeSeleccionMultiple(
-                _buildMetaRespuesta(respuesta),
-                estaSeleccionada: respuesta.opcionRespondidaEstaSeleccionada!),
+            respuesta: respuesta == null
+                ? null
+                : dominio.SubRespuestaDeSeleccionMultiple(
+                    _buildMetaRespuesta(respuesta),
+                    estaSeleccionada:
+                        respuesta.opcionRespondidaEstaSeleccionada!),
           );
         }).toList(),
         id: pregunta.id,
@@ -368,23 +367,19 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
             etiquetas.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList(),
         titulo: pregunta.titulo,
         descripcion: pregunta.descripcion,
-        fotosGuia: pregunta.fotosGuia
-            .map((p) => AppImage.mobile(p))
-            .toList(), //TODO: averiguar que tipo de AppImage es
+        fotosGuia: pregunta.fotosGuia,
         calificable: true, //TODO: solucionar #19
+        respuesta: respuesta == null
+            ? null
+            : dominio.RespuestaDeSeleccionMultiple(
+                _buildMetaRespuesta(respuesta),
+                [],
+              ),
       );
 
-  Future<Respuesta> _getRespuestaDeSeleccionMultiple(
-      Pregunta pregunta, String inspeccionId) {
-    final query = select(respuestas)
-      ..where((r) =>
-          r.preguntaId.equals(pregunta.id) &
-          r.inspeccionId.equals(inspeccionId));
-    return query.getSingle();
-  }
-
   Future<List<Respuesta>> _getSubRespuestasDeSeleccionMultiple(
-      Respuesta respuestaMultiplePadre) {
+      Respuesta? respuestaMultiplePadre) async {
+    if (respuestaMultiplePadre == null) return [];
     final query = select(respuestas)
       ..where((r) => r.respuestaMultipleId.equals(respuestaMultiplePadre.id));
     return query.get();
@@ -424,6 +419,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
           respuesta,
         );
       }));
+      final respuesta = await _getRespuestaDePregunta(cuadricula, inspeccionId);
 
       return Tuple2(
         bloque.nOrden,
@@ -432,15 +428,10 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
           opciones,
           cuadricula,
           etiquetas,
+          respuesta,
         ),
       );
     }));
-  }
-
-  Future<List<Pregunta>> _getPreguntasDeCuadricula(String cuadriculaId) async {
-    final query = select(preguntas)
-      ..where((p) => p.cuadriculaId.equals(cuadriculaId));
-    return query.get();
   }
 
   dominio.CuadriculaDeSeleccionUnica _buildCuadriculaDeSeleccionUnica(
@@ -448,6 +439,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     List<OpcionDeRespuesta> opciones,
     Pregunta cuadricula,
     List<EtiquetaDePregunta> etiquetas,
+    Respuesta? respuesta,
   ) =>
       dominio.CuadriculaDeSeleccionUnica(
         preguntasRespondidas,
@@ -455,11 +447,17 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         id: cuadricula.id,
         titulo: cuadricula.titulo,
         descripcion: cuadricula.descripcion,
-        fotosGuia: cuadricula.fotosGuia.map((p) => AppImage.mobile(p)).toList(),
+        fotosGuia: cuadricula.fotosGuia,
         criticidad: cuadricula.criticidad,
         etiquetas:
             etiquetas.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList(),
         calificable: true,
+        respuesta: respuesta == null
+            ? null
+            : dominio.RespuestaDeCuadricula(
+                _buildMetaRespuesta(respuesta),
+                [],
+              ),
       );
 
   Future<List<Tuple2<int, dominio.CuadriculaDeSeleccionMultiple>>>
@@ -487,8 +485,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
       final preguntas = await _getPreguntasDeCuadricula(cuadricula.id);
       final preguntasRespondidas =
           await Future.wait(preguntas.map((pregunta) async {
-        final respuesta =
-            await _getRespuestaDeSeleccionMultiple(pregunta, inspeccionId);
+        final respuesta = await _getRespuestaDePregunta(pregunta, inspeccionId);
         final subRespuestas =
             await _getSubRespuestasDeSeleccionMultiple(respuesta);
         return _buildPreguntaDeSeleccionMultiple(
@@ -524,12 +521,31 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         id: cuadricula.id,
         titulo: cuadricula.titulo,
         descripcion: cuadricula.descripcion,
-        fotosGuia: cuadricula.fotosGuia.map((p) => AppImage.mobile(p)).toList(),
+        fotosGuia: cuadricula.fotosGuia,
         criticidad: cuadricula.criticidad,
         etiquetas:
             etiquetas.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList(),
         calificable: true,
       );
+
+  Future<List<Pregunta>> _getPreguntasDeCuadricula(String cuadriculaId) async {
+    final query = select(preguntas)
+      ..where((p) => p.cuadriculaId.equals(cuadriculaId));
+    return query.get();
+  }
+
+  /// Devuelve la respuesta a [pregunta] de tipo numerica.
+  Future<Respuesta?> _getRespuestaDePregunta(
+      Pregunta pregunta, String inspeccionId) {
+    final query = select(respuestas)
+      ..where(
+        (u) =>
+            u.preguntaId.equals(pregunta.id) &
+            u.inspeccionId.equals(inspeccionId),
+      );
+
+    return query.getSingleOrNull();
+  }
 
   Future<List<OpcionDeRespuesta>> _getOpcionesDeRespuesta(String preguntaId) {
     final query = select(opcionesDeRespuesta)
@@ -570,9 +586,8 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         observaciones: respuesta.observacion,
         reparada: respuesta.reparado,
         observacionesReparacion: respuesta.observacionReparacion,
-        fotosBase: respuesta.fotosBase.map((e) => AppImage.mobile(e)).toList(),
-        fotosReparacion:
-            respuesta.fotosReparacion.map((e) => AppImage.mobile(e)).toList(),
+        fotosBase: respuesta.fotosBase,
+        fotosReparacion: respuesta.fotosReparacion,
       );
 
   dominio.OpcionDeRespuesta _buildOpcionDeRespuesta(OpcionDeRespuesta opcion) =>

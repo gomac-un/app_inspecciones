@@ -48,7 +48,7 @@ void main() {
                 titulo: "titulo",
                 descripcion: "descripcion",
                 criticidad: 2,
-                fotosGuia: ["a", "b", "c"],
+                fotosGuia: [],
                 bloqueId: Value(bloque.id),
                 tipoDePregunta: TipoDePregunta.seleccionUnica,
               )));
@@ -83,7 +83,7 @@ void main() {
               reparado: true, //TODO: cambiar a false
               observacionReparacion: "observacionReparacion",
               momentoRespuesta: Value(DateTime.fromMillisecondsSinceEpoch(0)),
-              fotosBase: ["a", "b", "c"],
+              fotosBase: [],
               fotosReparacion: [],
               tipoDeRespuesta: TipoDeRespuesta.seleccionUnica,
               inspeccionId: Value(inspeccion.id),

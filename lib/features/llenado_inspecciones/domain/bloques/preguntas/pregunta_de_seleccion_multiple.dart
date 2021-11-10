@@ -7,7 +7,8 @@ import 'pregunta_de_seleccion.dart';
 
 class PreguntaDeSeleccionMultiple
     extends PreguntaDeSeleccion<RespuestaDeSeleccionMultiple> {
-  final List<SubPreguntaDeSeleccionMultiple> respuestas;
+  final List<SubPreguntaDeSeleccionMultiple>
+      respuestas; // aqui se traen las respuestas en el cargado
 
   PreguntaDeSeleccionMultiple(
     List<OpcionDeRespuesta> opcionesDeRespuesta,
@@ -19,7 +20,8 @@ class PreguntaDeSeleccionMultiple
     required int criticidad,
     required List<Etiqueta> etiquetas,
     required bool calificable,
-    RespuestaDeSeleccionMultiple? respuesta,
+    RespuestaDeSeleccionMultiple?
+        respuesta, // aqui se depositan las respuestas para el guardado
   }) : super(
           opcionesDeRespuesta,
           id: id,

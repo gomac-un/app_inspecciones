@@ -67,7 +67,7 @@ class InspeccionesRepository {
     final cuestionario =
         await _db.cargaDeCuestionarioDao.getCuestionario(id.cuestionarioId);
     final inspeccion = inspeccionCompleta.value1;
-    final activo = await _db.borradoresDao.getActivo(inspeccion.activoId);
+    
     final cuestionarioInspeccionado = CuestionarioInspeccionado(
         Cuestionario(
             id: cuestionario.id,
