@@ -54,7 +54,7 @@ class AvanceCard extends ConsumerWidget {
               LinearProgressIndicator(
                   value: avance,
                   backgroundColor: Colors.white,
-                  color: const Color.fromRGBO(240, 184, 35, 1)),
+                  color: Theme.of(context).colorScheme.secondary),
               const SizedBox(height: 3),
               Text(
                 estadoDeInspeccion == EstadoDeInspeccion.enReparacion
