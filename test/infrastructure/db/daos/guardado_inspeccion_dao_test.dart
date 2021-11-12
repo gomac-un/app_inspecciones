@@ -138,7 +138,7 @@ void main() {
               bloqueId: Value(bloque.id),
               tipoDePregunta: TipoDePregunta.seleccionMultiple,
             ));
-    final opcion = await _db.into(_db.opcionesDeRespuesta).insertReturning(
+    await _db.into(_db.opcionesDeRespuesta).insertReturning(
         OpcionesDeRespuestaCompanion.insert(
             titulo: "titulo",
             descripcion: "descripcion",

@@ -1,5 +1,4 @@
 import 'package:enum_to_string/enum_to_string.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -74,15 +73,12 @@ class ControlWidgetAnimado extends StatelessWidget {
   }
 }
 
-class CamposGenerales extends ConsumerWidget {
+class CamposGenerales extends StatelessWidget {
   final CamposGeneralesPreguntaController controller;
   const CamposGenerales({Key? key, required this.controller}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, ref) {
-    /// Se accede a este provider del formulario base de creación para poder cargar los sistemas
-    final formController = ref.watch(creacionFormControllerProvider);
-
+  Widget build(BuildContext context) {
     /// Como es de selección, se asegura que los unicos tipos de pregunta que pueda seleccionar el creador
     /// sean de unica o multiple respuesta
 

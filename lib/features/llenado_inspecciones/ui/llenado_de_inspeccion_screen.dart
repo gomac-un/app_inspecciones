@@ -57,21 +57,21 @@ class InspeccionPage extends ConsumerWidget {
                 PopupMenuButton<IconMenu>(
                     onSelected: (value) {
                       switch (value) {
-                        case IconsMenu.Reparar:
+                        case IconsMenu.reparar:
                           control.iniciarReparaciones(
                             onInvalid: () => mostrarInvalido(context),
                             mensajeReparacion: () =>
                                 mostrarMensajeReparacion(context),
                           );
                           break;
-                        case IconsMenu.Finalizar:
+                        case IconsMenu.finalizar:
                           control.finalizar(
                               confirmation: () =>
                                   _confirmarFinalizacion(context),
                               ejecutarGuardado: agregarMensajesAccion(context),
                               onInvalid: () => mostrarInvalido(context));
                           break;
-                        case IconsMenu.Informacion:
+                        case IconsMenu.informacion:
                           _mostrarInformacionInspeccion(context);
                           break;
                       }

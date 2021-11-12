@@ -10,7 +10,6 @@ import 'package:inspecciones/features/login/credenciales.dart';
 import 'package:inspecciones/infrastructure/repositories/app_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
-import 'package:inspecciones/utils/future_either_x.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'auth_service.freezed.dart';

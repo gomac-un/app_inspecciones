@@ -103,7 +103,7 @@ void main() {
     final pregunta = await _crearPreguntaSimple(cuestionario);
     final opcionDeRespuesta = await _crearOpcionDeRespuesta(pregunta);
     final inspeccion = await _crearInspeccion(cuestionario, activo);
-    final respuesta =
+    
         await _crearRespuesta(inspeccion, pregunta, opcionDeRespuesta);
     return Tuple4(
       cuestionario,
@@ -117,8 +117,6 @@ void main() {
       () async {
     final tuple = await _crearInspeccionConPregunta();
     final cuestionario = tuple.value1;
-    final pregunta = tuple.value2;
-    final opcion = tuple.value3;
     final inspeccion = tuple.value4;
 
     final borradoresStream =

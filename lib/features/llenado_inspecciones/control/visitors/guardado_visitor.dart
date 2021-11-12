@@ -2,7 +2,6 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dar
 
 import '../../domain/bloques/pregunta.dart';
 import '../../domain/bloques/preguntas/preguntas.dart';
-import '../../domain/respuesta.dart';
 import '../../infrastructure/inspecciones_repository.dart';
 import '../controlador_de_pregunta.dart';
 import '../controladores_de_pregunta/controladores_de_pregunta.dart';

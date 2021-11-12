@@ -1,8 +1,6 @@
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
-import 'package:inspecciones/core/entities/app_image.dart';
-import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
+import 'package:inspecciones/infrastructure/core/typedefs.dart';
 
 // import 'daos/borradores_dao.dart';
 // import 'daos/carga_cuestionario_dao.dart';
@@ -44,6 +42,10 @@ class SincronizacionDao extends DatabaseAccessor<Database>
 
   Future<Map<String, dynamic>> getInspeccionConRespuestas(
       Inspeccion inspeccion) async {
+    throw UnimplementedError();
+  }
+
+  Future<void> instalarDB(JsonMap db) async {
     throw UnimplementedError();
   }
 /*

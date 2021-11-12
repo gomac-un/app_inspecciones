@@ -58,14 +58,13 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
           }
         } else if (pregunta is dominio.CuadriculaDeSeleccionMultiple) {
           final respuesta = pregunta.respuesta!;
-          final respuestaPadre = await _guardarRespuesta(
+          await _guardarRespuesta(
             pregunta.respuesta!.metaRespuesta,
             TipoDeRespuesta.cuadricula,
             preguntaId: pregunta.id,
             inspeccionId: inspeccion.id,
           );
           for (final subPregunta in respuesta.respuestas) {
-            final respuesta = subPregunta.respuesta!;
             await _guardarRespuestaDeSeleccionMultiple(subPregunta, inspeccion);
           }
         } else {

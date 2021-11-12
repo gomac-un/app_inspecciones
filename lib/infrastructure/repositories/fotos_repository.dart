@@ -5,7 +5,6 @@ import 'package:file/file.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/infrastructure/core/directorio_de_datos.dart';
-import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:path/path.dart' as path;
 
 final fotosRepositoryProvider = Provider(

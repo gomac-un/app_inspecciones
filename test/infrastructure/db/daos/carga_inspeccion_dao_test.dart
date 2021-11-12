@@ -3,8 +3,6 @@ import 'package:drift/native.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart'
     as dominio;
-import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
-    show EstadoDeInspeccion;
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:test/test.dart';
 
@@ -124,18 +122,6 @@ void main() {
     });
   });
   group("cargarInspeccion", () {
-    Future<Inspeccion> _crearInspeccion(
-            Cuestionario cuestionario, Activo activo) =>
-        _db.into(_db.inspecciones).insertReturning(
-              InspeccionesCompanion.insert(
-                id: "1",
-                cuestionarioId: cuestionario.id,
-                activoId: activo.id,
-                inspectorId: "1",
-                momentoInicio: DateTime.fromMillisecondsSinceEpoch(0),
-                estado: EstadoDeInspeccion.borrador,
-              ),
-            );
     test('''si el cuestionario no tiene bloques, cargarInspeccion debería cargar
         una inspección vacía''', () async {
       final cuestionario = await _crearCuestionario();
@@ -203,13 +189,12 @@ void main() {
       final bloque = await _db.into(_db.bloques).insertReturning(
           BloquesCompanion.insert(nOrden: 1, cuestionarioId: cuestionario.id));
 
-      final titulo =
-          await _db.into(_db.titulos).insertReturning(TitulosCompanion.insert(
-                bloqueId: bloque.id,
-                titulo: "titulo",
-                descripcion: "descripcion",
-                fotos: [],
-              ));
+      await _db.into(_db.titulos).insertReturning(TitulosCompanion.insert(
+            bloqueId: bloque.id,
+            titulo: "titulo",
+            descripcion: "descripcion",
+            fotos: [],
+          ));
 
       final res = await _db.cargaDeInspeccionDao.cargarInspeccion(
           cuestionarioId: cuestionario.id,
@@ -445,9 +430,7 @@ void main() {
             inspeccionId: Value(inspeccion.id),
           ));
 
-      final subRespuesta = await _db
-          .into(_db.respuestas)
-          .insertReturning(RespuestasCompanion.insert(
+      await _db.into(_db.respuestas).insertReturning(RespuestasCompanion.insert(
             observacion: "observacion subrespuesta",
             reparado: false,
             observacionReparacion: "",
@@ -519,9 +502,7 @@ void main() {
               criticidad: 1,
               preguntaId: cuadricula.id));
 
-      final subPregunta = await _db
-          .into(_db.preguntas)
-          .insertReturning(PreguntasCompanion.insert(
+      await _db.into(_db.preguntas).insertReturning(PreguntasCompanion.insert(
             titulo: "subpregunta",
             descripcion: "descripcion subpregunta",
             criticidad: 1,
@@ -605,9 +586,7 @@ void main() {
             estado: dominio.EstadoDeInspeccion.borrador,
           ));
 
-      final respuestaCuadricula = await _db
-          .into(_db.respuestas)
-          .insertReturning(RespuestasCompanion.insert(
+      await _db.into(_db.respuestas).insertReturning(RespuestasCompanion.insert(
             observacion: "observacion cuadricula",
             reparado: false,
             observacionReparacion: "observacion reparacion",
@@ -619,9 +598,7 @@ void main() {
             inspeccionId: Value(inspeccion.id),
           ));
 
-      final subRespuestaCuadricula = await _db
-          .into(_db.respuestas)
-          .insertReturning(RespuestasCompanion.insert(
+      await _db.into(_db.respuestas).insertReturning(RespuestasCompanion.insert(
             observacion: "observacion subrespuesta",
             reparado: false,
             observacionReparacion: "",
@@ -681,7 +658,7 @@ void main() {
             unidades: const Value("metros"),
           ));
 
-      final rangoDeCriticidad = await _db
+      await _db
           .into(_db.criticidadesNumericas)
           .insertReturning(CriticidadesNumericasCompanion.insert(
             valorMinimo: 10,

@@ -7,7 +7,6 @@ import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/domain/inspecciones/inspecciones_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart' as drift;
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 
 import '../domain/bloques/bloques.dart';
 import '../domain/borrador.dart';
@@ -17,7 +16,6 @@ import '../domain/identificador_inspeccion.dart';
 final inspeccionesRepositoryProvider = Provider(
   (ref) => InspeccionesRepository(
     ref.watch(drift.driftDatabaseProvider),
-    ref.watch(fotosRepositoryProvider),
   ),
 );
 
@@ -26,9 +24,8 @@ typedef FEF<C> = Future<Either<InspeccionesFailure, C>>;
 
 class InspeccionesRepository {
   final drift.Database _db;
-  final FotosRepository _fotosRepository;
 
-  InspeccionesRepository(this._db, this._fotosRepository);
+  InspeccionesRepository(this._db);
 
   Stream<List<Borrador>> getBorradores() =>
       _db.borradoresDao.borradores(mostrarSoloEnviadas: false);

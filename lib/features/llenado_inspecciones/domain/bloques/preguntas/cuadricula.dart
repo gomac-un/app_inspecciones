@@ -2,8 +2,6 @@ import 'package:inspecciones/core/entities/app_image.dart';
 
 import '../../etiqueta.dart';
 import '../pregunta.dart';
-import 'opcion_de_respuesta.dart';
-import 'pregunta_de_seleccion.dart';
 import 'preguntas.dart';
 
 class Cuadricula<T extends RespuestaDeCuadricula, P extends PreguntaDeSeleccion>

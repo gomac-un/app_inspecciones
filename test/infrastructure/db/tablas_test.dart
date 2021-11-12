@@ -55,7 +55,7 @@ void main() {
     final etiqueta1 = await _db.into(_db.etiquetasDeActivo).insertReturning(
         EtiquetasDeActivoCompanion.insert(clave: "modelo", valor: "2020"));
 
-    final asociacion1 = await _db.into(_db.activosXEtiquetas).insertReturning(
+    await _db.into(_db.activosXEtiquetas).insertReturning(
         ActivosXEtiquetasCompanion.insert(
             activoId: activo.id, etiquetaId: etiqueta1.id));
 
@@ -159,7 +159,7 @@ void main() {
   test('''un bloque puede estar asociado solo a un titulo''', () async {
     final bloque = await _crearBloque(await _crearCuestionario());
 
-    final titulo1 =
+    
         await _db.into(_db.titulos).insertReturning(TitulosCompanion.insert(
               bloqueId: bloque.id,
               titulo: "titulo",
@@ -189,7 +189,7 @@ void main() {
               bloqueId: Value(bloque.id),
               tipoDePregunta: TipoDePregunta.seleccionUnica,
             ));
-    final opcionDeRespuesta = await _db
+    await _db
         .into(_db.opcionesDeRespuesta)
         .insertReturning(OpcionesDeRespuestaCompanion.insert(
           titulo: "opcion",
@@ -234,7 +234,7 @@ void main() {
               bloqueId: Value(bloque.id),
               tipoDePregunta: TipoDePregunta.numerica,
             ));
-    final criticidadNumerica = await _db
+    await _db
         .into(_db.criticidadesNumericas)
         .insertReturning(CriticidadesNumericasCompanion.insert(
           valorMinimo: 0,
@@ -259,7 +259,7 @@ void main() {
               tipoDePregunta: TipoDePregunta.cuadricula,
               tipoDeCuadricula: const Value(TipoDeCuadricula.seleccionUnica),
             ));
-    final opcionDeRespuesta = await _db
+    await _db
         .into(_db.opcionesDeRespuesta)
         .insertReturning(OpcionesDeRespuestaCompanion.insert(
           titulo: "opcion",
@@ -267,15 +267,15 @@ void main() {
           criticidad: 1,
           preguntaId: cuadricula.id,
         ));
-    final subPregunta =
-        await _db.into(_db.preguntas).insertReturning(PreguntasCompanion.insert(
-              titulo: "subtitulo",
-              descripcion: "subdescripcion",
-              criticidad: 1,
-              fotosGuia: [],
-              cuadriculaId: Value(cuadricula.id),
-              tipoDePregunta: TipoDePregunta.parteDeCuadricula,
-            ));
+
+    await _db.into(_db.preguntas).insertReturning(PreguntasCompanion.insert(
+          titulo: "subtitulo",
+          descripcion: "subdescripcion",
+          criticidad: 1,
+          fotosGuia: [],
+          cuadriculaId: Value(cuadricula.id),
+          tipoDePregunta: TipoDePregunta.parteDeCuadricula,
+        ));
 
     expect(cuadricula.bloqueId, bloque.id);
     expect(cuadricula.tipoDePregunta, TipoDePregunta.cuadricula);

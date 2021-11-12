@@ -196,7 +196,6 @@ class CuestionariosRepository {
 
   Future<JsonMap> _generarJsonCuestionario(Cuestionario cuestionario) async {
     throw UnimplementedError();
-    return {}; //TODO: implementar
   }
 
   /// Descarga los cuestionarios y todo lo necesario para tratarlos:

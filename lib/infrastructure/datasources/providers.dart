@@ -1,5 +1,4 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/infrastructure/core/directorio_de_datos.dart';
 import 'package:inspecciones/infrastructure/datasources/auth_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';

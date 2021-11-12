@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
@@ -8,7 +7,6 @@ import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
     show EstadoDeInspeccion;
 import 'package:inspecciones/infrastructure/daos/sincronizacion_dao.dart';
-import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 
 import 'daos/borradores_dao.dart';
@@ -100,9 +98,9 @@ extension DefaultGetter<T> on Value<T> {
     return present ? value : null;
   }
 }
-
+/*
 AppImage _soloBasename(AppImage f) => f.map(
       remote: id,
       mobile: (e) => e.copyWith(path: path.basename(e.path)),
       web: (_) => throw UnimplementedError("subida de imagenes web"),
-    );
+    );*/

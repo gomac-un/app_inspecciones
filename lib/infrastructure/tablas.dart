@@ -607,7 +607,7 @@ class ListOfImagesInColumnConverter extends TypeConverter<ListImages, String> {
   }
 }
 */
-
+/*
 class _ListToTextConverter extends TypeConverter<List<String>, String> {
   const _ListToTextConverter();
   @override
@@ -627,7 +627,7 @@ class _ListToTextConverter extends TypeConverter<List<String>, String> {
     return jsonEncode(value);
   }
 }
-
+*/
 class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
   const _ListImagesToTextConverter();
   @override

@@ -1,5 +1,4 @@
 import 'bloques/pregunta.dart';
-import 'bloques/preguntas/opcion_de_respuesta.dart';
 import 'bloques/preguntas/preguntas.dart';
 import 'metarespuesta.dart';
 
