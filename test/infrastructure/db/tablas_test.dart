@@ -159,13 +159,12 @@ void main() {
   test('''un bloque puede estar asociado solo a un titulo''', () async {
     final bloque = await _crearBloque(await _crearCuestionario());
 
-    
-        await _db.into(_db.titulos).insertReturning(TitulosCompanion.insert(
-              bloqueId: bloque.id,
-              titulo: "titulo",
-              descripcion: "descripcion",
-              fotos: [],
-            ));
+    await _db.into(_db.titulos).insertReturning(TitulosCompanion.insert(
+          bloqueId: bloque.id,
+          titulo: "titulo",
+          descripcion: "descripcion",
+          fotos: [],
+        ));
 
     await expectLater(
         () => _db.into(_db.titulos).insert(TitulosCompanion.insert(

@@ -103,8 +103,8 @@ void main() {
     final pregunta = await _crearPreguntaSimple(cuestionario);
     final opcionDeRespuesta = await _crearOpcionDeRespuesta(pregunta);
     final inspeccion = await _crearInspeccion(cuestionario, activo);
-    
-        await _crearRespuesta(inspeccion, pregunta, opcionDeRespuesta);
+
+    await _crearRespuesta(inspeccion, pregunta, opcionDeRespuesta);
     return Tuple4(
       cuestionario,
       pregunta,
