@@ -18,27 +18,26 @@ class InicioInspeccionController {
 
   final tiposDeInspeccionDisponibles = ValueNotifier<List<Cuestionario>>([]);
 
-  late final activoControl =
-      fb.control<String>('', [Validators.required, Validators.number])
-        ..valueChanges.listen((activo) async {
-          /// A medida que se escribe un activo diferente, se va consultando
-          /// que tipos de inspeccion le aplican.
+  late final activoControl = fb.control<String>('', [Validators.required])
+    ..valueChanges.listen((activo) async {
+      /// A medida que se escribe un activo diferente, se va consultando
+      /// que tipos de inspeccion le aplican.
 
-          if (activo == null) {
-            tiposDeInspeccionDisponibles.value = [];
-            return;
-          }
-          final res = await _localRepository.cuestionariosParaActivo(activo);
-          res.fold((f) {
-            developer.log(f.toString()); // TODO: como mostrar un error aqui?
-            tiposDeInspeccionDisponibles.value = [];
-            tipoInspeccionControl.value = null; // se necesita?
-          }, (l) {
-            tiposDeInspeccionDisponibles.value = l;
+      if (activo == null) {
+        tiposDeInspeccionDisponibles.value = [];
+        return;
+      }
+      final res = await _localRepository.cuestionariosParaActivo(activo);
+      res.fold((f) {
+        developer.log(f.toString()); // TODO: como mostrar un error aqui?
+        tiposDeInspeccionDisponibles.value = [];
+        tipoInspeccionControl.value = null; // se necesita?
+      }, (l) {
+        tiposDeInspeccionDisponibles.value = l;
 
-            tipoInspeccionControl.value = l.isNotEmpty ? l.first : null;
-          });
-        });
+        tipoInspeccionControl.value = l.isNotEmpty ? l.first : null;
+      });
+    });
   final tipoInspeccionControl =
       fb.control<Cuestionario?>(null, [Validators.required]);
 
@@ -96,7 +95,7 @@ class InicioInspeccionForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final tipoDeCarga = ref.watch(tipoDeCargaProvider).state;
+    final tipoDeCarga = ref.watch(tipoDeCargaProvider);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -106,7 +105,7 @@ class InicioInspeccionForm extends ConsumerWidget {
           groupValue: tipoDeCarga,
           title: const Text('Llenar una nueva inspección'),
           onChanged: (v) {
-            ref.read(tipoDeCargaProvider).state = v!;
+            ref.read(tipoDeCargaProvider.notifier).state = v!;
           },
         ),
 
@@ -116,7 +115,7 @@ class InicioInspeccionForm extends ConsumerWidget {
           groupValue: tipoDeCarga,
           title: const Text('Terminar inspección iniciada por otro usuario'),
           onChanged: (v) {
-            ref.read(tipoDeCargaProvider).state = v!;
+            ref.read(tipoDeCargaProvider.notifier).state = v!;
           },
         ),
         _buildForm(tipoDeCarga),

@@ -1,12 +1,25 @@
-@Skip('''Estos tests no prueban la app sino el servicio de Django, para 
+@Skip('''Estos tests no prueban la app sino el servicio de Django, para
       ejecutarlos se debe tener un servidor corriendo en la apiUri.
-     IMPORTANTE: no ejecutar en un servidor de produccion ya que se podrian 
+     IMPORTANTE: no ejecutar en un servidor de produccion ya que se podrian
      borrar cosas''')
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:inspecciones/infrastructure/datasources/django_json_api.dart';
 import 'package:test/test.dart';
+
+class ClientWithToken extends http.BaseClient {
+  final String _token;
+  final http.Client _inner;
+  ClientWithToken(this._token, this._inner);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    request.headers[HttpHeaders.authorizationHeader] = "Token $_token";
+    return _inner.send(request);
+  }
+}
 
 main() {
   final apiUri = Uri.parse("http://127.0.0.1:8000/inspecciones/api/v1");
@@ -22,8 +35,9 @@ main() {
 
   setUp(() async {
     noLoggedClient = http.Client();
-    loggedClient =
-        DjangoJsonApiClient(await _localLogin(), noLoggedClient);
+
+    final token = await _localLogin();
+    loggedClient = ClientWithToken(token, noLoggedClient);
   });
   tearDown(() {
     noLoggedClient.close();
@@ -38,7 +52,8 @@ main() {
   test(
       'Intentar acceder sin token debería dar error 401 con un json con detail',
       () async {
-    final res = await noLoggedClient.get(apiUri.appendSegment("inspecciones"));
+    final res =
+        await noLoggedClient.get(apiUri.appendSegment("organizaciones"));
 
     expect(res.statusCode, 401);
     expect(json.decode(res.body)["detail"], isNotEmpty);
@@ -46,8 +61,7 @@ main() {
   //TODO: probar una peticion donde el servidor lance 403: no autorizado
   test('una peticion normal deberia dar status 200 y la respuesta es tipo json',
       () async {
-    final loggedInApi = loggedClient;
-    final res = await loggedInApi.get(apiUri.appendSegment("activos"));
+    final res = await loggedClient.get(apiUri.appendSegment("activos"));
     json.decode(res.body);
 
     expect(res.statusCode, 200);
@@ -55,17 +69,15 @@ main() {
   test(
       'hacer un post sin body debería dar error 400 y un json con los problemas en cada campo',
       () async {
-    final loggedInApi = loggedClient;
-    final res = await loggedInApi.post(apiUri.appendSegment("activos"));
+    final res = await loggedClient.post(apiUri.appendSegment("activos"));
 
     expect(res.statusCode, 400);
-    expect(json.decode(res.body)["clase"], isNotEmpty);
+    expect(json.decode(res.body)["id"], isNotEmpty);
   });
   test(
       'hacer un DELETE a un endpoint principal debería dar error 405 y un json con detail',
       () async {
-    final loggedInApi = loggedClient;
-    final res = await loggedInApi.delete(apiUri.appendSegment("activos"));
+    final res = await loggedClient.delete(apiUri.appendSegment("activos"));
 
     expect(res.statusCode, 405);
     expect(json.decode(res.body)["detail"], isNotEmpty);
@@ -73,21 +85,10 @@ main() {
   test(
       'mandar un texto sin formato en el body de un post debería dar error 415 y un json con detail',
       () async {
-    final loggedInApi = loggedClient;
-    final res = await loggedInApi.post(apiUri.appendSegment("activos"),
+    final res = await loggedClient.post(apiUri.appendSegment("organizaciones"),
         body: "capybara");
 
     expect(res.statusCode, 415);
     expect(json.decode(res.body)["detail"], isNotEmpty);
-  });
-  test(
-      'el endpoint groups deberia lanzar error 500 si el username no existe, esto se considera bug del server',
-      () async {
-    final loggedInApi = loggedClient;
-    final res = await loggedInApi
-        .post(apiUri.appendSegment("groups"), body: {"username": "capybara"});
-
-    expect(res.statusCode, 500);
-    expect(() => json.decode(res.body), throwsFormatException);
   });
 }

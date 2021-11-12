@@ -16,7 +16,7 @@ class WidgetCriticidad extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider).state;
+    final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider);
     final criticidadCalculada = ref.watch(criticidadCalculadaProvider(control));
 
     return estadoDeInspeccion == EstadoDeInspeccion.borrador

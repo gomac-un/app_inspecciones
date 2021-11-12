@@ -57,8 +57,10 @@ class BorradoresDao extends DatabaseAccessor<Database>
                 id: inspeccion.id,
                 estado: inspeccion.estado,
                 activo: await getActivo(activoId: inspeccion.activoId),
+                momentoInicio: inspeccion.momentoInicio,
                 momentoEnvio: inspeccion.momentoEnvio,
                 momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
+                inspectorId: inspeccion.inspectorId,
               ),
               dominio.Cuestionario(
                 id: cuestionario.id,

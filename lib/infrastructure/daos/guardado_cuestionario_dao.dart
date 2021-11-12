@@ -133,7 +133,7 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
 
     for (final etiqueta in etiquetasForm) {
       final etiquetaDeActivo = await into(etiquetasDeActivo)
-          .insertReturning(etiqueta, mode: InsertMode.insertOrIgnore);
+          .insertReturning(etiqueta, mode: InsertMode.insertOrReplace);
 
       await into(cuestionariosXEtiquetas).insert(
         CuestionariosXEtiquetasCompanion.insert(
@@ -207,7 +207,7 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
 
     for (final etiqueta in etiquetasForm) {
       final etiquetaDePregunta = await into(etiquetasDePregunta)
-          .insertReturning(etiqueta, mode: InsertMode.insertOrIgnore);
+          .insertReturning(etiqueta, mode: InsertMode.insertOrReplace);
 
       await into(preguntasXEtiquetas).insert(
         PreguntasXEtiquetasCompanion.insert(

@@ -24,7 +24,8 @@ void main() {
           tipoDeInspeccion: "preoperacional",
           version: 1,
           periodicidadDias: 1,
-          estado: EstadoDeCuestionario.finalizado));
+          estado: EstadoDeCuestionario.finalizado,
+          subido: false));
 
   Future<Activo> _crearActivo() =>
       _db.into(_db.activos).insertReturning(ActivosCompanion.insert(id: "1"));
@@ -89,7 +90,8 @@ void main() {
               tipoDeInspeccion: "general",
               version: 1,
               periodicidadDias: 1,
-              estado: EstadoDeCuestionario.finalizado));
+              estado: EstadoDeCuestionario.finalizado,
+              subido: false));
       await _asociarEtiquetaACuestionario(etiqueta, cuestionario2);
 
       final activo = await _crearActivo();
@@ -100,6 +102,25 @@ void main() {
 
       expect(cuestionarios.length, 2);
       expect(cuestionarios[0].id == cuestionarios[1].id, isFalse);
+    });
+    test('''getCuestionariosDisponiblesParaActivo no deberia repetir el
+    cuestionario si mas de una etiqueta aplica''', () async {
+      final etiqueta1 = await _crearEtiqueta("modelo", "kenworth");
+      final etiqueta2 = await _crearEtiqueta("color", "azul");
+
+      final cuestionario1 = await _crearCuestionario();
+      await _asociarEtiquetaACuestionario(etiqueta1, cuestionario1);
+      await _asociarEtiquetaACuestionario(etiqueta2, cuestionario1);
+
+      final activo = await _crearActivo();
+      await _asociarEtiquetaAActivo(etiqueta1, activo);
+      await _asociarEtiquetaAActivo(etiqueta2, activo);
+
+      final cuestionarios = await _db.cargaDeInspeccionDao
+          .getCuestionariosDisponiblesParaActivo(activo.id);
+
+      expect(cuestionarios.length, 1);
+      //expect(cuestionarios[0].id == cuestionarios[1].id, isFalse);
     });
   });
   group("cargarInspeccion", () {

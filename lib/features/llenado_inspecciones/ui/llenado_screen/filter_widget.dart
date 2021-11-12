@@ -13,10 +13,9 @@ class FilterWidget extends ConsumerWidget {
   Widget build(BuildContext context, ref) {
     return DropdownButtonHideUnderline(
       child: DropdownButton<FiltroPreguntas>(
-        value: ref.watch(filtroPreguntasProvider).state,
+        value: ref.watch(filtroPreguntasProvider),
         items: ref
             .watch(filtroDisponibleProvider)
-            .state
             .map((e) => DropdownMenuItem(
                   value: e,
                   child: Text(EnumToString.convertToString(e, camelCase: true)),
@@ -24,7 +23,6 @@ class FilterWidget extends ConsumerWidget {
             .toList(),
         selectedItemBuilder: (_) => ref
             .watch(filtroDisponibleProvider)
-            .state
             .map((e) => Center(
                   child: Text(
                     EnumToString.convertToString(e, camelCase: true),
@@ -38,7 +36,7 @@ class FilterWidget extends ConsumerWidget {
         icon: const Icon(Icons.filter_list),
         onChanged: (value) {
           if (value != null) {
-            ref.read(filtroPreguntasProvider).state = value;
+            ref.read(filtroPreguntasProvider.notifier).state = value;
           }
         },
       ),

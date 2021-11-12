@@ -61,13 +61,14 @@ class DjangoJsonApi
           .appendSegment('organizaciones', addTrailingSlash: false)
           .appendSegment(id?.toString() ?? 'mi_organizacion'));
 
+/*
   /// Le informa al servidor que debe registrar un nuevo cliente y el servidor
   /// retorna una id, esta id es unica y será usada para generar
   /// las ids de los objetos generados localmente de tal manera que al subirlos,
   /// no hayan choques de ids
   @override
   Future<JsonMap> registrarApp() =>
-      _client.request('POST', _apiUri.appendSegment('dispositivos'), body: {});
+      _client.request('POST', _apiUri.appendSegment('dispositivos'), body: {});*/
 
   @override
   Future<JsonMap> registrarUsuario(JsonMap form) =>

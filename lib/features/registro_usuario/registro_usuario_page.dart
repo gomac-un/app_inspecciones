@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/src/go_router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/presentation/extensions.dart';
@@ -112,7 +112,7 @@ class _RegistroForm extends ConsumerWidget {
           ReactiveFormConsumer(
             builder: (context, _, child) {
               return Consumer(builder: (context, ref, _) {
-                final loadingCtrl = ref.watch(_loadingProvider);
+                final loadingCtrl = ref.watch(_loadingProvider.notifier);
                 final isLoading = loadingCtrl.state;
                 return ElevatedButton(
                   onPressed: !form.control.valid || isLoading

@@ -19,7 +19,7 @@ class GuardadoVisitor implements ControladorDePreguntaVisitor<Pregunta> {
   /// hacer este proceso inmutable.
   GuardadoVisitor(
     this._repository,
-    this._controladores, 
+    this._controladores,
     this._inspeccion,
   );
 

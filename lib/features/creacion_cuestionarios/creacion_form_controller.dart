@@ -27,9 +27,9 @@ final creacionFormControllerFutureProvider = FutureProvider(
 final creacionFormControllerProvider = Provider(
   (ref) => ref.watch(creacionFormControllerFutureProvider).when(
         data: id,
-        loading: (previous) => throw Exception(
+        loading: () => throw Exception(
             "creacionFormControllerFutureProvider no se ha cargado"),
-        error: (e, s, previous) => throw e,
+        error: (e, s) => throw e,
       ),
   dependencies: [creacionFormControllerFutureProvider],
 );

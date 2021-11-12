@@ -27,13 +27,12 @@ class InspeccionPage extends ConsumerWidget {
         ref.watch(controladorLlenadoInspeccionProvider(inspeccionId));
 
     return controlFuture.when(
-        loading: (prev) => const Center(child: CircularProgressIndicator()),
-        error: (e, s, prev) => Text(e.toString()),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, s) => Text(e.toString()),
         data: (control) {
-          final estadoDeInspeccion =
-              ref.watch(estadoDeInspeccionProvider).state;
+          final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider);
           final mostrarBotonesDeNavegacion =
-              kIsWeb && ref.watch(showFABProvider).state;
+              kIsWeb && ref.watch(showFABProvider);
 
           return Scaffold(
             backgroundColor: Theme.of(context).backgroundColor,

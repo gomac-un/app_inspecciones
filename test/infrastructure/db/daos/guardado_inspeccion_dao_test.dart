@@ -28,6 +28,7 @@ void main() {
           version: 1,
           periodicidadDias: 1,
           estado: EstadoDeCuestionario.finalizado,
+          subido: false,
         ));
 
     final inspeccionYBloques = await _db.cargaDeInspeccionDao.cargarInspeccion(
@@ -39,8 +40,10 @@ void main() {
       id: inspeccion.id,
       estado: dominio.EstadoDeInspeccion.finalizada,
       activo: inspeccion.activo,
+      momentoInicio: inspeccion.momentoInicio,
       momentoBorradorGuardado: DateTime.fromMillisecondsSinceEpoch(0),
       momentoFinalizacion: DateTime.fromMillisecondsSinceEpoch(0),
+      inspectorId: inspeccion.inspectorId,
     );
 
     await _db.guardadoDeInspeccionDao
@@ -67,6 +70,7 @@ void main() {
           version: 1,
           periodicidadDias: 1,
           estado: EstadoDeCuestionario.finalizado,
+          subido: false,
         ));
     final bloque = await _db.into(_db.bloques).insertReturning(
         BloquesCompanion.insert(nOrden: 1, cuestionarioId: cuestionario.id));
@@ -120,6 +124,7 @@ void main() {
           version: 1,
           periodicidadDias: 1,
           estado: EstadoDeCuestionario.finalizado,
+          subido: false,
         ));
     final bloque = await _db.into(_db.bloques).insertReturning(
         BloquesCompanion.insert(nOrden: 1, cuestionarioId: cuestionario.id));

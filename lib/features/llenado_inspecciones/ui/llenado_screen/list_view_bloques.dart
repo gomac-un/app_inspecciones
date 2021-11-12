@@ -20,11 +20,11 @@ final listViewPreguntasScrollControllerProvider = ChangeNotifierProvider
   scrollController.addListener(() {
     if (scrollController.position.userScrollDirection ==
         ScrollDirection.reverse) {
-      ref.read(showFABProvider).state = false;
+      ref.read(showFABProvider.notifier).state = false;
     }
     if (scrollController.position.userScrollDirection ==
         ScrollDirection.forward) {
-      ref.read(showFABProvider).state = true;
+      ref.read(showFABProvider.notifier).state = true;
     }
   });
 

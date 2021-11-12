@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class IconsMenu{
+class IconsMenu {
   static const items = <IconMenu>[
     Reparar,
     Finalizar,
@@ -20,7 +20,7 @@ class IconsMenu{
   );
 }
 
-class IconMenu{
+class IconMenu {
   final String text;
   final IconData icon;
   const IconMenu({

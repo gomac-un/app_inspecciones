@@ -71,7 +71,7 @@ class OrganizacionPage extends HookConsumerWidget {
       );
     } else if (tabController.index == 2) {
       return FloatingActionButton.extended(
-        onPressed: () => ref.read(agregarActivoProvider).state++,
+        onPressed: () => ref.read(agregarActivoProvider.notifier).state++,
         label: const Text("Activo"),
         icon: const Icon(Icons.add_outlined),
       );

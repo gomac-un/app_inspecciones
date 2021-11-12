@@ -39,11 +39,13 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     final etiquetas =
         await query.map((row) => row.readTable(etiquetasDeActivo)).get();
 
-    final query2 = select(cuestionarios).join([
+    final query2 = select(cuestionarios, distinct: true).join([
       innerJoin(cuestionariosXEtiquetas,
-          cuestionariosXEtiquetas.cuestionarioId.equalsExp(cuestionarios.id)),
+          cuestionariosXEtiquetas.cuestionarioId.equalsExp(cuestionarios.id),
+          useColumns: false),
       innerJoin(etiquetasDeActivo,
-          etiquetasDeActivo.id.equalsExp(cuestionariosXEtiquetas.etiquetaId)),
+          etiquetasDeActivo.id.equalsExp(cuestionariosXEtiquetas.etiquetaId),
+          useColumns: false),
     ])
       ..where(etiquetasDeActivo.id.isIn(etiquetas.map((e) => e.id)));
 
@@ -112,9 +114,11 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         id: inspeccion.id,
         estado: inspeccion.estado,
         activo: await db.borradoresDao.getActivo(activoId: inspeccion.activoId),
+        momentoInicio: inspeccion.momentoInicio,
         momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
         momentoFinalizacion: inspeccion.momentoFinalizacion,
         momentoEnvio: inspeccion.momentoEnvio,
+        inspectorId: inspeccion.inspectorId,
       );
 
   /// Devuelve la inspección creada al guardarla por primera vez.

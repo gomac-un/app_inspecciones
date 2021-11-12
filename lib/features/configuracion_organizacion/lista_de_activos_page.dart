@@ -95,7 +95,7 @@ final _viewModelProvider = StateNotifierProvider.autoDispose.family<
     List<ActivoEnListaConController>,
     List<ActivoEnLista>>((ref, lista) {
   final viewModel = ListaDeActivosViewModel(ref.read, lista);
-  ref.listen(agregarActivoProvider, (_) {
+  ref.listen(agregarActivoProvider, (_, __) {
     viewModel.agregarActivo();
   });
   return viewModel;

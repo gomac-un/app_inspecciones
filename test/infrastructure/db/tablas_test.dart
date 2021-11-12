@@ -107,6 +107,7 @@ void main() {
             version: 1,
             periodicidadDias: 1,
             estado: EstadoDeCuestionario.finalizado,
+            subido: false,
           ));
   test('''se pueden asociar cuestionarios con etiquetas''', () async {
     final cuestionario = await _crearCuestionario();
@@ -124,6 +125,7 @@ void main() {
           version: 1,
           periodicidadDias: 1,
           estado: EstadoDeCuestionario.finalizado,
+          subido: false,
         ));
     await expectLater(
         () => _db.into(_db.cuestionarios).insert(CuestionariosCompanion.insert(
@@ -131,6 +133,7 @@ void main() {
               version: 1,
               periodicidadDias: 1,
               estado: EstadoDeCuestionario.finalizado,
+              subido: false,
             )),
         throwsA(isA<SqliteException>().having((e) => e.message,
             "unique violation", contains("UNIQUE constraint failed"))));

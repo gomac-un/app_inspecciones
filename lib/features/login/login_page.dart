@@ -81,7 +81,7 @@ class _LoginForm extends ConsumerWidget {
           ReactiveFormConsumer(
             builder: (context, _, child) {
               return Consumer(builder: (context, ref, _) {
-                final loadingCtrl = ref.watch(_loadingProvider);
+                final loadingCtrl = ref.watch(_loadingProvider.notifier);
                 final isLoading = loadingCtrl.state;
                 return ElevatedButton(
                   onPressed: !form.valid || isLoading

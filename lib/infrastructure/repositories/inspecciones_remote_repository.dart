@@ -50,11 +50,11 @@ class InspeccionesRemoteRepository {
       id: inspeccion.id,
       estado: inspeccion.estado,
       activoId: inspeccion.activo.id,
-      momentoInicio: throw UnimplementedError(),
+      momentoInicio: inspeccion.momentoInicio,
       momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
       momentoEnvio: DateTime.now(),
       cuestionarioId: cuestionario.id,
-      inspectorId: throw UnimplementedError(),
+      inspectorId: inspeccion.inspectorId,
     );
     final inspeccionMap =
         await _db.sincronizacionDao.getInspeccionConRespuestas(inspAEnviar);

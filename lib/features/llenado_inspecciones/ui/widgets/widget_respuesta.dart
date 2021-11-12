@@ -40,8 +40,7 @@ class WidgetRespuesta extends StatelessWidget {
           maxImages: 3,
         ),
         Consumer(builder: (context, ref, _) {
-          final estadoDeInspeccion =
-              ref.watch(estadoDeInspeccionProvider).state;
+          final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider);
           // si la criticidad de la respuesta no esta definida entonces por
           // defecto decimos que es 1
           final criticidadRespuesta =

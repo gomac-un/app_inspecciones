@@ -70,7 +70,7 @@ void mostrarInvalido(BuildContext context) => mostrarError(
           return TextButton(
             child: const Text("Aceptar"),
             onPressed: () {
-              ref.read(filtroPreguntasProvider).state =
+              ref.read(filtroPreguntasProvider.notifier).state =
                   FiltroPreguntas.invalidas;
               Navigator.of(context).pop();
             },

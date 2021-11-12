@@ -17,7 +17,7 @@ class IconDialogPregunta extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider).state;
+    final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider);
     final reparado =
         ref.watch(reparadoProvider(controladorPregunta.reparadoControl));
     final controlValido =

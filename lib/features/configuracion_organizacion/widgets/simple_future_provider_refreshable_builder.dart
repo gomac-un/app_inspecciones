@@ -16,8 +16,8 @@ class SimpleFutureProviderRefreshableBuilder<F, T> extends ConsumerWidget {
         onRefresh: () async => ref.refresh(provider),
         child: ScrollableWithAllAvailableSpace(
           child: organizacion.when(
-            loading: (b) => const Center(child: CircularProgressIndicator()),
-            error: (e, s, b) => Text(e.toString()),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, s) => Text(e.toString()),
             data: (d) =>
                 d.fold((l) => Text(l.toString()), (r) => builder(context, r)),
           ),

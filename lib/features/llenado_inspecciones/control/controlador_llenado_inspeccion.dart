@@ -81,7 +81,8 @@ class ControladorLlenadoInspeccion {
     this.factory,
     this._read,
   ) {
-    _read(estadoDeInspeccionProvider).state = cuestionario.inspeccion.estado;
+    _read(estadoDeInspeccionProvider.notifier).state =
+        cuestionario.inspeccion.estado;
   }
 
   @pragma('vm:notify-debugger-on-exception')
@@ -94,14 +95,16 @@ class ControladorLlenadoInspeccion {
     try {
       onStart?.call();
       final i = cuestionario.inspeccion;
-      final estado = _read(estadoDeInspeccionProvider).state;
+      final estado = _read(estadoDeInspeccionProvider);
       final inspeccionAGuardar = Inspeccion(
         id: i.id,
         estado: estado,
         activo: i.activo,
+        momentoInicio: i.momentoInicio,
         momentoBorradorGuardado: DateTime.now(),
         momentoEnvio:
             estado == EstadoDeInspeccion.finalizada ? DateTime.now() : null,
+        inspectorId: i.inspectorId,
       );
       final visitor = GuardadoVisitor(
         repository,
@@ -139,8 +142,9 @@ class ControladorLlenadoInspeccion {
     }
 
     mensajeReparacion?.call();
-    _read(estadoDeInspeccionProvider).state = EstadoDeInspeccion.enReparacion;
-    _read(filtroPreguntasProvider).state = FiltroPreguntas.criticas;
+    _read(estadoDeInspeccionProvider.notifier).state =
+        EstadoDeInspeccion.enReparacion;
+    _read(filtroPreguntasProvider.notifier).state = FiltroPreguntas.criticas;
   }
 
   void finalizar(
@@ -155,13 +159,14 @@ class ControladorLlenadoInspeccion {
 
     final c = await confirmation();
     if (c == null || !c) return;
-    _read(estadoDeInspeccionProvider).state = EstadoDeInspeccion.finalizada;
+    _read(estadoDeInspeccionProvider.notifier).state =
+        EstadoDeInspeccion.finalizada;
 
     await ejecutarGuardado(
         guardarInspeccion); //TODO: si falla se debe devolver al estado inicial
 
     formArray.markAsDisabled();
-    _read(filtroPreguntasProvider).state = FiltroPreguntas.todas;
+    _read(filtroPreguntasProvider.notifier).state = FiltroPreguntas.todas;
   }
 
   bool _validarInspeccion() {

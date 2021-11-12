@@ -11,7 +11,7 @@ class AvanceCard extends ConsumerWidget {
   const AvanceCard(this.control, this.criticas, {Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider).state;
+    final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider);
     return Container(
       width: double.infinity,
       color: const Color.fromRGBO(28, 44, 60, 1),

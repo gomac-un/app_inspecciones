@@ -27,8 +27,8 @@ class EdicionFormPage extends ConsumerWidget {
         final formController = ref.watch(creacionFormControllerFutureProvider);
         return formController.when(
             data: (_) => const EdicionForm(),
-            loading: (prev) => const CircularProgressIndicator(),
-            error: (e, s, prev) => throw e);
+            loading: () => const CircularProgressIndicator(),
+            error: (e, s) => throw e);
       }),
     );
   }

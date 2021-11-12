@@ -40,7 +40,8 @@ void main() {
           tipoDeInspeccion: "preoperacional",
           version: 1,
           periodicidadDias: 1,
-          estado: EstadoDeCuestionario.finalizado));
+          estado: EstadoDeCuestionario.finalizado,
+          subido: false));
 
   Future<Bloque> _crearBloque(Cuestionario cuestionario) =>
       _db.into(_db.bloques).insertReturning(

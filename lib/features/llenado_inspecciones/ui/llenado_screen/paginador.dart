@@ -26,7 +26,7 @@ class PaginadorYFiltradorDePreguntas extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final filtro = ref.watch(filtroPreguntasProvider).state;
+    final filtro = ref.watch(filtroPreguntasProvider);
 
     switch (filtro) {
       case FiltroPreguntas.todas:

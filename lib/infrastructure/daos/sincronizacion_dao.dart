@@ -356,5 +356,3 @@ class SincronizacionDao extends DatabaseAccessor<Database>
     // TODO: Implementar
   }*/
 }
-
-

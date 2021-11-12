@@ -5,11 +5,12 @@ class Inspeccion {
   final String id;
   final EstadoDeInspeccion estado;
   final Activo activo;
+  final DateTime momentoInicio;
   final DateTime? momentoBorradorGuardado;
   final DateTime? momentoFinalizacion;
   final DateTime? momentoEnvio;
 
-  //inspector //TODO: agregarle el dato del inspector que la esta haciendo
+  final String inspectorId;
 
   late final CuestionarioInspeccionado cuestionario;
 
@@ -17,6 +18,8 @@ class Inspeccion {
     required this.id,
     required this.estado,
     required this.activo,
+    required this.momentoInicio,
+    required this.inspectorId,
     this.momentoBorradorGuardado,
     this.momentoFinalizacion,
     this.momentoEnvio,
