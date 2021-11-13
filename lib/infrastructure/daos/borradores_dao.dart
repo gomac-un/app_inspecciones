@@ -56,7 +56,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
               dominio.Inspeccion(
                 id: inspeccion.id,
                 estado: inspeccion.estado,
-                activo: await getActivo(activoId: inspeccion.activoId),
+                activo: await buildActivo(activoId: inspeccion.activoId),
                 momentoInicio: inspeccion.momentoInicio,
                 momentoEnvio: inspeccion.momentoEnvio,
                 momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
@@ -154,15 +154,9 @@ class BorradoresDao extends DatabaseAccessor<Database>
     return query.map((row) => row.read(count)).getSingle();
   }
 
-  Future<dominio.Activo> getActivo({required String activoId}) async {
-    final query = select(activosXEtiquetas).join([
-      innerJoin(etiquetasDeActivo,
-          etiquetasDeActivo.id.equalsExp(activosXEtiquetas.etiquetaId)),
-    ])
-      ..where(activosXEtiquetas.activoId.equals(activoId));
-
+  Future<dominio.Activo> buildActivo({required String activoId}) async {
     final etiquetas =
-        await query.map((row) => row.readTable(etiquetasDeActivo)).get();
+        await db.utilsDao.getEtiquetasDeActivo(activoId: activoId);
 
     return dominio.Activo(
         id: activoId,

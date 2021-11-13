@@ -30,14 +30,8 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
 
   Future<List<Cuestionario>> getCuestionariosDisponiblesParaActivo(
       String activoId) async {
-    final query = select(activosXEtiquetas).join([
-      innerJoin(etiquetasDeActivo,
-          etiquetasDeActivo.id.equalsExp(activosXEtiquetas.etiquetaId)),
-    ])
-      ..where(activosXEtiquetas.activoId.equals(activoId));
-
     final etiquetas =
-        await query.map((row) => row.readTable(etiquetasDeActivo)).get();
+        await db.utilsDao.getEtiquetasDeActivo(activoId: activoId);
 
     final query2 = select(cuestionarios, distinct: true).join([
       innerJoin(cuestionariosXEtiquetas,
@@ -113,7 +107,8 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
       dominio.Inspeccion(
         id: inspeccion.id,
         estado: inspeccion.estado,
-        activo: await db.borradoresDao.getActivo(activoId: inspeccion.activoId),
+        activo:
+            await db.borradoresDao.buildActivo(activoId: inspeccion.activoId),
         momentoInicio: inspeccion.momentoInicio,
         momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
         momentoFinalizacion: inspeccion.momentoFinalizacion,

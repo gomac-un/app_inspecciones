@@ -14,6 +14,8 @@ import 'daos/carga_cuestionario_dao.dart';
 import 'daos/carga_inspeccion_dao.dart';
 import 'daos/guardado_cuestionario_dao.dart';
 import 'daos/guardado_inspeccion_dao.dart';
+import 'daos/organizacion_dao.dart';
+import 'daos/utils_dao.dart';
 
 export 'database/shared.dart';
 
@@ -44,6 +46,8 @@ part 'tablas.dart';
     GuardadoDeCuestionarioDao,
     BorradoresDao,
     SincronizacionDao,
+    OrganizacionDao,
+    UtilsDao,
   ],
 )
 class Database extends _$Database {

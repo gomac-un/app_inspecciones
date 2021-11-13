@@ -46,7 +46,7 @@ class ActivoEnLista {
   factory ActivoEnLista.fromMap(Map<String, dynamic> map) {
     return ActivoEnLista(
       map['id'],
-      List<Etiqueta>.from(map['etiquetas']!.map((x) => Etiqueta.fromMap(x))),
+      (map['etiquetas'] as List).map((x) => Etiqueta.fromMap(x)).toList(),
     );
   }
 }

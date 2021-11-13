@@ -4,15 +4,19 @@ import 'package:dartz/dartz.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
-import 'package:inspecciones/infrastructure/core/typedefs.dart';
-import 'package:inspecciones/infrastructure/datasources/organizacion_remote_datasource.dart';
-import 'package:inspecciones/infrastructure/datasources/providers.dart';
-import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
+
+import '../core/typedefs.dart';
+import '../datasources/organizacion_remote_datasource.dart';
+import '../datasources/providers.dart';
+import '../drift_database.dart' as drift;
+import '../utils/transformador_excepciones_api.dart';
 
 class OrganizacionRepository {
   final Reader _read;
   OrganizacionRemoteDataSource get _api =>
       _read(organizacionRemoteDataSourceProvider);
+
+  drift.Database get _db => _read(drift.driftDatabaseProvider);
 
   OrganizacionRepository(this._read);
 
@@ -28,12 +32,19 @@ class OrganizacionRepository {
         () => _api.getOrganizacion(null).then((r) => Organizacion.fromMap(r)),
       );
 
-  Future<Either<ApiFailure, List<ActivoEnLista>>> getListaDeActivos() =>
-      apiExceptionToApiFailure(
-        () => _api
-            .getListaDeActivos()
-            .then((l) => l.map((j) => ActivoEnLista.fromMap(j)).toList()),
-      );
+  Future<Tuple2<ApiFailure?, List<ActivoEnLista>>>
+      refreshListaDeActivos() async {
+    final remoteRes = await apiExceptionToApiFailure(
+      () => _api
+          .getListaDeActivos()
+          .then((l) => l.map((j) => ActivoEnLista.fromMap(j)).toList()),
+    );
+
+    await remoteRes.fold((_) {}, (r) => _db.sincronizacionDao.setActivos(r));
+    final activos = await _db.organizacionDao.getActivos();
+
+    return Tuple2(remoteRes.fold(id, (_) => null), activos);
+  }
 
   Future<Either<ApiFailure, Unit>> guardarActivo(ActivoEnLista activo) =>
       apiExceptionToApiFailure(

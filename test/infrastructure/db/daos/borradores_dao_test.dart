@@ -7,6 +7,8 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dar
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:test/test.dart';
 
+import 'utils.dart';
+
 void main() {
   late Database _db;
 
@@ -17,8 +19,8 @@ void main() {
   tearDown(() async {
     await _db.close();
   });
-  test("getActivo", () async {
-    final activo = await _db.borradoresDao.getActivo(activoId: "1");
+  test("buildActivo", () async {
+    final activo = await _db.borradoresDao.buildActivo(activoId: "1");
     expect(activo.id, "1");
     expect(activo.etiquetas, []);
   });
@@ -159,21 +161,15 @@ void main() {
 
     expect(borradores2, isEmpty);
   });
-  Future<int> _getNroFilas<T extends HasResultSet, R>(
-      ResultSetImplementation<T, R> t) {
-    final count = countAll();
-    final query = _db.selectOnly(t)..addColumns([count]);
-    return query.map((row) => row.read(count)).getSingle();
-  }
 
   test('''se pueden eliminar las respuestas de un borrador''', () async {
     final tuple = await _crearInspeccionConPregunta();
     final inspeccion = tuple.value4;
 
-    expect(await _getNroFilas(_db.respuestas), 1);
+    expect(await getNroFilas(_db, _db.respuestas), 1);
 
     await _db.borradoresDao.eliminarRespuestas(inspeccionId: inspeccion.id);
 
-    expect(await _getNroFilas(_db.respuestas), 0);
+    expect(await getNroFilas(_db, _db.respuestas), 0);
   });
 }

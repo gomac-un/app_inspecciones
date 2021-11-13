@@ -86,8 +86,9 @@ class ListaDeActivosViewModel
 final agregarActivoProvider = StateProvider((ref) => 0);
 
 final _listaActivosProvider =
-    FutureProvider.autoDispose<Either<ApiFailure, List<ActivoEnLista>>>(
-  (ref) => ref.watch(organizacionRemoteRepositoryProvider).getListaDeActivos(),
+    FutureProvider.autoDispose<Tuple2<ApiFailure?, List<ActivoEnLista>>>(
+  (ref) =>
+      ref.watch(organizacionRemoteRepositoryProvider).refreshListaDeActivos(),
 );
 
 final _viewModelProvider = StateNotifierProvider.autoDispose.family<
@@ -106,9 +107,21 @@ class ListaDeActivosPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
+    ref.listen<AsyncValue<Tuple2<ApiFailure?, List<ActivoEnLista>>>>(
+        _listaActivosProvider, (_, next) {
+      next.whenData((value) {
+        final ApiFailure? maybeFailure = value.value1;
+        if (maybeFailure != null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(maybeFailure.toString()),
+          ));
+        }
+      });
+    });
     return SimpleFutureProviderRefreshableBuilder(
       provider: _listaActivosProvider,
-      builder: (context, List<ActivoEnLista> activosFromRepo) {
+      builder: (context, Tuple2<ApiFailure?, List<ActivoEnLista>> res) {
+        final List<ActivoEnLista> activosFromRepo = res.value2;
         final viewModel =
             ref.watch(_viewModelProvider(activosFromRepo).notifier);
         final activos = ref.watch(_viewModelProvider(activosFromRepo));
@@ -121,35 +134,36 @@ class ListaDeActivosPage extends ConsumerWidget {
             final activo = activos[index].activo;
             final controller = activos[index].controller;
             return controller == null
-                ? _buildActivo(viewModel, activo)
-                : _buildActivoEditable(viewModel, controller);
+                ? _buildActivo(viewModel.inicioEdicionActivo, activo)
+                : _buildActivoEditable(viewModel.finEdicionActivo, controller);
           },
         );
       },
     );
   }
 
-  ListTile _buildActivo(
-          ListaDeActivosViewModel viewModel, ActivoEnLista activo) =>
+  ListTile _buildActivo(void Function(ActivoEnLista activo) onEdicion,
+          ActivoEnLista activo) =>
       ListTile(
         title: Text(activo.id),
         trailing: IconButton(
           icon: const Icon(Icons.edit_outlined),
-          onPressed: () => viewModel.inicioEdicionActivo(activo),
+          onPressed: () => onEdicion(activo),
         ),
         subtitle: Text(
             activo.etiquetas.map((e) => "${e.clave}:${e.valor}").join(", ")),
       );
 
   ListTile _buildActivoEditable(
-          ListaDeActivosViewModel viewModel, ActivoController controller) =>
+          void Function(ActivoController controller) onFinalizarEdicion,
+          ActivoController controller) =>
       ListTile(
         title: ReactiveTextField(
           formControl: controller.idControl,
         ),
         trailing: IconButton(
           icon: const Icon(Icons.save_outlined),
-          onPressed: () => viewModel.finEdicionActivo(controller),
+          onPressed: () => onFinalizarEdicion(controller),
         ),
         subtitle: ReactiveTextFieldTags(
             formControl: controller.tagsControl,
