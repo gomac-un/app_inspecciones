@@ -13,6 +13,7 @@ import '../utils/transformador_excepciones_api.dart';
 
 class OrganizacionRepository {
   final Reader _read;
+
   OrganizacionRemoteDataSource get _api =>
       _read(organizacionRemoteDataSourceProvider);
 

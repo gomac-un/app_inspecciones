@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
 
 part 'carga_cuestionario_dao.drift.dart';
 
@@ -25,29 +25,32 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
   CargaDeCuestionarioDao(Database db) : super(db);
 
   /// Devuelve todos los bloques que pertenecen al cuestionario con id=[cuestionarioId]
-  Future<List<IBloqueOrdenable>> cargarCuestionario(
-      String cuestionarioId) async {
+  Future<List<Object>> cargarCuestionario(String cuestionarioId) async {
     ///  Titulos del cuestionario
-    final List<BloqueConTitulo> titulos = await _getTitulos(cuestionarioId);
+    final List<Tuple2<int, Titulo>> titulos = await _getTitulos(cuestionarioId);
 
     /// Preguntas numericas con sus rangos de criticidad
-    final List<BloqueConPreguntaNumerica> numericas =
+    final List<Tuple2<int, PreguntaNumerica>> numericas =
         await _getPreguntasNumericas(cuestionarioId);
 
     /// Preguntas de selección multiple y unica del cuestionario, con sus opciones de respuesta
-    final List<BloqueConPreguntaSimple> preguntasSimples =
+    final List<Tuple2<int, PreguntaConOpcionesDeRespuesta>> preguntasSimples =
         await _getPreguntasSimples(cuestionarioId);
 
     /// Cuadriculas del cuestionario con sus preguntas y opciones de respuesta
-    final List<BloqueConCuadricula> cuadriculas =
-        await _getCuadriculas(cuestionarioId);
+    final List<Tuple2<int, CuadriculaConPreguntasYConOpcionesDeRespuesta>>
+        cuadriculas = await _getCuadriculas(cuestionarioId);
 
-    return [
+    return ([
       ...titulos,
       ...numericas,
       ...preguntasSimples,
       ...cuadriculas,
-    ];
+    ]..sort(
+            (a, b) => a.value1.compareTo(b.value1),
+          ))
+        .map((e) => e.value2)
+        .toList();
   }
 
   /// Los titulos, preguntas y cuadriculas son reunidas con el bloque, así
@@ -58,21 +61,21 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
   /// cuestionarios ya creados.
 
   /// Devuelve todos los titulos del cuestionario con id=[cuestionarioId]
-  Future<List<BloqueConTitulo>> _getTitulos(String cuestionarioId) {
+  Future<List<Tuple2<int, Titulo>>> _getTitulos(String cuestionarioId) {
     final query = select(titulos).join([
       innerJoin(bloques, bloques.id.equalsExp(titulos.bloqueId)),
     ])
       ..where(bloques.cuestionarioId.equals(cuestionarioId));
     return query
-        .map((row) => BloqueConTitulo(
-              row.readTable(bloques),
+        .map((row) => Tuple2(
+              row.readTable(bloques).nOrden,
               row.readTable(titulos),
             ))
         .get();
   }
 
   /// Devuelve todos las preguntas numéricas del cuestionario con id=[cuestionarioId]
-  Future<List<BloqueConPreguntaNumerica>> _getPreguntasNumericas(
+  Future<List<Tuple2<int, PreguntaNumerica>>> _getPreguntasNumericas(
       String cuestionarioId) async {
     final query = select(preguntas).join([
       innerJoin(
@@ -94,8 +97,8 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
       final criticidades = await _getCriticidades(pregunta.id);
       final etiquetas = await _getEtiquetasDePregunta(pregunta.id);
 
-      return BloqueConPreguntaNumerica(
-        bloque,
+      return Tuple2(
+        bloque.nOrden,
         PreguntaNumerica(
           pregunta,
           criticidades,
@@ -106,8 +109,8 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
   }
 
   /// Devuelve todas las preguntas de selección única o múltiple del cuestionario con id=[cuestionarioId]
-  Future<List<BloqueConPreguntaSimple>> _getPreguntasSimples(
-      String cuestionarioId) async {
+  Future<List<Tuple2<int, PreguntaConOpcionesDeRespuesta>>>
+      _getPreguntasSimples(String cuestionarioId) async {
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
     ])
@@ -126,8 +129,8 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
       final opciones = await _getOpciones(pregunta.id);
       final etiquetas = await _getEtiquetasDePregunta(pregunta.id);
 
-      return BloqueConPreguntaSimple(
-        bloque,
+      return Tuple2(
+        bloque.nOrden,
         PreguntaConOpcionesDeRespuesta(
           pregunta,
           opciones,
@@ -139,8 +142,8 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
 
   /// Devuelve todas las cuadriculas  del cuestionario con id=[cuestionarioId]
   /// con sus respectivas preguntas y opciones de respuesta
-  Future<List<BloqueConCuadricula>> _getCuadriculas(
-      String cuestionarioId) async {
+  Future<List<Tuple2<int, CuadriculaConPreguntasYConOpcionesDeRespuesta>>>
+      _getCuadriculas(String cuestionarioId) async {
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
     ])
@@ -159,8 +162,8 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
       final etiquetas = await _getEtiquetasDePregunta(cuadricula.id);
       final subPreguntas = await _getSubPreguntas(cuadricula.id);
 
-      return BloqueConCuadricula(
-        bloque,
+      return Tuple2(
+        bloque.nOrden,
         CuadriculaConPreguntasYConOpcionesDeRespuesta(
           PreguntaConOpcionesDeRespuesta(
             cuadricula,

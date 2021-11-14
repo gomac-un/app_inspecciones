@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:inspecciones/core/error/errors.dart';
+import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 
 part 'guardado_cuestionario_dao.drift.dart';
 
@@ -25,14 +25,14 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
 
   /// Guarda o crea un cuestionario con sus respectivas preguntas.
   Future<void> guardarCuestionario(
-    CuestionariosCompanion cuestionarioForm,
+    CuestionariosCompanion cuestionarioInsertable,
     List<EtiquetasDeActivoCompanion> etiquetasAplicablesForm,
     List<Object> bloquesForm,
   ) async {
     /// Como es una transaccion si algo falla, ningun cambio queda en la DB
     return transaction(
       () async {
-        final cuestionario = await _upsertCuestionario(cuestionarioForm);
+        final cuestionario = await _upsertCuestionario(cuestionarioInsertable);
         await _insertEtiquetasDeActivo(etiquetasAplicablesForm, cuestionario);
 
         // La estrategia es borrar todo y volverlo a crear para que sea mas simple
@@ -55,34 +55,34 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
           final element = entry.value;
           final bloque = await into(bloques).insertReturning(
             BloquesCompanion.insert(nOrden: i, cuestionarioId: cuestionario.id),
-          );
+          ); // cuando se descarga del server se pueden ignorar los ids de los bloques
 
           if (element is TitulosCompanion) {
             await into(titulos).insert(element.copyWith(
               bloqueId: Value(bloque.id),
             ));
           } else if (element is PreguntaNumericaCompanion) {
-            await _procesarPregunta(
+            await _insertarPregunta(
               element.pregunta,
               cuestionario,
-              bloque,
+              bloque: bloque,
               criticidades: element.criticidades,
               etiquetas: element.etiquetas,
             );
           } else if (element is PreguntaConOpcionesDeRespuestaCompanion) {
-            await _procesarPregunta(
+            await _insertarPregunta(
               element.pregunta,
               cuestionario,
-              bloque,
+              bloque: bloque,
               opcionesDeRespuesta: element.opcionesDeRespuesta,
               etiquetas: element.etiquetas,
             );
           } else if (element
               is CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion) {
-            final cuadricula = await _procesarPregunta(
+            final cuadricula = await _insertarPregunta(
               element.cuadricula.pregunta,
               cuestionario,
-              bloque,
+              bloque: bloque,
               opcionesDeRespuesta: element.cuadricula.opcionesDeRespuesta,
               etiquetas: element.cuadricula.etiquetas,
             );
@@ -92,10 +92,11 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
                 .go();
 
             for (final pregunta in element.preguntas) {
-              await _procesarPregunta(
+              await _insertarPregunta(
                 pregunta.pregunta,
                 cuestionario,
-                bloque,
+                cuadricula:
+                    cuadricula, // no va asociada a un bloque, solo a la cuadricula
                 opcionesDeRespuesta: [],
               );
             }
@@ -108,17 +109,11 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
   }
 
   /// crea o actualiza un cuestionario
-  /// Si el companion viene con id TIENE que estar ya en la db entonces se actualiza, sino se inserta
+
   Future<Cuestionario> _upsertCuestionario(
-      CuestionariosCompanion cuestionarioForm) async {
-    if (cuestionarioForm.id.present) {
-      await update(cuestionarios).replace(cuestionarioForm);
-      return (select(cuestionarios)
-            ..where((c) => c.id.equals(cuestionarioForm.id.value)))
-          .getSingle();
-    } else {
-      return into(cuestionarios).insertReturning(cuestionarioForm);
-    }
+      CuestionariosCompanion cuestionario) async {
+    return into(cuestionarios)
+        .insertReturning(cuestionario, mode: InsertMode.insertOrReplace);
   }
 
   /// Actualiza los modelos asociados a [cuestionario]
@@ -144,16 +139,21 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
     }
   }
 
-  Future<Pregunta> _procesarPregunta(
+  Future<Pregunta> _insertarPregunta(
     PreguntasCompanion preguntaCompanion,
-    Cuestionario cuestionario,
-    Bloque bloque, {
+    Cuestionario cuestionario, {
+    Bloque? bloque,
+    Pregunta? cuadricula,
     List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
     List<CriticidadesNumericasCompanion>? criticidades,
     List<EtiquetasDePreguntaCompanion> etiquetas = const [],
   }) async {
+    if (bloque == null && cuadricula == null) {
+      throw ArgumentError('bloque o cuadricula debe ser presente');
+    }
     final preguntaAInsertar = preguntaCompanion.copyWith(
-      bloqueId: Value(bloque.id),
+      bloqueId: Value(bloque?.id),
+      cuadriculaId: Value(cuadricula?.id),
     );
 
     final pregunta = await into(preguntas).insertReturning(preguntaAInsertar);
@@ -206,8 +206,13 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
         .go();
 
     for (final etiqueta in etiquetasForm) {
-      final etiquetaDePregunta = await into(etiquetasDePregunta)
-          .insertReturning(etiqueta, mode: InsertMode.insertOrReplace);
+      final query = select(etiquetasDePregunta)
+        ..where((e) =>
+            e.clave.equals(etiqueta.clave.value) &
+            e.valor.equals(etiqueta.valor.value));
+      var etiquetaDePregunta = await query.getSingleOrNull();
+      etiquetaDePregunta ??=
+          await into(etiquetasDePregunta).insertReturning(etiqueta);
 
       await into(preguntasXEtiquetas).insert(
         PreguntasXEtiquetasCompanion.insert(

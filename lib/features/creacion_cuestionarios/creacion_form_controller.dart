@@ -6,12 +6,12 @@ import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/utils/iterable_x.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_controls.dart';
 import 'creacion_validators.dart';
+import 'tablas_unidas.dart';
 
 final cuestionarioIdProvider = Provider<String?>((ref) => throw Exception(
     "se debe definir cuestionarioId dentro de la pagina de creacion"));
@@ -168,7 +168,7 @@ class CreacionFormController {
   static Future<Iterable<CreacionController>> _cargarBloques(
       CuestionariosRepository repository,
       Cuestionario? cuestionario,
-      List<IBloqueOrdenable>? bloquesBD) async {
+      List<Object>? bloquesBD) async {
     if (cuestionario == null || bloquesBD == null) {
       /// Si se está creando el cuestionario, se agrega un titulo por defecto como bloque inicial
       return [CreadorTituloController()];
@@ -176,38 +176,31 @@ class CreacionFormController {
 
     /// Si es un cuestionario que ya existía y se va a editar
     ///Ordenamiento y creacion de los controles dependiendo del tipo de elemento
-    return (bloquesBD
-          ..sort(
-            (a, b) => a.nOrden.compareTo(b.nOrden),
-          ))
-        .asyncMap<CreacionController>((e) async {
-      ///! aca pueden haber errores de tiempo de ejecucion si el bloque no tiene al
-      ///menos una pregunta o si la primera no tiene sistemaId, aunque
-      ///las validaciones de los controles deberían evitar que esto pase
-      if (e is BloqueConTitulo) {
-        return CreadorTituloController(e.titulo.toCompanion(true));
+    return bloquesBD.asyncMap<CreacionController>((e) async {
+      if (e is Titulo) {
+        return CreadorTituloController(e.toCompanion(true));
       }
-      if (e is BloqueConPreguntaSimple) {
+      if (e is PreguntaConOpcionesDeRespuesta) {
         return CreadorPreguntaController(
           repository,
           datosIniciales:
-              PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(e.pregunta),
+              PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(e),
         );
       }
-      if (e is BloqueConCuadricula) {
+      if (e is PreguntaNumerica) {
+        return CreadorPreguntaNumericaController(
+          repository,
+          datosIniciales: PreguntaNumericaCompanion.fromDataClass(e),
+        );
+      }
+      if (e is CuadriculaConPreguntasYConOpcionesDeRespuesta) {
         return CreadorPreguntaCuadriculaController(
           repository,
           datosIniciales: CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion
               .fromDataClass(CuadriculaConPreguntasYConOpcionesDeRespuesta(
-            e.cuadricula.cuadricula,
-            e.cuadricula.preguntas,
+            e.cuadricula,
+            e.preguntas,
           )),
-        );
-      }
-      if (e is BloqueConPreguntaNumerica) {
-        return CreadorPreguntaNumericaController(
-          repository,
-          datosIniciales: PreguntaNumericaCompanion.fromDataClass(e.pregunta),
         );
       }
       throw TaggedUnionError(e);

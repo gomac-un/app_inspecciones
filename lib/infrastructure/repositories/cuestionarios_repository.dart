@@ -2,8 +2,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:drift/drift.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/core/entities/app_image.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/core/typedefs.dart';
 import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/flutter_downloader/errors.dart';
@@ -11,7 +16,6 @@ import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
 import 'package:inspecciones/utils/future_either_x.dart';
 
@@ -25,140 +29,156 @@ class CuestionariosRepository {
 
   CuestionariosRepository(this._read);
 
+  Future<Either<ApiFailure, Unit>> descargarCuestionario(
+      {required String cuestionarioId}) async {
+    final json = await _api.descargarCuestionario(cuestionarioId);
+    final parsed = _parseCuestionario(json);
+    await _db.guardadoDeCuestionarioDao
+        .guardarCuestionario(parsed.value1, parsed.value2, parsed.value3);
+    return const Right(unit);
+  }
+
+  Tuple3<CuestionariosCompanion, List<EtiquetasDeActivoCompanion>, List<Object>>
+      _parseCuestionario(JsonMap json) {
+    final cuestionario = CuestionariosCompanion.insert(
+      id: Value(json['id']),
+      tipoDeInspeccion: json['tipo_de_inspeccion'],
+      version: json['version'],
+      periodicidadDias: json['periodicidad_dias'],
+      estado: EstadoDeCuestionario
+          .finalizado, // si viene del server suponemos que esta finalizado
+      subido: true,
+    );
+    final etiquetas = (json['etiquetas_aplicables'] as JsonList)
+        .map((e) => EtiquetasDeActivoCompanion.insert(
+            clave: e['clave'], valor: e['valor']))
+        .toList();
+    final bloques =
+        (json['bloques'] as JsonList).map((b) => _parseBloque(b)).toList();
+    return Tuple3(cuestionario, etiquetas, bloques);
+  }
+
+  List<AppImage> _buildFotos(JsonList fotos) =>
+      fotos.map((f) => AppImage.remote(f["foto"])).toList();
+
+  List<OpcionesDeRespuestaCompanion> _buildOpcionesDeRespuesta(
+          JsonList opciones) =>
+      opciones
+          .map((o) => OpcionesDeRespuestaCompanion.insert(
+                id: Value(o["id"]),
+                titulo: o["titulo"],
+                descripcion: o["descripcion"],
+                criticidad: o["criticidad"],
+                // el metodo de guardado agrega la preguntaId adecuada
+                preguntaId: "",
+              ))
+          .toList();
+
+  List<CriticidadesNumericasCompanion> _buildCriticidades(
+          JsonList criticidades) =>
+      criticidades
+          .map((c) => CriticidadesNumericasCompanion.insert(
+                id: Value(c["id"]),
+                valorMinimo: c["valor_minimo"] is int
+                    ? c["valor_minimo"].toDouble()
+                    : c["valor_minimo"],
+                valorMaximo: c["valor_maximo"] is int
+                    ? c["valor_maximo"].toDouble()
+                    : c["valor_maximo"],
+                criticidad: c["criticidad"],
+                // el metodo de guardado agrega la preguntaId adecuada
+                preguntaId: "",
+              ))
+          .toList();
+
+  List<EtiquetasDePreguntaCompanion> _buildEtiquetasDePregunta(
+          JsonList etiquetas) =>
+      etiquetas
+          .map((e) => EtiquetasDePreguntaCompanion.insert(
+                clave: e["clave"],
+                valor: e["valor"],
+              ))
+          .toList();
+
+  PreguntasCompanion _buildPregunta(
+          Map<String, dynamic> pregunta, TipoDePregunta tipoDePregunta,
+          {TipoDeCuadricula? tipoDeCuadricula}) =>
+      PreguntasCompanion.insert(
+        titulo: pregunta['titulo'],
+        descripcion: pregunta['descripcion'],
+        criticidad: pregunta['criticidad'],
+        fotosGuia: _buildFotos(pregunta['fotos_guia_urls']),
+        tipoDePregunta: tipoDePregunta,
+        tipoDeCuadricula: Value(tipoDeCuadricula),
+      );
+
+  PreguntaConOpcionesDeRespuestaCompanion _buildPreguntaConOpcionesDeRespuesta(
+          Map<String, dynamic> pregunta, TipoDePregunta tipoDePregunta,
+          {TipoDeCuadricula? tipoDeCuadricula}) =>
+      PreguntaConOpcionesDeRespuestaCompanion(
+        _buildPregunta(pregunta, tipoDePregunta,
+            tipoDeCuadricula: tipoDeCuadricula),
+        _buildOpcionesDeRespuesta(pregunta['opciones_de_respuesta']),
+        _buildEtiquetasDePregunta(pregunta['etiquetas']),
+      );
+
+  Object _parseBloque(JsonMap json) {
+    if (json['titulo'] != null) {
+      final titulo = json['titulo'] as JsonMap;
+      return TitulosCompanion.insert(
+        id: Value(titulo['id']),
+        bloqueId: "", // el metodo de guardado agrega el bloqueId adecuado
+        titulo: titulo['titulo'],
+        descripcion: titulo['descripcion'],
+        fotos: _buildFotos(titulo['fotos_urls']),
+      );
+    }
+    if (json['pregunta'] != null) {
+      final pregunta = json['pregunta'] as JsonMap;
+      final tipoDePregunta = EnumToString.fromString(TipoDePregunta.values,
+          (pregunta["tipo_de_pregunta"] as String).replaceAll("_", " "),
+          camelCase: true);
+      if (tipoDePregunta == null) {
+        throw Exception(
+            "Tipo de pregunta no reconocido: ${pregunta["tipo_de_pregunta"]}");
+      }
+      switch (tipoDePregunta) {
+        case TipoDePregunta.seleccionUnica:
+        case TipoDePregunta.seleccionMultiple:
+          return _buildPreguntaConOpcionesDeRespuesta(pregunta, tipoDePregunta);
+        case TipoDePregunta.numerica:
+          return PreguntaNumericaCompanion(
+            _buildPregunta(pregunta, tipoDePregunta),
+            _buildCriticidades(pregunta['criticidades_numericas']),
+            _buildEtiquetasDePregunta(pregunta['etiquetas']),
+          );
+        case TipoDePregunta.cuadricula:
+          final tipoDeCuadricula = EnumToString.fromString(
+              TipoDeCuadricula.values,
+              (pregunta["tipo_de_cuadricula"] as String).replaceAll("_", " "),
+              camelCase: true);
+          return CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
+            _buildPreguntaConOpcionesDeRespuesta(pregunta, tipoDePregunta,
+                tipoDeCuadricula: tipoDeCuadricula),
+            (pregunta["preguntas"] as JsonList)
+                .map((p) => _buildPreguntaConOpcionesDeRespuesta(
+                    p, TipoDePregunta.parteDeCuadricula))
+                .toList(),
+          );
+        case TipoDePregunta.parteDeCuadricula:
+          throw StateError("no permitido como padre de jerarquia");
+      }
+    }
+    throw Exception("un bloque debe tener un titulo o una pregunta");
+  }
+
   Future<Either<ApiFailure, Unit>> subirCuestionariosPendientes() async {
     //TODO: subir cada uno, o todos a la vez para mas eficiencia
     throw UnimplementedError();
   }
 
   Future<void> insertarDatosDePrueba() async {
-    /*
-    await _db.into(_db.activos).insert(
-        ActivosCompanion.insert(id: const Value(1), modelo: "kenworth"));
-    await _db
-        .into(_db.activos)
-        .insert(ActivosCompanion.insert(id: const Value(2), modelo: "moto"));
-    final sis1Id = await _db
-        .into(_db.sistemas)
-        .insert(SistemasCompanion.insert(nombre: "motor"));
-    final sis2Id = await _db
-        .into(_db.sistemas)
-        .insert(SistemasCompanion.insert(nombre: "chasis"));
-    await _db.into(_db.subSistemas).insert(
-        SubSistemasCompanion.insert(nombre: "inyeccion", sistemaId: sis1Id));
-    await _db.into(_db.subSistemas).insert(
-        SubSistemasCompanion.insert(nombre: "pintura", sistemaId: sis2Id));
-    await _db
-        .into(_db.contratistas)
-        .insert(ContratistasCompanion.insert(nombre: "gomac"));
-    return guardarCuestionario(
-        CuestionariosCompanion.insert(
-            tipoDeInspeccion: const Value("preoperacional"),
-            estado: EstadoDeCuestionario.finalizada,
-            esLocal: true),
-        [
-          CuestionarioDeModelosCompanion.insert(
-              modelo: "kenworth", periodicidad: 1, cuestionarioId: 1)
-        ],
-        [
-          TitulosCompanion.insert(
-              titulo: "titulo", descripcion: "descripcion", bloqueId: 1),
-          PreguntaConOpcionesDeRespuestaCompanion(
-              PreguntasCompanion.insert(
-                titulo: "titulo",
-                descripcion: "descripcion",
-                criticidad: 1,
-                bloqueId: 1,
-                tipo: TipoDePregunta.unicaRespuesta,
-              ),
-              [
-                OpcionesDeRespuestaCompanion.insert(
-                    texto: "texto", criticidad: 1)
-              ]),
-          PreguntaNumericaCompanion(
-            PreguntasCompanion.insert(
-                titulo: "titulo",
-                descripcion: "descripcion",
-                criticidad: 1,
-                bloqueId: 1,
-                tipo: TipoDePregunta.numerica),
-            [
-              CriticidadesNumericasCompanion.insert(
-                valorMinimo: -10,
-                valorMaximo: 0,
-                criticidad: 1,
-                preguntaId: 1,
-              ),
-              CriticidadesNumericasCompanion.insert(
-                valorMinimo: 0,
-                valorMaximo: 10,
-                criticidad: 1,
-                preguntaId: 1,
-              ),
-            ],
-          ),
-          CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
-            CuadriculasDePreguntasCompanion.insert(
-                titulo: "titulo", descripcion: "descripcion", bloqueId: 1),
-            [
-              PreguntaConOpcionesDeRespuestaCompanion(
-                  PreguntasCompanion.insert(
-                    titulo: "titulo1",
-                    descripcion: "descripcion1",
-                    criticidad: 1,
-                    bloqueId: 1,
-                    tipo: TipoDePregunta.parteDeCuadriculaUnica,
-                  ),
-                  const []),
-              PreguntaConOpcionesDeRespuestaCompanion(
-                  PreguntasCompanion.insert(
-                    titulo: "titulo2",
-                    descripcion: "descripcion2",
-                    criticidad: 1,
-                    bloqueId: 1,
-                    tipo: TipoDePregunta.parteDeCuadriculaUnica,
-                  ),
-                  const []),
-            ],
-            [
-              OpcionesDeRespuestaCompanion.insert(
-                  texto: "texto1", criticidad: 1),
-              OpcionesDeRespuestaCompanion.insert(
-                  texto: "texto2", criticidad: 1)
-            ],
-          ),
-          TitulosCompanion.insert(
-              titulo: "titulo2", descripcion: "descripcion2", bloqueId: 1),
-          CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
-            CuadriculasDePreguntasCompanion.insert(
-                titulo: "titulo", descripcion: "descripcion", bloqueId: 1),
-            [
-              PreguntaConOpcionesDeRespuestaCompanion(
-                  PreguntasCompanion.insert(
-                    titulo: "titulo1",
-                    descripcion: "descripcion1",
-                    criticidad: 1,
-                    bloqueId: 1,
-                    tipo: TipoDePregunta.parteDeCuadriculaMultiple,
-                  ),
-                  const []),
-              PreguntaConOpcionesDeRespuestaCompanion(
-                  PreguntasCompanion.insert(
-                    titulo: "titulo2",
-                    descripcion: "descripcion2",
-                    criticidad: 1,
-                    bloqueId: 1,
-                    tipo: TipoDePregunta.parteDeCuadriculaMultiple,
-                  ),
-                  const []),
-            ],
-            [
-              OpcionesDeRespuestaCompanion.insert(
-                  texto: "texto1", criticidad: 1),
-              OpcionesDeRespuestaCompanion.insert(
-                  texto: "texto2", criticidad: 1)
-            ],
-          ),
-        ]);*/
+    //TODO: insertar datos de prueba
   }
 
   /// Envia [cuestionario] al server.
@@ -237,7 +257,7 @@ class CuestionariosRepository {
           String cuestionarioId) =>
       _db.cargaDeCuestionarioDao.getCuestionarioYEtiquetas(cuestionarioId);
 
-  Future<List<IBloqueOrdenable>> cargarCuestionario(String cuestionarioId) =>
+  Future<List<Object>> cargarCuestionario(String cuestionarioId) =>
       _db.cargaDeCuestionarioDao.cargarCuestionario(cuestionarioId);
 
   /*Future<List<Cuestionario>> getCuestionarios(

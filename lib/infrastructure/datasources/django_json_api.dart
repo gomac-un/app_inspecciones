@@ -176,6 +176,12 @@ class DjangoJsonApi
     await ZipFile.extractToDirectory(
         zipFile: zipFotos, destinationDir: destinationDir);
   }
+
+  @override
+  Future<JsonMap> descargarCuestionario(String cuestionarioId) {
+    // TODO: implement descargarCuestionario
+    throw UnimplementedError();
+  }
 }
 
 extension ManipulacionesUri on Uri {

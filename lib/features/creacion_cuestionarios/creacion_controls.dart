@@ -4,10 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_validators.dart';
+import 'tablas_unidas.dart';
 
 /// Interfaz de todos los controllers involucrados en la creación de cuestionarios
 @immutable

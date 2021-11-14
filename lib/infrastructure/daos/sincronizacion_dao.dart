@@ -68,23 +68,24 @@ class SincronizacionDao extends DatabaseAccessor<Database>
           final activoInsertado = await into(activos)
               .insertReturning(ActivosCompanion.insert(id: activo.id));
           for (final etiqueta in activo.etiquetas) {
-            //TODO: extraer a un metodo si otro metodo necesita esta logica
-            final query = select(etiquetasDeActivo)
-              ..where((e) =>
-                  e.clave.equals(etiqueta.clave) &
-                  e.valor.equals(etiqueta.valor));
-            var etiquetaInsertada = await query.getSingleOrNull();
-            etiquetaInsertada ??= await into(etiquetasDeActivo).insertReturning(
-                EtiquetasDeActivoCompanion.insert(
-                    clave: etiqueta.clave, valor: etiqueta.valor));
-
-            await into(activosXEtiquetas).insert(
-                ActivosXEtiquetasCompanion.insert(
-                    activoId: activoInsertado.id,
-                    etiquetaId: etiquetaInsertada.id));
+            await _asignarEtiqueta(activoInsertado, etiqueta);
           }
         }
       });
+
+  Future<void> _asignarEtiqueta(Activo activo, Etiqueta etiqueta) async {
+    final query = select(etiquetasDeActivo)
+      ..where((e) =>
+          e.clave.equals(etiqueta.clave) & e.valor.equals(etiqueta.valor));
+    var etiquetaInsertada = await query.getSingleOrNull();
+    etiquetaInsertada ??= await into(etiquetasDeActivo).insertReturning(
+        EtiquetasDeActivoCompanion.insert(
+            clave: etiqueta.clave, valor: etiqueta.valor));
+
+    await into(activosXEtiquetas).insert(ActivosXEtiquetasCompanion.insert(
+        activoId: activo.id, etiquetaId: etiquetaInsertada.id));
+  }
+
 /*
   /// Obtiene el [cuestionario] completo con sus bloques para subir al server
   Future<Map<String, dynamic>> getCuestionarioCompletoAsJson(

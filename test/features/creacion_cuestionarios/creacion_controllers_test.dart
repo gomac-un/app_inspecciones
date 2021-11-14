@@ -3,7 +3,7 @@ import 'package:inspecciones/features/creacion_cuestionarios/creacion_controls.d
 import 'package:inspecciones/features/creacion_cuestionarios/creacion_form_controller.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:reactive_forms/reactive_forms.dart';
