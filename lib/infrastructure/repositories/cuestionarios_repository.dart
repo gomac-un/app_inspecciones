@@ -17,29 +17,40 @@ import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
-import 'package:inspecciones/utils/future_either_x.dart';
 
 class CuestionariosRepository {
   final Reader _read;
   CuestionariosRemoteDataSource get _api =>
       _read(cuestionariosRemoteDataSourceProvider);
-  FotosRemoteDataSource get _apiFotos => _read(fotosRemoteDataSourceProvider);
+  //FotosRemoteDataSource get _apiFotos => _read(fotosRemoteDataSourceProvider);
   Database get _db => _read(driftDatabaseProvider);
-  FotosRepository get _fotosRepository => _read(fotosRepositoryProvider);
+  //FotosRepository get _fotosRepository => _read(fotosRepositoryProvider);
 
   CuestionariosRepository(this._read);
+
+  Future<Either<ApiFailure, List<Cuestionario>>>
+      getListaDeCuestionariosServer() => apiExceptionToApiFailure(
+            () => _api.getCuestionarios().then((l) => l
+                .map((c) => Cuestionario(
+                      id: c["id"],
+                      tipoDeInspeccion: c["tipo_de_inspeccion"],
+                      version: c["version"],
+                      periodicidadDias: c["periodicidad_dias"],
+                      estado: EstadoDeCuestionario.finalizado,
+                      subido: true,
+                    ))
+                .toList()),
+          );
 
   Future<Either<ApiFailure, Unit>> descargarCuestionario(
       {required String cuestionarioId}) async {
     final json = await _api.descargarCuestionario(cuestionarioId);
-    final parsed = _parseCuestionario(json);
-    await _db.guardadoDeCuestionarioDao
-        .guardarCuestionario(parsed.value1, parsed.value2, parsed.value3);
+    final parsed = _deserializarCuestionario(json);
+    await _db.guardadoDeCuestionarioDao.guardarCuestionario(parsed);
     return const Right(unit);
   }
 
-  Tuple3<CuestionariosCompanion, List<EtiquetasDeActivoCompanion>, List<Object>>
-      _parseCuestionario(JsonMap json) {
+  CuestionarioCompletoCompanion _deserializarCuestionario(JsonMap json) {
     final cuestionario = CuestionariosCompanion.insert(
       id: Value(json['id']),
       tipoDeInspeccion: json['tipo_de_inspeccion'],
@@ -53,15 +64,89 @@ class CuestionariosRepository {
         .map((e) => EtiquetasDeActivoCompanion.insert(
             clave: e['clave'], valor: e['valor']))
         .toList();
-    final bloques =
-        (json['bloques'] as JsonList).map((b) => _parseBloque(b)).toList();
-    return Tuple3(cuestionario, etiquetas, bloques);
+    final bloques = (json['bloques'] as JsonList)
+        .map((b) => _deserializarBloque(b))
+        .toList();
+
+    return CuestionarioCompletoCompanion(cuestionario, etiquetas, bloques);
   }
 
-  List<AppImage> _buildFotos(JsonList fotos) =>
-      fotos.map((f) => AppImage.remote(f["foto"])).toList();
+  Companion _deserializarBloque(JsonMap json) {
+    if (json['titulo'] != null) {
+      final titulo = json['titulo'] as JsonMap;
+      return TituloDCompanion(TitulosCompanion.insert(
+        id: Value(titulo['id']),
+        bloqueId: "", // el metodo de guardado agrega el bloqueId adecuado
+        titulo: titulo['titulo'],
+        descripcion: titulo['descripcion'],
+        fotos: _deserializarFotos(titulo['fotos_urls']),
+      ));
+    }
+    if (json['pregunta'] != null) {
+      final pregunta = json['pregunta'] as JsonMap;
+      final tipoDePregunta = EnumToString.fromString(TipoDePregunta.values,
+          (pregunta["tipo_de_pregunta"] as String).replaceAll("_", " "),
+          camelCase: true);
+      if (tipoDePregunta == null) {
+        throw Exception(
+            "Tipo de pregunta no reconocido: ${pregunta["tipo_de_pregunta"]}");
+      }
+      switch (tipoDePregunta) {
+        case TipoDePregunta.seleccionUnica:
+        case TipoDePregunta.seleccionMultiple:
+          return _deserializarPreguntaConOpcionesDeRespuesta(
+              pregunta, tipoDePregunta);
+        case TipoDePregunta.numerica:
+          return PreguntaNumericaCompanion(
+            _deserializarPregunta(pregunta, tipoDePregunta),
+            _deserializarCriticidades(pregunta['criticidades_numericas']),
+            _buildEtiquetasDePregunta(pregunta['etiquetas']),
+          );
+        case TipoDePregunta.cuadricula:
+          final tipoDeCuadricula = EnumToString.fromString(
+              TipoDeCuadricula.values,
+              (pregunta["tipo_de_cuadricula"] as String).replaceAll("_", " "),
+              camelCase: true);
+          return CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
+            _deserializarPreguntaConOpcionesDeRespuesta(
+                pregunta, tipoDePregunta,
+                tipoDeCuadricula: tipoDeCuadricula),
+            (pregunta["preguntas"] as JsonList)
+                .map((p) => _deserializarPreguntaConOpcionesDeRespuesta(
+                    p, TipoDePregunta.parteDeCuadricula))
+                .toList(),
+          );
+        case TipoDePregunta.parteDeCuadricula:
+          throw StateError("no permitido como padre de jerarquia");
+      }
+    }
+    throw Exception("un bloque debe tener un titulo o una pregunta");
+  }
 
-  List<OpcionesDeRespuestaCompanion> _buildOpcionesDeRespuesta(
+  PreguntaConOpcionesDeRespuestaCompanion
+      _deserializarPreguntaConOpcionesDeRespuesta(
+              Map<String, dynamic> pregunta, TipoDePregunta tipoDePregunta,
+              {TipoDeCuadricula? tipoDeCuadricula}) =>
+          PreguntaConOpcionesDeRespuestaCompanion(
+            _deserializarPregunta(pregunta, tipoDePregunta,
+                tipoDeCuadricula: tipoDeCuadricula),
+            _deserializarOpcionesDeRespuesta(pregunta['opciones_de_respuesta']),
+            _buildEtiquetasDePregunta(pregunta['etiquetas']),
+          );
+
+  PreguntasCompanion _deserializarPregunta(
+          Map<String, dynamic> pregunta, TipoDePregunta tipoDePregunta,
+          {TipoDeCuadricula? tipoDeCuadricula}) =>
+      PreguntasCompanion.insert(
+        titulo: pregunta['titulo'],
+        descripcion: pregunta['descripcion'],
+        criticidad: pregunta['criticidad'],
+        fotosGuia: _deserializarFotos(pregunta['fotos_guia_urls']),
+        tipoDePregunta: tipoDePregunta,
+        tipoDeCuadricula: Value(tipoDeCuadricula),
+      );
+
+  List<OpcionesDeRespuestaCompanion> _deserializarOpcionesDeRespuesta(
           JsonList opciones) =>
       opciones
           .map((o) => OpcionesDeRespuestaCompanion.insert(
@@ -74,7 +159,7 @@ class CuestionariosRepository {
               ))
           .toList();
 
-  List<CriticidadesNumericasCompanion> _buildCriticidades(
+  List<CriticidadesNumericasCompanion> _deserializarCriticidades(
           JsonList criticidades) =>
       criticidades
           .map((c) => CriticidadesNumericasCompanion.insert(
@@ -100,93 +185,18 @@ class CuestionariosRepository {
               ))
           .toList();
 
-  PreguntasCompanion _buildPregunta(
-          Map<String, dynamic> pregunta, TipoDePregunta tipoDePregunta,
-          {TipoDeCuadricula? tipoDeCuadricula}) =>
-      PreguntasCompanion.insert(
-        titulo: pregunta['titulo'],
-        descripcion: pregunta['descripcion'],
-        criticidad: pregunta['criticidad'],
-        fotosGuia: _buildFotos(pregunta['fotos_guia_urls']),
-        tipoDePregunta: tipoDePregunta,
-        tipoDeCuadricula: Value(tipoDeCuadricula),
-      );
-
-  PreguntaConOpcionesDeRespuestaCompanion _buildPreguntaConOpcionesDeRespuesta(
-          Map<String, dynamic> pregunta, TipoDePregunta tipoDePregunta,
-          {TipoDeCuadricula? tipoDeCuadricula}) =>
-      PreguntaConOpcionesDeRespuestaCompanion(
-        _buildPregunta(pregunta, tipoDePregunta,
-            tipoDeCuadricula: tipoDeCuadricula),
-        _buildOpcionesDeRespuesta(pregunta['opciones_de_respuesta']),
-        _buildEtiquetasDePregunta(pregunta['etiquetas']),
-      );
-
-  Object _parseBloque(JsonMap json) {
-    if (json['titulo'] != null) {
-      final titulo = json['titulo'] as JsonMap;
-      return TitulosCompanion.insert(
-        id: Value(titulo['id']),
-        bloqueId: "", // el metodo de guardado agrega el bloqueId adecuado
-        titulo: titulo['titulo'],
-        descripcion: titulo['descripcion'],
-        fotos: _buildFotos(titulo['fotos_urls']),
-      );
-    }
-    if (json['pregunta'] != null) {
-      final pregunta = json['pregunta'] as JsonMap;
-      final tipoDePregunta = EnumToString.fromString(TipoDePregunta.values,
-          (pregunta["tipo_de_pregunta"] as String).replaceAll("_", " "),
-          camelCase: true);
-      if (tipoDePregunta == null) {
-        throw Exception(
-            "Tipo de pregunta no reconocido: ${pregunta["tipo_de_pregunta"]}");
-      }
-      switch (tipoDePregunta) {
-        case TipoDePregunta.seleccionUnica:
-        case TipoDePregunta.seleccionMultiple:
-          return _buildPreguntaConOpcionesDeRespuesta(pregunta, tipoDePregunta);
-        case TipoDePregunta.numerica:
-          return PreguntaNumericaCompanion(
-            _buildPregunta(pregunta, tipoDePregunta),
-            _buildCriticidades(pregunta['criticidades_numericas']),
-            _buildEtiquetasDePregunta(pregunta['etiquetas']),
-          );
-        case TipoDePregunta.cuadricula:
-          final tipoDeCuadricula = EnumToString.fromString(
-              TipoDeCuadricula.values,
-              (pregunta["tipo_de_cuadricula"] as String).replaceAll("_", " "),
-              camelCase: true);
-          return CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
-            _buildPreguntaConOpcionesDeRespuesta(pregunta, tipoDePregunta,
-                tipoDeCuadricula: tipoDeCuadricula),
-            (pregunta["preguntas"] as JsonList)
-                .map((p) => _buildPreguntaConOpcionesDeRespuesta(
-                    p, TipoDePregunta.parteDeCuadricula))
-                .toList(),
-          );
-        case TipoDePregunta.parteDeCuadricula:
-          throw StateError("no permitido como padre de jerarquia");
-      }
-    }
-    throw Exception("un bloque debe tener un titulo o una pregunta");
-  }
-
-  Future<Either<ApiFailure, Unit>> subirCuestionariosPendientes() async {
-    //TODO: subir cada uno, o todos a la vez para mas eficiencia
-    throw UnimplementedError();
-  }
-
-  Future<void> insertarDatosDePrueba() async {
-    //TODO: insertar datos de prueba
-  }
+  List<AppImage> _deserializarFotos(JsonList fotos) =>
+      fotos.map((f) => AppImage.remote(f["foto"])).toList();
 
   /// Envia [cuestionario] al server.
   Future<Either<ApiFailure, Unit>> subirCuestionario(
       Cuestionario cuestionario) async {
-    /// Json con info de [cuestionario] y sus respectivos bloques.
-    final cuestionarioMap = await _generarJsonCuestionario(cuestionario);
+    throw UnimplementedError();
 
+    /// Json con info de [cuestionario] y sus respectivos bloques.
+    final cuestionarioCompleto = await getCuestionarioCompleto(cuestionario.id);
+
+/*
     Future<void> subirFotos() async {
       /// Usado para el nombre de la carpeta de las fotos
       final idDocumento = cuestionarioMap['id'].toString();
@@ -210,8 +220,7 @@ class CuestionariosRepository {
           (_) => apiExceptionToApiFailure(
             () => subirFotos().then((_) => unit),
           ),
-        );
-    //TODO: mirar como procesar los json de las respuestas intermedias
+        );*/
   }
 
   Future<JsonMap> _generarJsonCuestionario(Cuestionario cuestionario) async {
@@ -250,15 +259,11 @@ class CuestionariosRepository {
   Stream<List<Cuestionario>> getCuestionariosLocales() =>
       _db.cargaDeCuestionarioDao.watchCuestionarios();
 
-  Future eliminarCuestionario(Cuestionario cuestionario) =>
+  Future<void> eliminarCuestionario(Cuestionario cuestionario) =>
       _db.cargaDeCuestionarioDao.eliminarCuestionario(cuestionario);
 
-  Future<CuestionarioConEtiquetas> getCuestionarioYEtiquetas(
-          String cuestionarioId) =>
-      _db.cargaDeCuestionarioDao.getCuestionarioYEtiquetas(cuestionarioId);
-
-  Future<List<Object>> cargarCuestionario(String cuestionarioId) =>
-      _db.cargaDeCuestionarioDao.cargarCuestionario(cuestionarioId);
+  Future<CuestionarioCompleto> getCuestionarioCompleto(String cuestionarioId) =>
+      _db.cargaDeCuestionarioDao.getCuestionarioCompleto(cuestionarioId);
 
   /*Future<List<Cuestionario>> getCuestionarios(
           String tipoDeInspeccion, List<EtiquetaDeActivo> etiquetas) =>
@@ -271,13 +276,15 @@ class CuestionariosRepository {
       _db.cargaDeCuestionarioDao.getEtiquetas();
 
   Future<void> guardarCuestionario(
-    CuestionariosCompanion cuestionario,
-    List<EtiquetasDeActivoCompanion> etiquetas,
-    List<Object> bloquesForm,
-  ) =>
-      _db.guardadoDeCuestionarioDao.guardarCuestionario(
-        cuestionario,
-        etiquetas,
-        bloquesForm,
-      );
+          CuestionarioCompletoCompanion cuestionario) =>
+      _db.guardadoDeCuestionarioDao.guardarCuestionario(cuestionario);
+
+  Future<Either<ApiFailure, Unit>> subirCuestionariosPendientes() async {
+    //TODO: subir cada uno, o todos a la vez para mas eficiencia
+    throw UnimplementedError();
+  }
+
+  Future<void> insertarDatosDePrueba() async {
+    //TODO: insertar datos de prueba
+  }
 }

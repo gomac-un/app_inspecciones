@@ -6,7 +6,6 @@ import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
-import 'package:inspecciones/utils/iterable_x.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_controls.dart';
@@ -41,7 +40,7 @@ class CreacionFormController {
   static const otroTipoDeInspeccion = "Otra";
 
   /// información usada para inicializar los campos en caso de que sea una edición
-  final CuestionarioConEtiquetasCompanion datosIniciales;
+  final CuestionarioCompletoCompanion datosIniciales;
 
   /// inicialización de los campos del cuestionario usando los valores guardados
   /// en caso de que sea una edicion. si es uno nuevo se definen valores por defecto
@@ -96,27 +95,23 @@ class CreacionFormController {
         repository,
         todasLasEtiquetas,
         todosLosTiposDeInspeccion,
-        (await _cargarBloques(repository, null, null)).toList(),
-        // para que retorne un bloque por defecto ya que es nuevo cuestionario
+        await _buildControllers(null),
       );
     }
 
     /// Dereferenciadores del cuestionarioId, en caso de que llegue
     final datosIniciales =
-        await repository.getCuestionarioYEtiquetas(cuestionarioId);
+        (await repository.getCuestionarioCompleto(cuestionarioId))
+            .toCompanion();
 
-    final bloquesBD = await repository.cargarCuestionario(cuestionarioId);
-
-    final controllersBloques = await _cargarBloques(
-        repository, datosIniciales.cuestionario, bloquesBD);
+    final controllersBloques = await _buildControllers(datosIniciales.bloques);
 
     return CreacionFormController._(
       repository,
       todasLasEtiquetas,
       todosLosTiposDeInspeccion,
-      controllersBloques.toList(),
-      datosIniciales:
-          CuestionarioConEtiquetasCompanion.fromDataClass(datosIniciales),
+      controllersBloques,
+      datosIniciales: datosIniciales,
     );
   }
 
@@ -126,7 +121,7 @@ class CreacionFormController {
     this.todasLasEtiquetas,
     this.todosLosTiposDeInspeccion,
     this.controllersBloques, {
-    this.datosIniciales = const CuestionarioConEtiquetasCompanion.vacio(),
+    this.datosIniciales = const CuestionarioCompletoCompanion.vacio(),
   }) {
     bloquesControl =
         FormArray(controllersBloques.map((e) => e.control).toList());
@@ -160,51 +155,36 @@ class CreacionFormController {
     }
   }
 
-  /// Carga los bloques del cuestionario
-  ///
-  /// El flujo es: desde la Bd se devuelve [bloquesBD] al invocar ([CreacionDao.cargarCuestionario()]),
-  /// luego se recorren y dependiendo del tipo especifico de IBloqueOrdenable que sea, se devuelve el control correspondiente
-  /// para que [ControlWidget] en creacion_card.dart pueda devolver la card adecuada para cada tipo
-  static Future<Iterable<CreacionController>> _cargarBloques(
-      CuestionariosRepository repository,
-      Cuestionario? cuestionario,
-      List<Object>? bloquesBD) async {
-    if (cuestionario == null || bloquesBD == null) {
+  static Future<List<CreacionController>> _buildControllers(
+      List<Companion>? bloques) async {
+    if (bloques == null) {
       /// Si se está creando el cuestionario, se agrega un titulo por defecto como bloque inicial
       return [CreadorTituloController()];
     }
 
     /// Si es un cuestionario que ya existía y se va a editar
     ///Ordenamiento y creacion de los controles dependiendo del tipo de elemento
-    return bloquesBD.asyncMap<CreacionController>((e) async {
-      if (e is Titulo) {
-        return CreadorTituloController(e.toCompanion(true));
+    return bloques.map<CreacionController>((e) {
+      if (e is TituloDCompanion) {
+        return CreadorTituloController(e);
       }
-      if (e is PreguntaConOpcionesDeRespuesta) {
+      if (e is PreguntaConOpcionesDeRespuestaCompanion) {
         return CreadorPreguntaController(
-          repository,
-          datosIniciales:
-              PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(e),
+          datosIniciales: e,
         );
       }
-      if (e is PreguntaNumerica) {
+      if (e is PreguntaNumericaCompanion) {
         return CreadorPreguntaNumericaController(
-          repository,
-          datosIniciales: PreguntaNumericaCompanion.fromDataClass(e),
+          datosIniciales: e,
         );
       }
-      if (e is CuadriculaConPreguntasYConOpcionesDeRespuesta) {
+      if (e is CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion) {
         return CreadorPreguntaCuadriculaController(
-          repository,
-          datosIniciales: CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion
-              .fromDataClass(CuadriculaConPreguntasYConOpcionesDeRespuesta(
-            e.cuadricula,
-            e.preguntas,
-          )),
+          datosIniciales: e,
         );
       }
       throw TaggedUnionError(e);
-    });
+    }).toList();
   }
 
   /// Agrega un nuevo bloque despues de [despuesDe]
@@ -253,6 +233,7 @@ class CreacionFormController {
     final bloquesForm = controllersBloques.map((e) => e.toDB()).toList();
 
     // TODO: si se vuelve muy lento, usar un bloc y/o un isolate
-    await repository.guardarCuestionario(cuestionario, etiquetas, bloquesForm);
+    await repository.guardarCuestionario(
+        CuestionarioCompletoCompanion(cuestionario, etiquetas, bloquesForm));
   }
 }

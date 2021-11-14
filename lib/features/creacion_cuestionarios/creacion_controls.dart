@@ -3,7 +3,6 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
-import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_validators.dart';
@@ -26,7 +25,7 @@ abstract class CreacionController {
   /// ! Buscar la manera de definir tagged union types para que sea imposible enviar
   /// objetos que la Database no pueda tratar, por ahora basta con fijarse que la DB
   /// trate todos los posibles objetos retornados por los metodos [toDB].
-  Object toDB();
+  Companion toDB();
 
   /// Libera los recursos de este control
   void dispose() {
@@ -50,7 +49,7 @@ mixin ConRespuestas {
 
   /// Elimina de los controles, la opcion de respuesta [c]
 
-  void borrarRespuesta(CreacionController c) {
+  void borrarRespuesta(CreadorRespuestaController c) {
     controllersRespuestas.remove(c);
     respuestasControl.remove(c.control);
   }
@@ -62,17 +61,17 @@ mixin ConRespuestas {
 /// si es nulo se establecen unos valores por defecto
 
 class CreadorTituloController extends CreacionController {
-  final TitulosCompanion _tituloCompanion;
+  final TituloDCompanion _tituloCompanion;
 
   late final tituloControl = fb.control<String>(
-    _tituloCompanion.titulo.valueOrDefault(" "),
+    _tituloCompanion.titulo.titulo.valueOrDefault(" "),
     [Validators.required],
   );
   late final descripcionControl = fb.control<String>(
-    _tituloCompanion.descripcion.valueOrDefault(""),
+    _tituloCompanion.titulo.descripcion.valueOrDefault(""),
   );
   late final fotosControl = fb.control<List<AppImage>>(
-    _tituloCompanion.fotos.valueOrDefault([]).toList(),
+    _tituloCompanion.titulo.fotos.valueOrDefault([]).toList(),
   );
 
   @override
@@ -85,14 +84,18 @@ class CreadorTituloController extends CreacionController {
   /// Recibe el companion de un titulo el cual puede(O DEBE?) contener valores
   /// por defecto para los campos, si incluye la id, el control será actualizado
   /// en la db con la misma id
-  CreadorTituloController([this._tituloCompanion = const TitulosCompanion()]);
+  CreadorTituloController(
+      [this._tituloCompanion = const TituloDCompanion.vacio()]);
 
   @override
   CreadorTituloController copy() {
+    final copied = toDB();
     return CreadorTituloController(
-      toDB().copyWith(
-        id: const Value.absent(),
-        bloqueId: const Value.absent(),
+      copied.copyWith(
+        titulo: copied.titulo.copyWith(
+          id: const Value.absent(),
+          bloqueId: const Value.absent(),
+        ),
       ),
     );
   }
@@ -106,19 +109,19 @@ class CreadorTituloController extends CreacionController {
   /// usar el constructor [TitulosCompanion.insert] para asegurarse que todo esté bien.
 
   @override
-  TitulosCompanion toDB() {
+  TituloDCompanion toDB() {
     return _tituloCompanion.copyWith(
-      titulo: Value(tituloControl.value!),
-      descripcion: Value(descripcionControl.value!),
-      fotos: Value(fotosControl.value!),
+      titulo: _tituloCompanion.titulo.copyWith(
+        titulo: Value(tituloControl.value!),
+        descripcion: Value(descripcionControl.value!),
+        fotos: Value(fotosControl.value!),
+      ),
     );
   }
 }
 
 ///  Control encargado de manejar las preguntas de tipo selección
 class CreadorPreguntaController extends CreacionController with ConRespuestas {
-  final CuestionariosRepository _repository;
-
   /// Si se llama al agregar un nuevo bloque (desde [BotonesBloque]), [datosIniciales] es null,
   /// Cuando se va a editar, [datosIniciales] es pasado directamente desde el
   /// controller superior.
@@ -164,8 +167,7 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
   final CamposGeneralesPreguntaController controllerCamposGenerales;
   late final camposGeneralesControl = controllerCamposGenerales.control;
 
-  CreadorPreguntaController(
-    this._repository, {
+  CreadorPreguntaController({
     this.datosIniciales = const PreguntaConOpcionesDeRespuestaCompanion.vacio(),
     this.parteDeCuadricula = false,
     this.esNumerica = false,
@@ -182,7 +184,6 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
     final copied = toDB();
 
     return CreadorPreguntaController(
-      _repository,
       datosIniciales: copied.copyWith(
         pregunta: copied.pregunta.copyWith(
           id: const Value.absent(),
@@ -223,7 +224,7 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
 }
 
 /// Control encargado de manejar la creación de opciones de respuesta en preguntas de selección o de cuadricula
-class CreadorRespuestaController extends CreacionController {
+class CreadorRespuestaController {
   /// Si se llama al agregar criticidad (desde la cración de pregunta numerica), [_respuestaDesdeDB] es null,
   /// Cuando se va a editar, [_respuestaDesdeDB] es pasado directamente desde los BloquesBd de [CreacionFormViewModel.cargarBloques()]
   /// Cuando se usa copiar, [_respuestaDesdeDB] se obtiene desde el método [toDataClass()]
@@ -240,7 +241,6 @@ class CreadorRespuestaController extends CreacionController {
   late final criticidadControl = fb.control<double>(
       _respuestaDesdeDB.criticidad.valueOrDefault(0).toDouble());
 
-  @override
   late final control = fb.group({
     'titulo': tituloControl,
     'descripcion': descripcionControl,
@@ -250,14 +250,12 @@ class CreadorRespuestaController extends CreacionController {
   CreadorRespuestaController(
       [this._respuestaDesdeDB = const OpcionesDeRespuestaCompanion()]);
 
-  @override
   CreadorRespuestaController copy() {
     return CreadorRespuestaController(
       toDB().copyWith(id: const Value.absent()),
     );
   }
 
-  @override
   OpcionesDeRespuestaCompanion toDB() {
     return _respuestaDesdeDB.copyWith(
         titulo: Value(tituloControl.value!),
@@ -267,7 +265,7 @@ class CreadorRespuestaController extends CreacionController {
 }
 
 /// Controller que maneja la creación de rangoss de criticidad para preguntas numericas
-class CreadorCriticidadesNumericasController extends CreacionController {
+class CreadorCriticidadesNumericasController {
   final CriticidadesNumericasCompanion _criticidadDB;
 
   late final minimoControl = fb.control<double>(
@@ -281,7 +279,6 @@ class CreadorCriticidadesNumericasController extends CreacionController {
   late final criticidadControl =
       fb.control<double>(_criticidadDB.criticidad.valueOrDefault(0).toDouble());
 
-  @override
   late final FormGroup control;
 
   CreadorCriticidadesNumericasController(
@@ -300,14 +297,12 @@ class CreadorCriticidadesNumericasController extends CreacionController {
     ]);
   }
 
-  @override
   CreadorCriticidadesNumericasController copy() {
     return CreadorCriticidadesNumericasController(
       toDB().copyWith(id: const Value.absent()),
     );
   }
 
-  @override
   CriticidadesNumericasCompanion toDB() {
     return _criticidadDB.copyWith(
       valorMinimo: Value(minimoControl.value!),
@@ -326,14 +321,11 @@ extension PreguntaPorDefecto on List<PreguntaConOpcionesDeRespuestaCompanion> {
 ///TODO: reducir la duplicacion de codigo con la pregunta normal
 class CreadorPreguntaCuadriculaController extends CreacionController
     with ConRespuestas {
-  final CuestionariosRepository _repository;
-
   /// Info cuadricula y opciones de respuesta
   final CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion datosIniciales;
 
   late final controllersPreguntas = datosIniciales.preguntas
       .map((e) => CreadorPreguntaController(
-            _repository,
             datosIniciales: e,
             parteDeCuadricula: true,
           ))
@@ -374,8 +366,7 @@ class CreadorPreguntaCuadriculaController extends CreacionController
     'respuestas': respuestasControl,
   });
 
-  CreadorPreguntaCuadriculaController(
-    this._repository, {
+  CreadorPreguntaCuadriculaController({
     this.datosIniciales =
         const CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.vacio(),
   }) : controllerCamposGenerales = CamposGeneralesPreguntaController(
@@ -391,7 +382,6 @@ class CreadorPreguntaCuadriculaController extends CreacionController
     final copied = toDB();
 
     return CreadorPreguntaCuadriculaController(
-      _repository,
       datosIniciales: copied.copyWith(
         cuadricula: copied.cuadricula.copyWith(
           pregunta: copied.cuadricula.pregunta.copyWith(
@@ -459,7 +449,6 @@ class CreadorPreguntaCuadriculaController extends CreacionController
 
   void agregarPregunta() {
     final nuevoController = CreadorPreguntaController(
-      _repository,
       parteDeCuadricula: true,
     );
     controllersPreguntas.add(nuevoController);
@@ -474,8 +463,6 @@ class CreadorPreguntaCuadriculaController extends CreacionController
 }
 
 class CreadorPreguntaNumericaController extends CreacionController {
-  final CuestionariosRepository _repository;
-
   final PreguntaNumericaCompanion datosIniciales;
 
   late final criticidadControl = fb.control<double>(
@@ -506,8 +493,7 @@ class CreadorPreguntaNumericaController extends CreacionController {
     'criticidadRespuesta': criticidadesControl,
   });
 
-  CreadorPreguntaNumericaController(
-    this._repository, {
+  CreadorPreguntaNumericaController({
     this.datosIniciales = const PreguntaNumericaCompanion.vacio(),
   }) : controllerCamposGenerales = CamposGeneralesPreguntaController(
           tituloInicial: datosIniciales.pregunta.titulo,
@@ -525,7 +511,7 @@ class CreadorPreguntaNumericaController extends CreacionController {
   }
 
   /// Elimina Control de 'criticidadRespuesta'
-  void borrarCriticidad(CreacionController c) {
+  void borrarCriticidad(CreadorCriticidadesNumericasController c) {
     controllersCriticidades.remove(c);
     criticidadesControl.remove(c.control);
   }
@@ -535,7 +521,6 @@ class CreadorPreguntaNumericaController extends CreacionController {
     final copied = toDB();
 
     return CreadorPreguntaNumericaController(
-      _repository,
       datosIniciales: copied.copyWith(
         pregunta: copied.pregunta.copyWith(
           id: const Value.absent(),

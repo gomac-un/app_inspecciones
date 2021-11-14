@@ -45,7 +45,7 @@ void main() {
     final lengthInitial = controller.controllersBloques.length;
     final despuesDe = controller.controllersBloques.last;
     final despuesDeIndex = controller.controllersBloques.indexOf(despuesDe);
-    final nuevoBloque = CreadorPreguntaController(repository);
+    final nuevoBloque = CreadorPreguntaController();
     //act
     controller.agregarBloqueDespuesDe(
         bloque: nuevoBloque, despuesDe: despuesDe);
@@ -74,7 +74,7 @@ void main() {
       () {
     // Se agrega un bloque porque no permite eliminar el inicial
     final despuesDe = controller.controllersBloques.last;
-    final nuevoBloque = CreadorPreguntaController(repository);
+    final nuevoBloque = CreadorPreguntaController();
     controller.agregarBloqueDespuesDe(
         bloque: nuevoBloque, despuesDe: despuesDe);
     expect(controller.controllersBloques.contains(nuevoBloque), isTrue);

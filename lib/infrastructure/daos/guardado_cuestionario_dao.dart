@@ -25,10 +25,11 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
 
   /// Guarda o crea un cuestionario con sus respectivas preguntas.
   Future<void> guardarCuestionario(
-    CuestionariosCompanion cuestionarioInsertable,
-    List<EtiquetasDeActivoCompanion> etiquetasAplicablesForm,
-    List<Object> bloquesForm,
-  ) async {
+      CuestionarioCompletoCompanion cuestionario) async {
+    final cuestionarioInsertable = cuestionario.cuestionario;
+    final etiquetasAplicablesForm = cuestionario.etiquetas;
+    final bloquesForm = cuestionario.bloques;
+
     /// Como es una transaccion si algo falla, ningun cambio queda en la DB
     return transaction(
       () async {
@@ -57,8 +58,8 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
             BloquesCompanion.insert(nOrden: i, cuestionarioId: cuestionario.id),
           ); // cuando se descarga del server se pueden ignorar los ids de los bloques
 
-          if (element is TitulosCompanion) {
-            await into(titulos).insert(element.copyWith(
+          if (element is TituloDCompanion) {
+            await into(titulos).insert(element.titulo.copyWith(
               bloqueId: Value(bloque.id),
             ));
           } else if (element is PreguntaNumericaCompanion) {

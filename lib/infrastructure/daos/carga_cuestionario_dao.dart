@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:drift/drift.dart';
-import 'package:inspecciones/infrastructure/drift_database.dart';
+import 'package:drift/drift.dart' hide DataClass;
 import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 
 part 'carga_cuestionario_dao.drift.dart';
 
@@ -25,9 +25,10 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
   CargaDeCuestionarioDao(Database db) : super(db);
 
   /// Devuelve todos los bloques que pertenecen al cuestionario con id=[cuestionarioId]
-  Future<List<Object>> cargarCuestionario(String cuestionarioId) async {
+  Future<List<DataClass>> _cargarCuestionario(String cuestionarioId) async {
     ///  Titulos del cuestionario
-    final List<Tuple2<int, Titulo>> titulos = await _getTitulos(cuestionarioId);
+    final List<Tuple2<int, TituloD>> titulos =
+        await _getTitulos(cuestionarioId);
 
     /// Preguntas numericas con sus rangos de criticidad
     final List<Tuple2<int, PreguntaNumerica>> numericas =
@@ -41,7 +42,7 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
     final List<Tuple2<int, CuadriculaConPreguntasYConOpcionesDeRespuesta>>
         cuadriculas = await _getCuadriculas(cuestionarioId);
 
-    return ([
+    return (<Tuple2<int, DataClass>>[
       ...titulos,
       ...numericas,
       ...preguntasSimples,
@@ -61,7 +62,7 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
   /// cuestionarios ya creados.
 
   /// Devuelve todos los titulos del cuestionario con id=[cuestionarioId]
-  Future<List<Tuple2<int, Titulo>>> _getTitulos(String cuestionarioId) {
+  Future<List<Tuple2<int, TituloD>>> _getTitulos(String cuestionarioId) {
     final query = select(titulos).join([
       innerJoin(bloques, bloques.id.equalsExp(titulos.bloqueId)),
     ])
@@ -69,7 +70,7 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
     return query
         .map((row) => Tuple2(
               row.readTable(bloques).nOrden,
-              row.readTable(titulos),
+              TituloD(row.readTable(titulos)),
             ))
         .get();
   }
@@ -215,12 +216,13 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
       (select(preguntas)..where((p) => p.cuadriculaId.equals(cuadriculaId)))
           .get();
 
-  Future<CuestionarioConEtiquetas> getCuestionarioYEtiquetas(
+  Future<CuestionarioCompleto> getCuestionarioCompleto(
       String cuestionarioId) async {
     final cuestionario = await _getCuestionario(cuestionarioId);
     final etiquetas = await _getEtiquetasDeActivos(cuestionarioId);
+    final bloques = await _cargarCuestionario(cuestionarioId);
 
-    return CuestionarioConEtiquetas(cuestionario, etiquetas);
+    return CuestionarioCompleto(cuestionario, etiquetas, bloques);
   }
 
   Future<Cuestionario> _getCuestionario(String cuestionarioId) =>
@@ -236,7 +238,6 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
     return query.map((row) => row.read(cuestionarios.tipoDeInspeccion)!).get();
   }
 
-  /// Devuelve Stream con los cuestionarios creados que se usa en cuestionarios_screen.dart
   Stream<List<Cuestionario>> watchCuestionarios() =>
       select(cuestionarios).watch();
 

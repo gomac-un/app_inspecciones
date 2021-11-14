@@ -28,6 +28,9 @@ main() {
       ]);
       repository = OrganizacionRepository(container.read);
     });
+    tearDown(() async {
+      await _db.close();
+    });
     test("devuelve una lista vacia si la api remota devuelve lista vacia",
         () async {
       when(_api.getListaDeActivos()).thenAnswer((_) async => []);

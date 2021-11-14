@@ -178,10 +178,16 @@ class DjangoJsonApi
   }
 
   @override
-  Future<JsonMap> descargarCuestionario(String cuestionarioId) {
-    // TODO: implement descargarCuestionario
-    throw UnimplementedError();
-  }
+  Future<JsonMap> descargarCuestionario(String cuestionarioId) =>
+      _client.request(
+          'GET',
+          _apiUri
+              .appendSegment('cuestionarios-completos', addTrailingSlash: false)
+              .appendSegment(cuestionarioId));
+
+  @override
+  Future<JsonList> getCuestionarios() =>
+      _client.request('GET', _apiUri.appendSegment('cuestionarios'));
 }
 
 extension ManipulacionesUri on Uri {

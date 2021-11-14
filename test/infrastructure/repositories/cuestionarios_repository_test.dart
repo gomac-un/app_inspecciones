@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart'
     as drift;
+import 'package:inspecciones/infrastructure/core/typedefs.dart';
 import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart' as drift;
@@ -21,31 +22,32 @@ import 'cuestionarios_repository_test.mocks.dart';
   CuestionariosRemoteDataSource,
 ])
 main() {
-  group("descargarCuestionario", () {
-    late MockCuestionariosRemoteDataSource _api;
-    late drift.Database _db;
-    late ProviderContainer container;
-    late CuestionariosRepository repository;
+  late MockCuestionariosRemoteDataSource _api;
+  late drift.Database _db;
+  late ProviderContainer container;
+  late CuestionariosRepository repository;
 
+  setUp(() async {
+    _api = MockCuestionariosRemoteDataSource();
+    _db = drift.Database(NativeDatabase.memory());
+    container = ProviderContainer(overrides: [
+      cuestionariosRemoteDataSourceProvider.overrideWithValue(_api),
+      drift.driftDatabaseProvider.overrideWithValue(_db),
+    ]);
+    repository = CuestionariosRepository(container.read);
+  });
+
+  tearDown(() async {
+    await _db.close();
+  });
+  group("descargarCuestionario", () {
     const cuestionarioId = "3d20ce74-6d29-48e0-8f52-97fe9cdd9e0e";
     final file = File(
         'test/infrastructure/repositories/fixtures/get_cuestionario_fixture.json');
-    late Map<String, dynamic> fixture;
+    late JsonMap fixture;
 
     setUp(() async {
-      _api = MockCuestionariosRemoteDataSource();
-      _db = drift.Database(NativeDatabase.memory());
-      container = ProviderContainer(overrides: [
-        cuestionariosRemoteDataSourceProvider.overrideWithValue(_api),
-        drift.driftDatabaseProvider.overrideWithValue(_db),
-      ]);
-      repository = CuestionariosRepository(container.read);
-
       fixture = jsonDecode(await file.readAsString());
-    });
-
-    tearDown(() async {
-      await _db.close();
     });
     test("se puede descargar un cuestionario vacio", () async {
       when(_api.descargarCuestionario("1")).thenAnswer((_) async => {
@@ -70,7 +72,7 @@ main() {
 
       expect(res.isRight(), isTrue);
       expect(await getNroFilas(_db, _db.cuestionarios), 1);
-      final resDB = await repository.getCuestionarioYEtiquetas(cuestionarioId);
+      final resDB = await repository.getCuestionarioCompleto(cuestionarioId);
       final cuestionario = resDB.cuestionario;
       expect(cuestionario.tipoDeInspeccion, "preoperacional");
       expect(cuestionario.version, 1);
@@ -81,11 +83,11 @@ main() {
       expect(etiquetas.first.clave, "color");
       expect(etiquetas.first.valor, "amarillo");
 
-      final bloques = await repository.cargarCuestionario(cuestionarioId);
+      final bloques = resDB.bloques;
 
       expect(bloques, hasLength(4));
 
-      final titulo = bloques[0] as drift.Titulo;
+      final titulo = bloques[0] as drift.TituloD;
       verifyTitulo(titulo);
 
       final pregunta = bloques[1] as drift.PreguntaConOpcionesDeRespuesta;
@@ -99,13 +101,32 @@ main() {
       verifyCuadricula(cuadricula);
     });
   });
+  group("getListaDeCuestionariosServer", () {
+    final file = File(
+        'test/infrastructure/repositories/fixtures/list_cuestionarios_fixture.json');
+    late JsonList fixture;
+
+    setUp(() async {
+      fixture = jsonDecode(await file.readAsString());
+    });
+    test("debería devolver la lista de cuestionarios", () async {
+      when(_api.getCuestionarios()).thenAnswer((_) async => fixture);
+
+      final res = await repository.getListaDeCuestionariosServer();
+
+      expect(res.isRight(), isTrue);
+      final cuestionarios = res.getOrElse(() => throw Exception("error"));
+      expect(cuestionarios, hasLength(1));
+      expect(cuestionarios.first.tipoDeInspeccion, "preoperacional");
+    });
+  });
 }
 
-void verifyTitulo(drift.Titulo titulo) {
-  expect(titulo.titulo, "tit");
-  expect(titulo.descripcion, "desc");
+void verifyTitulo(drift.TituloD titulo) {
+  expect(titulo.titulo.titulo, "tit");
+  expect(titulo.titulo.descripcion, "desc");
 
-  final fotos = titulo.fotos;
+  final fotos = titulo.titulo.fotos;
   expect(fotos.length, 1);
   expect(
       fotos.first,

@@ -12,56 +12,166 @@ import 'package:meta/meta.dart';
 /// ==, es decir no se pueden comparar por valor, de ser necesario se puede
 /// implementar facilmente
 
-class CuestionarioConEtiquetas {
+abstract class DataClass<T> {
+  Companion<DataClass<T>> toCompanion();
+}
+
+abstract class Companion<T extends DataClass> {}
+
+class CuestionarioCompleto implements DataClass {
   final Cuestionario cuestionario;
   final List<EtiquetaDeActivo> etiquetas;
+  final List<DataClass> bloques;
 
-  const CuestionarioConEtiquetas(
+  const CuestionarioCompleto(
     this.cuestionario,
     this.etiquetas,
+    this.bloques,
   );
+
+  @override
+  CuestionarioCompletoCompanion toCompanion() =>
+      CuestionarioCompletoCompanion.fromDataClass(this);
 }
 
 /// version con companions de la clase de arriba
 @immutable
-class CuestionarioConEtiquetasCompanion {
+class CuestionarioCompletoCompanion implements Companion<CuestionarioCompleto> {
   final CuestionariosCompanion cuestionario;
-  final List<EtiquetaDeActivo> etiquetas;
+  final List<EtiquetasDeActivoCompanion> etiquetas;
+  final List<Companion> bloques;
 
-  const CuestionarioConEtiquetasCompanion(
+  const CuestionarioCompletoCompanion(
     this.cuestionario,
     this.etiquetas,
+    this.bloques,
   );
-  CuestionarioConEtiquetasCompanion.fromDataClass(CuestionarioConEtiquetas e)
+  CuestionarioCompletoCompanion.fromDataClass(CuestionarioCompleto e)
       : cuestionario = e.cuestionario.toCompanion(true),
-        etiquetas = e.etiquetas;
-  const CuestionarioConEtiquetasCompanion.vacio()
+        etiquetas = e.etiquetas.map((b) => b.toCompanion(true)).toList(),
+        bloques = e.bloques.map((b) => b.toCompanion()).toList();
+
+  const CuestionarioCompletoCompanion.vacio()
       : cuestionario = const CuestionariosCompanion(),
+        etiquetas = const [],
+        bloques = const [TituloDCompanion.vacio()];
+
+  CuestionarioCompletoCompanion copyWith({
+    CuestionariosCompanion? cuestionario,
+    List<EtiquetasDeActivoCompanion>? etiquetas,
+    List<Companion>? bloques,
+  }) =>
+      CuestionarioCompletoCompanion(
+        cuestionario ?? this.cuestionario,
+        etiquetas ?? this.etiquetas,
+        bloques ?? this.bloques,
+      );
+}
+
+class TituloD implements DataClass<Titulo> {
+  final Titulo titulo;
+
+  TituloD(this.titulo);
+
+  @override
+  TituloDCompanion toCompanion() => TituloDCompanion.fromDataClass(this);
+}
+
+class TituloDCompanion implements Companion<TituloD> {
+  final TitulosCompanion titulo;
+
+  TituloDCompanion(this.titulo);
+
+  TituloDCompanion.fromDataClass(TituloD e)
+      : titulo = e.titulo.toCompanion(true);
+
+  const TituloDCompanion.vacio() : titulo = const TitulosCompanion();
+
+  TituloDCompanion copyWith({
+    TitulosCompanion? titulo,
+  }) =>
+      TituloDCompanion(
+        titulo ?? this.titulo,
+      );
+}
+
+/// Reune [pregunta] con sus posibles respuestas.
+///
+/// Usado en [creacion_dao.dart] a la hora de cargar el cuestionario para editar
+///  y en [llenado_dao.dart] para mostrar todas las posibles opciones.
+/// Lo manejan [creacion_controls] y [llenado_controls]
+@immutable
+class PreguntaConOpcionesDeRespuesta
+    implements DataClass<PreguntaConOpcionesDeRespuesta> {
+  final Pregunta pregunta;
+  final List<OpcionDeRespuesta> opcionesDeRespuesta;
+  final List<EtiquetaDePregunta> etiquetas;
+
+  const PreguntaConOpcionesDeRespuesta(
+    this.pregunta,
+    this.opcionesDeRespuesta,
+    this.etiquetas,
+  );
+
+  @override
+  PreguntaConOpcionesDeRespuestaCompanion toCompanion() =>
+      PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(this);
+}
+
+/// version con companions de la clase de arriba
+@immutable
+class PreguntaConOpcionesDeRespuestaCompanion
+    implements Companion<PreguntaConOpcionesDeRespuesta> {
+  final PreguntasCompanion pregunta;
+  final List<OpcionesDeRespuestaCompanion> opcionesDeRespuesta;
+  final List<EtiquetasDePreguntaCompanion> etiquetas;
+
+  const PreguntaConOpcionesDeRespuestaCompanion(
+    this.pregunta,
+    this.opcionesDeRespuesta,
+    this.etiquetas,
+  );
+  PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(
+      PreguntaConOpcionesDeRespuesta p)
+      : pregunta = p.pregunta.toCompanion(true),
+        opcionesDeRespuesta =
+            p.opcionesDeRespuesta.map((o) => o.toCompanion(true)).toList(),
+        etiquetas = p.etiquetas.map((o) => o.toCompanion(true)).toList();
+
+  const PreguntaConOpcionesDeRespuestaCompanion.vacio()
+      : pregunta = const PreguntasCompanion(),
+        opcionesDeRespuesta = const [],
         etiquetas = const [];
 
-  CuestionarioConEtiquetasCompanion copyWith({
-    CuestionariosCompanion? cuestionario,
-    List<EtiquetaDeActivo>? etiquetas,
+  PreguntaConOpcionesDeRespuestaCompanion copyWith({
+    PreguntasCompanion? pregunta,
+    List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
+    List<EtiquetasDePreguntaCompanion>? etiquetas,
   }) =>
-      CuestionarioConEtiquetasCompanion(
-        cuestionario ?? this.cuestionario,
+      PreguntaConOpcionesDeRespuestaCompanion(
+        pregunta ?? this.pregunta,
+        opcionesDeRespuesta ?? this.opcionesDeRespuesta,
         etiquetas ?? this.etiquetas,
       );
 }
 
 /// Reune [pregunta] con sus rangos de criticidad [criticidades].
 @immutable
-class PreguntaNumerica {
+class PreguntaNumerica implements DataClass<PreguntaNumerica> {
   final Pregunta pregunta;
   final List<CriticidadNumerica> criticidades;
   final List<EtiquetaDePregunta> etiquetas;
 
   const PreguntaNumerica(this.pregunta, this.criticidades, this.etiquetas);
+
+  @override
+  PreguntaNumericaCompanion toCompanion() =>
+      PreguntaNumericaCompanion.fromDataClass(this);
 }
 
 /// version con companions de la clase de arriba
 @immutable
-class PreguntaNumericaCompanion {
+class PreguntaNumericaCompanion implements Companion<PreguntaNumerica> {
   final PreguntasCompanion pregunta;
   final List<CriticidadesNumericasCompanion> criticidades;
   final List<EtiquetasDePreguntaCompanion> etiquetas;
@@ -90,73 +200,27 @@ class PreguntaNumericaCompanion {
       );
 }
 
-/// Reune [pregunta] con sus posibles respuestas.
-///
-/// Usado en [creacion_dao.dart] a la hora de cargar el cuestionario para editar
-///  y en [llenado_dao.dart] para mostrar todas las posibles opciones.
-/// Lo manejan [creacion_controls] y [llenado_controls]
-@immutable
-class PreguntaConOpcionesDeRespuesta {
-  final Pregunta pregunta;
-  final List<OpcionDeRespuesta> opcionesDeRespuesta;
-  final List<EtiquetaDePregunta> etiquetas;
-
-  const PreguntaConOpcionesDeRespuesta(
-    this.pregunta,
-    this.opcionesDeRespuesta,
-    this.etiquetas,
-  );
-}
-
-/// version con companions de la clase de arriba
-@immutable
-class PreguntaConOpcionesDeRespuestaCompanion {
-  final PreguntasCompanion pregunta;
-  final List<OpcionesDeRespuestaCompanion> opcionesDeRespuesta;
-  final List<EtiquetasDePreguntaCompanion> etiquetas;
-
-  const PreguntaConOpcionesDeRespuestaCompanion(
-    this.pregunta,
-    this.opcionesDeRespuesta,
-    this.etiquetas,
-  );
-  PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(
-      PreguntaConOpcionesDeRespuesta p)
-      : pregunta = p.pregunta.toCompanion(true),
-        opcionesDeRespuesta =
-            p.opcionesDeRespuesta.map((o) => o.toCompanion(true)).toList(),
-        etiquetas = p.etiquetas.map((o) => o.toCompanion(true)).toList();
-  const PreguntaConOpcionesDeRespuestaCompanion.vacio()
-      : pregunta = const PreguntasCompanion(),
-        opcionesDeRespuesta = const [],
-        etiquetas = const [];
-
-  PreguntaConOpcionesDeRespuestaCompanion copyWith({
-    PreguntasCompanion? pregunta,
-    List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
-    List<EtiquetasDePreguntaCompanion>? etiquetas,
-  }) =>
-      PreguntaConOpcionesDeRespuestaCompanion(
-        pregunta ?? this.pregunta,
-        opcionesDeRespuesta ?? this.opcionesDeRespuesta,
-        etiquetas ?? this.etiquetas,
-      );
-}
-
 /// Reune [cuadricula] con sus respectivas [preguntas] (filas) y [opcionesDeRespuesta] (columnas)
 /// Se usa en el método [toDataClass()] y [toDB()] de la cuadricula en creacion_controls.
 @immutable
-class CuadriculaConPreguntasYConOpcionesDeRespuesta {
+class CuadriculaConPreguntasYConOpcionesDeRespuesta
+    implements DataClass<CuadriculaConPreguntasYConOpcionesDeRespuesta> {
   final PreguntaConOpcionesDeRespuesta cuadricula;
   final List<PreguntaConOpcionesDeRespuesta> preguntas;
 
   const CuadriculaConPreguntasYConOpcionesDeRespuesta(
       this.cuadricula, this.preguntas);
+
+  @override
+  CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion toCompanion() =>
+      CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.fromDataClass(
+          this);
 }
 
 /// version con companions de la clase de arriba
 @immutable
-class CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion {
+class CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion
+    implements Companion<CuadriculaConPreguntasYConOpcionesDeRespuesta> {
   final PreguntaConOpcionesDeRespuestaCompanion cuadricula;
   final List<PreguntaConOpcionesDeRespuestaCompanion> preguntas;
 

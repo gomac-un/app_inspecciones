@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/creacion_controls.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/creacion_form_controller.dart';
+import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
-import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -159,7 +159,7 @@ void main() {
     group('Preguntas de selección', () {
       late CreadorPreguntaController pregunta;
       setUp(() {
-        pregunta = CreadorPreguntaController(repository);
+        pregunta = CreadorPreguntaController();
       });
       test(
           'se puede agregar una nueva pregunta de selección a los bloques del cuestionario',
@@ -168,12 +168,12 @@ void main() {
       });
       test('se puede agregar una pregunta de selección con datos iniciales',
           () {
-        final pregunta = CreadorPreguntaController(repository,
+        final pregunta = CreadorPreguntaController(
             datosIniciales: PreguntaConOpcionesDeRespuestaCompanion(
-              datosIniciales,
-              const [],
-              const [],
-            ));
+          datosIniciales,
+          const [],
+          const [],
+        ));
         expect(
             pregunta.datosIniciales.pregunta.id.value, datosIniciales.id.value);
         expectEsIgual(datosIniciales, pregunta.datosIniciales.pregunta);
@@ -181,8 +181,9 @@ void main() {
       test('''agregarRespuesta debería agregar un CreadorRespuestaController a 
           los controllersRespuestas de la pregunta''', () {
         pregunta.agregarRespuesta();
-        expectAgregar(pregunta, pregunta.controllersRespuestas,
-            pregunta.respuestasControl);
+        expect(pregunta.controllersRespuestas.isEmpty, isFalse);
+        expect(pregunta.respuestasControl.value!.first,
+            pregunta.controllersRespuestas.first.control.value);
         expect(pregunta.controllersRespuestas.first,
             isA<CreadorRespuestaController>());
       });
@@ -193,12 +194,16 @@ void main() {
         // La que se acaba de agragar.
         final respuestaABorrar = pregunta.controllersRespuestas.last;
         pregunta.borrarRespuesta(respuestaABorrar);
-        expectBorrar(respuestaABorrar, pregunta.controllersRespuestas,
-            pregunta.respuestasControl);
+        expect(
+            pregunta.controllersRespuestas.contains(respuestaABorrar), isFalse);
+        expect(
+            pregunta.respuestasControl.value!
+                .contains(respuestaABorrar.control.value),
+            isFalse);
       });
       test('''copy devuelve un creadorPreguntaController con datos ya 
           introducidos y sin referencias únicas (id,bloqueId)''', () {
-        pregunta = CreadorPreguntaController(repository,
+        pregunta = CreadorPreguntaController(
             datosIniciales: PreguntaConOpcionesDeRespuestaCompanion(
                 datosIniciales, const [], const []));
         final preguntaCopiada = pregunta.copy();
@@ -240,7 +245,7 @@ void main() {
     group('Preguntas numéricas', () {
       late CreadorPreguntaNumericaController pregunta;
       setUp(() async {
-        pregunta = CreadorPreguntaNumericaController(repository);
+        pregunta = CreadorPreguntaNumericaController();
       });
       test(
           'se puede agregar nueva pregunta numérica a los bloques del cuestionario',
@@ -249,7 +254,7 @@ void main() {
       });
       test('se puede agregar una pregunta de selección con datos iniciales',
           () {
-        final pregunta = CreadorPreguntaNumericaController(repository,
+        final pregunta = CreadorPreguntaNumericaController(
             datosIniciales:
                 PreguntaNumericaCompanion(datosIniciales, const [], const []));
         expect(
@@ -260,8 +265,9 @@ void main() {
           CreadorCriticidadesNumericasController a los controles de criticidad 
           de la pregunta''', () {
         pregunta.agregarCriticidad();
-        expectAgregar(pregunta, pregunta.controllersCriticidades,
-            pregunta.criticidadesControl);
+        expect(pregunta.controllersCriticidades.isEmpty, isFalse);
+        expect(pregunta.criticidadesControl.value!.first,
+            pregunta.controllersCriticidades.first.control.value);
         expect(pregunta.controllersCriticidades.first,
             isA<CreadorCriticidadesNumericasController>());
       });
@@ -270,12 +276,15 @@ void main() {
         pregunta.agregarCriticidad();
         final criticidad = pregunta.controllersCriticidades.last;
         pregunta.borrarCriticidad(criticidad);
-        expectBorrar(criticidad, pregunta.controllersCriticidades,
-            pregunta.criticidadesControl);
+        expect(pregunta.controllersCriticidades.contains(criticidad), isFalse);
+        expect(
+            pregunta.criticidadesControl.value!
+                .contains(criticidad.control.value),
+            isFalse);
       });
       test('''copy devuelve un creadorPreguntaNumericaController con datos ya 
           introducidos y sin referencias únicas (id,bloqueId)''', () {
-        final pregunta = CreadorPreguntaNumericaController(repository,
+        final pregunta = CreadorPreguntaNumericaController(
             datosIniciales:
                 PreguntaNumericaCompanion(datosIniciales, const [], const []));
         final preguntaCopiada = pregunta.copy();
@@ -303,7 +312,7 @@ void main() {
         //Está fallando porque el constructor accede al primer elemento de las preguntas de los datos iniciales,
         // pero cuando no se le envían o se le envía una lista vacía de preguntas lanza error BadState: no element.
         // ¿Agregar cuadriculas con una pregunta por defecto?
-        bloque = CreadorPreguntaCuadriculaController(repository);
+        bloque = CreadorPreguntaCuadriculaController();
       });
       test(
           'Se puede agregar una nueva cuadricula a los bloques del cuestionario',
@@ -317,7 +326,7 @@ void main() {
                 PreguntaConOpcionesDeRespuestaCompanion(
                     datosIniciales, const [], const []),
                 const []);
-        final cuadricula = CreadorPreguntaCuadriculaController(repository,
+        final cuadricula = CreadorPreguntaCuadriculaController(
             datosIniciales: datosIniciales1);
         controller.agregarBloqueDespuesDe(
             bloque: cuadricula, despuesDe: controller.controllersBloques.last);
@@ -331,8 +340,9 @@ void main() {
       test('''agregarRespuesta debería agregar un CreadorRespuestaController a 
           los controllersRespuestas de la cuadricula''', () {
         bloque.agregarRespuesta();
-        expectAgregar(
-            bloque, bloque.controllersRespuestas, bloque.respuestasControl);
+        expect(bloque.controllersRespuestas.isEmpty, isFalse);
+        expect(bloque.respuestasControl.value!.first,
+            bloque.controllersRespuestas.first.control.value);
         expect(bloque.controllersRespuestas.first,
             isA<CreadorRespuestaController>());
       });
@@ -343,8 +353,12 @@ void main() {
         // La que se acaba de agragar.
         final respuestaABorrar = bloque.controllersRespuestas.last;
         bloque.borrarRespuesta(respuestaABorrar);
-        expectBorrar(respuestaABorrar, bloque.controllersRespuestas,
-            bloque.respuestasControl);
+        expect(
+            bloque.controllersRespuestas.contains(respuestaABorrar), isFalse);
+        expect(
+            bloque.respuestasControl.value!
+                .contains(respuestaABorrar.control.value),
+            isFalse);
       });
     });
   });

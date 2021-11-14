@@ -190,7 +190,7 @@ class BotonesDeBloque extends ConsumerWidget {
             formController,
             animatedList,
             //TODO: mover a logica de creacion al [formController]
-            CreadorPreguntaController(formController.repository),
+            CreadorPreguntaController(),
           ),
         ),
 
@@ -201,7 +201,7 @@ class BotonesDeBloque extends ConsumerWidget {
           onPressed: () => agregarBloque(
             formController,
             animatedList,
-            CreadorPreguntaNumericaController(formController.repository),
+            CreadorPreguntaNumericaController(),
           ),
         ),
 
@@ -212,7 +212,7 @@ class BotonesDeBloque extends ConsumerWidget {
           onPressed: () => agregarBloque(
             formController,
             animatedList,
-            CreadorPreguntaCuadriculaController(formController.repository),
+            CreadorPreguntaCuadriculaController(),
           ),
         ),
 

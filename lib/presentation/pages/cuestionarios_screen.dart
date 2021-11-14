@@ -12,6 +12,9 @@ import '../../core/enums.dart';
 import '../../infrastructure/drift_database.dart';
 import '../widgets/alertas.dart';
 
+final cuestionariosServidorProvider = FutureProvider.autoDispose((ref) =>
+    ref.watch(cuestionariosRepositoryProvider).getListaDeCuestionariosServer());
+
 /// Pantalla que muestra la lista de cuestionarios subidos y en proceso.
 class CuestionariosPage extends ConsumerWidget {
   const CuestionariosPage({Key? key}) : super(key: key);
@@ -19,6 +22,7 @@ class CuestionariosPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     final viewModel = ref.watch(_cuestionarioListViewModelProvider);
+    final cuestionariosServer = ref.watch(cuestionariosServidorProvider);
     return Scaffold(
         appBar: AppBar(
           title: const Text('Cuestionarios'),
@@ -36,10 +40,17 @@ class CuestionariosPage extends ConsumerWidget {
                 child: CircularProgressIndicator(),
               );
             }
-            final cuestionarios = snapshot.data;
+            final Either<ApiFailure, List<Cuestionario>> cuestionariosRemotos =
+                cuestionariosServer.when(
+                    data: id,
+                    error: (e, _) => Left(
+                        ApiFailure.errorInesperadoDelServidor(e.toString())),
+                    loading: () => const Right([]));
+
+            final cuestionariosLocales = snapshot.data;
 
             /// no hay cuestionarios creados
-            if (cuestionarios == null || cuestionarios.isEmpty) {
+            if (cuestionariosLocales == null || cuestionariosLocales.isEmpty) {
               return Center(
                   child: Text(
                 "No tiene cuestionarios por subir",
@@ -50,61 +61,22 @@ class CuestionariosPage extends ConsumerWidget {
             return ListView.separated(
               separatorBuilder: (BuildContext context, int index) =>
                   const Divider(),
-              itemCount: cuestionarios.length,
+              itemCount: cuestionariosLocales.length +
+                  cuestionariosRemotos.fold((l) => 1, (r) => r.length),
               itemBuilder: (context, index) {
-                final cuestionario = cuestionarios[index];
-                return ListTile(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          EdicionFormPage(cuestionarioId: cuestionario.id),
-                    ),
-                  ),
-                  tileColor: Theme.of(context).cardColor,
-                  title: Text(cuestionario.tipoDeInspeccion),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Código: ${cuestionario.id}'),
-                      Text(
-                          'Estado: ${EnumToString.convertToString(cuestionario.estado)}'),
-                    ],
-                  ),
-
-                  /// Si no se ha subido apaarece la opción de subir.
-                  leading: !cuestionario.subido
-                      ? IconButton(
-                          icon: Icon(
-                            Icons.cloud_upload,
-                            color: cuestionario.estado ==
-                                    EstadoDeCuestionario.finalizado
-                                ? Theme.of(context).colorScheme.secondary
-                                : Colors.grey,
+                if (index < cuestionariosLocales.length) {
+                  return _buildCuestionarioTile(
+                      context, cuestionariosLocales[index], viewModel,
+                      esLocal: true);
+                } else {
+                  return cuestionariosRemotos.fold(
+                      (l) => ListTile(
+                            title: Text(l.toString()),
                           ),
-                          onPressed: () async {
-                            /// Solo permite subirlo si está finalizado.
-                            switch (cuestionario.estado) {
-                              case EstadoDeCuestionario.finalizado:
-                                _subirCuestionarioFinalizado(
-                                    context, viewModel, cuestionario);
-                                break;
-                              case EstadoDeCuestionario.borrador:
-                                _mostrarDialog(context);
-                                break;
-                            }
-                          })
-                      : const SizedBox.shrink(),
-                  trailing: !cuestionario.subido
-
-                      /// Los cuestionarios subidos ya no se pueden borrar
-                      ? IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => _eliminarCuestionario(
-                              context, cuestionario, viewModel),
-                        )
-                      : Icon(Icons.cloud,
-                          color: Theme.of(context).colorScheme.secondary),
-                );
+                      (r) => _buildCuestionarioTile(context,
+                          r[index - cuestionariosLocales.length], viewModel,
+                          esLocal: false));
+                }
               },
             );
           },
@@ -114,6 +86,66 @@ class CuestionariosPage extends ConsumerWidget {
           padding: EdgeInsets.all(8.0),
           child: FloatingActionButtonCreacionCuestionario(),
         ));
+  }
+
+  ListTile _buildCuestionarioTile(BuildContext context,
+      Cuestionario cuestionario, _CuestionarioListViewModel viewModel,
+      {required bool esLocal}) {
+    return ListTile(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => EdicionFormPage(cuestionarioId: cuestionario.id),
+        ),
+      ),
+      tileColor: Theme.of(context).cardColor,
+      title:
+          Text("${cuestionario.tipoDeInspeccion} - v${cuestionario.version}"),
+      subtitle:
+          Text('Estado: ${EnumToString.convertToString(cuestionario.estado)}'),
+
+      /// Si no se ha subido apaarece la opción de subir.
+      leading: !cuestionario.subido
+          ? IconButton(
+              icon: Icon(
+                Icons.cloud_upload,
+                color: cuestionario.estado == EstadoDeCuestionario.finalizado
+                    ? Theme.of(context).colorScheme.secondary
+                    : Colors.grey,
+              ),
+              onPressed: () async {
+                /// Solo permite subirlo si está finalizado.
+                switch (cuestionario.estado) {
+                  case EstadoDeCuestionario.finalizado:
+                    _subirCuestionarioFinalizado(
+                        context, viewModel, cuestionario);
+                    break;
+                  case EstadoDeCuestionario.borrador:
+                    _mostrarDialog(context);
+                    break;
+                }
+              })
+          : const SizedBox.shrink(),
+      trailing: esLocal
+
+          /// Los cuestionarios subidos ya no se pueden borrar
+          ? IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () =>
+                  _eliminarCuestionario(context, cuestionario, viewModel),
+            )
+          : IconButton(
+              icon: Icon(Icons.cloud_download_outlined,
+                  color: Theme.of(context).colorScheme.secondary),
+              onPressed: () => viewModel
+                  .descargarCuestionario(cuestionario)
+                  .then((r) => r.fold(
+                        (l) => ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text("$l"))),
+                        (r) => ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Cuestionario descargado"))),
+                      ))),
+    );
   }
 
   ///TODO: pensar un mejor nombre para esta funcion
@@ -239,6 +271,11 @@ class _CuestionarioListViewModel {
           Cuestionario cuestionario) =>
       _cuestionariosRepository.subirCuestionario(cuestionario);
 
-  Future eliminarCuestionario(Cuestionario cuestionario) =>
+  Future<void> eliminarCuestionario(Cuestionario cuestionario) =>
       _cuestionariosRepository.eliminarCuestionario(cuestionario);
+
+  Future<Either<ApiFailure, Unit>> descargarCuestionario(
+          Cuestionario cuestionario) =>
+      _cuestionariosRepository.descargarCuestionario(
+          cuestionarioId: cuestionario.id);
 }
