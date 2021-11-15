@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:cross_file/cross_file.dart';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart' hide DataClass;
 import 'package:enum_to_string/enum_to_string.dart';
@@ -17,6 +18,7 @@ import 'package:inspecciones/infrastructure/datasources/flutter_downloader/error
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
+import 'package:path/path.dart' as path;
 
 class CuestionariosRepository {
   final Reader _read;
@@ -123,16 +125,15 @@ class CuestionariosRepository {
     throw Exception("un bloque debe tener un titulo o una pregunta");
   }
 
-  PreguntaDeSeleccionCompanion
-      _deserializarPreguntaConOpcionesDeRespuesta(
-              Map<String, dynamic> pregunta, TipoDePregunta tipoDePregunta,
-              {TipoDeCuadricula? tipoDeCuadricula}) =>
-          PreguntaDeSeleccionCompanion(
-            _deserializarPregunta(pregunta, tipoDePregunta,
-                tipoDeCuadricula: tipoDeCuadricula),
-            _deserializarOpcionesDeRespuesta(pregunta['opciones_de_respuesta']),
-            _buildEtiquetasDePregunta(pregunta['etiquetas']),
-          );
+  PreguntaDeSeleccionCompanion _deserializarPreguntaConOpcionesDeRespuesta(
+          Map<String, dynamic> pregunta, TipoDePregunta tipoDePregunta,
+          {TipoDeCuadricula? tipoDeCuadricula}) =>
+      PreguntaDeSeleccionCompanion(
+        _deserializarPregunta(pregunta, tipoDePregunta,
+            tipoDeCuadricula: tipoDeCuadricula),
+        _deserializarOpcionesDeRespuesta(pregunta['opciones_de_respuesta']),
+        _buildEtiquetasDePregunta(pregunta['etiquetas']),
+      );
 
   PreguntasCompanion _deserializarPregunta(
           Map<String, dynamic> pregunta, TipoDePregunta tipoDePregunta,
@@ -191,39 +192,118 @@ class CuestionariosRepository {
   /// Envia [cuestionario] al server.
   Future<Either<ApiFailure, Unit>> subirCuestionario(
       String cuestionarioId) async {
-    /// Json con info de [cuestionario] y sus respectivos bloques.
-    final cuestionarioCompleto = await getCuestionarioCompleto(cuestionarioId);
-    await _api.subirCuestionario(_serializarCuestionario(cuestionarioCompleto));
-    return const Right(unit);
-
-/*
-    Future<void> subirFotos() async {
-      /// Usado para el nombre de la carpeta de las fotos
-      final idDocumento = cuestionarioMap['id'].toString();
-
-      final fotos = await _fotosRepository.getFotosDeDocumento(
-        Categoria.cuestionario,
-        identificador: idDocumento,
-      );
-      await _apiFotos.subirFotos(fotos, idDocumento, Categoria.cuestionario);
-    }
-
+    final cuestionario = await getCuestionarioCompleto(cuestionarioId);
+    final idFotosSubidas = await _subirFotos(cuestionario);
+    final serializador = CuestionarioSerializer(cuestionario, idFotosSubidas);
+    final cuestionarioSerializado = serializador.serializarCuestionario();
     return apiExceptionToApiFailure(
-            () => _api.crearCuestionario(cuestionarioMap))
-        .nestedEvaluatedMap(
-          /// Como los cuestionarios quedan en el celular, se marca como subidos
-          /// para que no se envíe al server un cuestionario que ya existe.
-          /// cambia [cuestionario.esLocal] = false.
-          (_) => _db.sincronizacionDao.marcarCuestionarioSubido(cuestionario),
-        )
-        .flatMap(
-          (_) => apiExceptionToApiFailure(
-            () => subirFotos().then((_) => unit),
-          ),
-        );*/
+      () => _api
+          .subirCuestionario(cuestionarioSerializado)
+          .then((_) =>
+              _db.sincronizacionDao.marcarCuestionarioSubido(cuestionarioId))
+          .then((_) => unit),
+    );
   }
 
-  JsonMap _serializarCuestionario(CuestionarioCompleto cuestionarioCompleto) {
+  Future<Map<AppImage, String>> _subirFotos(
+      CuestionarioCompleto cuestionarioCompleto) async {
+    final fotos = <AppImage>[];
+    for (final bloque in cuestionarioCompleto.bloques) {
+      if (bloque is TituloD) {
+        fotos.addAll(bloque.titulo.fotos);
+      } else if (bloque is PreguntaDeSeleccion) {
+        fotos.addAll(bloque.pregunta.fotosGuia);
+      } else if (bloque is PreguntaNumerica) {
+        fotos.addAll(bloque.pregunta.fotosGuia);
+      } else if (bloque is CuadriculaConPreguntasYConOpcionesDeRespuesta) {
+        fotos.addAll(bloque.cuadricula.pregunta.fotosGuia);
+        for (final pregunta in bloque.preguntas) {
+          fotos.addAll(pregunta.pregunta.fotosGuia);
+        }
+      } else {
+        throw TaggedUnionError(bloque);
+      }
+    }
+
+    final resServer = await _api.subirFotosCuestionario(fotos); // nombre: id
+    final res = <AppImage, String>{};
+    for (final foto in fotos) {
+      final id = resServer[_getName(foto)];
+      if (id == null) {
+        throw Exception("no se encontro el id de la foto");
+      }
+      res[foto] = id;
+    }
+    return res;
+  }
+
+  String _getName(AppImage foto) => path.basename(_getFile(foto).path);
+
+  XFile _getFile(AppImage foto) => foto.when(
+      remote: (_) => XFile(''), //Esto no pasa
+      mobile: (f) => XFile(f),
+      web: (f) => XFile(f));
+
+  /// Descarga los cuestionarios y todo lo necesario para tratarlos:
+  /// activos, sistemas, contratistas y subsistemas
+  /// En caso de que ya exista el archivo, lo borra y lo descarga de nuevo
+
+  Future<Either<ApiFailure, File>> descargarTodosLosCuestionarios(
+      String token) async {
+    try {
+      return Right(await _api.descargarTodosLosCuestionarios(token));
+    } on ErrorDeDescargaFlutterDownloader {
+      return const Left(ApiFailure.errorDeComunicacionConLaApi(
+          "FlutterDownloader no pudo descargar los cuestionarios"));
+    } catch (e) {
+      return Left(ApiFailure.errorDeProgramacion(e.toString()));
+    }
+  }
+
+  /// Descarga todas las fotos de todos los cuestionarios
+  Future<Either<ApiFailure, Unit>> descargarFotos(String token) async {
+    try {
+      await _api.descargarTodasLasFotos(token);
+      return const Right(unit);
+    } on ErrorDeDescargaFlutterDownloader {
+      return const Left(ApiFailure.errorDeComunicacionConLaApi(
+          "FlutterDownloader no pudo descargar las fotos"));
+    } catch (e) {
+      return Left(ApiFailure.errorDeProgramacion(e.toString()));
+    }
+  }
+
+  Stream<List<Cuestionario>> getCuestionariosLocales() =>
+      _db.cargaDeCuestionarioDao.watchCuestionarios();
+
+  Future<void> eliminarCuestionario(Cuestionario cuestionario) =>
+      _db.cargaDeCuestionarioDao.eliminarCuestionario(cuestionario);
+
+  Future<CuestionarioCompleto> getCuestionarioCompleto(String cuestionarioId) =>
+      _db.cargaDeCuestionarioDao.getCuestionarioCompleto(cuestionarioId);
+
+  Future<List<String>> getTiposDeInspecciones() =>
+      _db.cargaDeCuestionarioDao.getTiposDeInspecciones();
+
+  Future<List<EtiquetaDeActivo>> getEtiquetas() =>
+      _db.cargaDeCuestionarioDao.getEtiquetas();
+
+  Future<void> guardarCuestionario(
+          CuestionarioCompletoCompanion cuestionario) =>
+      _db.guardadoDeCuestionarioDao.guardarCuestionario(cuestionario);
+
+  Future<void> insertarDatosDePrueba() async {
+    //TODO: insertar datos de prueba
+  }
+}
+
+class CuestionarioSerializer {
+  final CuestionarioCompleto cuestionarioCompleto;
+  final Map<AppImage, String> idFotosSubidas;
+
+  CuestionarioSerializer(this.cuestionarioCompleto, this.idFotosSubidas);
+
+  JsonMap serializarCuestionario() {
     final JsonMap res = {};
     final cuestionario = cuestionarioCompleto.cuestionario;
     res['id'] = cuestionario.id;
@@ -245,12 +325,12 @@ class CuestionariosRepository {
         'id': titulo.id,
         'titulo': titulo.titulo,
         'descripcion': titulo.descripcion,
-        'fotos': [], //TODO: implementar fotos
+        'fotos': _serializarFotos(titulo.fotos),
       };
     } else if (bloque is PreguntaDeSeleccion) {
       final res = _serializarPregunta(bloque);
       res['etiquetas'] = _serializarEtiquetasDePregunta(bloque.etiquetas);
-      res['fotos_guia'] = []; //TODO: implementar fotos
+      res['fotos_guia'] = _serializarFotos(bloque.pregunta.fotosGuia);
       res['opciones_de_respuesta'] =
           _serializarOpcionesDeRespuesta(bloque.opcionesDeRespuesta);
       bloqueJson['pregunta'] = res;
@@ -265,7 +345,7 @@ class CuestionariosRepository {
         'tipo_de_pregunta': _serializarEnum(pregunta.tipoDePregunta),
         'criticidades_numericas': _serializarCriticidades(bloque.criticidades),
         'etiquetas': _serializarEtiquetasDePregunta(bloque.etiquetas),
-        'fotos_guia': [], //TODO: implementar fotos
+        'fotos_guia': _serializarFotos(pregunta.fotosGuia),
       };
     } else if (bloque is CuadriculaConPreguntasYConOpcionesDeRespuesta) {
       final cuadricula = bloque.cuadricula.pregunta;
@@ -278,9 +358,7 @@ class CuestionariosRepository {
         'descripcion': cuadricula.descripcion,
         'criticidad': cuadricula.criticidad,
         'etiquetas': _serializarEtiquetasDePregunta(etiquetas),
-        'fotos_guia': [
-          "8876414b-e018-4d40-bb86-9e31b96da560"
-        ], //_serializarFotos(cuadricula.fotosGuia),
+        'fotos_guia': _serializarFotos(cuadricula.fotosGuia),
         'tipo_de_pregunta': _serializarEnum(cuadricula.tipoDePregunta),
         'tipo_de_cuadricula': _serializarEnum(cuadricula.tipoDeCuadricula),
         'opciones_de_respuesta':
@@ -292,6 +370,9 @@ class CuestionariosRepository {
     }
     return bloqueJson;
   }
+
+  JsonList _serializarFotos(List<AppImage> fotos) =>
+      fotos.map((a) => idFotosSubidas[a]).toList();
 
   JsonMap _serializarPregunta(PreguntaDeSeleccion preguntaCR) {
     final pregunta = preguntaCR.pregunta;
@@ -347,65 +428,4 @@ class CuestionariosRepository {
                 'valor': e.valor,
               })
           .toList();
-
-  /// Descarga los cuestionarios y todo lo necesario para tratarlos:
-  /// activos, sistemas, contratistas y subsistemas
-  /// En caso de que ya exista el archivo, lo borra y lo descarga de nuevo
-
-  Future<Either<ApiFailure, File>> descargarTodosLosCuestionarios(
-      String token) async {
-    try {
-      return Right(await _api.descargarTodosLosCuestionarios(token));
-    } on ErrorDeDescargaFlutterDownloader {
-      return const Left(ApiFailure.errorDeComunicacionConLaApi(
-          "FlutterDownloader no pudo descargar los cuestionarios"));
-    } catch (e) {
-      return Left(ApiFailure.errorDeProgramacion(e.toString()));
-    }
-  }
-
-  /// Descarga todas las fotos de todos los cuestionarios
-  Future<Either<ApiFailure, Unit>> descargarFotos(String token) async {
-    try {
-      await _api.descargarTodasLasFotos(token);
-      return const Right(unit);
-    } on ErrorDeDescargaFlutterDownloader {
-      return const Left(ApiFailure.errorDeComunicacionConLaApi(
-          "FlutterDownloader no pudo descargar las fotos"));
-    } catch (e) {
-      return Left(ApiFailure.errorDeProgramacion(e.toString()));
-    }
-  }
-
-  Stream<List<Cuestionario>> getCuestionariosLocales() =>
-      _db.cargaDeCuestionarioDao.watchCuestionarios();
-
-  Future<void> eliminarCuestionario(Cuestionario cuestionario) =>
-      _db.cargaDeCuestionarioDao.eliminarCuestionario(cuestionario);
-
-  Future<CuestionarioCompleto> getCuestionarioCompleto(String cuestionarioId) =>
-      _db.cargaDeCuestionarioDao.getCuestionarioCompleto(cuestionarioId);
-
-  /*Future<List<Cuestionario>> getCuestionarios(
-          String tipoDeInspeccion, List<EtiquetaDeActivo> etiquetas) =>
-      _db.cargaDeCuestionarioDao.getCuestionarios(tipoDeInspeccion, modelos);*/
-
-  Future<List<String>> getTiposDeInspecciones() =>
-      _db.cargaDeCuestionarioDao.getTiposDeInspecciones();
-
-  Future<List<EtiquetaDeActivo>> getEtiquetas() =>
-      _db.cargaDeCuestionarioDao.getEtiquetas();
-
-  Future<void> guardarCuestionario(
-          CuestionarioCompletoCompanion cuestionario) =>
-      _db.guardadoDeCuestionarioDao.guardarCuestionario(cuestionario);
-
-  Future<Either<ApiFailure, Unit>> subirCuestionariosPendientes() async {
-    //TODO: subir cada uno, o todos a la vez para mas eficiencia
-    throw UnimplementedError();
-  }
-
-  Future<void> insertarDatosDePrueba() async {
-    //TODO: insertar datos de prueba
-  }
 }

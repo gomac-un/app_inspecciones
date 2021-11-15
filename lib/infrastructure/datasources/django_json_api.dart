@@ -188,6 +188,15 @@ class DjangoJsonApi
   @override
   Future<JsonList> getCuestionarios() =>
       _client.request('GET', _apiUri.appendSegment('cuestionarios'));
+
+  @override
+  Future<JsonMap> subirFotosCuestionario(JsonList fotos) => _client.request(
+      'POST',
+      _apiUri
+          .appendSegment('cuestionarios-completos', addTrailingSlash: false)
+          .appendSegment("subir_fotos"),
+      body: {"fotos": fotos},
+      format: 'multipart');
 }
 
 extension ManipulacionesUri on Uri {

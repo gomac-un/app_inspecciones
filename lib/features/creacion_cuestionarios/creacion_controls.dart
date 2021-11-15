@@ -236,7 +236,6 @@ class CreadorRespuestaController {
   );
   late final descripcionControl = fb.control<String>(
     _respuestaDesdeDB.descripcion.valueOrDefault(""),
-    [Validators.required],
   );
   late final criticidadControl = fb.control<double>(
       _respuestaDesdeDB.criticidad.valueOrDefault(0).toDouble());
@@ -310,12 +309,6 @@ class CreadorCriticidadesNumericasController {
       criticidad: Value(criticidadControl.value!.round()),
     );
   }
-}
-
-extension PreguntaPorDefecto on List<PreguntaDeSeleccionCompanion> {
-  PreguntaDeSeleccionCompanion get firstOrDefault =>
-      firstWhere((_) => true,
-          orElse: () => const PreguntaDeSeleccionCompanion.vacio());
 }
 
 ///TODO: reducir la duplicacion de codigo con la pregunta normal

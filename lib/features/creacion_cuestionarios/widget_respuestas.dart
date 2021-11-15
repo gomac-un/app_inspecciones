@@ -76,6 +76,15 @@ class WidgetRespuestas extends StatelessWidget {
                               ),
                           ],
                         ),
+                        ReactiveTextField(
+                          formControl: controlRespuesta.descripcionControl,
+                          decoration: const InputDecoration(
+                            labelText: 'descripcion',
+                          ),
+                          keyboardType: TextInputType.multiline,
+                          maxLines: 3,
+                          minLines: 1,
+                        ),
                         ReactiveSlider(
                           formControl: controlRespuesta.criticidadControl,
                           max: 4,

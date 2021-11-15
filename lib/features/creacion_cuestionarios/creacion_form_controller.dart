@@ -56,7 +56,9 @@ class CreacionFormController {
   );
 
   late final etiquetasControl = fb.control<Set<String>>(
-    datosIniciales.etiquetas.map((e) => '${e.clave}:${e.valor}').toSet(),
+    datosIniciales.etiquetas
+        .map((e) => '${e.clave.value}:${e.valor.value}')
+        .toSet(),
     [Validators.minLength(1)],
   );
 

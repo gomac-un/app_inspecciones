@@ -33,8 +33,8 @@ class SincronizacionDao extends DatabaseAccessor<Database>
   SincronizacionDao(Database db) : super(db);
 
   /// marca [cuestionario.subido] = true cuando [cuestionario] es subido al server
-  Future<void> marcarCuestionarioSubido(Cuestionario cuestionario) =>
-      (update(cuestionarios)..where((c) => c.id.equals(cuestionario.id)))
+  Future<void> marcarCuestionarioSubido(String cuestionarioId) =>
+      (update(cuestionarios)..where((c) => c.id.equals(cuestionarioId)))
           .write(const CuestionariosCompanion(subido: Value(true)));
 
   Future<IdentificadorDeInspeccion> guardarInspeccionBD(

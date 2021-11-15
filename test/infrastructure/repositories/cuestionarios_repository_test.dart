@@ -132,121 +132,16 @@ main() {
       fixture = jsonDecode(await file.readAsString());
     });
     test("debería enviar un cuestionario", () async {
-      const cuestionarioId = "d32ca126-dbe1-4869-8112-474aeb8a34b4";
-      await _db.guardadoDeCuestionarioDao.guardarCuestionario(
-          drift.CuestionarioCompletoCompanion(
-              drift.CuestionariosCompanion.insert(
-                  id: const Value(cuestionarioId),
-                  tipoDeInspeccion: "preoperacional",
-                  version: 1,
-                  periodicidadDias: 1,
-                  estado: EstadoDeCuestionario.finalizado,
-                  subido: false),
-              [
-            drift.EtiquetasDeActivoCompanion.insert(
-                clave: "color", valor: "amarillo")
-          ],
-              [
-            drift.TituloDCompanion(drift.TitulosCompanion.insert(
-                id: const Value("664a0e98-7cab-4070-ac2a-59007416ba52"),
-                bloqueId: "",
-                titulo: "titulo",
-                descripcion: "",
-                fotos: [])),
-            drift.PreguntaDeSeleccionCompanion(
-              drift.PreguntasCompanion.insert(
-                id: const Value("c28c6d44-179c-4aa3-9852-8411e12962fb"),
-                titulo: "tit",
-                descripcion: "desc",
-                criticidad: 1,
-                fotosGuia: [],
-                tipoDePregunta: drift.TipoDePregunta.seleccionUnica,
-              ),
-              [
-                drift.OpcionesDeRespuestaCompanion.insert(
-                    id: const Value("36b824a6-f342-467e-ac57-4949066f15c5"),
-                    titulo: "tit",
-                    descripcion: "desc",
-                    criticidad: 1,
-                    preguntaId: "")
-              ],
-              [
-                drift.EtiquetasDePreguntaCompanion.insert(
-                    clave: "sistema", valor: "motor")
-              ],
-            ),
-            drift.PreguntaNumericaCompanion(
-              drift.PreguntasCompanion.insert(
-                id: const Value("4514c156-988e-44bb-a0c2-c9e216ed09f3"),
-                titulo: "tit",
-                descripcion: "desc",
-                criticidad: 1,
-                fotosGuia: [],
-                tipoDePregunta: drift.TipoDePregunta.numerica,
-              ),
-              [
-                drift.CriticidadesNumericasCompanion.insert(
-                    id: const Value("52656dca-01aa-4fa9-9221-530c02df3b7b"),
-                    criticidad: 1,
-                    valorMinimo: 0,
-                    valorMaximo: 10,
-                    preguntaId: "")
-              ],
-              [
-                drift.EtiquetasDePreguntaCompanion.insert(
-                    clave: "sistema", valor: "motor")
-              ],
-            ),
-            drift.CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
-                drift.PreguntaDeSeleccionCompanion(
-                  drift.PreguntasCompanion.insert(
-                      id: const Value("57e0fc73-15ff-4e5c-a43f-65ccd0a08769"),
-                      titulo: "cuadricula",
-                      descripcion: "desc",
-                      criticidad: 1,
-                      fotosGuia: [const AppImage.mobile("")],
-                      tipoDePregunta: drift.TipoDePregunta.cuadricula,
-                      tipoDeCuadricula:
-                          const Value(drift.TipoDeCuadricula.seleccionUnica)),
-                  [
-                    drift.OpcionesDeRespuestaCompanion.insert(
-                        id: const Value("3417dec5-7783-4ca2-9f28-56b09dbd55b2"),
-                        titulo: "tit",
-                        descripcion: "desc",
-                        criticidad: 1,
-                        preguntaId: "")
-                  ],
-                  [
-                    drift.EtiquetasDePreguntaCompanion.insert(
-                        clave: "sistema", valor: "motor")
-                  ],
-                ),
-                [
-                  drift.PreguntaDeSeleccionCompanion(
-                      drift.PreguntasCompanion.insert(
-                        id: const Value("b5d44619-7a0a-4c8d-9486-bab7da37fe67"),
-                        titulo: "tit",
-                        descripcion: "",
-                        criticidad: 1,
-                        fotosGuia: [],
-                        tipoDePregunta: drift.TipoDePregunta.parteDeCuadricula,
-                      ),
-                      [],
-                      [])
-                ])
-          ]));
-      /*when(_api.descargarCuestionario("1")).thenAnswer((_) async => {
-            "id": "1",
-            "tipo_de_inspeccion": "preoperacional",
-            "version": 1,
-            "periodicidad_dias": 1,
-            "etiquetas_aplicables": [],
-            "bloques": []
-          });
-
-      await repository.descargarCuestionario(cuestionarioId: "1");*/
+      final cuestionario = buildCuestionarioDePrueba();
+      final cuestionarioId = cuestionario.cuestionario.id.value;
+      await _db.guardadoDeCuestionarioDao.guardarCuestionario(cuestionario);
 
       when(_api.subirCuestionario(any)).thenAnswer((_) async => {});
+      when(_api.subirFotosCuestionario(any)).thenAnswer((_) async => {
+            'f1.jpg': "664a0e98-7cab-4070-ac2a-59007416ba53",
+            'f2.jpg': "664a0e98-7cab-4070-ac2a-59007416ba54",
+            "f3.jpg": "8876414b-e018-4d40-bb86-9e31b96da560",
+          });
 
       await repository.subirCuestionario(cuestionarioId);
 
@@ -254,6 +149,8 @@ main() {
           verify(_api.subirCuestionario(captureAny)).captured.single;
 
       expect(jsonEnviado, fixture);
+      final cuestionarioDB = await _db.select(_db.cuestionarios).getSingle();
+      expect(cuestionarioDB.subido, true);
     });
   });
 }
@@ -270,8 +167,7 @@ void verifyTitulo(drift.TituloD titulo) {
           "http://testserver/media/fotos_cuestionarios/perfil.png"));
 }
 
-void verifyPreguntaDeUnicaRespuesta(
-    drift.PreguntaDeSeleccion pregunta) {
+void verifyPreguntaDeUnicaRespuesta(drift.PreguntaDeSeleccion pregunta) {
   expect(pregunta.pregunta.titulo, "tit");
   expect(pregunta.pregunta.descripcion, "desc");
   expect(pregunta.pregunta.criticidad, 1);
@@ -355,3 +251,109 @@ void verifyCuadricula(
   expect(subPregunta.descripcion, "");
   expect(subPregunta.tipoDePregunta, drift.TipoDePregunta.parteDeCuadricula);
 }
+
+drift.CuestionarioCompletoCompanion buildCuestionarioDePrueba() =>
+    drift.CuestionarioCompletoCompanion(
+        drift.CuestionariosCompanion.insert(
+            id: const Value("d32ca126-dbe1-4869-8112-474aeb8a34b4"),
+            tipoDeInspeccion: "preoperacional",
+            version: 1,
+            periodicidadDias: 1,
+            estado: EstadoDeCuestionario.finalizado,
+            subido: false),
+        [
+          drift.EtiquetasDeActivoCompanion.insert(
+              clave: "color", valor: "amarillo")
+        ],
+        [
+          drift.TituloDCompanion(drift.TitulosCompanion.insert(
+              id: const Value("664a0e98-7cab-4070-ac2a-59007416ba52"),
+              bloqueId: "",
+              titulo: "titulo",
+              descripcion: "",
+              fotos: [
+                const AppImage.mobile("fotos/f1.jpg"),
+                const AppImage.mobile("fotos/f2.jpg")
+              ])),
+          drift.PreguntaDeSeleccionCompanion(
+            drift.PreguntasCompanion.insert(
+              id: const Value("c28c6d44-179c-4aa3-9852-8411e12962fb"),
+              titulo: "tit",
+              descripcion: "desc",
+              criticidad: 1,
+              fotosGuia: [],
+              tipoDePregunta: drift.TipoDePregunta.seleccionUnica,
+            ),
+            [
+              drift.OpcionesDeRespuestaCompanion.insert(
+                  id: const Value("36b824a6-f342-467e-ac57-4949066f15c5"),
+                  titulo: "tit",
+                  descripcion: "desc",
+                  criticidad: 1,
+                  preguntaId: "")
+            ],
+            [
+              drift.EtiquetasDePreguntaCompanion.insert(
+                  clave: "sistema", valor: "motor")
+            ],
+          ),
+          drift.PreguntaNumericaCompanion(
+            drift.PreguntasCompanion.insert(
+              id: const Value("4514c156-988e-44bb-a0c2-c9e216ed09f3"),
+              titulo: "tit",
+              descripcion: "desc",
+              criticidad: 1,
+              fotosGuia: [],
+              tipoDePregunta: drift.TipoDePregunta.numerica,
+            ),
+            [
+              drift.CriticidadesNumericasCompanion.insert(
+                  id: const Value("52656dca-01aa-4fa9-9221-530c02df3b7b"),
+                  criticidad: 1,
+                  valorMinimo: 0,
+                  valorMaximo: 10,
+                  preguntaId: "")
+            ],
+            [
+              drift.EtiquetasDePreguntaCompanion.insert(
+                  clave: "sistema", valor: "motor")
+            ],
+          ),
+          drift.CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
+              drift.PreguntaDeSeleccionCompanion(
+                drift.PreguntasCompanion.insert(
+                    id: const Value("57e0fc73-15ff-4e5c-a43f-65ccd0a08769"),
+                    titulo: "cuadricula",
+                    descripcion: "desc",
+                    criticidad: 1,
+                    fotosGuia: [const AppImage.mobile("fotos/f3.jpg")],
+                    tipoDePregunta: drift.TipoDePregunta.cuadricula,
+                    tipoDeCuadricula:
+                        const Value(drift.TipoDeCuadricula.seleccionUnica)),
+                [
+                  drift.OpcionesDeRespuestaCompanion.insert(
+                      id: const Value("3417dec5-7783-4ca2-9f28-56b09dbd55b2"),
+                      titulo: "tit",
+                      descripcion: "desc",
+                      criticidad: 1,
+                      preguntaId: "")
+                ],
+                [
+                  drift.EtiquetasDePreguntaCompanion.insert(
+                      clave: "sistema", valor: "motor")
+                ],
+              ),
+              [
+                drift.PreguntaDeSeleccionCompanion(
+                    drift.PreguntasCompanion.insert(
+                      id: const Value("b5d44619-7a0a-4c8d-9486-bab7da37fe67"),
+                      titulo: "tit",
+                      descripcion: "",
+                      criticidad: 1,
+                      fotosGuia: [],
+                      tipoDePregunta: drift.TipoDePregunta.parteDeCuadricula,
+                    ),
+                    [],
+                    [])
+              ])
+        ]);

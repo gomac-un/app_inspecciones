@@ -223,8 +223,8 @@ class BotonesGuardado extends ConsumerWidget {
             context: context,
             builder: (BuildContext context) => AlertDialog(
               title: const Text("Alerta"),
-              content:
-                  const Text("El cuestionario tiene errores, por favor revise"),
+              content: Text(
+                  "El cuestionario tiene errores, por favor revise: \n ${const JsonEncoder.withIndent('  ').convert(form.errors)}"),
               actions: [
                 TextButton(
                   onPressed: () async {

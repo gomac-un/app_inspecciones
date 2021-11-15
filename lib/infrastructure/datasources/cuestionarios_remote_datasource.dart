@@ -9,4 +9,5 @@ abstract class CuestionariosRemoteDataSource {
   Future<JsonMap> descargarCuestionario(String cuestionarioId);
   Future<JsonList> getCuestionarios();
   Future<JsonMap> subirCuestionario(JsonMap cuestionario);
+  Future<JsonMap> subirFotosCuestionario(JsonList fotos);
 }

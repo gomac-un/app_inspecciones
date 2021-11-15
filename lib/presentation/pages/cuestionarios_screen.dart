@@ -49,19 +49,10 @@ class CuestionariosPage extends ConsumerWidget {
 
             final cuestionariosLocales = snapshot.data;
 
-            /// no hay cuestionarios creados
-            if (cuestionariosLocales == null || cuestionariosLocales.isEmpty) {
-              return Center(
-                  child: Text(
-                "No tiene cuestionarios por subir",
-                style: Theme.of(context).textTheme.headline5,
-              ));
-            }
-
             return ListView.separated(
               separatorBuilder: (BuildContext context, int index) =>
                   const Divider(),
-              itemCount: cuestionariosLocales.length +
+              itemCount: cuestionariosLocales!.length +
                   cuestionariosRemotos.fold((l) => 1, (r) => r.length),
               itemBuilder: (context, index) {
                 if (index < cuestionariosLocales.length) {
@@ -92,11 +83,14 @@ class CuestionariosPage extends ConsumerWidget {
       Cuestionario cuestionario, _CuestionarioListViewModel viewModel,
       {required bool esLocal}) {
     return ListTile(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => EdicionFormPage(cuestionarioId: cuestionario.id),
-        ),
-      ),
+      onTap: !esLocal
+          ? null
+          : () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      EdicionFormPage(cuestionarioId: cuestionario.id),
+                ),
+              ),
       tileColor: Theme.of(context).cardColor,
       title:
           Text("${cuestionario.tipoDeInspeccion} - v${cuestionario.version}"),

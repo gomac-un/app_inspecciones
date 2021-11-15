@@ -110,8 +110,8 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
   }
 
   /// Devuelve todas las preguntas de selección única o múltiple del cuestionario con id=[cuestionarioId]
-  Future<List<Tuple2<int, PreguntaDeSeleccion>>>
-      _getPreguntasSimples(String cuestionarioId) async {
+  Future<List<Tuple2<int, PreguntaDeSeleccion>>> _getPreguntasSimples(
+      String cuestionarioId) async {
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
     ])
