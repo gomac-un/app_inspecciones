@@ -80,7 +80,7 @@ class BorradoresPage extends ConsumerWidget {
                 //TODO: mostrar la información de manera didáctica
                 tileColor: Theme.of(context).cardColor,
                 title: Text(
-                    "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.etiquetas} (${borrador.cuestionario.tipoDeInspeccion})",
+                    "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.etiquetas.join(", ")} (${borrador.cuestionario.tipoDeInspeccion})",
                     style: Theme.of(context).textTheme.subtitle1),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

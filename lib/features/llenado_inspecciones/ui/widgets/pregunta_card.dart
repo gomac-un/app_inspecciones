@@ -42,7 +42,7 @@ class PreguntaCard extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                "Etiquetas: ${pregunta.etiquetas}",
+                "Etiquetas: ${pregunta.etiquetas.join(", ")}",
                 style: Theme.of(context).textTheme.subtitle2,
               ),
             ),

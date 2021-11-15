@@ -3,4 +3,7 @@ class Etiqueta {
   final String valor;
 
   Etiqueta(this.clave, this.valor);
+
+  @override
+  String toString() => '$clave: $valor';
 }

@@ -357,4 +357,14 @@ void main() {
     expect(respuesta.inspeccionId, inspeccion.id);
     expect(respuesta.preguntaId, pregunta.id);
   });
+  test('no se puede borrar un activo que esta asociado a una inspeccion',
+      () async {
+    await _crearInspeccionConPregunta();
+    await expectLater(
+        () => (_db.delete(_db.activos)..where((a) => a.id.equals("1"))).go(),
+        throwsA(isA<SqliteException>().having(
+            (e) => e.message,
+            "foreign key violation",
+            contains("FOREIGN KEY constraint failed"))));
+  });
 }

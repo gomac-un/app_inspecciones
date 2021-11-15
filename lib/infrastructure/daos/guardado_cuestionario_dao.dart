@@ -128,8 +128,13 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
         .go();
 
     for (final etiqueta in etiquetasForm) {
-      final etiquetaDeActivo = await into(etiquetasDeActivo)
-          .insertReturning(etiqueta, mode: InsertMode.insertOrReplace);
+      final query = select(etiquetasDeActivo)
+        ..where((e) =>
+            e.clave.equals(etiqueta.clave.value) &
+            e.valor.equals(etiqueta.valor.value));
+      var etiquetaDeActivo = await query.getSingleOrNull();
+      etiquetaDeActivo ??=
+          await into(etiquetasDeActivo).insertReturning(etiqueta);
 
       await into(cuestionariosXEtiquetas).insert(
         CuestionariosXEtiquetasCompanion.insert(

@@ -54,7 +54,7 @@ class SincronizacionDao extends DatabaseAccessor<Database>
   Future<void> setActivos(List<ActivoEnLista> activosEnLista) =>
       transaction(() async {
         await delete(activosXEtiquetas).go();
-        await delete(activos).go();
+        //await delete(activos).go(); // dado que los activos son clave foranea de inspeccion no se pueden borrar
         await (delete(etiquetasDeActivo)
               ..where(
                 (e) => notExistsQuery(
@@ -65,8 +65,9 @@ class SincronizacionDao extends DatabaseAccessor<Database>
               ))
             .go();
         for (final activo in activosEnLista) {
-          final activoInsertado = await into(activos)
-              .insertReturning(ActivosCompanion.insert(id: activo.id));
+          final activoInsertado = await into(activos).insertReturning(
+              ActivosCompanion.insert(id: activo.id),
+              mode: InsertMode.insertOrReplace);
           for (final etiqueta in activo.etiquetas) {
             await _asignarEtiqueta(activoInsertado, etiqueta);
           }
