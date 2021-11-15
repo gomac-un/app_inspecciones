@@ -1,21 +1,21 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide DataClass;
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/core/typedefs.dart';
 import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/flutter_downloader/errors.dart';
-import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
 
 class CuestionariosRepository {
@@ -123,11 +123,11 @@ class CuestionariosRepository {
     throw Exception("un bloque debe tener un titulo o una pregunta");
   }
 
-  PreguntaConOpcionesDeRespuestaCompanion
+  PreguntaDeSeleccionCompanion
       _deserializarPreguntaConOpcionesDeRespuesta(
               Map<String, dynamic> pregunta, TipoDePregunta tipoDePregunta,
               {TipoDeCuadricula? tipoDeCuadricula}) =>
-          PreguntaConOpcionesDeRespuestaCompanion(
+          PreguntaDeSeleccionCompanion(
             _deserializarPregunta(pregunta, tipoDePregunta,
                 tipoDeCuadricula: tipoDeCuadricula),
             _deserializarOpcionesDeRespuesta(pregunta['opciones_de_respuesta']),
@@ -190,11 +190,11 @@ class CuestionariosRepository {
 
   /// Envia [cuestionario] al server.
   Future<Either<ApiFailure, Unit>> subirCuestionario(
-      Cuestionario cuestionario) async {
-    throw UnimplementedError();
-
+      String cuestionarioId) async {
     /// Json con info de [cuestionario] y sus respectivos bloques.
-    final cuestionarioCompleto = await getCuestionarioCompleto(cuestionario.id);
+    final cuestionarioCompleto = await getCuestionarioCompleto(cuestionarioId);
+    await _api.subirCuestionario(_serializarCuestionario(cuestionarioCompleto));
+    return const Right(unit);
 
 /*
     Future<void> subirFotos() async {
@@ -223,9 +223,130 @@ class CuestionariosRepository {
         );*/
   }
 
-  Future<JsonMap> _generarJsonCuestionario(Cuestionario cuestionario) async {
-    throw UnimplementedError();
+  JsonMap _serializarCuestionario(CuestionarioCompleto cuestionarioCompleto) {
+    final JsonMap res = {};
+    final cuestionario = cuestionarioCompleto.cuestionario;
+    res['id'] = cuestionario.id;
+    res['tipo_de_inspeccion'] = cuestionario.tipoDeInspeccion;
+    res['version'] = cuestionario.version;
+    res['periodicidad_dias'] = cuestionario.periodicidadDias;
+    res['etiquetas_aplicables'] =
+        _serializarEtiquetasDeCuestionario(cuestionarioCompleto.etiquetas);
+    res['bloques'] =
+        cuestionarioCompleto.bloques.mapIndexed(_serializarBloque).toList();
+    return res;
   }
+
+  JsonMap _serializarBloque(int index, DataClass bloque) {
+    final JsonMap bloqueJson = {"n_orden": index};
+    if (bloque is TituloD) {
+      final titulo = bloque.titulo;
+      bloqueJson['titulo'] = {
+        'id': titulo.id,
+        'titulo': titulo.titulo,
+        'descripcion': titulo.descripcion,
+        'fotos': [], //TODO: implementar fotos
+      };
+    } else if (bloque is PreguntaDeSeleccion) {
+      final res = _serializarPregunta(bloque);
+      res['etiquetas'] = _serializarEtiquetasDePregunta(bloque.etiquetas);
+      res['fotos_guia'] = []; //TODO: implementar fotos
+      res['opciones_de_respuesta'] =
+          _serializarOpcionesDeRespuesta(bloque.opcionesDeRespuesta);
+      bloqueJson['pregunta'] = res;
+    } else if (bloque is PreguntaNumerica) {
+      final pregunta = bloque.pregunta;
+
+      bloqueJson['pregunta'] = {
+        'id': pregunta.id,
+        'titulo': pregunta.titulo,
+        'descripcion': pregunta.descripcion,
+        'criticidad': pregunta.criticidad,
+        'tipo_de_pregunta': _serializarEnum(pregunta.tipoDePregunta),
+        'criticidades_numericas': _serializarCriticidades(bloque.criticidades),
+        'etiquetas': _serializarEtiquetasDePregunta(bloque.etiquetas),
+        'fotos_guia': [], //TODO: implementar fotos
+      };
+    } else if (bloque is CuadriculaConPreguntasYConOpcionesDeRespuesta) {
+      final cuadricula = bloque.cuadricula.pregunta;
+      final etiquetas = bloque.cuadricula.etiquetas;
+      final opcionesDeRespuesta = bloque.cuadricula.opcionesDeRespuesta;
+      final preguntas = bloque.preguntas;
+      bloqueJson['pregunta'] = {
+        'id': cuadricula.id,
+        'titulo': cuadricula.titulo,
+        'descripcion': cuadricula.descripcion,
+        'criticidad': cuadricula.criticidad,
+        'etiquetas': _serializarEtiquetasDePregunta(etiquetas),
+        'fotos_guia': [
+          "8876414b-e018-4d40-bb86-9e31b96da560"
+        ], //_serializarFotos(cuadricula.fotosGuia),
+        'tipo_de_pregunta': _serializarEnum(cuadricula.tipoDePregunta),
+        'tipo_de_cuadricula': _serializarEnum(cuadricula.tipoDeCuadricula),
+        'opciones_de_respuesta':
+            _serializarOpcionesDeRespuesta(opcionesDeRespuesta),
+        'preguntas': preguntas.map(_serializarPregunta).toList(),
+      };
+    } else {
+      throw TaggedUnionError(bloque);
+    }
+    return bloqueJson;
+  }
+
+  JsonMap _serializarPregunta(PreguntaDeSeleccion preguntaCR) {
+    final pregunta = preguntaCR.pregunta;
+    return {
+      'id': pregunta.id,
+      'titulo': pregunta.titulo,
+      'descripcion': pregunta.descripcion,
+      'criticidad': pregunta.criticidad,
+      'tipo_de_pregunta': _serializarEnum(pregunta.tipoDePregunta),
+    };
+  }
+
+  JsonList _serializarCriticidades(List<CriticidadNumerica> criticidades) =>
+      criticidades
+          .map((criticidad) => {
+                'id': criticidad.id,
+                'criticidad': criticidad.criticidad,
+                'valor_minimo': criticidad.valorMinimo,
+                'valor_maximo': criticidad.valorMaximo,
+              })
+          .toList();
+
+  JsonList _serializarOpcionesDeRespuesta(
+          List<OpcionDeRespuesta> opcionesDeRespuesta) =>
+      opcionesDeRespuesta
+          .map((opcion) => {
+                'id': opcion.id,
+                'titulo': opcion.titulo,
+                'descripcion': opcion.descripcion,
+                'criticidad': opcion.criticidad
+              })
+          .toList();
+
+  String _serializarEnum(dynamic e) =>
+      EnumToString.convertToString(e, camelCase: true)
+          .toLowerCase()
+          .replaceAll(" ", "_");
+
+  JsonList _serializarEtiquetasDeCuestionario(
+          List<EtiquetaDeActivo> etiquetas) =>
+      etiquetas
+          .map((e) => <String, dynamic>{
+                'clave': e.clave,
+                'valor': e.valor,
+              })
+          .toList();
+
+  /// ._.
+  JsonList _serializarEtiquetasDePregunta(List<EtiquetaDePregunta> etiquetas) =>
+      etiquetas
+          .map((e) => <String, dynamic>{
+                'clave': e.clave,
+                'valor': e.valor,
+              })
+          .toList();
 
   /// Descarga los cuestionarios y todo lo necesario para tratarlos:
   /// activos, sistemas, contratistas y subsistemas

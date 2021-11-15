@@ -168,7 +168,7 @@ class CreacionFormController {
       if (e is TituloDCompanion) {
         return CreadorTituloController(e);
       }
-      if (e is PreguntaConOpcionesDeRespuestaCompanion) {
+      if (e is PreguntaDeSeleccionCompanion) {
         return CreadorPreguntaController(
           datosIniciales: e,
         );

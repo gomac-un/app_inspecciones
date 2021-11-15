@@ -140,7 +140,7 @@ class DjangoJsonApi
   }
 
   @override
-  Future<JsonMap> crearCuestionario(JsonMap cuestionario) =>
+  Future<JsonMap> subirCuestionario(JsonMap cuestionario) =>
       _client.request('POST', _apiUri.appendSegment("cuestionarios-completos"),
           body: cuestionario);
 

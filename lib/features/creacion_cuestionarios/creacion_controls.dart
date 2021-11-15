@@ -126,7 +126,7 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
   /// Cuando se va a editar, [datosIniciales] es pasado directamente desde el
   /// controller superior.
   /// Cuando se usa copiar, [datosIniciales] se obtiene desde el método [toDataClass()]
-  final PreguntaConOpcionesDeRespuestaCompanion datosIniciales;
+  final PreguntaDeSeleccionCompanion datosIniciales;
 
   /// Diferencia las de selección y las que son de cuadricula
   final bool parteDeCuadricula;
@@ -168,7 +168,7 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
   late final camposGeneralesControl = controllerCamposGenerales.control;
 
   CreadorPreguntaController({
-    this.datosIniciales = const PreguntaConOpcionesDeRespuestaCompanion.vacio(),
+    this.datosIniciales = const PreguntaDeSeleccionCompanion.vacio(),
     this.parteDeCuadricula = false,
     this.esNumerica = false,
   }) : controllerCamposGenerales = CamposGeneralesPreguntaController(
@@ -205,9 +205,9 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
   /// Si no se "crea" uno con el método [toDataClass()]
   /// Este método es usado a la hora de guardar el cuestionario en la bd.
   @override
-  PreguntaConOpcionesDeRespuestaCompanion toDB() {
+  PreguntaDeSeleccionCompanion toDB() {
     final g = controllerCamposGenerales; // alias para escribir menos
-    return PreguntaConOpcionesDeRespuestaCompanion(
+    return PreguntaDeSeleccionCompanion(
         datosIniciales.pregunta.copyWith(
           titulo: Value(g.tituloControl.value!),
           descripcion: Value(g.descripcionControl.value!),
@@ -312,10 +312,10 @@ class CreadorCriticidadesNumericasController {
   }
 }
 
-extension PreguntaPorDefecto on List<PreguntaConOpcionesDeRespuestaCompanion> {
-  PreguntaConOpcionesDeRespuestaCompanion get firstOrDefault =>
+extension PreguntaPorDefecto on List<PreguntaDeSeleccionCompanion> {
+  PreguntaDeSeleccionCompanion get firstOrDefault =>
       firstWhere((_) => true,
-          orElse: () => const PreguntaConOpcionesDeRespuestaCompanion.vacio());
+          orElse: () => const PreguntaDeSeleccionCompanion.vacio());
 }
 
 ///TODO: reducir la duplicacion de codigo con la pregunta normal

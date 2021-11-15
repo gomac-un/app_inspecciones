@@ -70,7 +70,7 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
               criticidades: element.criticidades,
               etiquetas: element.etiquetas,
             );
-          } else if (element is PreguntaConOpcionesDeRespuestaCompanion) {
+          } else if (element is PreguntaDeSeleccionCompanion) {
             await _insertarPregunta(
               element.pregunta,
               cuestionario,

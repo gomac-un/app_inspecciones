@@ -169,7 +169,7 @@ void main() {
       test('se puede agregar una pregunta de selección con datos iniciales',
           () {
         final pregunta = CreadorPreguntaController(
-            datosIniciales: PreguntaConOpcionesDeRespuestaCompanion(
+            datosIniciales: PreguntaDeSeleccionCompanion(
           datosIniciales,
           const [],
           const [],
@@ -204,7 +204,7 @@ void main() {
       test('''copy devuelve un creadorPreguntaController con datos ya 
           introducidos y sin referencias únicas (id,bloqueId)''', () {
         pregunta = CreadorPreguntaController(
-            datosIniciales: PreguntaConOpcionesDeRespuestaCompanion(
+            datosIniciales: PreguntaDeSeleccionCompanion(
                 datosIniciales, const [], const []));
         final preguntaCopiada = pregunta.copy();
         //en datosIniciales, la pregunta tiene id, al copiarla no debe tenerlo.
@@ -220,7 +220,7 @@ void main() {
         final toDB = pregunta.toDB();
         expect(pregunta.controllerCamposGenerales.tituloControl.value!,
             toDB.pregunta.titulo.value);
-        expect(toDB, isA<PreguntaConOpcionesDeRespuestaCompanion>());
+        expect(toDB, isA<PreguntaDeSeleccionCompanion>());
       });
     });
     group('criticidades numericas', () {
@@ -323,7 +323,7 @@ void main() {
         //En este caso los datos iniciales es el titulo de la cuadricula
         final datosIniciales1 =
             CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
-                PreguntaConOpcionesDeRespuestaCompanion(
+                PreguntaDeSeleccionCompanion(
                     datosIniciales, const [], const []),
                 const []);
         final cuadricula = CreadorPreguntaCuadriculaController(

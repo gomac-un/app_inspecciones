@@ -173,7 +173,7 @@ class CuestionariosPage extends ConsumerWidget {
     _CuestionarioListViewModel viewModel,
     Cuestionario cuestionario,
   ) async {
-    final subida = await viewModel.subirCuestionario(cuestionario);
+    final subida = await viewModel.subirCuestionario(cuestionario.id);
 
     subida.fold(
       (fail) => ScaffoldMessenger.of(context).showSnackBar(
@@ -267,9 +267,8 @@ class _CuestionarioListViewModel {
   Stream<List<Cuestionario>> getCuestionarios() =>
       _cuestionariosRepository.getCuestionariosLocales();
 
-  Future<Either<ApiFailure, Unit>> subirCuestionario(
-          Cuestionario cuestionario) =>
-      _cuestionariosRepository.subirCuestionario(cuestionario);
+  Future<Either<ApiFailure, Unit>> subirCuestionario(String cuestionarioId) =>
+      _cuestionariosRepository.subirCuestionario(cuestionarioId);
 
   Future<void> eliminarCuestionario(Cuestionario cuestionario) =>
       _cuestionariosRepository.eliminarCuestionario(cuestionario);

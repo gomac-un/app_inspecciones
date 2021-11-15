@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
-import 'package:meta/meta.dart';
 
 /// Clases que agrupan [Dataclass]es de drift que están relacionadas
 /// Las que tienen sufijo Companion, contienen tipos [UpdateCompanion], los
@@ -34,8 +33,6 @@ class CuestionarioCompleto implements DataClass {
       CuestionarioCompletoCompanion.fromDataClass(this);
 }
 
-/// version con companions de la clase de arriba
-@immutable
 class CuestionarioCompletoCompanion implements Companion<CuestionarioCompleto> {
   final CuestionariosCompanion cuestionario;
   final List<EtiquetasDeActivoCompanion> etiquetas;
@@ -100,55 +97,49 @@ class TituloDCompanion implements Companion<TituloD> {
 /// Usado en [creacion_dao.dart] a la hora de cargar el cuestionario para editar
 ///  y en [llenado_dao.dart] para mostrar todas las posibles opciones.
 /// Lo manejan [creacion_controls] y [llenado_controls]
-@immutable
-class PreguntaConOpcionesDeRespuesta
-    implements DataClass<PreguntaConOpcionesDeRespuesta> {
+class PreguntaDeSeleccion implements DataClass<PreguntaDeSeleccion> {
   final Pregunta pregunta;
   final List<OpcionDeRespuesta> opcionesDeRespuesta;
   final List<EtiquetaDePregunta> etiquetas;
 
-  const PreguntaConOpcionesDeRespuesta(
+  const PreguntaDeSeleccion(
     this.pregunta,
     this.opcionesDeRespuesta,
     this.etiquetas,
   );
 
   @override
-  PreguntaConOpcionesDeRespuestaCompanion toCompanion() =>
-      PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(this);
+  PreguntaDeSeleccionCompanion toCompanion() =>
+      PreguntaDeSeleccionCompanion.fromDataClass(this);
 }
 
-/// version con companions de la clase de arriba
-@immutable
-class PreguntaConOpcionesDeRespuestaCompanion
-    implements Companion<PreguntaConOpcionesDeRespuesta> {
+class PreguntaDeSeleccionCompanion implements Companion<PreguntaDeSeleccion> {
   final PreguntasCompanion pregunta;
   final List<OpcionesDeRespuestaCompanion> opcionesDeRespuesta;
   final List<EtiquetasDePreguntaCompanion> etiquetas;
 
-  const PreguntaConOpcionesDeRespuestaCompanion(
+  const PreguntaDeSeleccionCompanion(
     this.pregunta,
     this.opcionesDeRespuesta,
     this.etiquetas,
   );
-  PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(
-      PreguntaConOpcionesDeRespuesta p)
+  PreguntaDeSeleccionCompanion.fromDataClass(PreguntaDeSeleccion p)
       : pregunta = p.pregunta.toCompanion(true),
         opcionesDeRespuesta =
             p.opcionesDeRespuesta.map((o) => o.toCompanion(true)).toList(),
         etiquetas = p.etiquetas.map((o) => o.toCompanion(true)).toList();
 
-  const PreguntaConOpcionesDeRespuestaCompanion.vacio()
+  const PreguntaDeSeleccionCompanion.vacio()
       : pregunta = const PreguntasCompanion(),
         opcionesDeRespuesta = const [],
         etiquetas = const [];
 
-  PreguntaConOpcionesDeRespuestaCompanion copyWith({
+  PreguntaDeSeleccionCompanion copyWith({
     PreguntasCompanion? pregunta,
     List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
     List<EtiquetasDePreguntaCompanion>? etiquetas,
   }) =>
-      PreguntaConOpcionesDeRespuestaCompanion(
+      PreguntaDeSeleccionCompanion(
         pregunta ?? this.pregunta,
         opcionesDeRespuesta ?? this.opcionesDeRespuesta,
         etiquetas ?? this.etiquetas,
@@ -156,7 +147,6 @@ class PreguntaConOpcionesDeRespuestaCompanion
 }
 
 /// Reune [pregunta] con sus rangos de criticidad [criticidades].
-@immutable
 class PreguntaNumerica implements DataClass<PreguntaNumerica> {
   final Pregunta pregunta;
   final List<CriticidadNumerica> criticidades;
@@ -169,8 +159,6 @@ class PreguntaNumerica implements DataClass<PreguntaNumerica> {
       PreguntaNumericaCompanion.fromDataClass(this);
 }
 
-/// version con companions de la clase de arriba
-@immutable
 class PreguntaNumericaCompanion implements Companion<PreguntaNumerica> {
   final PreguntasCompanion pregunta;
   final List<CriticidadesNumericasCompanion> criticidades;
@@ -202,11 +190,10 @@ class PreguntaNumericaCompanion implements Companion<PreguntaNumerica> {
 
 /// Reune [cuadricula] con sus respectivas [preguntas] (filas) y [opcionesDeRespuesta] (columnas)
 /// Se usa en el método [toDataClass()] y [toDB()] de la cuadricula en creacion_controls.
-@immutable
 class CuadriculaConPreguntasYConOpcionesDeRespuesta
     implements DataClass<CuadriculaConPreguntasYConOpcionesDeRespuesta> {
-  final PreguntaConOpcionesDeRespuesta cuadricula;
-  final List<PreguntaConOpcionesDeRespuesta> preguntas;
+  final PreguntaDeSeleccion cuadricula;
+  final List<PreguntaDeSeleccion> preguntas;
 
   const CuadriculaConPreguntasYConOpcionesDeRespuesta(
       this.cuadricula, this.preguntas);
@@ -217,12 +204,10 @@ class CuadriculaConPreguntasYConOpcionesDeRespuesta
           this);
 }
 
-/// version con companions de la clase de arriba
-@immutable
 class CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion
     implements Companion<CuadriculaConPreguntasYConOpcionesDeRespuesta> {
-  final PreguntaConOpcionesDeRespuestaCompanion cuadricula;
-  final List<PreguntaConOpcionesDeRespuestaCompanion> preguntas;
+  final PreguntaDeSeleccionCompanion cuadricula;
+  final List<PreguntaDeSeleccionCompanion> preguntas;
 
   const CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
     this.cuadricula,
@@ -230,20 +215,18 @@ class CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion
   );
   CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.fromDataClass(
       CuadriculaConPreguntasYConOpcionesDeRespuesta c)
-      : cuadricula =
-            PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(c.cuadricula),
+      : cuadricula = PreguntaDeSeleccionCompanion.fromDataClass(c.cuadricula),
         preguntas = c.preguntas
-            .map(
-                (p) => PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(p))
+            .map((p) => PreguntaDeSeleccionCompanion.fromDataClass(p))
             .toList();
 
   const CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion.vacio()
-      : cuadricula = const PreguntaConOpcionesDeRespuestaCompanion.vacio(),
+      : cuadricula = const PreguntaDeSeleccionCompanion.vacio(),
         preguntas = const [];
 
   CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion copyWith({
-    PreguntaConOpcionesDeRespuestaCompanion? cuadricula,
-    List<PreguntaConOpcionesDeRespuestaCompanion>? preguntas,
+    PreguntaDeSeleccionCompanion? cuadricula,
+    List<PreguntaDeSeleccionCompanion>? preguntas,
   }) =>
       CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
         cuadricula ?? this.cuadricula,

@@ -35,7 +35,7 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
         await _getPreguntasNumericas(cuestionarioId);
 
     /// Preguntas de selección multiple y unica del cuestionario, con sus opciones de respuesta
-    final List<Tuple2<int, PreguntaConOpcionesDeRespuesta>> preguntasSimples =
+    final List<Tuple2<int, PreguntaDeSeleccion>> preguntasSimples =
         await _getPreguntasSimples(cuestionarioId);
 
     /// Cuadriculas del cuestionario con sus preguntas y opciones de respuesta
@@ -110,7 +110,7 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
   }
 
   /// Devuelve todas las preguntas de selección única o múltiple del cuestionario con id=[cuestionarioId]
-  Future<List<Tuple2<int, PreguntaConOpcionesDeRespuesta>>>
+  Future<List<Tuple2<int, PreguntaDeSeleccion>>>
       _getPreguntasSimples(String cuestionarioId) async {
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
@@ -132,7 +132,7 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
 
       return Tuple2(
         bloque.nOrden,
-        PreguntaConOpcionesDeRespuesta(
+        PreguntaDeSeleccion(
           pregunta,
           opciones,
           etiquetas,
@@ -166,13 +166,13 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
       return Tuple2(
         bloque.nOrden,
         CuadriculaConPreguntasYConOpcionesDeRespuesta(
-          PreguntaConOpcionesDeRespuesta(
+          PreguntaDeSeleccion(
             cuadricula,
             opciones,
             etiquetas,
           ),
           subPreguntas
-              .map((p) => PreguntaConOpcionesDeRespuesta(p, const [], const []))
+              .map((p) => PreguntaDeSeleccion(p, const [], const []))
               .toList(),
         ),
       );

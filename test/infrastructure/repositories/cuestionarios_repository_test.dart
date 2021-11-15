@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart'
     as drift;
 import 'package:inspecciones/infrastructure/core/typedefs.dart';
@@ -52,7 +54,7 @@ main() {
     test("se puede descargar un cuestionario vacio", () async {
       when(_api.descargarCuestionario("1")).thenAnswer((_) async => {
             "id": "1",
-            "tipo_de_inspeccion": "",
+            "tipo_de_inspeccion": "preoperacional",
             "version": 1,
             "periodicidad_dias": 1,
             "etiquetas_aplicables": [],
@@ -90,7 +92,7 @@ main() {
       final titulo = bloques[0] as drift.TituloD;
       verifyTitulo(titulo);
 
-      final pregunta = bloques[1] as drift.PreguntaConOpcionesDeRespuesta;
+      final pregunta = bloques[1] as drift.PreguntaDeSeleccion;
       verifyPreguntaDeUnicaRespuesta(pregunta);
 
       final preguntaNumerica = bloques[2] as drift.PreguntaNumerica;
@@ -120,6 +122,140 @@ main() {
       expect(cuestionarios.first.tipoDeInspeccion, "preoperacional");
     });
   });
+
+  group("subirCuestionario", () {
+    final file = File(
+        'test/infrastructure/repositories/fixtures/subir_cuestionario_fixture.json');
+    late JsonMap fixture;
+
+    setUp(() async {
+      fixture = jsonDecode(await file.readAsString());
+    });
+    test("debería enviar un cuestionario", () async {
+      const cuestionarioId = "d32ca126-dbe1-4869-8112-474aeb8a34b4";
+      await _db.guardadoDeCuestionarioDao.guardarCuestionario(
+          drift.CuestionarioCompletoCompanion(
+              drift.CuestionariosCompanion.insert(
+                  id: const Value(cuestionarioId),
+                  tipoDeInspeccion: "preoperacional",
+                  version: 1,
+                  periodicidadDias: 1,
+                  estado: EstadoDeCuestionario.finalizado,
+                  subido: false),
+              [
+            drift.EtiquetasDeActivoCompanion.insert(
+                clave: "color", valor: "amarillo")
+          ],
+              [
+            drift.TituloDCompanion(drift.TitulosCompanion.insert(
+                id: const Value("664a0e98-7cab-4070-ac2a-59007416ba52"),
+                bloqueId: "",
+                titulo: "titulo",
+                descripcion: "",
+                fotos: [])),
+            drift.PreguntaDeSeleccionCompanion(
+              drift.PreguntasCompanion.insert(
+                id: const Value("c28c6d44-179c-4aa3-9852-8411e12962fb"),
+                titulo: "tit",
+                descripcion: "desc",
+                criticidad: 1,
+                fotosGuia: [],
+                tipoDePregunta: drift.TipoDePregunta.seleccionUnica,
+              ),
+              [
+                drift.OpcionesDeRespuestaCompanion.insert(
+                    id: const Value("36b824a6-f342-467e-ac57-4949066f15c5"),
+                    titulo: "tit",
+                    descripcion: "desc",
+                    criticidad: 1,
+                    preguntaId: "")
+              ],
+              [
+                drift.EtiquetasDePreguntaCompanion.insert(
+                    clave: "sistema", valor: "motor")
+              ],
+            ),
+            drift.PreguntaNumericaCompanion(
+              drift.PreguntasCompanion.insert(
+                id: const Value("4514c156-988e-44bb-a0c2-c9e216ed09f3"),
+                titulo: "tit",
+                descripcion: "desc",
+                criticidad: 1,
+                fotosGuia: [],
+                tipoDePregunta: drift.TipoDePregunta.numerica,
+              ),
+              [
+                drift.CriticidadesNumericasCompanion.insert(
+                    id: const Value("52656dca-01aa-4fa9-9221-530c02df3b7b"),
+                    criticidad: 1,
+                    valorMinimo: 0,
+                    valorMaximo: 10,
+                    preguntaId: "")
+              ],
+              [
+                drift.EtiquetasDePreguntaCompanion.insert(
+                    clave: "sistema", valor: "motor")
+              ],
+            ),
+            drift.CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion(
+                drift.PreguntaDeSeleccionCompanion(
+                  drift.PreguntasCompanion.insert(
+                      id: const Value("57e0fc73-15ff-4e5c-a43f-65ccd0a08769"),
+                      titulo: "cuadricula",
+                      descripcion: "desc",
+                      criticidad: 1,
+                      fotosGuia: [const AppImage.mobile("")],
+                      tipoDePregunta: drift.TipoDePregunta.cuadricula,
+                      tipoDeCuadricula:
+                          const Value(drift.TipoDeCuadricula.seleccionUnica)),
+                  [
+                    drift.OpcionesDeRespuestaCompanion.insert(
+                        id: const Value("3417dec5-7783-4ca2-9f28-56b09dbd55b2"),
+                        titulo: "tit",
+                        descripcion: "desc",
+                        criticidad: 1,
+                        preguntaId: "")
+                  ],
+                  [
+                    drift.EtiquetasDePreguntaCompanion.insert(
+                        clave: "sistema", valor: "motor")
+                  ],
+                ),
+                [
+                  drift.PreguntaDeSeleccionCompanion(
+                      drift.PreguntasCompanion.insert(
+                        id: const Value("b5d44619-7a0a-4c8d-9486-bab7da37fe67"),
+                        titulo: "tit",
+                        descripcion: "",
+                        criticidad: 1,
+                        fotosGuia: [],
+                        tipoDePregunta: drift.TipoDePregunta.parteDeCuadricula,
+                      ),
+                      [],
+                      [])
+                ])
+          ]));
+      /*when(_api.descargarCuestionario("1")).thenAnswer((_) async => {
+            "id": "1",
+            "tipo_de_inspeccion": "preoperacional",
+            "version": 1,
+            "periodicidad_dias": 1,
+            "etiquetas_aplicables": [],
+            "bloques": []
+          });
+
+      await repository.descargarCuestionario(cuestionarioId: "1");*/
+
+      when(_api.subirCuestionario(any)).thenAnswer((_) async => {});
+
+      await repository.subirCuestionario(cuestionarioId);
+
+      final jsonEnviado =
+          verify(_api.subirCuestionario(captureAny)).captured.single;
+
+      expect(jsonEnviado, fixture);
+    });
+  });
 }
 
 void verifyTitulo(drift.TituloD titulo) {
@@ -135,7 +271,7 @@ void verifyTitulo(drift.TituloD titulo) {
 }
 
 void verifyPreguntaDeUnicaRespuesta(
-    drift.PreguntaConOpcionesDeRespuesta pregunta) {
+    drift.PreguntaDeSeleccion pregunta) {
   expect(pregunta.pregunta.titulo, "tit");
   expect(pregunta.pregunta.descripcion, "desc");
   expect(pregunta.pregunta.criticidad, 1);
