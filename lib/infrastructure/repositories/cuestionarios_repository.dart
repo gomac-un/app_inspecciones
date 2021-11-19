@@ -139,6 +139,7 @@ class CuestionariosRepository {
           Map<String, dynamic> pregunta, TipoDePregunta tipoDePregunta,
           {TipoDeCuadricula? tipoDeCuadricula}) =>
       PreguntasCompanion.insert(
+        id: Value(pregunta['id']),
         titulo: pregunta['titulo'],
         descripcion: pregunta['descripcion'],
         criticidad: pregunta['criticidad'],
@@ -225,7 +226,9 @@ class CuestionariosRepository {
       }
     }
 
-    final resServer = await _api.subirFotosCuestionario(fotos); // nombre: id
+    final JsonMap resServer = fotos.isEmpty
+        ? {}
+        : await _api.subirFotosCuestionario(fotos); // nombre: id
     final res = <AppImage, String>{};
     for (final foto in fotos) {
       final id = resServer[_getName(foto)];

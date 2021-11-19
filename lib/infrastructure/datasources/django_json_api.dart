@@ -197,6 +197,20 @@ class DjangoJsonApi
           .appendSegment("subir_fotos"),
       body: {"fotos": fotos},
       format: 'multipart');
+
+  @override
+  Future<JsonMap> subirFotosInspeccion(JsonList fotos) => _client.request(
+      'POST',
+      _apiUri
+          .appendSegment('inspecciones-completas', addTrailingSlash: false)
+          .appendSegment("subir_fotos"),
+      body: {"fotos": fotos},
+      format: 'multipart');
+
+  @override
+  Future<JsonMap> subirInspeccion(JsonMap inspeccion) =>
+      _client.request('POST', _apiUri.appendSegment("inspecciones-completas"),
+          body: inspeccion);
 }
 
 extension ManipulacionesUri on Uri {

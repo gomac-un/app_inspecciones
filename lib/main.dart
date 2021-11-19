@@ -51,25 +51,7 @@ Future<void> _ejecutarAppConRiverpod() async {
   if (!kIsWeb) await FlutterDownloader.initialize(debug: kDebugMode);
   final prefs = await SharedPreferences.getInstance();
 
-  final webOverrides = [
-    apiUriProvider.overrideWithValue(
-      Uri(
-        scheme: 'http',
-        host: 'localhost',
-        port: 8000,
-        pathSegments: ['inspecciones', 'api', 'v1'],
-      ),
-    )
-  ];
   final androidOverrides = [
-    apiUriProvider.overrideWithValue(
-      Uri(
-        scheme: 'http',
-        host: '10.0.2.2',
-        port: 8000,
-        pathSegments: ['inspecciones', 'api', 'v1'],
-      ),
-    ),
     if (!kIsWeb)
       directorioDeDatosProvider.overrideWithValue(await getDirectorioDeDatos()),
     fileSystemProvider.overrideWithValue(const LocalFileSystem()),
@@ -80,8 +62,9 @@ Future<void> _ejecutarAppConRiverpod() async {
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        if (kIsWeb) ...webOverrides,
         if (!kIsWeb) ...androidOverrides,
+        apiUriProvider.overrideWithValue(
+            _buildApiUri(isWeb: kIsWeb, isProduction: !kDebugMode))
       ],
       observers: [RiverpodLogger()],
       child: const RemoveFocusOnTap(
@@ -90,6 +73,24 @@ Future<void> _ejecutarAppConRiverpod() async {
     ),
   );
 }
+
+Uri _buildApiUri({required bool isWeb, required bool isProduction}) {
+  final String host;
+  if (isProduction) {
+    host = 'shepherdator.ddns.net';
+  } else if (isWeb) {
+    host = 'localhost';
+  } else {
+    host = '10.0.2.2';
+  }
+  return Uri(
+    scheme: 'http',
+    host: host,
+    port: 8000,
+    pathSegments: ['inspecciones', 'api', 'v1'],
+  );
+}
+
 //TODO: permitir tener una version de produccion donde el apiUriProvider sea
 /*
 Uri(

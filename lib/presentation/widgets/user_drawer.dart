@@ -38,20 +38,17 @@ class UserDrawer extends ConsumerWidget {
                       texto:
                           'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
                       icon: Icons.app_registration_outlined,
-                      onTap: kIsWeb
-                          ? null
-                          : () => context.goNamed("cuestionarios"),
+                      onTap: () => context.goNamed("cuestionarios"),
                     ),
                   MenuItem(
                     texto: 'Borradores',
                     icon: Icons.list_alt_outlined,
-                    onTap: kIsWeb ? null : () => context.goNamed("borradores"),
+                    onTap: () => context.goNamed("borradores"),
                   ),
                   MenuItem(
                     texto: 'Sincronizar con GOMAC',
                     icon: Icons.sync_outlined,
-                    onTap:
-                        kIsWeb ? null : () => context.goNamed("sincronizacion"),
+                    onTap: () => context.goNamed("sincronizacion"),
                   ),
                   if (user.esAdmin)
                     MenuItem(

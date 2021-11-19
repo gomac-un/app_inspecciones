@@ -3,8 +3,10 @@ import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/core/error/errors.dart';
+import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/organizacion_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -18,9 +20,14 @@ final cuestionarioIdProvider = Provider<String?>((ref) => throw Exception(
 final creacionFormControllerFutureProvider = FutureProvider(
   (ref) => CreacionFormController.create(
     ref.watch(cuestionariosRepositoryProvider),
+    ref.watch(organizacionRepositoryProvider),
     ref.watch(cuestionarioIdProvider),
   ),
-  dependencies: [cuestionarioIdProvider, cuestionariosRepositoryProvider],
+  dependencies: [
+    cuestionarioIdProvider,
+    cuestionariosRepositoryProvider,
+    organizacionRepositoryProvider,
+  ],
 );
 
 final creacionFormControllerProvider = Provider(
@@ -35,6 +42,7 @@ final creacionFormControllerProvider = Provider(
 
 class CreacionFormController {
   final CuestionariosRepository repository;
+  final OrganizacionRepository organizacionRepository;
 
   ///constantes
   static const otroTipoDeInspeccion = "Otra";
@@ -79,10 +87,15 @@ class CreacionFormController {
   /// Se modifica cuando se copia un bloque desde creacion_controls.dart
   CreacionController? bloqueCopiado;
 
+  ///TODO: implementar cache
+  Future<List<Etiqueta>> getTodasLasEtiquetas() =>
+      organizacionRepository.getTodasLasEtiquetas();
+
   /// static factory que instancia un [CreacionFormController] de manera asíncrona
   /// ya que tiene que cargar información desde la base de datos
   static Future<CreacionFormController> create(
     CuestionariosRepository repository,
+    OrganizacionRepository organizacionRepository,
     String? cuestionarioId,
   ) async {
     final todosLosTiposDeInspeccion = await repository.getTiposDeInspecciones();
@@ -95,6 +108,7 @@ class CreacionFormController {
     if (cuestionarioId == null) {
       return CreacionFormController._(
         repository,
+        organizacionRepository,
         todasLasEtiquetas,
         todosLosTiposDeInspeccion,
         await _buildControllers(null),
@@ -110,6 +124,7 @@ class CreacionFormController {
 
     return CreacionFormController._(
       repository,
+      organizacionRepository,
       todasLasEtiquetas,
       todosLosTiposDeInspeccion,
       controllersBloques,
@@ -120,6 +135,7 @@ class CreacionFormController {
   /// TODO: reducir el numero de parámetros agrupandolos de alguna manera
   CreacionFormController._(
     this.repository,
+    this.organizacionRepository,
     this.todasLasEtiquetas,
     this.todosLosTiposDeInspeccion,
     this.controllersBloques, {

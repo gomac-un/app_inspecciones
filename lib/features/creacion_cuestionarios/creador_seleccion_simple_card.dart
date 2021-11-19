@@ -1,5 +1,6 @@
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
-import 'package:inspecciones/presentation/widgets/app_image_multi_image_picker.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_controls.dart';
@@ -24,25 +25,6 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           CamposGenerales(
             controller: controller.controllerCamposGenerales,
           ),
-          const SizedBox(height: 10),
-
-          InputDecorator(
-            decoration: const InputDecoration(
-                labelText: 'Criticidad de la pregunta', filled: false),
-            child: ReactiveSlider(
-              formControl: controller.criticidadControl,
-              max: 4,
-              divisions: 4,
-              labelBuilder: (v) => v.round().toString(),
-              activeColor: Colors.red,
-            ),
-          ),
-
-          AppImageMultiImagePicker(
-            formControl: controller.fotosGuiaControl,
-            label: 'Fotos guía',
-            maxImages: 3,
-          ),
 
           const SizedBox(height: 10),
 
@@ -52,6 +34,30 @@ class CreadorSeleccionSimpleCard extends StatelessWidget {
           if (!controller.parteDeCuadricula)
             Column(
               children: [
+                ReactiveDropdownField<TipoDePregunta>(
+                  formControl: controller.tipoDePreguntaControl,
+                  validationMessages: (control) => {
+                    ValidationMessage.required: 'Seleccione el tipo de pregunta'
+                  },
+                  items: [
+                    TipoDePregunta.seleccionUnica,
+                    TipoDePregunta.seleccionMultiple
+                  ]
+                      .map((e) => DropdownMenuItem<TipoDePregunta>(
+                            value: e,
+                            child: Text(EnumToString.convertToString(e,
+                                camelCase: true)),
+                          ))
+                      .toList(),
+                  decoration: const InputDecoration(
+                    labelText: 'Tipo de pregunta',
+                  ),
+                  onTap: () {
+                    FocusScope.of(context)
+                        .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+                  },
+                ),
+                const SizedBox(height: 10),
                 WidgetRespuestas(controlPregunta: controller),
                 BotonesDeBloque(controllerActual: controller),
               ],

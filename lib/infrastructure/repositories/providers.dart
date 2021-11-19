@@ -16,5 +16,5 @@ final cuestionariosRepositoryProvider =
 final inspeccionesRemoteRepositoryProvider =
     Provider((ref) => InspeccionesRemoteRepository(ref.read));
 
-final organizacionRemoteRepositoryProvider =
+final organizacionRepositoryProvider =
     Provider((ref) => OrganizacionRepository(ref.read));

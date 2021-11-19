@@ -9,8 +9,8 @@ import 'domain/entities.dart';
 import 'widgets/profile_widget.dart';
 import 'widgets/simple_future_provider_refreshable_builder.dart';
 
-final miOrganizacionProvider = FutureProvider.autoDispose((ref) =>
-    ref.watch(organizacionRemoteRepositoryProvider).getMiOrganizacion());
+final miOrganizacionProvider = FutureProvider.autoDispose(
+    (ref) => ref.watch(organizacionRepositoryProvider).getMiOrganizacion());
 
 class OrganizacionProfilePage extends ConsumerWidget {
   const OrganizacionProfilePage({Key? key}) : super(key: key);

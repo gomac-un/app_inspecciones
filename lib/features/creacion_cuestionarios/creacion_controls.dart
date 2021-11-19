@@ -132,13 +132,6 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
   final bool parteDeCuadricula;
   final bool esNumerica;
 
-  late final criticidadControl = fb.control<double>(
-      datosIniciales.pregunta.criticidad.valueOrDefault(0).toDouble());
-
-  late final fotosGuiaControl = fb.control<List<AppImage>>(
-    datosIniciales.pregunta.fotosGuia.valueOrDefault([]).toList(),
-  );
-
   /// Son las opciones de respuesta.
   /// Si el bloque es nuevo, son null y se pasa un FormArray vacío.
   /// Si es bloque copiado o viene de edición se pasa un FormArray con cada
@@ -156,12 +149,17 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
     [if (!parteDeCuadricula && !esNumerica) Validators.minLength(1)],
   );
 
+  late final tipoDePreguntaControl = fb.control<TipoDePregunta>(
+    datosIniciales.pregunta.tipoDePregunta
+        .valueOrDefault(TipoDePregunta.seleccionUnica),
+    [Validators.required],
+  );
+
   @override
   late final control = fb.group({
     'general': camposGeneralesControl,
-    'criticidad': criticidadControl,
-    'fotosGuia': fotosGuiaControl,
     'respuestas': respuestasControl,
+    'tipoDePregunta': tipoDePreguntaControl,
   });
 
   final CamposGeneralesPreguntaController controllerCamposGenerales;
@@ -175,8 +173,9 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
           tituloInicial: datosIniciales.pregunta.titulo,
           descripcionInicial: datosIniciales.pregunta.descripcion,
           etiquetasIniciales: Value(datosIniciales.etiquetas),
-          tipoInicial: datosIniciales.pregunta.tipoDePregunta,
           parteDeCuadricula: parteDeCuadricula,
+          criticidadInicial: datosIniciales.pregunta.criticidad,
+          fotosGuiaIniciales: datosIniciales.pregunta.fotosGuia,
         );
 
   @override
@@ -211,9 +210,9 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
         datosIniciales.pregunta.copyWith(
           titulo: Value(g.tituloControl.value!),
           descripcion: Value(g.descripcionControl.value!),
-          tipoDePregunta: Value(g.tipoDePreguntaControl.value!),
-          criticidad: Value(criticidadControl.value!.round()),
-          fotosGuia: Value(fotosGuiaControl.value!),
+          tipoDePregunta: Value(tipoDePreguntaControl.value!),
+          criticidad: Value(g.criticidadControl.value!.round()),
+          fotosGuia: Value(g.fotosGuiaControl.value!),
         ),
         controllersRespuestas.map((e) => e.toDB()).toList(),
         g.etiquetasControl.value!
@@ -351,12 +350,23 @@ class CreadorPreguntaCuadriculaController extends CreacionController
   final CamposGeneralesPreguntaController controllerCamposGenerales;
   late final camposGeneralesControl = controllerCamposGenerales.control;
 
+  late final tipoDePreguntaControl = fb.control<TipoDePregunta>(
+    (datosIniciales.cuadricula.pregunta.tipoDeCuadricula
+                    .valueOrDefault(TipoDeCuadricula.seleccionUnica) ??
+                TipoDeCuadricula.seleccionUnica) ==
+            TipoDeCuadricula.seleccionUnica
+        ? TipoDePregunta.seleccionUnica
+        : TipoDePregunta.seleccionMultiple, //WTFFFFFFF
+    [Validators.required],
+  );
+
   @override
   late final control = fb.group({
     'general': camposGeneralesControl,
     // de cuadricula
     'preguntas': preguntasControl,
     'respuestas': respuestasControl,
+    'tipoDePregunta': tipoDePreguntaControl,
   });
 
   CreadorPreguntaCuadriculaController({
@@ -366,8 +376,9 @@ class CreadorPreguntaCuadriculaController extends CreacionController
           tituloInicial: datosIniciales.cuadricula.pregunta.titulo,
           descripcionInicial: datosIniciales.cuadricula.pregunta.descripcion,
           etiquetasIniciales: Value(datosIniciales.cuadricula.etiquetas),
-          tipoInicial: datosIniciales.cuadricula.pregunta.tipoDePregunta,
           parteDeCuadricula: true,
+          criticidadInicial: datosIniciales.cuadricula.pregunta.criticidad,
+          fotosGuiaIniciales: datosIniciales.cuadricula.pregunta.fotosGuia,
         );
 
   @override
@@ -422,18 +433,24 @@ class CreadorPreguntaCuadriculaController extends CreacionController
           ),
           tipoDePregunta: const Value(TipoDePregunta.cuadricula),
           tipoDeCuadricula: Value(
-              g.tipoDePreguntaControl.value! == TipoDePregunta.seleccionUnica
+              tipoDePreguntaControl.value! == TipoDePregunta.seleccionUnica
                   ? TipoDeCuadricula.seleccionUnica
                   : TipoDeCuadricula.seleccionMultiple),
+          criticidad: Value(g.criticidadControl.value!.round()),
+          fotosGuia: Value(g.fotosGuiaControl.value!),
         ),
         opcionesDeRespuesta:
             controllersRespuestas.map((e) => e.toDB()).toList(),
+        etiquetas: g.etiquetasControl.value!
+            .map((e) => EtiquetasDePreguntaCompanion.insert(
+                clave: e.split(":").first, valor: e.split(":").last))
+            .toList(),
       ),
       controllersPreguntas.map((e) {
         final e1 = e.toDB();
         return e1.copyWith(
           pregunta: e1.pregunta.copyWith(
-            tipoDePregunta: Value(g.tipoDePreguntaControl.value!),
+            tipoDePregunta: const Value(TipoDePregunta.parteDeCuadricula),
           ),
         );
       }).toList(),
@@ -458,12 +475,6 @@ class CreadorPreguntaCuadriculaController extends CreacionController
 class CreadorPreguntaNumericaController extends CreacionController {
   final PreguntaNumericaCompanion datosIniciales;
 
-  late final criticidadControl = fb.control<double>(
-      datosIniciales.pregunta.criticidad.valueOrDefault(0).toDouble());
-  late final fotosGuiaControl = fb.control<List<AppImage>>(
-    datosIniciales.pregunta.fotosGuia.valueOrDefault([]).toList(),
-  );
-
   /// Rangos de criticidad
   late final controllersCriticidades = datosIniciales.criticidades
       .map((e) => CreadorCriticidadesNumericasController(e))
@@ -477,13 +488,16 @@ class CreadorPreguntaNumericaController extends CreacionController {
   /// alias de [camposGeneralesControl], usar con sabiduría
   late final g = controllerCamposGenerales;
 
+  late final unidadesControl = fb.control<String>(
+    datosIniciales.pregunta.unidades.valueOrDefault("") ?? "",
+    [Validators.required],
+  );
+
   @override
   late final control = fb.group({
     'general': camposGeneralesControl,
-    // de numerica
-    'criticidad': criticidadControl,
-    'fotosGuia': fotosGuiaControl,
     'criticidadRespuesta': criticidadesControl,
+    'unidades': unidadesControl,
   });
 
   CreadorPreguntaNumericaController({
@@ -492,8 +506,9 @@ class CreadorPreguntaNumericaController extends CreacionController {
           tituloInicial: datosIniciales.pregunta.titulo,
           descripcionInicial: datosIniciales.pregunta.descripcion,
           etiquetasIniciales: Value(datosIniciales.etiquetas),
-          tipoInicial: datosIniciales.pregunta.tipoDePregunta,
           parteDeCuadricula: false,
+          criticidadInicial: datosIniciales.pregunta.criticidad,
+          fotosGuiaIniciales: datosIniciales.pregunta.fotosGuia,
         );
 
   /// Agrega control a 'criticidadRespuesta' para añadir un rango de criticidad a la pregunta numerica
@@ -544,9 +559,10 @@ class CreadorPreguntaNumericaController extends CreacionController {
       datosIniciales.pregunta.copyWith(
         titulo: Value(g.tituloControl.value!),
         descripcion: Value(g.descripcionControl.value!),
-        criticidad: Value(criticidadControl.value!.round()),
-        fotosGuia: Value(fotosGuiaControl.value!),
+        criticidad: Value(g.criticidadControl.value!.round()),
+        fotosGuia: Value(g.fotosGuiaControl.value!),
         tipoDePregunta: const Value(TipoDePregunta.numerica),
+        unidades: Value(unidadesControl.value!),
       ),
       controllersCriticidades.map((e) => e.toDB()).toList(),
       g.etiquetasControl.value!
@@ -578,25 +594,29 @@ class CamposGeneralesPreguntaController {
       .map((e) => '${e.clave.value}:${e.valor.value}')
       .toSet());
 
-  /// Si es de cuadricula, no se debe requerir que elija el tipo e pregunta
-  final Value<TipoDePregunta> tipoInicial;
-  late final tipoDePreguntaControl = fb.control<TipoDePregunta>(
-    tipoInicial.valueOrDefault(TipoDePregunta.seleccionUnica),
-    [if (!parteDeCuadricula) Validators.required],
+  final Value<int> criticidadInicial;
+  late final criticidadControl =
+      fb.control<double>(criticidadInicial.valueOrDefault(0).toDouble());
+
+  final Value<List<AppImage>> fotosGuiaIniciales;
+  late final fotosGuiaControl = fb.control<List<AppImage>>(
+    fotosGuiaIniciales.valueOrDefault([]).toList(),
   );
 
   late final FormGroup control = fb.group({
     'titulo': tituloControl,
     'descripcion': descripcionControl,
     'etiquetas': etiquetasControl,
-    'tipoDePregunta': tipoDePreguntaControl,
+    'criticidad': criticidadControl,
+    'fotosGuia': fotosGuiaControl,
   });
 
   CamposGeneralesPreguntaController({
     required this.tituloInicial,
     required this.descripcionInicial,
     required this.etiquetasIniciales,
-    required this.tipoInicial,
+    required this.criticidadInicial,
+    required this.fotosGuiaIniciales,
     this.parteDeCuadricula = false,
   });
 }

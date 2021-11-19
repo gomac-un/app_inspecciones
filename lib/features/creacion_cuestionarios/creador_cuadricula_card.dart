@@ -1,4 +1,6 @@
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_controls.dart';
@@ -22,6 +24,29 @@ class CreadorCuadriculaCard extends StatelessWidget {
         children: [
           CamposGenerales(
             controller: controller.controllerCamposGenerales,
+          ),
+          const SizedBox(height: 10),
+          ReactiveDropdownField<TipoDePregunta>(
+            formControl: controller.tipoDePreguntaControl,
+            validationMessages: (control) =>
+                {ValidationMessage.required: 'Seleccione el tipo de pregunta'},
+            items: [
+              TipoDePregunta.seleccionUnica,
+              TipoDePregunta.seleccionMultiple
+            ]
+                .map((e) => DropdownMenuItem<TipoDePregunta>(
+                      value: e,
+                      child: Text(
+                          EnumToString.convertToString(e, camelCase: true)),
+                    ))
+                .toList(),
+            decoration: const InputDecoration(
+              labelText: 'Tipo de pregunta',
+            ),
+            onTap: () {
+              FocusScope.of(context)
+                  .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+            },
           ),
           const SizedBox(height: 10),
           WidgetPreguntas(controlCuadricula: controller),
@@ -136,13 +161,6 @@ class WidgetPreguntas extends StatelessWidget {
                               ],
                             ),
                           ],
-                        ),
-                        ReactiveSlider(
-                          formControl: controllerPregunta.criticidadControl,
-                          max: 4,
-                          divisions: 4,
-                          labelBuilder: (v) => v.round().toString(),
-                          activeColor: Colors.red,
                         ),
                       ],
                     );

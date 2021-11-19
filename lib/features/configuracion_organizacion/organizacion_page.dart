@@ -59,13 +59,11 @@ class OrganizacionPage extends HookConsumerWidget {
       );
     } else if (tabController.index == 1) {
       return FloatingActionButton.extended(
-        onPressed: () => ref
-            .read(organizacionRemoteRepositoryProvider)
-            .getMiOrganizacion()
-            .then(
-              (r) => r.map((o) => context
-                  .goNamed("registro", queryParams: {"org": o.id.toString()})),
-            ),
+        onPressed: () =>
+            ref.read(organizacionRepositoryProvider).getMiOrganizacion().then(
+                  (r) => r.map((o) => context.goNamed("registro",
+                      queryParams: {"org": o.id.toString()})),
+                ),
         label: const Text("Registrar"),
         icon: const Icon(Icons.how_to_reg_outlined),
       );

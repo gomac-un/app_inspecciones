@@ -94,22 +94,12 @@ class ControladorLlenadoInspeccion {
   }) async {
     try {
       onStart?.call();
-      final i = cuestionario.inspeccion;
       final estado = _read(estadoDeInspeccionProvider);
-      final inspeccionAGuardar = Inspeccion(
-        id: i.id,
-        estado: estado,
-        activo: i.activo,
-        momentoInicio: i.momentoInicio,
-        momentoBorradorGuardado: DateTime.now(),
-        momentoEnvio:
-            estado == EstadoDeInspeccion.finalizada ? DateTime.now() : null,
-        inspectorId: i.inspectorId,
-      );
+      cuestionario.inspeccion.estado = estado;
       final visitor = GuardadoVisitor(
         repository,
         controladores,
-        inspeccionAGuardar,
+        cuestionario,
       );
       await visitor.guardarInspeccion();
       onSuccess?.call("Inspeccion guardada");

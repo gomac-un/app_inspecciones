@@ -1,4 +1,4 @@
-import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/cuestionario.dart';
 
 import '../../domain/bloques/pregunta.dart';
 import '../../domain/bloques/preguntas/preguntas.dart';
@@ -10,7 +10,7 @@ import 'controlador_de_pregunta_visitor.dart';
 class GuardadoVisitor implements ControladorDePreguntaVisitor<Pregunta> {
   final InspeccionesRepository _repository;
   final List<ControladorDePregunta> _controladores;
-  final Inspeccion _inspeccion;
+  final CuestionarioInspeccionado _inspeccion;
 
   /// Clase que usa el patrón visitor para pasar por todos los tipos de controles,
   /// extraer su pregunta y agregarle la respuesta que tiene en ese momento.
@@ -23,7 +23,8 @@ class GuardadoVisitor implements ControladorDePreguntaVisitor<Pregunta> {
   );
 
   Future<void> guardarInspeccion() {
-    final preguntasRespondidas = _controladores.map((c) => c.accept(this));
+    final preguntasRespondidas =
+        _controladores.map((c) => c.accept(this)).toList();
     return _repository.guardarInspeccion(preguntasRespondidas, _inspeccion);
   }
 

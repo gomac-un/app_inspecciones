@@ -3,6 +3,7 @@ import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart'
     as dominio;
 import 'package:inspecciones/infrastructure/drift_database.dart';
+import 'package:intl/intl.dart';
 
 part 'guardado_inspeccion_dao.drift.dart';
 
@@ -16,24 +17,32 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
 
   /// Realiza el guardado de la inspección al presionar el botón guardar o finalizar en el llenado.
   Future<void> guardarInspeccion(
-    Iterable<dominio.Pregunta> preguntas,
-    dominio.Inspeccion inspeccion,
+    List<dominio.Pregunta> preguntas,
+    dominio.CuestionarioInspeccionado inspeccionForm,
   ) async {
     return transaction(() async {
+      final estado = inspeccionForm.inspeccion.estado;
+      final inspeccion = await _getOrCreateInspeccion(
+        cuestionarioId: inspeccionForm.cuestionario.id,
+        inspeccionDominio: inspeccionForm.inspeccion,
+      );
       await (update(inspecciones)..where((i) => i.id.equals(inspeccion.id)))
           .write(InspeccionesCompanion(
-        momentoBorradorGuardado: Value(inspeccion.momentoBorradorGuardado),
-        momentoFinalizacion: Value(inspeccion.momentoFinalizacion),
-        estado: Value(inspeccion.estado),
+        momentoBorradorGuardado: Value(DateTime.now()),
+        momentoFinalizacion: Value(
+            estado == dominio.EstadoDeInspeccion.finalizada
+                ? DateTime.now()
+                : null),
+        estado: Value(estado),
       ));
 
       await _deleteRespuestas(inspeccion.id);
 
-      /// Se comienza a procesar las respuestas a cada pregunta.
-      await Future.forEach<dominio.Pregunta>(preguntas, (pregunta) async {
+
+      for (final pregunta in preguntas) {
         //TODO: implementar en un visitor
         if (pregunta is dominio.PreguntaDeSeleccionUnica) {
-          await _guardarRespuestaDeSeleccionUnica(pregunta, inspeccion);
+          await _guardarRespuestaDeSeleccionUnica(pregunta, inspeccion.id);
         } else if (pregunta is dominio.PreguntaNumerica) {
           final respuesta = pregunta.respuesta!;
           await _guardarRespuesta(
@@ -44,7 +53,7 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
             valorNumerico: respuesta.respuestaNumerica,
           );
         } else if (pregunta is dominio.PreguntaDeSeleccionMultiple) {
-          await _guardarRespuestaDeSeleccionMultiple(pregunta, inspeccion);
+          await _guardarRespuestaDeSeleccionMultiple(pregunta, inspeccion.id);
         } else if (pregunta is dominio.CuadriculaDeSeleccionUnica) {
           final respuesta = pregunta.respuesta!;
           await _guardarRespuesta(
@@ -54,7 +63,7 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
             inspeccionId: inspeccion.id,
           );
           for (final subPregunta in respuesta.respuestas) {
-            await _guardarRespuestaDeSeleccionUnica(subPregunta, inspeccion);
+            await _guardarRespuestaDeSeleccionUnica(subPregunta, inspeccion.id);
           }
         } else if (pregunta is dominio.CuadriculaDeSeleccionMultiple) {
           final respuesta = pregunta.respuesta!;
@@ -65,39 +74,84 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
             inspeccionId: inspeccion.id,
           );
           for (final subPregunta in respuesta.respuestas) {
-            await _guardarRespuestaDeSeleccionMultiple(subPregunta, inspeccion);
+            await _guardarRespuestaDeSeleccionMultiple(
+                subPregunta, inspeccion.id);
           }
         } else {
           throw TaggedUnionError(pregunta);
         }
-      });
+      }
     });
+  }
+
+  Future<Inspeccion> _getOrCreateInspeccion({
+    required String cuestionarioId,
+    required dominio.Inspeccion inspeccionDominio,
+  }) async {
+    final inspeccionExistente = await (select(inspecciones)
+          ..where(
+            (i) =>
+                i.cuestionarioId.equals(cuestionarioId) &
+                i.activoId.equals(inspeccionDominio.activo.id) &
+
+                /// Para no cargar las que están en el historial
+                i.momentoEnvio.isNull(),
+          ))
+        .getSingleOrNull();
+    //Se crea la inspección si no existe.
+    return inspeccionExistente ??
+        await _crearInspeccion(
+          cuestionarioId: cuestionarioId,
+          inspeccionDominio: inspeccionDominio,
+        );
+  }
+
+  /// Devuelve la inspección creada al guardarla por primera vez.
+  Future<Inspeccion> _crearInspeccion({
+    required String cuestionarioId,
+    required dominio.Inspeccion inspeccionDominio,
+  }) async {
+    final ins = InspeccionesCompanion.insert(
+      id: _generarInspeccionId(inspeccionDominio.activo.id),
+      cuestionarioId: cuestionarioId,
+      activoId: inspeccionDominio.activo.id,
+      inspectorId: inspeccionDominio.inspectorId,
+      momentoInicio: inspeccionDominio.momentoInicio,
+      estado: inspeccionDominio.estado,
+    );
+    return into(inspecciones).insertReturning(ins);
+  }
+
+  /// Crea id para una inspección con el formato 'yyMMddHHmmss[activo]'
+  String _generarInspeccionId(String activo) {
+    final fechaFormateada = DateFormat("yyMMddHHmmss").format(DateTime.now());
+    return '$fechaFormateada$activo';
   }
 
   Future<void> _guardarRespuestaDeSeleccionUnica(
     dominio.PreguntaDeSeleccionUnica pregunta,
-    dominio.Inspeccion inspeccion,
+    String inspeccionId,
   ) {
     final respuesta = pregunta.respuesta!;
     return _guardarRespuesta(
       pregunta.respuesta!.metaRespuesta,
       TipoDeRespuesta.seleccionUnica,
       preguntaId: pregunta.id,
-      inspeccionId: inspeccion.id,
+      inspeccionId: inspeccionId,
       opcionSeleccionada: respuesta.opcionSeleccionada,
     );
   }
 
   Future<void> _guardarRespuestaDeSeleccionMultiple(
     dominio.PreguntaDeSeleccionMultiple pregunta,
-    dominio.Inspeccion inspeccion,
+    String inspeccionId,
   ) async {
     final respuesta = pregunta.respuesta!;
     final respuestaPadre = await _guardarRespuesta(
       pregunta.respuesta!.metaRespuesta,
       TipoDeRespuesta.seleccionMultiple,
       preguntaId: pregunta.id,
-      inspeccionId: inspeccion.id,
+      inspeccionId: inspeccionId,
     );
     for (final subPregunta in respuesta.opciones) {
       final respuesta = subPregunta.respuesta!;

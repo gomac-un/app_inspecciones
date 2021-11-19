@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/presentation/widgets/alertas.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 
@@ -104,6 +103,16 @@ class EdicionForm extends ConsumerWidget {
                 child: ReactiveTextFieldTags(
                     formControl: controller.etiquetasControl,
                     //etiquetasDisponibles: controller.todasLasEtiquetas,
+                    optionsBuilder: (TextEditingValue val) => controller
+                        .getTodasLasEtiquetas()
+                        .then((l) => l
+                            .map((e) => "${e.clave}:${e.valor}")
+                            .where((e) =>
+                                !controller.etiquetasControl.value!
+                                    .contains(e) &&
+                                e
+                                    .toLowerCase()
+                                    .contains(val.text.toLowerCase()))),
                     validator: (String tag) {
                       if (tag.isEmpty) return "ingrese algo";
 
@@ -266,8 +275,8 @@ class BotonesGuardado extends ConsumerWidget {
                     await controller.guardarCuestionarioEnLocal(
                         EstadoDeCuestionario.finalizado);
 
-                    mostrarMensaje(context, TipoDeMensaje.exito,
-                        'Cuestionario creado exitosamente');
+                    // mostrarMensaje(context, TipoDeMensaje.exito,
+                    //     'Cuestionario creado exitosamente');
                   },
                   child: const Text("Aceptar"),
                 ),

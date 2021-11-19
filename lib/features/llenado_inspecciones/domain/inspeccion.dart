@@ -1,9 +1,9 @@
 import 'activo.dart';
-import 'cuestionario.dart';
 
 class Inspeccion {
-  final String id;
-  final EstadoDeInspeccion estado;
+  final String? id;
+  EstadoDeInspeccion
+      estado; // no es final porque se usa para indicar el estado en el guardado
   final Activo activo;
   final DateTime momentoInicio;
   final DateTime? momentoBorradorGuardado;
@@ -12,10 +12,10 @@ class Inspeccion {
 
   final String inspectorId;
 
-  late final CuestionarioInspeccionado cuestionario;
+  //late final CuestionarioInspeccionado cuestionario;
 
   Inspeccion({
-    required this.id,
+    this.id,
     required this.estado,
     required this.activo,
     required this.momentoInicio,

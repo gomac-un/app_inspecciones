@@ -8,8 +8,8 @@ import 'domain/entities.dart';
 import 'inspector_profile_page.dart';
 import 'widgets/simple_future_provider_refreshable_builder.dart';
 
-final _listaDeUsuariosProvider = FutureProvider.autoDispose((ref) =>
-    ref.watch(organizacionRemoteRepositoryProvider).getListaDeUsuarios());
+final _listaDeUsuariosProvider = FutureProvider.autoDispose(
+    (ref) => ref.watch(organizacionRepositoryProvider).getListaDeUsuarios());
 
 class ListaDeInspectoresPage extends ConsumerWidget {
   const ListaDeInspectoresPage({Key? key}) : super(key: key);

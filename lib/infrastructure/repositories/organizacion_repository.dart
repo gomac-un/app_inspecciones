@@ -62,4 +62,6 @@ class OrganizacionRepository {
       apiExceptionToApiFailure(
         () => _api.actualizarOrganizacion(id, formulario).then((r) => unit),
       );
+  Future<List<Etiqueta>> getTodasLasEtiquetas() =>
+      _db.organizacionDao.getTodasLasEtiquetas();
 }

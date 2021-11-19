@@ -61,8 +61,7 @@ class ListaDeActivosViewModel
 
   void finEdicionActivo(ActivoController controller) {
     final activoActualizado = controller.guardar();
-    _read(organizacionRemoteRepositoryProvider)
-        .guardarActivo(activoActualizado);
+    _read(organizacionRepositoryProvider).guardarActivo(activoActualizado);
 
     state = state
         .map((a) => a.controller == controller
@@ -70,6 +69,10 @@ class ListaDeActivosViewModel
             : a)
         .toList();
   }
+
+  ///TODO: implementar cache
+  Future<List<Etiqueta>> getTodasLasEtiquetas() =>
+      _read(organizacionRepositoryProvider).getTodasLasEtiquetas();
 
   @override
   void dispose() {
@@ -87,8 +90,7 @@ final agregarActivoProvider = StateProvider((ref) => 0);
 
 final _listaActivosProvider =
     FutureProvider.autoDispose<Tuple2<ApiFailure?, List<ActivoEnLista>>>(
-  (ref) =>
-      ref.watch(organizacionRemoteRepositoryProvider).refreshListaDeActivos(),
+  (ref) => ref.watch(organizacionRepositoryProvider).refreshListaDeActivos(),
 );
 
 final _viewModelProvider = StateNotifierProvider.autoDispose.family<
@@ -135,7 +137,8 @@ class ListaDeActivosPage extends ConsumerWidget {
             final controller = activos[index].controller;
             return controller == null
                 ? _buildActivo(viewModel.inicioEdicionActivo, activo)
-                : _buildActivoEditable(viewModel.finEdicionActivo, controller);
+                : _buildActivoEditable(viewModel.finEdicionActivo, controller,
+                    viewModel.getTodasLasEtiquetas);
           },
         );
       },
@@ -156,33 +159,45 @@ class ListaDeActivosPage extends ConsumerWidget {
 
   ListTile _buildActivoEditable(
           void Function(ActivoController controller) onFinalizarEdicion,
-          ActivoController controller) =>
+          ActivoController controller,
+          Future<List<Etiqueta>> Function() getEtiquetas) =>
       ListTile(
         title: ReactiveTextField(
           formControl: controller.idControl,
+          decoration: const InputDecoration(
+            labelText: "identificador",
+          ),
         ),
         trailing: IconButton(
           icon: const Icon(Icons.save_outlined),
           onPressed: () => onFinalizarEdicion(controller),
         ),
-        subtitle: ReactiveTextFieldTags(
-            formControl: controller.tagsControl,
-            validator: (String tag) {
-              if (tag.isEmpty) return "ingrese algo";
+        subtitle: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: ReactiveTextFieldTags(
+              decoration: const InputDecoration(labelText: "etiquetas"),
+              formControl: controller.tagsControl,
+              optionsBuilder: (TextEditingValue val) => getEtiquetas().then(
+                  (l) => l.map((e) => "${e.clave}:${e.valor}").where((e) =>
+                      !controller.tagsControl.value!.contains(e) &&
+                      e.toLowerCase().contains(val.text.toLowerCase()))),
+              validator: (String tag) {
+                if (tag.isEmpty) return "ingrese algo";
 
-              final splited = tag.split(":");
+                final splited = tag.split(":");
 
-              if (splited.length == 1) {
-                return "agregue : para separar la etiqueta";
-              }
+                if (splited.length == 1) {
+                  return "agregue : para separar la etiqueta";
+                }
 
-              if (splited.length > 2) return "solo se permite un :";
+                if (splited.length > 2) return "solo se permite un :";
 
-              if (splited[0].isEmpty || splited[1].isEmpty) {
-                return "agregue texto antes y despues de :";
-              }
+                if (splited[0].isEmpty || splited[1].isEmpty) {
+                  return "agregue texto antes y despues de :";
+                }
 
-              return null;
-            }),
+                return null;
+              }),
+        ),
       );
 }

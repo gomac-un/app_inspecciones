@@ -85,6 +85,9 @@ abstract class ControladorDePregunta<T extends Pregunta> {
 
   static double _porcentajeCalificacion(int calificacion) {
     switch (calificacion.round()) {
+      case 0:
+        return 0;
+
       case 1:
         return 0.55;
 

@@ -28,4 +28,7 @@ class OrganizacionDao extends DatabaseAccessor<Database>
       ),
     );
   }
+
+  Future<List<Etiqueta>> getTodasLasEtiquetas() =>
+      select(etiquetasDeActivo).map((e) => Etiqueta(e.clave, e.valor)).get();
 }

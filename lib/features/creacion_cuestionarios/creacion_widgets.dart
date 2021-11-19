@@ -1,10 +1,9 @@
-import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/presentation/widgets/app_image_multi_image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 
-import '../../infrastructure/drift_database.dart';
 import 'creacion_controls.dart';
 import 'creacion_form_controller.dart';
 import 'creador_cuadricula_card.dart';
@@ -82,11 +81,6 @@ class CamposGenerales extends StatelessWidget {
     /// Como es de selección, se asegura que los unicos tipos de pregunta que pueda seleccionar el creador
     /// sean de unica o multiple respuesta
 
-    final List<TipoDePregunta> itemsTipoPregunta = [
-      TipoDePregunta.seleccionUnica,
-      TipoDePregunta.seleccionMultiple
-    ];
-
     return Column(
       children: [
         ReactiveTextField(
@@ -119,6 +113,7 @@ class CamposGenerales extends StatelessWidget {
             ReactiveTextFieldTags(
                 formControl: controller.etiquetasControl,
                 //etiquetasDisponibles: controller.todasLasEtiquetas,
+                optionsBuilder: (TextEditingValue val) => [], //TODO
                 validator: (String tag) {
                   if (tag.isEmpty) return "ingrese algo";
 
@@ -139,24 +134,21 @@ class CamposGenerales extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        ReactiveDropdownField<TipoDePregunta>(
-          formControl: controller.tipoDePreguntaControl,
-          validationMessages: (control) =>
-              {ValidationMessage.required: 'Seleccione el tipo de pregunta'},
-          items: itemsTipoPregunta
-              .map((e) => DropdownMenuItem<TipoDePregunta>(
-                    value: e,
-                    child:
-                        Text(EnumToString.convertToString(e, camelCase: true)),
-                  ))
-              .toList(),
+        InputDecorator(
           decoration: const InputDecoration(
-            labelText: 'Tipo de pregunta',
+              labelText: 'Criticidad de la pregunta', filled: false),
+          child: ReactiveSlider(
+            formControl: controller.criticidadControl,
+            max: 4,
+            divisions: 4,
+            labelBuilder: (v) => v.round().toString(),
+            activeColor: Colors.red,
           ),
-          onTap: () {
-            FocusScope.of(context)
-                .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-          },
+        ),
+        AppImageMultiImagePicker(
+          formControl: controller.fotosGuiaControl,
+          label: 'Fotos guía',
+          maxImages: 3,
         ),
       ],
     );

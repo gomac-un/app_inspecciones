@@ -37,6 +37,13 @@ class SincronizacionDao extends DatabaseAccessor<Database>
       (update(cuestionarios)..where((c) => c.id.equals(cuestionarioId)))
           .write(const CuestionariosCompanion(subido: Value(true)));
 
+  Future<void> marcarInspeccionSubida(IdentificadorDeInspeccion id) =>
+      (update(inspecciones)
+            ..where((i) =>
+                i.activoId.equals(id.activo) &
+                i.cuestionarioId.equals(id.cuestionarioId)))
+          .write(InspeccionesCompanion(momentoEnvio: Value(DateTime.now())));
+
   Future<IdentificadorDeInspeccion> guardarInspeccionBD(
       Map<String, dynamic> json) async {
     throw UnimplementedError();
@@ -55,15 +62,24 @@ class SincronizacionDao extends DatabaseAccessor<Database>
       transaction(() async {
         await delete(activosXEtiquetas).go();
         //await delete(activos).go(); // dado que los activos son clave foranea de inspeccion no se pueden borrar
-        await (delete(etiquetasDeActivo)
+        // se tuvo que hacer un custom delete porque se necesita un alias para que
+        // el select anidado use el id de la tabla externa
+        await customUpdate(
+          '''DELETE FROM etiquetas_de_activo AS e
+            WHERE NOT EXISTS (
+              SELECT * FROM cuestionarios_x_etiquetas WHERE etiqueta_id = e.id
+            )''',
+          updates: {etiquetasDeActivo},
+          updateKind: UpdateKind.delete,
+        );
+        /*await (delete(etiquetasDeActivo)
               ..where(
                 (e) => notExistsQuery(
                   select(cuestionariosXEtiquetas)
-                    ..where((cxe) =>
-                        cxe.etiquetaId.equalsExp(etiquetasDeActivo.id)),
+                    ..where((cxe) => cxe.etiquetaId.equalsExp(etiquetasDeActivo.id)),
                 ),
               ))
-            .go();
+            .go();*/
         for (final activo in activosEnLista) {
           final activoInsertado = await into(activos).insertReturning(
               ActivosCompanion.insert(id: activo.id),

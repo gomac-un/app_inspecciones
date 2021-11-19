@@ -141,7 +141,9 @@ class BorradoresPage extends ConsumerWidget {
     final remoteRepo = ref.read(inspeccionesRemoteRepositoryProvider);
     final localRepo = ref.read(inspeccionesRepositoryProvider);
     await remoteRepo
-        .subirInspeccion(borrador.inspeccion, borrador.cuestionario)
+        .subirInspeccion(IdentificadorDeInspeccion(
+            activo: borrador.inspeccion.activo.id,
+            cuestionarioId: borrador.cuestionario.id))
         .leftMap((f) => apiFailureToInspeccionesFailure(f))
         .flatMap((_) => localRepo.eliminarRespuestas(borrador))
         .leftMap((f) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(

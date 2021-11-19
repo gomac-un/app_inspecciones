@@ -3,9 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart'
     as dominio;
-import 'package:inspecciones/features/llenado_inspecciones/domain/metarespuesta.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
-import 'package:intl/intl.dart';
 
 part 'carga_inspeccion_dao.drift.dart';
 
@@ -49,28 +47,15 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   /// Devuelve todos los bloques de la inspeccion del cuestionario con id=[cuestionarioId] para [activoId]
   ///
   /// Incluye los titulos y las preguntas con sus respectivas opciones de respuesta y respuestas seleccionadas
-  Future<Tuple2<dominio.Inspeccion, List<dominio.Bloque>>> cargarInspeccion(
-      {required String cuestionarioId,
-      required String activoId,
-      required String inspectorId}) async {
-    final inspeccionExistente = await (select(inspecciones)
-          ..where(
-            (inspeccion) =>
-                inspeccion.cuestionarioId.equals(cuestionarioId) &
-                inspeccion.activoId.equals(activoId) &
+  Future<dominio.CuestionarioInspeccionado> cargarInspeccion({
+    required String cuestionarioId,
+    required String activoId,
+    required String inspectorId,
+  }) async {
+    final inspeccion = await _getInspeccion(
+        cuestionarioId: cuestionarioId, activoId: activoId);
 
-                /// Para no cargar las que están en el historial
-                inspeccion.momentoEnvio.isNull(),
-          ))
-        .getSingleOrNull();
-    //Se crea la inspección si no existe.
-    final inspeccion = inspeccionExistente ??
-        await _crearInspeccion(
-          cuestionarioId: cuestionarioId,
-          activoId: activoId,
-          inspectorId: inspectorId,
-        );
-    final inspeccionId = inspeccion.id;
+    final inspeccionId = inspeccion?.id;
 
     final titulos = await _getTitulos(cuestionarioId);
 
@@ -99,11 +84,47 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     ];
     bloques.sort((a, b) => a.value1.compareTo(b.value1));
 
-    return Tuple2(await _buildInspeccion(inspeccion),
-        bloques.map((e) => e.value2).toList());
+    return dominio.CuestionarioInspeccionado(
+      await _getCuestionario(cuestionarioId),
+      inspeccion == null
+          ? await _buildInspeccionNueva(
+              activoId: activoId, inspectorId: inspectorId)
+          : await _buildInspeccionExistente(inspeccion),
+      bloques.map((e) => e.value2).toList(),
+    );
   }
 
-  Future<dominio.Inspeccion> _buildInspeccion(Inspeccion inspeccion) async =>
+  Future<Inspeccion?> _getInspeccion(
+          {required String cuestionarioId, required String activoId}) =>
+      (select(inspecciones)
+            ..where(
+              (inspeccion) =>
+                  inspeccion.cuestionarioId.equals(cuestionarioId) &
+                  inspeccion.activoId.equals(activoId) &
+
+                  /// Para no cargar las que están en el historial
+                  inspeccion.momentoEnvio.isNull(),
+            ))
+          .getSingleOrNull();
+
+  Future<dominio.Cuestionario> _getCuestionario(String cuestionarioId) {
+    return (select(cuestionarios)
+          ..where((cuestionario) => cuestionario.id.equals(cuestionarioId)))
+        .map((c) => dominio.Cuestionario(
+            id: c.id, tipoDeInspeccion: c.tipoDeInspeccion))
+        .getSingle();
+  }
+
+  Future<dominio.Inspeccion> _buildInspeccionNueva(
+          {required String activoId, required String inspectorId}) async =>
+      dominio.Inspeccion(
+          estado: dominio.EstadoDeInspeccion.borrador,
+          activo: await db.borradoresDao.buildActivo(activoId: activoId),
+          momentoInicio: DateTime.now(),
+          inspectorId: inspectorId);
+
+  Future<dominio.Inspeccion> _buildInspeccionExistente(
+          Inspeccion inspeccion) async =>
       dominio.Inspeccion(
         id: inspeccion.id,
         estado: inspeccion.estado,
@@ -115,29 +136,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         momentoEnvio: inspeccion.momentoEnvio,
         inspectorId: inspeccion.inspectorId,
       );
-
-  /// Devuelve la inspección creada al guardarla por primera vez.
-  Future<Inspeccion> _crearInspeccion({
-    required String cuestionarioId,
-    required String activoId,
-    required String inspectorId,
-  }) async {
-    final ins = InspeccionesCompanion.insert(
-      id: _generarInspeccionId(activoId),
-      cuestionarioId: cuestionarioId,
-      activoId: activoId,
-      inspectorId: inspectorId,
-      momentoInicio: DateTime.now(),
-      estado: dominio.EstadoDeInspeccion.borrador,
-    );
-    return into(inspecciones).insertReturning(ins);
-  }
-
-  /// Crea id para una inspección con el formato 'yyMMddHHmmss[activo]'
-  String _generarInspeccionId(String activo) {
-    final fechaFormateada = DateFormat("yyMMddHHmmss").format(DateTime.now());
-    return '$fechaFormateada$activo';
-  }
 
   /// Devuelve los titulos que pertenecen al cuestionario
   Future<List<Tuple2<int, dominio.Titulo>>> _getTitulos(
@@ -165,7 +163,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   /// Devuelve las preguntas numericas de la inspección, con la respuesta que
   /// se haya insertado y las criticidadesNumericas (rangos de criticidad)
   Future<List<Tuple2<int, dominio.PreguntaNumerica>>> _getPreguntasNumericas(
-      String cuestionarioId, String inspeccionId) async {
+      String cuestionarioId, String? inspeccionId) async {
     final res =
         await _getPreguntasDeTipo(cuestionarioId, TipoDePregunta.numerica);
 
@@ -186,7 +184,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
           pregunta,
           etiquetas,
           respuesta,
-          inspeccionId,
         ),
       );
     }));
@@ -196,8 +193,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
           List<CriticidadNumerica> criticidadesNumericas,
           Pregunta pregunta,
           List<EtiquetaDePregunta> etiquetas,
-          Respuesta? respuesta,
-          String inspeccionId) =>
+          Respuesta? respuesta) =>
       dominio.PreguntaNumerica(
         criticidadesNumericas
             .map((c) => dominio.RangoDeCriticidad(
@@ -230,7 +226,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   Future<List<Tuple2<int, dominio.PreguntaDeSeleccionUnica>>>
       _getPreguntasDeSeleccionUnica(
     String cuestionarioId,
-    String inspeccionId,
+    String? inspeccionId,
   ) async {
     final res = await _getPreguntasDeTipo(
         cuestionarioId, TipoDePregunta.seleccionUnica);
@@ -283,7 +279,9 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   }
 
   Future<Tuple2<Respuesta, OpcionDeRespuesta?>?> _getRespuestaDeSeleccionUnica(
-      Pregunta pregunta, String inspeccionId) async {
+      Pregunta pregunta, String? inspeccionId) async {
+    if (inspeccionId == null) return null;
+
     final query = select(respuestas).join([
       leftOuterJoin(
         opcionesDeRespuesta,
@@ -307,7 +305,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   Future<List<Tuple2<int, dominio.PreguntaDeSeleccionMultiple>>>
       _getPreguntasDeSeleccionMultiple(
     String cuestionarioId,
-    String inspeccionId,
+    String? inspeccionId,
   ) async {
     final res = await _getPreguntasDeTipo(
         cuestionarioId, TipoDePregunta.seleccionMultiple);
@@ -387,7 +385,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
 
   Future<List<Tuple2<int, dominio.CuadriculaDeSeleccionUnica>>>
       _getCuadriculasDeSeleccionUnica(
-          String cuestionarioId, String inspeccionId) async {
+          String cuestionarioId, String? inspeccionId) async {
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
     ])
@@ -462,7 +460,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
 
   Future<List<Tuple2<int, dominio.CuadriculaDeSeleccionMultiple>>>
       _getCuadriculasDeSeleccionMultiple(
-          String cuestionarioId, String inspeccionId) async {
+          String cuestionarioId, String? inspeccionId) async {
     final query = select(preguntas).join([
       innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
     ])
@@ -536,7 +534,8 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
 
   /// Devuelve la respuesta a [pregunta] de tipo numerica.
   Future<Respuesta?> _getRespuestaDePregunta(
-      Pregunta pregunta, String inspeccionId) {
+      Pregunta pregunta, String? inspeccionId) async {
+    if (inspeccionId == null) return null;
     final query = select(respuestas)
       ..where(
         (u) =>
@@ -581,13 +580,15 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         .get();
   }
 
-  MetaRespuesta _buildMetaRespuesta(Respuesta respuesta) => MetaRespuesta(
+  dominio.MetaRespuesta _buildMetaRespuesta(Respuesta respuesta) =>
+      dominio.MetaRespuesta(
         criticidadInspector: 0,
         observaciones: respuesta.observacion,
         reparada: respuesta.reparado,
         observacionesReparacion: respuesta.observacionReparacion,
         fotosBase: respuesta.fotosBase,
         fotosReparacion: respuesta.fotosReparacion,
+        momentoRespuesta: respuesta.momentoRespuesta,
       );
 
   dominio.OpcionDeRespuesta _buildOpcionDeRespuesta(OpcionDeRespuesta opcion) =>

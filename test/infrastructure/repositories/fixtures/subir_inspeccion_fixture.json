@@ -1,0 +1,22 @@
+{
+    "cuestionario":"10ba76eb-0774-41f0-8dc5-a600767c5690",
+    "momento_inicio":"2020-01-01T00:00:00.000Z",
+    "activo":"a1",
+    "respuestas":[
+      {
+        "pregunta":"7a01e199-073e-4703-bc26-62fe3dfb80d3",
+        "fotos_base":[
+          "6b948801-d0a9-4679-ab89-fcdc54be7c9a"
+        ],
+        "fotos_reparacion":[
+          "138dc9b8-2f0a-439f-ba98-1a95a9c02eb8"
+        ],
+        "reparado":false,
+        "observacion":"observacion",
+        "observacion_reparacion":"observacion reparacion",
+        "momento_respuesta":"2020-01-01T00:00:00.000Z",
+        "tipo_de_respuesta":"seleccion_unica",
+        "opcion_seleccionada":"eb80d8e2-48a8-4f0d-a68e-e6ef0a291919"
+      }
+    ]
+  }

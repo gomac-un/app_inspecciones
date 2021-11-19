@@ -11,7 +11,6 @@ import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.
 import 'package:inspecciones/infrastructure/datasources/inspecciones_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart' as drift;
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_remote_repository.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -24,32 +23,25 @@ import 'inspecciones_repository_test.mocks.dart';
     InspeccionesRemoteDataSource,
     FotosRemoteDataSource,
     drift.Database,
-    FotosRepository,
     SincronizacionDao,
   ],
 )
 main() {
   late MockInspeccionesRemoteDataSource _api;
-  late MockFotosRemoteDataSource _apiFotos;
   late MockDatabase _db;
   late MockSincronizacionDao _sincronizacionDao;
-  late MockFotosRepository _fotosRepository;
   late InspeccionesRemoteRepository repository;
   late ProviderContainer container;
 
   setUp(() {
     _api = MockInspeccionesRemoteDataSource();
-    _apiFotos = MockFotosRemoteDataSource();
     _db = MockDatabase();
     _sincronizacionDao = MockSincronizacionDao();
     when(_db.sincronizacionDao).thenAnswer((_) => _sincronizacionDao);
-    _fotosRepository = MockFotosRepository();
     container = ProviderContainer(
       overrides: [
         inspeccionesRemoteDataSourceProvider.overrideWithValue(_api),
-        fotosRemoteDataSourceProvider.overrideWithValue(_apiFotos),
         drift.driftDatabaseProvider.overrideWithValue(_db),
-        fotosRepositoryProvider.overrideWithValue(_fotosRepository),
       ],
     );
     repository = InspeccionesRemoteRepository(container.read);
@@ -115,20 +107,13 @@ main() {
       final cuestionario = CuestionarioInspeccionado(
           Cuestionario(id: "c1", tipoDeInspeccion: "preoperacional"),
           inspeccion, []);
-      inspeccion.cuestionario = cuestionario;
 
       when(_sincronizacionDao.getInspeccionConRespuestas(any))
           .thenAnswer((_) async => {"id": "i1"});
       when(_api.crearInspeccion({"id": "i1"})).thenAnswer((_) async => {});
-      when(_fotosRepository.getFotosDeDocumento(
-        Categoria.inspeccion,
-        identificador: "i1",
-      )).thenAnswer((_) async => []);
-      when(_apiFotos.subirFotos([], "i1", Categoria.inspeccion))
-          .thenAnswer((_) async => {});
 
       final res = await repository.subirInspeccion(
-          inspeccion, cuestionario.cuestionario);
+          IdentificadorDeInspeccion(activo: "a1", cuestionarioId: "c1"));
 
       expect(res, const Right(unit));
     });
@@ -142,7 +127,6 @@ main() {
       );
       final cuestionario = CuestionarioInspeccionado(
           Cuestionario(id: "c1", tipoDeInspeccion: "a"), inspeccion, []);
-      inspeccion.cuestionario = cuestionario;
 
       when(_sincronizacionDao.getInspeccionConRespuestas(any))
           .thenAnswer((_) async => {"id": "i1"});
@@ -150,7 +134,7 @@ main() {
           .thenAnswer((_) async => throw const ErrorDeConexion(""));
 
       final res = await repository.subirInspeccion(
-          inspeccion, cuestionario.cuestionario);
+          IdentificadorDeInspeccion(activo: "a1", cuestionarioId: "c1"));
 
       expect(res, const Left(ApiFailure.errorDeConexion("")));
     });

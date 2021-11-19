@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:inspecciones/presentation/widgets/app_image_multi_image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_controls.dart';
@@ -21,11 +20,19 @@ class CreadorNumericaCard extends StatelessWidget {
         titulo: 'Pregunta numérica',
         child: Column(
           children: [
-            /// Intento de unificar los widgets de cada pregunta
-            /// Para poder hacer la unificacion exitosa hay que crear una
-            /// interfaz o clase padre que implementen todos los tipos de pregunta
-            TipoPreguntaCard(preguntaController: preguntaController),
-            const SizedBox(height: 20),
+            CamposGenerales(
+              controller: preguntaController.controllerCamposGenerales,
+            ),
+            const SizedBox(height: 10),
+            ReactiveTextField(
+              formControl: preguntaController.unidadesControl,
+              decoration: const InputDecoration(
+                labelText: 'Unidades ej:(cm)',
+              ),
+              keyboardType: TextInputType.text,
+              maxLines: 1,
+            ),
+            const SizedBox(height: 10),
 
             /// Widget para añadir los rangos y su respectiva criticidad
             CriticidadCard(preguntaController: preguntaController),
@@ -35,43 +42,6 @@ class CreadorNumericaCard extends StatelessWidget {
             BotonesDeBloque(controllerActual: preguntaController),
           ],
         ));
-  }
-}
-
-class TipoPreguntaCard extends StatelessWidget {
-  /// Validaciones.
-  final CreadorPreguntaNumericaController preguntaController;
-
-  const TipoPreguntaCard({Key? key, required this.preguntaController})
-      : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    /// Se accede a este provider del formulario base de creación para poder cargar los sistemas
-
-    return Column(
-      children: [
-        CamposGenerales(
-          controller: preguntaController.controllerCamposGenerales,
-        ),
-        const SizedBox(height: 10),
-        InputDecorator(
-          decoration: const InputDecoration(
-              labelText: 'Criticidad de la pregunta', filled: false),
-          child: ReactiveSlider(
-            formControl: preguntaController.criticidadControl,
-            max: 4,
-            divisions: 4,
-            labelBuilder: (v) => v.round().toString(),
-            activeColor: Colors.red,
-          ),
-        ),
-        AppImageMultiImagePicker(
-          formControl: preguntaController.fotosGuiaControl,
-          label: 'Fotos guía',
-          maxImages: 3,
-        ),
-      ],
-    );
   }
 }
 

@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:dartz/dartz.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/domain/inspecciones/inspecciones_failure.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart' as drift;
 
 import '../domain/bloques/bloques.dart';
@@ -31,7 +29,7 @@ class InspeccionesRepository {
       _db.borradoresDao.borradores(mostrarSoloEnviadas: false);
 
   FEF<Unit> eliminarRespuestas(Borrador borrador) => _db.borradoresDao
-      .eliminarRespuestas(inspeccionId: borrador.inspeccion.id)
+      .eliminarRespuestas(inspeccionId: borrador.inspeccion.id!)
       .then((_) => const Right(unit),
           onError: (e, s) =>
               Left(InspeccionesFailure.unexpectedError(e.toString())));
@@ -57,23 +55,13 @@ class InspeccionesRepository {
 
   FEF<CuestionarioInspeccionado> cargarInspeccionLocal(
       IdentificadorDeInspeccion id) async {
-    developer.log("cargando inspeccion $id");
     // try {
-    final inspeccionCompleta = await _db.cargaDeInspeccionDao.cargarInspeccion(
+    final cuestionarioInspeccionado =
+        await _db.cargaDeInspeccionDao.cargarInspeccion(
       cuestionarioId: id.cuestionarioId,
       activoId: id.activo,
       inspectorId: "1", //TODO: traer el id del inspector
     );
-    final cuestionario =
-        await _db.cargaDeCuestionarioDao.getCuestionario(id.cuestionarioId);
-    final inspeccion = inspeccionCompleta.value1;
-
-    final cuestionarioInspeccionado = CuestionarioInspeccionado(
-        Cuestionario(
-            id: cuestionario.id,
-            tipoDeInspeccion: cuestionario.tipoDeInspeccion),
-        inspeccion,
-        inspeccionCompleta.value2);
     return Right(cuestionarioInspeccionado);
     // } catch (e) {
     //   return Left(InspeccionesFailure(e.toString()));
@@ -81,8 +69,8 @@ class InspeccionesRepository {
   }
 
   Future<void> guardarInspeccion(
-    Iterable<Pregunta> preguntasRespondidas,
-    Inspeccion inspeccion,
+    List<Pregunta> preguntasRespondidas,
+    CuestionarioInspeccionado inspeccion,
   ) =>
       _db.guardadoDeInspeccionDao
           .guardarInspeccion(preguntasRespondidas, inspeccion);
