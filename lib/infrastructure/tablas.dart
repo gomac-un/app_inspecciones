@@ -4,6 +4,25 @@ part of 'drift_database.dart';
 
 const _uuid = Uuid();
 
+class EtiquetasJerarquicas extends Table {
+  // identificador de la jerarquía, por ahora es el primer nivel
+  TextColumn get nombre => text()();
+
+  TextColumn get json => text().map(const _JsonToTextConverter())();
+
+  /// indica que esta etiqueta se creó en el dispositivo y no ha sido sincronizada o descargada desde el server
+  BoolColumn get esLocal => boolean()();
+
+  @override
+  Set<Column> get primaryKey => {nombre};
+}
+
+@DataClassName('EtiquetaJerarquicaDeActivo')
+class EtiquetasJerarquicasDeActivo extends EtiquetasJerarquicas {}
+
+@DataClassName('EtiquetaJerarquicaDePregunta')
+class EtiquetasJerarquicasDePregunta extends EtiquetasJerarquicas {}
+
 class Etiquetas extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get clave => text()();
@@ -289,7 +308,7 @@ class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
     if (fromDb == null) {
       return null;
     }
-    return (jsonDecode(fromDb) as List)
+    return (json.decode(fromDb) as List)
         .cast<String>()
         .map((p) =>
             p.startsWith("http") ? AppImage.remote(p) : AppImage.mobile(p))
@@ -301,7 +320,7 @@ class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
     if (value == null) {
       return null;
     }
-    return jsonEncode(value
+    return json.encode(value
         .map((i) => i.when(
             remote: (p) => p,
             mobile: (p) => p,
@@ -309,6 +328,15 @@ class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
                 throw UnsupportedError("No se puede guardar una imagen web")))
         .toList());
   }
+}
+
+class _JsonToTextConverter extends TypeConverter<dynamic, String> {
+  const _JsonToTextConverter();
+  @override
+  dynamic mapToDart(fromDb) => fromDb == null ? null : json.decode(fromDb);
+
+  @override
+  String? mapToSql(value) => value == null ? null : json.encode(value);
 }
 /*
 class TipoDePreguntaConverter extends TypeConverter<TipoDePregunta, String> {

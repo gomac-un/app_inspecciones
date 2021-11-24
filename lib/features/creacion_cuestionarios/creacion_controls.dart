@@ -1,7 +1,9 @@
 /// Definición de todos los Controllers de los bloques en la creación de cuestionarios
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
+import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -217,7 +219,7 @@ class CreadorPreguntaController extends CreacionController with ConRespuestas {
         controllersRespuestas.map((e) => e.toDB()).toList(),
         g.etiquetasControl.value!
             .map((e) => EtiquetasDePreguntaCompanion.insert(
-                clave: e.split(":").first, valor: e.split(":").last))
+                clave: e.clave, valor: e.valor))
             .toList());
   }
 }
@@ -443,7 +445,7 @@ class CreadorPreguntaCuadriculaController extends CreacionController
             controllersRespuestas.map((e) => e.toDB()).toList(),
         etiquetas: g.etiquetasControl.value!
             .map((e) => EtiquetasDePreguntaCompanion.insert(
-                clave: e.split(":").first, valor: e.split(":").last))
+                clave: e.clave, valor: e.valor))
             .toList(),
       ),
       controllersPreguntas.map((e) {
@@ -567,7 +569,7 @@ class CreadorPreguntaNumericaController extends CreacionController {
       controllersCriticidades.map((e) => e.toDB()).toList(),
       g.etiquetasControl.value!
           .map((e) => EtiquetasDePreguntaCompanion.insert(
-              clave: e.split(":").first, valor: e.split(":").last))
+              clave: e.clave, valor: e.valor))
           .toList(),
     );
   }
@@ -589,9 +591,9 @@ class CamposGeneralesPreguntaController {
       fb.control<String>(descripcionInicial.valueOrDefault(""));
 
   final Value<List<EtiquetasDePreguntaCompanion>> etiquetasIniciales;
-  late final etiquetasControl = fb.control<Set<String>>(etiquetasIniciales
+  late final etiquetasControl = fb.control<Set<Etiqueta>>(etiquetasIniciales
       .valueOrDefault([])
-      .map((e) => '${e.clave.value}:${e.valor.value}')
+      .map((e) => Etiqueta(e.clave.value, e.valor.value))
       .toSet());
 
   final Value<int> criticidadInicial;
@@ -619,4 +621,26 @@ class CamposGeneralesPreguntaController {
     required this.fotosGuiaIniciales,
     this.parteDeCuadricula = false,
   });
+
+  List<Etiqueta> getEtiquetasDisponibles(List<Jerarquia> todas) {
+    final usadas = etiquetasControl.value!;
+
+    final result = <Etiqueta>[];
+
+    for (final jerarquia in todas) {
+      final ruta = <String>[];
+      for (final nivel in jerarquia.niveles) {
+        final etiquetaParaNivel =
+            usadas.firstWhereOrNull((e) => e.clave == nivel);
+        if (etiquetaParaNivel != null) {
+          ruta.add(etiquetaParaNivel.valor);
+          continue;
+        } else {
+          result.addAll(jerarquia.getEtiquetasDeNivel(nivel, ruta));
+          break;
+        }
+      }
+    }
+    return result;
+  }
 }

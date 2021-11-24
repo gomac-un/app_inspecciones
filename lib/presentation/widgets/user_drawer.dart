@@ -45,11 +45,12 @@ class UserDrawer extends ConsumerWidget {
                     icon: Icons.list_alt_outlined,
                     onTap: () => context.goNamed("borradores"),
                   ),
-                  MenuItem(
-                    texto: 'Sincronizar con GOMAC',
-                    icon: Icons.sync_outlined,
-                    onTap: () => context.goNamed("sincronizacion"),
-                  ),
+                  if (false) //TODO: eliminar
+                    MenuItem(
+                      texto: 'Sincronizar con GOMAC',
+                      icon: Icons.sync_outlined,
+                      onTap: () => context.goNamed("sincronizacion"),
+                    ),
                   if (user.esAdmin)
                     MenuItem(
                       texto: 'Herramientas de desarrollador',
@@ -59,11 +60,9 @@ class UserDrawer extends ConsumerWidget {
                   MenuItem(
                     texto: 'Limpiar datos de la app',
                     icon: Icons.cleaning_services_outlined,
-                    onTap: kIsWeb
-                        ? null
-                        : () => _mostrarConfirmacionLimpieza(
-                              context: context,
-                            ),
+                    onTap: () => _mostrarConfirmacionLimpieza(
+                      context: context,
+                    ),
                   ),
                   MenuItem(
                     texto: 'Cambiar el tema',

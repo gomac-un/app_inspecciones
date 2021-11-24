@@ -107,6 +107,17 @@ class DjangoJsonApi
       body: activo);
 
   @override
+  Future<void> borrarActivo(String activoId) => _client.request(
+      'DELETE',
+      _apiUri
+          .appendSegment('activos', addTrailingSlash: false)
+          .appendSegment(activoId));
+
+  /*@override
+  Future<JsonMap> guardarActivo(JsonMap activo) =>
+      _client.request('POST', _apiUri.appendSegment('activos'), body: activo);*/
+
+  @override
   Future<JsonMap> getInspeccion(int id) => _client.request(
       'GET',
       _apiUri
@@ -211,6 +222,47 @@ class DjangoJsonApi
   Future<JsonMap> subirInspeccion(JsonMap inspeccion) =>
       _client.request('POST', _apiUri.appendSegment("inspecciones-completas"),
           body: inspeccion);
+
+  @override
+  Future<JsonList> getListaDeEtiquetasDeActivos() =>
+      _client.request('GET', _apiUri.appendSegment('etiquetas-activos'));
+
+  ///TODO: mirar como hacer para subirlas todas en una sola request
+  @override
+  Future<void> subirListaDeEtiquetasDeActivos(JsonList lista) async {
+    for (final etiqueta in lista) {
+      await _client.request('POST', _apiUri.appendSegment('etiquetas-activos'),
+          body: etiqueta);
+    }
+  }
+
+  @override
+  Future<JsonList> getListaDeEtiquetasDePreguntas() =>
+      _client.request('GET', _apiUri.appendSegment('etiquetas-preguntas'));
+
+  ///TODO: mirar como hacer para subirlas todas en una sola request
+  @override
+  Future<void> subirListaDeEtiquetasDePreguntas(JsonList lista) async {
+    for (final etiqueta in lista) {
+      await _client.request(
+          'POST', _apiUri.appendSegment('etiquetas-preguntas'),
+          body: etiqueta);
+    }
+  }
+
+  @override
+  Future<void> eliminarEtiquetaDeActivo(String etiquetaId) => _client.request(
+      'DELETE',
+      _apiUri
+          .appendSegment('etiquetas-activos', addTrailingSlash: false)
+          .appendSegment(etiquetaId));
+
+  @override
+  Future<void> eliminarEtiquetaDePregunta(String etiquetaId) => _client.request(
+      'DELETE',
+      _apiUri
+          .appendSegment('etiquetas-preguntas', addTrailingSlash: false)
+          .appendSegment(etiquetaId));
 }
 
 extension ManipulacionesUri on Uri {

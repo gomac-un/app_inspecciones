@@ -6,7 +6,6 @@ import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart'
     show EstadoDeInspeccion;
-import 'package:inspecciones/infrastructure/daos/sincronizacion_dao.dart';
 import 'package:uuid/uuid.dart';
 
 import 'daos/borradores_dao.dart';
@@ -15,6 +14,7 @@ import 'daos/carga_inspeccion_dao.dart';
 import 'daos/guardado_cuestionario_dao.dart';
 import 'daos/guardado_inspeccion_dao.dart';
 import 'daos/organizacion_dao.dart';
+import 'daos/sincronizacion_dao.dart';
 import 'daos/utils_dao.dart';
 
 export 'database/shared.dart';
@@ -24,6 +24,8 @@ part 'tablas.dart';
 
 @DriftDatabase(
   tables: [
+    EtiquetasJerarquicasDeActivo,
+    EtiquetasJerarquicasDePregunta,
     Activos,
     ActivosXEtiquetas,
     EtiquetasDeActivo,
@@ -56,7 +58,7 @@ class Database extends _$Database {
   Database(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -66,7 +68,7 @@ class Database extends _$Database {
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
-          //await m.addColumn(todos, todos.targetDate);
+          await recrearTodasLasTablas();
         }
       },
       beforeOpen: (details) async {
@@ -102,9 +104,3 @@ extension DefaultGetter<T> on Value<T> {
     return present ? value : null;
   }
 }
-/*
-AppImage _soloBasename(AppImage f) => f.map(
-      remote: id,
-      mobile: (e) => e.copyWith(path: path.basename(e.path)),
-      web: (_) => throw UnimplementedError("subida de imagenes web"),
-    );*/

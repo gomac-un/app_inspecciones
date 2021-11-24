@@ -3,7 +3,8 @@ import 'package:drift/drift.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
-import 'package:inspecciones/infrastructure/drift_database.dart';
+
+import 'drift_database.dart';
 
 /// Serializer usado al invocar [.toJson()] o [fromJson()] que maneja los enum de tipoPregunta y estado de inspeccion y cuestionario.
 /// También maneja las fechas y las fotos.

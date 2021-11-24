@@ -35,10 +35,9 @@ class InspeccionPage extends ConsumerWidget {
               kIsWeb && ref.watch(showFABProvider);
 
           return Scaffold(
-            backgroundColor: Theme.of(context).backgroundColor,
-            drawer: estadoDeInspeccion == EstadoDeInspeccion.finalizada
-                ? const UserDrawer()
-                : const UserDrawer(),
+            backgroundColor:
+                Theme.of(context).backgroundColor, //TODO: mirar si es necesario
+            drawer: const UserDrawer(),
             //TODO: mirar si es necesario deshabilitar el drawer mientras se está llenando una inspeccion
             appBar: AppBar(
               title: Text(
@@ -50,7 +49,7 @@ class InspeccionPage extends ConsumerWidget {
               ),
               backgroundColor:
                   estadoDeInspeccion == EstadoDeInspeccion.enReparacion
-                      ? const Color.fromRGBO(240, 184, 35, 1)
+                      ? const Color.fromRGBO(255, 100, 35, 1)
                       : null,
               actions: [
                 const FilterWidget(),

@@ -55,7 +55,6 @@ Future<void> _ejecutarAppConRiverpod() async {
     if (!kIsWeb)
       directorioDeDatosProvider.overrideWithValue(await getDirectorioDeDatos()),
     fileSystemProvider.overrideWithValue(const LocalFileSystem()),
-    //TODO: mirar si se puede usar un memoryFileSystem para web
   ];
 
   runApp(
@@ -90,11 +89,3 @@ Uri _buildApiUri({required bool isWeb, required bool isProduction}) {
     pathSegments: ['inspecciones', 'api', 'v1'],
   );
 }
-
-//TODO: permitir tener una version de produccion donde el apiUriProvider sea
-/*
-Uri(
-    scheme: 'https',
-    host: 'gomac.medellin.unal.edu.co',
-    pathSegments: ['inspecciones/api/v1'])
- */

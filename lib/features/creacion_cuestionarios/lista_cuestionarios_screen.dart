@@ -2,15 +2,15 @@ import 'package:dartz/dartz.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
-import 'package:inspecciones/features/creacion_cuestionarios/edicion_form_page.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
+import 'package:inspecciones/presentation/widgets/alertas.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
-import '../../core/enums.dart';
-import '../../infrastructure/drift_database.dart';
-import '../widgets/alertas.dart';
+import 'edicion_form_page.dart';
 
 final cuestionariosServidorProvider = FutureProvider.autoDispose((ref) =>
     ref.watch(cuestionariosRepositoryProvider).getListaDeCuestionariosServer());
@@ -48,24 +48,31 @@ class CuestionariosPage extends ConsumerWidget {
                     loading: () => const Right([]));
 
             final cuestionariosLocales = snapshot.data;
+            final numeroDeLocales = cuestionariosLocales!.length;
+            final numeroDeRemotos =
+                cuestionariosRemotos.fold<int>((l) => 1, (r) => r.length);
 
             return ListView.separated(
               separatorBuilder: (BuildContext context, int index) =>
                   const Divider(),
-              itemCount: cuestionariosLocales!.length +
-                  cuestionariosRemotos.fold((l) => 1, (r) => r.length),
+              itemCount: numeroDeLocales +
+                  numeroDeRemotos +
+                  1, // +1 para el espacio al final
               itemBuilder: (context, index) {
                 if (index < cuestionariosLocales.length) {
                   return _buildCuestionarioTile(
                       context, cuestionariosLocales[index], viewModel,
                       esLocal: true);
                 } else {
+                  if (index == numeroDeLocales + numeroDeRemotos) {
+                    return const SizedBox(height: 80);
+                  }
                   return cuestionariosRemotos.fold(
                       (l) => ListTile(
                             title: Text(l.toString()),
                           ),
-                      (r) => _buildCuestionarioTile(context,
-                          r[index - cuestionariosLocales.length], viewModel,
+                      (r) => _buildCuestionarioTile(
+                          context, r[index - numeroDeLocales], viewModel,
                           esLocal: false));
                 }
               },
@@ -85,12 +92,18 @@ class CuestionariosPage extends ConsumerWidget {
     return ListTile(
       onTap: !esLocal
           ? null
-          : () => Navigator.of(context).push(
+          : () => Navigator.of(context)
+              .push<bool>(
                 MaterialPageRoute(
                   builder: (_) =>
                       EdicionFormPage(cuestionarioId: cuestionario.id),
                 ),
-              ),
+              )
+              .then((res) => res ?? false
+                  ? ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content:
+                          Text("Cuestionario finalizado, recuerda subirlo")))
+                  : null),
       tileColor: Theme.of(context).cardColor,
       title:
           Text("${cuestionario.tipoDeInspeccion} - v${cuestionario.version}"),
@@ -114,7 +127,7 @@ class CuestionariosPage extends ConsumerWidget {
                         context, viewModel, cuestionario);
                     break;
                   case EstadoDeCuestionario.borrador:
-                    _mostrarDialog(context);
+                    _alertarNoSubirBorrador(context);
                     break;
                 }
               })
@@ -142,8 +155,7 @@ class CuestionariosPage extends ConsumerWidget {
     );
   }
 
-  ///TODO: pensar un mejor nombre para esta funcion
-  Future<dynamic> _mostrarDialog(BuildContext context) {
+  Future<dynamic> _alertarNoSubirBorrador(BuildContext context) {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -232,16 +244,17 @@ class FloatingActionButtonCreacionCuestionario extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
       onPressed: () async {
-        final res = await Navigator.of(context).push(
+        final res = await Navigator.of(context).push<bool>(
           MaterialPageRoute(
             builder: (_) => const EdicionFormPage(),
           ),
         );
         // muestra el mensaje que viene desde la pantalla de llenado
-        if (res != null) {
+        if (res ?? false) {
           ScaffoldMessenger.of(context)
             ..removeCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text("$res")));
+            ..showSnackBar(const SnackBar(
+                content: Text("Cuestionario finalizado, recuerda subirlo")));
         }
       },
       icon: const Icon(Icons.add),

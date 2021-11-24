@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/features/configuracion_organizacion/administrador_de_etiquetas.dart';
+import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
 import 'package:inspecciones/presentation/widgets/app_image_multi_image_picker.dart';
+import 'package:inspecciones/presentation/widgets/reactive_textfield_tags.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:textfield_tags/textfield_tags.dart';
 
 import 'creacion_controls.dart';
 import 'creacion_form_controller.dart';
@@ -106,33 +108,27 @@ class CamposGenerales extends StatelessWidget {
           maxLines: 50,
           textCapitalization: TextCapitalization.sentences,
         ),
-        const Divider(height: 15, color: Colors.black),
-        Column(
-          children: [
-            const Text("Etiquetas"),
-            ReactiveTextFieldTags(
-                formControl: controller.etiquetasControl,
-                //etiquetasDisponibles: controller.todasLasEtiquetas,
-                optionsBuilder: (TextEditingValue val) => [], //TODO
-                validator: (String tag) {
-                  if (tag.isEmpty) return "ingrese algo";
+        const SizedBox(height: 10),
+        Consumer(builder: (context, ref, _) {
+          final todasLasJerarquias =
+              ref.watch(listaEtiquetasDePreguntasProvider).asData?.value ??
+                  const <Jerarquia>[];
 
-                  final splited = tag.split(":");
-
-                  if (splited.length == 1) {
-                    return "agregue : para separar la etiqueta";
-                  }
-
-                  if (splited.length > 2) return "solo se permite un :";
-
-                  if (splited[0].isEmpty || splited[1].isEmpty) {
-                    return "agregue texto antes y despues de :";
-                  }
-
-                  return null;
-                }),
-          ],
-        ),
+          return ReactiveTextFieldTags(
+            decoration: const InputDecoration(labelText: "etiquetas"),
+            formControl: controller.etiquetasControl,
+            optionsBuilder: (TextEditingValue val) => controller
+                .getEtiquetasDisponibles(todasLasJerarquias)
+                .where((e) =>
+                    e.clave.toLowerCase().contains(val.text.toLowerCase())),
+            onMenu: () {
+              showDialog(
+                context: context,
+                builder: (_) => const MenuDeEtiquetas(TipoDeEtiqueta.pregunta),
+              );
+            },
+          );
+        }),
         const SizedBox(height: 10),
         InputDecorator(
           decoration: const InputDecoration(

@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/features/configuracion_organizacion/administrador_de_etiquetas.dart';
+import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
+import 'package:inspecciones/presentation/widgets/reactive_textfield_tags.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:textfield_tags/textfield_tags.dart';
 
 import 'creacion_form_controller.dart';
 import 'creacion_widgets.dart';
@@ -100,36 +103,34 @@ class EdicionForm extends ConsumerWidget {
               ),
               PreguntaCard(
                 titulo: 'Etiquetas aplicables',
-                child: ReactiveTextFieldTags(
+                child: Consumer(builder: (context, ref, _) {
+                  final todasLasJerarquias = ref
+                          .watch(listaEtiquetasDeActivosProvider)
+                          .asData
+                          ?.value ??
+                      const <Jerarquia>[];
+
+                  return ReactiveTextFieldTags(
+                    decoration: const InputDecoration(labelText: "etiquetas"),
                     formControl: controller.etiquetasControl,
-                    //etiquetasDisponibles: controller.todasLasEtiquetas,
+                    validationMessages: (control) => {
+                      ValidationMessage.minLength:
+                          'Se requiere al menos una etiqueta'
+                    },
                     optionsBuilder: (TextEditingValue val) => controller
-                        .getTodasLasEtiquetas()
-                        .then((l) => l
-                            .map((e) => "${e.clave}:${e.valor}")
-                            .where((e) =>
-                                !controller.etiquetasControl.value!
-                                    .contains(e) &&
-                                e
-                                    .toLowerCase()
-                                    .contains(val.text.toLowerCase()))),
-                    validator: (String tag) {
-                      if (tag.isEmpty) return "ingrese algo";
-
-                      final splited = tag.split(":");
-
-                      if (splited.length == 1) {
-                        return "agregue : para separar la etiqueta";
-                      }
-
-                      if (splited.length > 2) return "solo se permite un :";
-
-                      if (splited[0].isEmpty || splited[1].isEmpty) {
-                        return "agregue texto antes y despues de :";
-                      }
-
-                      return null;
-                    }),
+                        .getTodasLasEtiquetas(todasLasJerarquias)
+                        .where((e) => e.clave
+                            .toLowerCase()
+                            .contains(val.text.toLowerCase())),
+                    onMenu: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) =>
+                            const MenuDeEtiquetas(TipoDeEtiqueta.activo),
+                      );
+                    },
+                  );
+                }),
               ),
               PreguntaCard(
                 titulo: 'Periodicidad (en días)',
@@ -158,14 +159,15 @@ class EdicionForm extends ConsumerWidget {
                   );
                 },
               ),
-              const SizedBox(height: 60),
+              const SizedBox(height: 100),
             ],
           ),
         ),
-        floatingActionButton: //controller.estado == EstadoDeCuestionario.borrador ?
-            const BotonesGuardado()
-        //: null
-        ,
+        floatingActionButton: controller.datosIniciales.cuestionario.estado
+                    .valueOrDefault(EstadoDeCuestionario.borrador) ==
+                EstadoDeCuestionario.borrador
+            ? const BotonesGuardado()
+            : null,
       ),
     );
   }
@@ -205,19 +207,10 @@ class BotonesGuardado extends ConsumerWidget {
     await controller.guardarCuestionarioEnLocal(EstadoDeCuestionario.borrador);
     //TODO: Mostrar tambien cuando hay un error.
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: const Text("Guardado exitoso"),
-          actions: [
-            TextButton(
-              onPressed: Navigator.of(context).pop,
-              child: const Text('Aceptar'),
-            )
-          ],
-        );
-      },
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Cuestionario guardado'),
+      ),
     );
   }
 
@@ -227,63 +220,63 @@ class BotonesGuardado extends ConsumerWidget {
       BuildContext context, CreacionFormController controller) async {
     final form = controller.control;
     form.markAllAsTouched();
-    return !form.valid
-        ? showDialog(
-            context: context,
-            builder: (BuildContext context) => AlertDialog(
-              title: const Text("Alerta"),
-              content: Text(
-                  "El cuestionario tiene errores, por favor revise: \n ${const JsonEncoder.withIndent('  ').convert(form.errors)}"),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    //TODO: hacer primero scroll hasta abajo para que el control
-                    // que falla quede en la parte de arriba de la pantalla si
-                    // es que estaba abajo
-                    try {
-                      _focusFirstError(form);
-                    } on StateError {
-                      showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                                content: Text(const JsonEncoder.withIndent('  ')
-                                    .convert(form.errors)),
-                              ));
-                    }
-                  },
-                  child: const Text("Ok"),
-                ),
-              ],
+    if (!form.valid) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text("El cuestionario tiene errores, por favor revise"),
+        action: SnackBarAction(
+          label: "ver errores",
+          onPressed: () => _mostrarErrores(context, form),
+        ),
+      ));
+      //TODO: hacer primero scroll hasta abajo para que el control
+      // que falla quede en la parte de arriba de la pantalla si
+      // es que estaba abajo
+      try {
+        _focusFirstError(form);
+      } on StateError {
+        _mostrarErrores(context, form);
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text("Alerta"),
+          content: const Text(
+              "¿Está seguro que desea finalizar este cuestionario? Si lo hace, "
+              "no podrá editarlo después y tendrá que crear una nueva versión"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancelar"),
             ),
-          )
-        : showDialog(
-            context: context,
-            builder: (BuildContext context) => AlertDialog(
-              title: const Text("Alerta"),
-              content: const Text(
-                  "¿Está seguro que desea finalizar este cuestionario? Si lo hace, no podrá editarlo después"),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Cancelar"),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
 
-                    await controller.guardarCuestionarioEnLocal(
-                        EstadoDeCuestionario.finalizado);
+                await controller.guardarCuestionarioEnLocal(
+                    EstadoDeCuestionario.finalizado);
 
-                    // mostrarMensaje(context, TipoDeMensaje.exito,
-                    //     'Cuestionario creado exitosamente');
-                  },
-                  child: const Text("Aceptar"),
-                ),
-              ],
+                Navigator.of(context).pop(true);
+              },
+              child: const Text("Aceptar"),
             ),
-          );
+          ],
+        ),
+      );
+    }
   }
+
+  void _mostrarErrores(BuildContext context, FormGroup form) => showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+            title: const Text("Errores:"),
+            content: Scrollbar(
+              child: SingleChildScrollView(
+                child: Text(
+                    const JsonEncoder.withIndent('  ').convert(form.errors)),
+              ),
+            ),
+          ));
 
   void _focusFirstError(AbstractControl control) {
     // esto solo deberia pasar si el controlador superior no tiene ningun descendiente invalido

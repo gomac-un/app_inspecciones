@@ -28,7 +28,7 @@ class OrganizacionPage extends HookConsumerWidget {
               tabs: const [
                 Tab(icon: Icon(Icons.corporate_fare_outlined)),
                 Tab(icon: Icon(Icons.people_outline_outlined)),
-                Tab(icon: Icon(Icons.commute_sharp)),
+                Tab(icon: Icon(Icons.view_in_ar_outlined)),
               ],
             ),
             title: const Text('Organizacion'),

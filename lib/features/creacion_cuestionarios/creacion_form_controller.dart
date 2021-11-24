@@ -63,9 +63,9 @@ class CreacionFormController {
     [Validators.required],
   );
 
-  late final etiquetasControl = fb.control<Set<String>>(
+  late final etiquetasControl = fb.control<Set<Etiqueta>>(
     datosIniciales.etiquetas
-        .map((e) => '${e.clave.value}:${e.valor.value}')
+        .map((e) => Etiqueta(e.clave.value, e.valor.value))
         .toSet(),
     [Validators.minLength(1)],
   );
@@ -87,9 +87,11 @@ class CreacionFormController {
   /// Se modifica cuando se copia un bloque desde creacion_controls.dart
   CreacionController? bloqueCopiado;
 
-  ///TODO: implementar cache
-  Future<List<Etiqueta>> getTodasLasEtiquetas() =>
-      organizacionRepository.getTodasLasEtiquetas();
+  List<Etiqueta> getTodasLasEtiquetas(List<Jerarquia> todasLasJerarquias) =>
+      todasLasJerarquias
+          .expand((e) => e.getTodasLasEtiquetas())
+          .where((e) => !etiquetasControl.value!.contains(e))
+          .toList();
 
   /// static factory que instancia un [CreacionFormController] de manera asíncrona
   /// ya que tiene que cargar información desde la base de datos
@@ -148,7 +150,7 @@ class CreacionFormController {
         'tipoDeInspeccion': tipoDeInspeccionControl,
         'nuevoTipoDeInspeccion': nuevoTipoDeInspeccionControl,
         'periodicidad': periodicidadControl,
-        'modelos': etiquetasControl,
+        'etiquetas': etiquetasControl,
         'bloques': bloquesControl,
       },
       asyncValidators: [
@@ -237,15 +239,15 @@ class CreacionFormController {
     final CuestionariosCompanion cuestionario =
         datosIniciales.cuestionario.copyWith(
       tipoDeInspeccion: Value(tipoDeInspeccion),
-      version: Value(datosIniciales.cuestionario.version.valueOrDefault(0) + 1),
+      version: Value(datosIniciales.cuestionario.version.valueOrDefault(1)),
       periodicidadDias: Value(periodicidadControl.value!),
       estado: Value(estado),
       subido: const Value(false),
     );
 
     final List<EtiquetasDeActivoCompanion> etiquetas = etiquetasControl.value!
-        .map((e) => EtiquetasDeActivoCompanion.insert(
-            clave: e.split(":").first, valor: e.split(":").last))
+        .map((e) =>
+            EtiquetasDeActivoCompanion.insert(clave: e.clave, valor: e.valor))
         .toList();
 
     final bloquesForm = controllersBloques.map((e) => e.toDB()).toList();

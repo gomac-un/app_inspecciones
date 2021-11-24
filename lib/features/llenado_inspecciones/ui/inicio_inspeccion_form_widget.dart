@@ -145,8 +145,8 @@ class CargaLocalForm extends ConsumerWidget {
         formControl: controller.activoControl,
         keyboardType: TextInputType.number,
         decoration: const InputDecoration(
-          labelText: 'Escriba el ID del vehiculo',
-          prefixIcon: Icon(Icons.directions_car),
+          labelText: 'Escriba el identificador del activo',
+          prefixIcon: Icon(Icons.view_in_ar_outlined),
         ),
       ),
       const SizedBox(height: 10),

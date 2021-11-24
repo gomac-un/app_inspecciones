@@ -2,16 +2,17 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/borrador.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
-import 'package:inspecciones/features/llenado_inspecciones/infrastructure/inspecciones_repository.dart';
-import 'package:inspecciones/features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
+import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 import 'package:inspecciones/utils/future_either_x.dart';
+import 'package:intl/intl.dart';
 
-import '../../features/llenado_inspecciones/ui/inicio_inspeccion_form_widget.dart';
-import '../widgets/user_drawer.dart';
+import '../domain/borrador.dart';
+import '../domain/identificador_inspeccion.dart';
+import '../domain/inspeccion.dart';
+import '../infrastructure/inspecciones_repository.dart';
+import 'inicio_inspeccion_form_widget.dart';
+import 'llenado_de_inspeccion_screen.dart';
 
 //TODO: Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 /// Pantalla con lista de todas las inspecciones pendientes por subir.
@@ -63,7 +64,7 @@ class BorradoresPage extends ConsumerWidget {
             itemCount: borradores.length,
             itemBuilder: (context, index) {
               final borrador = borradores[index];
-              final f = borrador.inspeccion.momentoBorradorGuardado;
+              final momentoGuardado = borrador.inspeccion.momentoBorradorGuardado;
               final criticidad =
                   borrador.inspeccion.estado == EstadoDeInspeccion.finalizada
                       ? 'Criticidad total inicial: '
@@ -77,7 +78,7 @@ class BorradoresPage extends ConsumerWidget {
                     "cuestionarioid": borrador.cuestionario.id.toString(),
                   },
                 ),
-                //TODO: mostrar la información de manera didáctica
+                //TODO: mejorar la manera de mostrar la informacion
                 tileColor: Theme.of(context).cardColor,
                 title: Text(
                     "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.etiquetas.join(", ")} (${borrador.cuestionario.tipoDeInspeccion})",
@@ -94,9 +95,9 @@ class BorradoresPage extends ConsumerWidget {
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),
-                    Text(f == null
+                    Text(momentoGuardado == null
                         ? ''
-                        : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute}"),
+                        : "Fecha de guardado: ${DateFormat.yMd().add_jm().format(momentoGuardado)}"),
                     Text(
                       '$criticidad ${borrador.criticidadTotal}',
                       style: const TextStyle(

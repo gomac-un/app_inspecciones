@@ -3,7 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/borrador.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 
-import '../widgets/user_drawer.dart';
+import '../../../presentation/widgets/user_drawer.dart';
 
 final borradoresDaoProvider =
     Provider((ref) => ref.watch(driftDatabaseProvider).borradoresDao);

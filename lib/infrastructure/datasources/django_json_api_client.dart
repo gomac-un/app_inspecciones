@@ -164,6 +164,8 @@ class DjangoJsonApiClient {
     if ([405, 415].contains(statusCode)) {
       throw ErrorEnLaComunicacionConLaApi(response.jsonDecoded["detail"]);
     }
+    if (statusCode == 204) return Future.value();
+
     if (statusCode == 200 || statusCode == 201) {
       return response.jsonDecoded;
     } else {

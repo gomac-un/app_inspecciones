@@ -146,6 +146,7 @@ class CuestionariosRepository {
         fotosGuia: _deserializarFotos(pregunta['fotos_guia_urls']),
         tipoDePregunta: tipoDePregunta,
         tipoDeCuadricula: Value(tipoDeCuadricula),
+        unidades: Value(pregunta['unidades']),
       );
 
   List<OpcionesDeRespuestaCompanion> _deserializarOpcionesDeRespuesta(
@@ -349,6 +350,7 @@ class CuestionarioSerializer {
         'criticidades_numericas': _serializarCriticidades(bloque.criticidades),
         'etiquetas': _serializarEtiquetasDePregunta(bloque.etiquetas),
         'fotos_guia': _serializarFotos(pregunta.fotosGuia),
+        'unidades': pregunta.unidades!,
       };
     } else if (bloque is CuadriculaConPreguntasYConOpcionesDeRespuesta) {
       final cuadricula = bloque.cuadricula.pregunta;

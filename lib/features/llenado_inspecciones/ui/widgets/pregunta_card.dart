@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../control/controlador_de_pregunta.dart';
 import '../../domain/bloques/pregunta.dart';
-import 'widget_criticidad.dart';
 import 'widget_respuesta.dart';
 
 class PreguntaCard extends StatelessWidget {
@@ -51,7 +50,7 @@ class PreguntaCard extends StatelessWidget {
               child: child,
             ),
             WidgetRespuesta(controlador),
-            WidgetCriticidad(controlador),
+            //WidgetCriticidad(controlador), //TODO: mirar que hacer con la feature "criticidad_inspector"
           ],
         ),
       ),
