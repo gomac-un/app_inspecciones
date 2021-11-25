@@ -19,7 +19,6 @@ class PreguntaDeSeleccionMultiple
     required List<AppImage> fotosGuia,
     required int criticidad,
     required List<Etiqueta> etiquetas,
-    required bool calificable,
     RespuestaDeSeleccionMultiple?
         respuesta, // aqui se depositan las respuestas para el guardado
   }) : super(
@@ -31,7 +30,6 @@ class PreguntaDeSeleccionMultiple
           fotosGuia: fotosGuia,
           criticidad: criticidad,
           etiquetas: etiquetas,
-          calificable: calificable,
         );
 }
 
@@ -46,7 +44,6 @@ class SubPreguntaDeSeleccionMultiple
     required List<AppImage> fotosGuia,
     required int criticidad,
     required List<Etiqueta> etiquetas,
-    required bool calificable,
     SubRespuestaDeSeleccionMultiple? respuesta,
   }) : super(
           id: id,
@@ -56,6 +53,5 @@ class SubPreguntaDeSeleccionMultiple
           fotosGuia: fotosGuia,
           criticidad: criticidad,
           etiquetas: etiquetas,
-          calificable: calificable,
         );
 }

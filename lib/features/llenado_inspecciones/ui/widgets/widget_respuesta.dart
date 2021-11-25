@@ -7,7 +7,6 @@ import '../../control/controlador_de_pregunta.dart';
 import '../../control/controlador_llenado_inspeccion.dart';
 import '../../control/providers.dart';
 import '../../domain/inspeccion.dart';
-import 'widget_criticidad_inspector.dart';
 
 class WidgetRespuesta extends StatelessWidget {
   final ControladorDePregunta control;
@@ -21,8 +20,6 @@ class WidgetRespuesta extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (control.pregunta.calificable)
-          WidgetCriticidadInspector(control.criticidadInspectorControl),
         ReactiveTextField(
           formControl: control.observacionControl,
           decoration: const InputDecoration(

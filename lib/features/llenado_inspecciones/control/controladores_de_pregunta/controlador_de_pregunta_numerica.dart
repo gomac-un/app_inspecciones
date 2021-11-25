@@ -6,9 +6,9 @@ import '../controlador_de_pregunta.dart';
 import '../visitors/controlador_de_pregunta_visitor.dart';
 
 class ControladorDePreguntaNumerica
-    extends ControladorDePregunta<PreguntaNumerica> {
+    extends ControladorDePregunta<PreguntaNumerica, FormControl<double?>> {
   @override
-  late final FormControl<double?> respuestaEspecificaControl = fb.control(
+  late final respuestaEspecificaControl = fb.control(
       pregunta.respuesta?.respuestaNumerica,
       [DoubleValidator().validate, Validators.required]);
 

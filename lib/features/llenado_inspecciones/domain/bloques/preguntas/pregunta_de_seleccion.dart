@@ -15,7 +15,6 @@ class PreguntaDeSeleccion<T extends Respuesta> extends Pregunta<T> {
     required List<AppImage> fotosGuia,
     required int criticidad,
     required List<Etiqueta> etiquetas,
-    required bool calificable,
     T? respuesta,
   }) : super(
           id: id,
@@ -25,6 +24,5 @@ class PreguntaDeSeleccion<T extends Respuesta> extends Pregunta<T> {
           criticidad: criticidad,
           etiquetas: etiquetas,
           respuesta: respuesta,
-          calificable: calificable,
         );
 }

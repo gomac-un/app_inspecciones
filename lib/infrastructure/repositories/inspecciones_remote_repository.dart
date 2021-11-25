@@ -6,10 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/cuestionario.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 import 'package:inspecciones/infrastructure/core/typedefs.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
@@ -219,6 +216,7 @@ class InspeccionSerializer {
             metaRespuesta.momentoRespuesta?.toUtc().toIso8601String(),
         'fotos_base': _serializarFotos(metaRespuesta.fotosBase),
         'fotos_reparacion': _serializarFotos(metaRespuesta.fotosReparacion),
+        'criticidad_del_inspector': metaRespuesta.criticidadDelInspector,
       };
 
   JsonList _serializarFotos(List<AppImage> fotos) =>

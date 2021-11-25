@@ -159,6 +159,10 @@ class OpcionesDeRespuesta extends Table {
   TextColumn get titulo => text()();
   TextColumn get descripcion => text()();
   IntColumn get criticidad => integer()();
+
+  /// Si el inspector puede asignar un nivel de criticidad a la respuesta
+  BoolColumn get requiereCriticidadDelInspector => boolean()();
+
   TextColumn get preguntaId => text().customConstraint(
       'NOT NULL REFERENCES preguntas(id) ON DELETE CASCADE')();
 
@@ -223,6 +227,9 @@ class Respuestas extends Table {
 
   TextColumn get tipoDeRespuesta => text().map(
       const _EnumToStringConverter<TipoDeRespuesta>(TipoDeRespuesta.values))();
+
+  /// No null solo si la opcion seleccionada u opcion respondida requiereCriticidadDelInspector
+  IntColumn get criticidadDelInspector => integer().nullable()();
 
   TextColumn get preguntaId => text().nullable().customConstraint(
       'NULLABLE REFERENCES preguntas(id) ON DELETE CASCADE')();

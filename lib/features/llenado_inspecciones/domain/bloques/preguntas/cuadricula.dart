@@ -17,7 +17,6 @@ class Cuadricula<T extends RespuestaDeCuadricula, P extends PreguntaDeSeleccion>
     required List<AppImage> fotosGuia,
     required int criticidad,
     required List<Etiqueta> etiquetas,
-    required bool calificable,
     T? respuesta,
   }) : super(
           opcionesDeRespuesta,
@@ -28,7 +27,6 @@ class Cuadricula<T extends RespuestaDeCuadricula, P extends PreguntaDeSeleccion>
           fotosGuia: fotosGuia,
           criticidad: criticidad,
           etiquetas: etiquetas,
-          calificable: calificable,
         );
 }
 

@@ -41,8 +41,8 @@ final ProviderFamily<int?, ControladorDePregunta> criticidadRespuestaProvider =
   return controlador.criticidadRespuesta;
 });
 
-final ProviderFamily<int, FormControl<int>> criticidadInspectorProvider =
-    Provider.family<int, FormControl<int>>((ref, control) {
+final ProviderFamily<int, FormControl<int?>> criticidadInspectorProvider =
+    Provider.family<int, FormControl<int?>>((ref, control) {
   StreamSubscription? subscription;
   subscription = control.valueChanges.listen((_) {
     ref.refresh(criticidadInspectorProvider(control));
@@ -62,7 +62,6 @@ final ProviderFamily<bool, FormControl<bool>> reparadoProvider =
 });
 
 /// permite reaccionar a cambios de  [ControladorDePregunta.criticidadCalculada]
-/// de manera reactiva.
 ///! Importante: se deben escuchar todas las variables de las
 ///! que dependa [controlador.criticidadCalculada]
 final criticidadCalculadaProvider = Provider.family<int, ControladorDePregunta>(
@@ -70,7 +69,7 @@ final criticidadCalculadaProvider = Provider.family<int, ControladorDePregunta>(
     ref.watch(criticidadRespuestaProvider(controlador));
     ref.watch(reparadoProvider(controlador.reparadoControl));
     ref.watch(
-        criticidadInspectorProvider(controlador.criticidadInspectorControl));
+        criticidadInspectorProvider(controlador.criticidadDelInspectorControl));
     return controlador.criticidadCalculada;
   },
 );

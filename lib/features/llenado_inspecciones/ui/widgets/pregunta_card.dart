@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inspecciones/features/llenado_inspecciones/ui/widgets/widget_criticidad.dart';
 
 import '../../control/controlador_de_pregunta.dart';
 import '../../domain/bloques/pregunta.dart';
@@ -50,7 +51,7 @@ class PreguntaCard extends StatelessWidget {
               child: child,
             ),
             WidgetRespuesta(controlador),
-            //WidgetCriticidad(controlador), //TODO: mirar que hacer con la feature "criticidad_inspector"
+            WidgetCriticidad(controlador),
           ],
         ),
       ),

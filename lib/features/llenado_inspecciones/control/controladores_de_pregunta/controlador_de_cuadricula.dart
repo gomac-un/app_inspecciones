@@ -1,6 +1,7 @@
 import 'package:reactive_forms/reactive_forms.dart';
 
 import '../../domain/bloques/preguntas/cuadricula.dart';
+import '../../domain/bloques/preguntas/opcion_de_respuesta.dart';
 import '../../domain/bloques/preguntas/pregunta_de_seleccion.dart';
 import '../../domain/bloques/preguntas/pregunta_de_seleccion_multiple.dart';
 import '../../domain/bloques/preguntas/pregunta_de_seleccion_unica.dart';
@@ -11,10 +12,12 @@ import 'controlador_de_pregunta_de_seleccion_multiple.dart';
 import 'controlador_de_pregunta_de_seleccion_unica.dart';
 
 abstract class ControladorDeCuadricula<
-    B extends RespuestaDeCuadricula,
-    C extends PreguntaDeSeleccion,
-    T extends Cuadricula<B, C>,
-    S extends ControladorDePregunta<C>> extends ControladorDePregunta<T> {
+        B extends RespuestaDeCuadricula,
+        C extends PreguntaDeSeleccion,
+        R extends AbstractControl,
+        T extends Cuadricula<B, C>,
+        S extends ControladorDePregunta<C, R>>
+    extends ControladorDePregunta<T, FormArray> {
   abstract final List<S> controladoresPreguntas;
 
   @override
@@ -38,6 +41,7 @@ class ControladorDeCuadriculaDeSeleccionMultiple
     extends ControladorDeCuadricula<
         RespuestaDeCuadriculaDeSeleccionMultiple,
         PreguntaDeSeleccionMultiple,
+        FormArray,
         CuadriculaDeSeleccionMultiple,
         ControladorDePreguntaDeSeleccionMultiple> {
   @override
@@ -57,6 +61,7 @@ class ControladorDeCuadriculaDeSeleccionMultiple
 class ControladorDeCuadriculaDeSeleccionUnica extends ControladorDeCuadricula<
     RespuestaDeCuadriculaDeSeleccionUnica,
     PreguntaDeSeleccionUnica,
+    FormControl<OpcionDeRespuesta?>,
     CuadriculaDeSeleccionUnica,
     ControladorDePreguntaDeSeleccionUnica> {
   @override

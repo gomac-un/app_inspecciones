@@ -241,10 +241,14 @@ class CreadorRespuestaController {
   late final criticidadControl = fb.control<double>(
       _respuestaDesdeDB.criticidad.valueOrDefault(0).toDouble());
 
+  late final requiereCriticidadDelInspectorControl = fb.control<bool>(
+      _respuestaDesdeDB.requiereCriticidadDelInspector.valueOrDefault(false));
+
   late final control = fb.group({
     'titulo': tituloControl,
     'descripcion': descripcionControl,
     'criticidad': criticidadControl,
+    'requiereCriticidadDelInspector': requiereCriticidadDelInspectorControl,
   });
 
   CreadorRespuestaController(
@@ -260,7 +264,9 @@ class CreadorRespuestaController {
     return _respuestaDesdeDB.copyWith(
         titulo: Value(tituloControl.value!),
         descripcion: Value(descripcionControl.value!),
-        criticidad: Value(criticidadControl.value!.round()));
+        criticidad: Value(criticidadControl.value!.round()),
+        requiereCriticidadDelInspector:
+            Value(requiereCriticidadDelInspectorControl.value!));
   }
 }
 

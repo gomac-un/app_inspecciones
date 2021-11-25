@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:simple_tooltip/simple_tooltip.dart';
 
 import 'creacion_controls.dart';
 
 /// Widget usado para añadir las opciones de respuesta a las preguntas de cuadricula o de selección
-class WidgetRespuestas extends StatelessWidget {
+class WidgetRespuestas extends HookWidget {
   const WidgetRespuestas({
     Key? key,
     required this.controlPregunta,
@@ -14,6 +16,8 @@ class WidgetRespuestas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showTooltipNotifier = useState(false);
+
     /// Como las respuestas se van añadiendo dinámicamente, este
     /// [ReactiveValueListenableBuilder] escucha cambios en el control respuestas
     /// así cada que se va añadiendo una opción, se muestra el nuevo widget en la UI
@@ -48,6 +52,38 @@ class WidgetRespuestas extends StatelessWidget {
                       //Las keys sirven para que flutter maneje correctamente los widgets de la lista
                       key: ValueKey(controlRespuesta),
                       children: [
+                        Row(
+                          children: [
+                            SimpleTooltip(
+                              show: showTooltipNotifier.value,
+                              tooltipDirection: TooltipDirection.right,
+                              content: Text(
+                                "Seleccione si el inspector puede asignar una criticidad propia al elegir esta respuesta",
+                                style: Theme.of(context).textTheme.subtitle2,
+                              ),
+                              ballonPadding: const EdgeInsets.all(2),
+                              borderColor: Theme.of(context).primaryColor,
+                              borderWidth: 0,
+                              child: IconButton(
+                                  iconSize: 20,
+                                  icon: const Icon(
+                                    Icons.info,
+                                  ),
+                                  onPressed: () => showTooltipNotifier.value =
+                                      !showTooltipNotifier.value),
+                            ),
+                            Flexible(
+                              child: ReactiveCheckboxListTile(
+                                formControl: controlRespuesta
+                                    .requiereCriticidadDelInspectorControl,
+                                title: const Text(
+                                    'Requiere criticidad del inspector'),
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                              ),
+                            ),
+                          ],
+                        ),
                         Row(
                           children: [
                             Expanded(

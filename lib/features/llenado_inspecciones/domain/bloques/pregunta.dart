@@ -15,7 +15,6 @@ class Pregunta<T extends Respuesta> extends Bloque {
   T? respuesta;
   final int criticidad;
   final List<Etiqueta> etiquetas;
-  final bool calificable;
 
   Pregunta({
     required this.id,
@@ -24,7 +23,6 @@ class Pregunta<T extends Respuesta> extends Bloque {
     required List<AppImage> fotosGuia,
     required this.criticidad,
     required this.etiquetas,
-    required this.calificable,
     this.respuesta,
   }) : super(
           titulo: titulo,

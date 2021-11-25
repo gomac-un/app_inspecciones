@@ -207,7 +207,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         criticidad: pregunta.criticidad,
         etiquetas:
             etiquetas.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList(),
-        calificable: true,
         respuesta: respuesta == null
             ? null
             : dominio.RespuestaNumerica(
@@ -266,8 +265,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
       criticidad: pregunta.criticidad,
       etiquetas:
           etiquetas.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList(),
-      calificable: true, //TODO: solucionar #19
-
       respuesta: respuesta == null
           ? null
           : dominio.RespuestaDeSeleccionUnica(
@@ -350,7 +347,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
             fotosGuia: [],
             criticidad: op.criticidad,
             etiquetas: [],
-            calificable: false,
             respuesta: respuesta == null
                 ? null
                 : dominio.SubRespuestaDeSeleccionMultiple(
@@ -366,7 +362,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         titulo: pregunta.titulo,
         descripcion: pregunta.descripcion,
         fotosGuia: pregunta.fotosGuia,
-        calificable: true, //TODO: solucionar #19
         respuesta: respuesta == null
             ? null
             : dominio.RespuestaDeSeleccionMultiple(
@@ -449,7 +444,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         criticidad: cuadricula.criticidad,
         etiquetas:
             etiquetas.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList(),
-        calificable: true,
         respuesta: respuesta == null
             ? null
             : dominio.RespuestaDeCuadricula(
@@ -523,7 +517,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         criticidad: cuadricula.criticidad,
         etiquetas:
             etiquetas.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList(),
-        calificable: true,
       );
 
   Future<List<Pregunta>> _getPreguntasDeCuadricula(String cuadriculaId) async {
@@ -582,13 +575,13 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
 
   dominio.MetaRespuesta _buildMetaRespuesta(Respuesta respuesta) =>
       dominio.MetaRespuesta(
-        criticidadInspector: 0,
         observaciones: respuesta.observacion,
         reparada: respuesta.reparado,
         observacionesReparacion: respuesta.observacionReparacion,
         fotosBase: respuesta.fotosBase,
         fotosReparacion: respuesta.fotosReparacion,
         momentoRespuesta: respuesta.momentoRespuesta,
+        criticidadDelInspector: respuesta.criticidadDelInspector,
       );
 
   dominio.OpcionDeRespuesta _buildOpcionDeRespuesta(OpcionDeRespuesta opcion) =>
@@ -596,5 +589,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
           id: opcion.id,
           titulo: opcion.titulo,
           descripcion: opcion.descripcion,
-          criticidad: opcion.criticidad);
+          criticidad: opcion.criticidad,
+          requiereCriticidadDelInspector:
+              opcion.requiereCriticidadDelInspector);
 }

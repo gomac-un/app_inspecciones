@@ -2,10 +2,11 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 import '../../control/visitors/controlador_de_pregunta_visitor.dart';
 import '../../domain/bloques/preguntas/pregunta_de_seleccion_multiple.dart';
+import '../../domain/metarespuesta.dart';
 import '../controlador_de_pregunta.dart';
 
 class ControladorDePreguntaDeSeleccionMultiple
-    extends ControladorDePregunta<PreguntaDeSeleccionMultiple> {
+    extends ControladorDePregunta<PreguntaDeSeleccionMultiple, FormArray> {
   late final List<ControladorDeSubPreguntaDeSeleccionMultiple>
       controladoresPreguntas = pregunta.respuestas
           .map((p) => ControladorDeSubPreguntaDeSeleccionMultiple(p))
@@ -50,8 +51,8 @@ class ControladorDePreguntaDeSeleccionMultiple
       visitor.visitSeleccionMultiple(this);
 }
 
-class ControladorDeSubPreguntaDeSeleccionMultiple
-    extends ControladorDePregunta<SubPreguntaDeSeleccionMultiple> {
+class ControladorDeSubPreguntaDeSeleccionMultiple extends ControladorDePregunta<
+    SubPreguntaDeSeleccionMultiple, FormControl<bool>> {
   @override
   late final FormControl<bool> respuestaEspecificaControl =
       fb.control(pregunta.respuesta?.estaSeleccionada ?? false);
@@ -63,6 +64,13 @@ class ControladorDeSubPreguntaDeSeleccionMultiple
   @override
   int get criticidadRespuesta =>
       pregunta.opcion.criticidad * (estaSeleccionada ? 1 : 0);
+
+  @override
+  MetaRespuesta guardarMetaRespuesta() =>
+      pregunta.opcion.requiereCriticidadDelInspector
+          ? super.guardarMetaRespuesta().copyWith(
+              criticidadDelInspector: criticidadDelInspectorControl.value)
+          : super.guardarMetaRespuesta();
 
   bool get estaSeleccionada => respuestaEspecificaControl.value!;
 

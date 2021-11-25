@@ -157,6 +157,8 @@ class CuestionariosRepository {
                 titulo: o["titulo"],
                 descripcion: o["descripcion"],
                 criticidad: o["criticidad"],
+                requiereCriticidadDelInspector:
+                    o["requiere_criticidad_del_inspector"],
                 // el metodo de guardado agrega la preguntaId adecuada
                 preguntaId: "",
               ))

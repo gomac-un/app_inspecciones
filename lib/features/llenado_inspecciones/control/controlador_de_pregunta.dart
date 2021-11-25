@@ -5,15 +5,17 @@ import '../domain/bloques/pregunta.dart';
 import '../domain/metarespuesta.dart';
 import 'visitors/controlador_de_pregunta_visitor.dart';
 
-abstract class ControladorDePregunta<T extends Pregunta> {
+abstract class ControladorDePregunta<T extends Pregunta,
+    R extends AbstractControl> {
   final T pregunta;
   late DateTime? momentoRespuesta =
       pregunta.respuesta?.metaRespuesta.momentoRespuesta;
   late final MetaRespuesta respuesta =
       pregunta.respuesta?.metaRespuesta ?? MetaRespuesta.vacia();
 
-  late final criticidadInspectorControl =
-      fb.control(respuesta.criticidadInspector);
+  late final criticidadDelInspectorControl =
+      fb.control(respuesta.criticidadDelInspector ?? -1);
+
   late final observacionControl = fb.control(respuesta.observaciones);
   late final reparadoControl = fb.control(respuesta.reparada);
 
@@ -24,9 +26,9 @@ abstract class ControladorDePregunta<T extends Pregunta> {
   late final fotosReparacionControl =
       fb.control<List<AppImage>>(respuesta.fotosReparacion);
 
-  abstract final AbstractControl respuestaEspecificaControl;
+  abstract final R respuestaEspecificaControl;
   late final metaRespuestaControl = fb.group({
-    "criticidadInspector": criticidadInspectorControl,
+    "criticidadDelInspector": criticidadDelInspectorControl,
     "observacion": observacionControl,
     "observacionReparacion": observacionReparacionControl,
     "reparado": reparadoControl,
@@ -58,20 +60,22 @@ abstract class ControladorDePregunta<T extends Pregunta> {
 
   bool esValido() => control.valid;
 
+  /// las preguntas de seleccion deben sobreescribir este método para agregarle la criticidad del inspector
   MetaRespuesta guardarMetaRespuesta() => MetaRespuesta(
-      observaciones: observacionControl.value!,
-      fotosBase: fotosBaseControl.value!,
-      reparada: reparadoControl.value!,
-      observacionesReparacion: observacionReparacionControl.value!,
-      fotosReparacion: fotosReparacionControl.value!,
-      momentoRespuesta: momentoRespuesta);
+        observaciones: observacionControl.value!,
+        fotosBase: fotosBaseControl.value!,
+        reparada: reparadoControl.value!,
+        observacionesReparacion: observacionReparacionControl.value!,
+        fotosReparacion: fotosReparacionControl.value!,
+        momentoRespuesta: momentoRespuesta,
+      );
 
   /// solo se puede usar para leer el calculo, para componentes de la ui que deben
   /// reaccionar a cambios de este calculo se debe usar [criticidadCalculadaProvider]
   int get criticidadCalculada => (criticidadPregunta *
           (criticidadRespuesta ??
               1) * // si no se conoce el valor, la criticidad por defecto es 1
-          _porcentajeCalificacion(criticidadInspectorControl.value!) *
+          _porcentajeCalificacion(criticidadDelInspectorControl.value ?? 1) *
           (reparadoControl.value! ? 0 : 1))
       .round();
 
@@ -81,12 +85,13 @@ abstract class ControladorDePregunta<T extends Pregunta> {
   /// para que [criticidadCalculadaProvider] funcione bien
   int? get criticidadRespuesta;
 
-  R accept<R>(ControladorDePreguntaVisitor<R> visitor);
+  V accept<V>(ControladorDePreguntaVisitor<V> visitor);
 
   static double _porcentajeCalificacion(int calificacion) {
     switch (calificacion.round()) {
-      case 0:
-        return 0;
+      case -1:
+      case 0: //estos dos valores solo ocurren si no aplica
+        return 1;
 
       case 1:
         return 0.55;

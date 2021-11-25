@@ -15,7 +15,6 @@ class PreguntaNumerica extends Pregunta<RespuestaNumerica> {
     required List<AppImage> fotosGuia,
     required int criticidad,
     required List<Etiqueta> etiquetas,
-    required bool calificable,
     RespuestaNumerica? respuesta,
   }) : super(
           id: id,
@@ -25,7 +24,6 @@ class PreguntaNumerica extends Pregunta<RespuestaNumerica> {
           fotosGuia: fotosGuia,
           criticidad: criticidad,
           etiquetas: etiquetas,
-          calificable: calificable,
         );
 }
 
