@@ -3,7 +3,6 @@ import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 
-
 part 'guardado_cuestionario_dao.drift.dart';
 
 @DriftAccessor(tables: [
@@ -37,7 +36,9 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
         final cuestionario = await _upsertCuestionario(cuestionarioInsertable);
         await _insertEtiquetasDeActivo(etiquetasAplicablesForm, cuestionario);
 
-        // La estrategia es borrar todo y volverlo a crear para que sea mas simple
+        // La estrategia es borrar todo y volverlo a crear para que sea mas simple,
+        // a veces en la version web no se borran en cascada, por lo que se deben
+        // hacer los inserts subsecuentes con insertOrReplace
         await (delete(bloques)
               ..where(
                   (bloque) => bloque.cuestionarioId.equals(cuestionario.id)))
@@ -60,9 +61,11 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
           ); // cuando se descarga del server se pueden ignorar los ids de los bloques
 
           if (element is TituloDCompanion) {
-            await into(titulos).insert(element.titulo.copyWith(
-              bloqueId: Value(bloque.id),
-            ));
+            await into(titulos).insert(
+                element.titulo.copyWith(
+                  bloqueId: Value(bloque.id),
+                ),
+                mode: InsertMode.insertOrReplace);
           } else if (element is PreguntaNumericaCompanion) {
             await _insertarPregunta(
               element.pregunta,
@@ -163,7 +166,8 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
       cuadriculaId: Value(cuadricula?.id),
     );
 
-    final pregunta = await into(preguntas).insertReturning(preguntaAInsertar);
+    final pregunta = await into(preguntas)
+        .insertReturning(preguntaAInsertar, mode: InsertMode.insertOrReplace);
     if (opcionesDeRespuesta != null) {
       await _insertOpcionesDeRespuesta(opcionesDeRespuesta, pregunta);
     } else if (criticidades != null) {

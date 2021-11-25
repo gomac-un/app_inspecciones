@@ -49,7 +49,6 @@ class ListViewPreguntas extends HookConsumerWidget {
         constraints: const BoxConstraints(maxWidth: 700),
         child: SafeArea(
           child: ListView.builder(
-            shrinkWrap: true,
             controller: controller,
             itemCount: widgets.length,
             itemBuilder: (_, j) =>

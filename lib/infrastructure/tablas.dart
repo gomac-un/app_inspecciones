@@ -310,8 +310,11 @@ class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
     }
     return (json.decode(fromDb) as List)
         .cast<String>()
-        .map((p) =>
-            p.startsWith("http") ? AppImage.remote(p) : AppImage.mobile(p))
+        .map((p) => p.startsWith("http")
+            ? AppImage.remote(p)
+            : p.startsWith("blob")
+                ? AppImage.web(p)
+                : AppImage.mobile(p))
         .toList();
   }
 
@@ -324,8 +327,10 @@ class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
         .map((i) => i.when(
             remote: (p) => p,
             mobile: (p) => p,
-            web: (_) =>
-                throw UnsupportedError("No se puede guardar una imagen web")))
+            web: (p) {
+              return p;
+              throw UnsupportedError("No se puede guardar una imagen web");
+            }))
         .toList());
   }
 }

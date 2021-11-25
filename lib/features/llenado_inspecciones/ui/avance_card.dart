@@ -49,6 +49,7 @@ class AvanceCard extends ConsumerWidget {
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
             children: [
               LinearProgressIndicator(
                   value: avance,

@@ -111,7 +111,10 @@ class DjangoJsonApiClient {
 
   Future<http.MultipartFile> _buildMultipartFile(
       XFile value, String field) async {
-    final fileName = path.basename(value.path);
+    var fileName = path.basename(value.path);
+    //MACHETAZO MONUMENTAL
+    if (!fileName.contains(".")) fileName = "$fileName.jpg";
+
     final stream = http.ByteStream(value.openRead());
     final length = await value.length();
     final multipartFile = http.MultipartFile(

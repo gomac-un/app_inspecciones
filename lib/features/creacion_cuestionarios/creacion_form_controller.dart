@@ -17,27 +17,28 @@ import 'tablas_unidas.dart';
 final cuestionarioIdProvider = Provider<String?>((ref) => throw Exception(
     "se debe definir cuestionarioId dentro de la pagina de creacion"));
 
-final creacionFormControllerFutureProvider = FutureProvider(
-  (ref) => CreacionFormController.create(
-    ref.watch(cuestionariosRepositoryProvider),
-    ref.watch(organizacionRepositoryProvider),
-    ref.watch(cuestionarioIdProvider),
-  ),
-  dependencies: [
-    cuestionarioIdProvider,
-    cuestionariosRepositoryProvider,
-    organizacionRepositoryProvider,
-  ],
+final creacionFormControllerFutureProvider =
+    FutureProvider.autoDispose.family<CreacionFormController, String?>(
+  (ref, cuestionarioId) async {
+    final res = await CreacionFormController.create(
+      ref.watch(cuestionariosRepositoryProvider),
+      ref.watch(organizacionRepositoryProvider),
+      cuestionarioId,
+    );
+    ref.onDispose(res.dispose);
+    return res;
+  },
 );
 
-final creacionFormControllerProvider = Provider(
-  (ref) => ref.watch(creacionFormControllerFutureProvider).when(
-        data: id,
-        loading: () => throw Exception(
-            "creacionFormControllerFutureProvider no se ha cargado"),
-        error: (e, s) => throw e,
-      ),
-  dependencies: [creacionFormControllerFutureProvider],
+final creacionFormControllerProvider =
+    Provider.autoDispose.family<CreacionFormController, String?>(
+  (ref, cuestionarioId) =>
+      ref.watch(creacionFormControllerFutureProvider(cuestionarioId)).when(
+            data: id,
+            loading: () => throw Exception(
+                "creacionFormControllerFutureProvider no se ha cargado"),
+            error: (e, s) => throw e,
+          ),
 );
 
 class CreacionFormController {

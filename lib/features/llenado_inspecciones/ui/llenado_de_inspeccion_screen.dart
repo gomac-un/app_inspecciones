@@ -95,8 +95,9 @@ class InspeccionPage extends ConsumerWidget {
                       .length),
               const SizedBox(height: 3),
               Expanded(
-                  child: PaginadorYFiltradorDePreguntas(control,
-                      factory: ref.watch(preguntaCardFactoryProvider))),
+                child: PaginadorYFiltradorDePreguntas(control,
+                    factory: ref.watch(preguntaCardFactoryProvider)),
+              ),
             ]),
             floatingActionButton: mostrarBotonesDeNavegacion
                 ? FABNavigation(

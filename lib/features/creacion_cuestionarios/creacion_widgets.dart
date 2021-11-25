@@ -151,7 +151,7 @@ class CamposGenerales extends StatelessWidget {
   }
 }
 
-/// Reúne todas las acciones comunes a todos los bloques, incluye agregar nuevo
+/// Reune todas las acciones comunes a todos los bloques, incluye agregar nuevo
 /// tipo de pregunta, agregar titulo, copiar y pegar bloque
 class BotonesDeBloque extends ConsumerWidget {
   const BotonesDeBloque({
@@ -164,8 +164,9 @@ class BotonesDeBloque extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     if (controllerActual.control.disabled) return const SizedBox.shrink();
-    final formController = ref.watch(creacionFormControllerProvider);
-    final animatedList = AnimatedList.of(context);
+    final formController = ref.watch(
+        creacionFormControllerProvider(ref.watch(cuestionarioIdProvider)));
+    final animatedList = SliverAnimatedList.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -312,7 +313,7 @@ class BotonesDeBloque extends ConsumerWidget {
 
   /// Pega bloque despues del bloque actual [formGroup]
   Future<void> pegarBloque(CreacionFormController formController,
-      AnimatedListState animatedList) async {
+      SliverAnimatedListState animatedList) async {
     final bloqueCopiado = formController.bloqueCopiado;
     if (bloqueCopiado != null) {
       agregarBloque(formController, animatedList, bloqueCopiado.copy());
@@ -320,8 +321,8 @@ class BotonesDeBloque extends ConsumerWidget {
   }
 
   /// Borra el bloque seleccionado [formGroup]
-  void borrarBloque(
-      CreacionFormController formController, AnimatedListState animatedList) {
+  void borrarBloque(CreacionFormController formController,
+      SliverAnimatedListState animatedList) {
     final index = formController.controllersBloques.indexOf(controllerActual);
     if (index == 0) return; //no borre el primer titulo
     /// Elimina de la lista en la pantalla
@@ -340,7 +341,7 @@ class BotonesDeBloque extends ConsumerWidget {
   /// Agrega un bloque despues del seleccionado
   void agregarBloque(
     CreacionFormController formController,
-    AnimatedListState animatedList,
+    SliverAnimatedListState animatedList,
     CreacionController nuevo,
   ) {
     /// Lo inserta en la lista de la UI

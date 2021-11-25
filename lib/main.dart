@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:file/local.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
+//import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
+//import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,6 +13,7 @@ import 'app_router.dart';
 import 'infrastructure/core/directorio_de_datos.dart';
 import 'infrastructure/datasources/local_preferences_datasource.dart';
 import 'infrastructure/datasources/providers.dart';
+import 'infrastructure/repositories/providers.dart';
 import 'presentation/pages/splash_screen.dart';
 import 'riverpod_logger.dart';
 import 'utils.dart';
@@ -48,7 +49,6 @@ Future<void> _ejecutarAppConRiverpod() async {
       home: SplashPage(),
     ),
   );
-  if (!kIsWeb) await FlutterDownloader.initialize(debug: kDebugMode);
   final prefs = await SharedPreferences.getInstance();
 
   final androidOverrides = [
@@ -85,7 +85,7 @@ Uri _buildApiUri({required bool isWeb, required bool isProduction}) {
   return Uri(
     scheme: 'http',
     host: host,
-    port: 8000,
+    port: isProduction ? 80 : 8000,
     pathSegments: ['inspecciones', 'api', 'v1'],
   );
 }

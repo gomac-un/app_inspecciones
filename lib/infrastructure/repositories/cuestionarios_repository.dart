@@ -241,7 +241,12 @@ class CuestionariosRepository {
     return res;
   }
 
-  String _getName(AppImage foto) => path.basename(_getFile(foto).path);
+  String _getName(AppImage foto) {
+    var res = path.basename(_getFile(foto).path);
+    //MACHETAZO MONUMENTAL
+    if (!res.contains(".")) res = "$res.jpg";
+    return res;
+  }
 
   XFile _getFile(AppImage foto) => foto.when(
       remote: (_) => XFile(''), //Esto no pasa
