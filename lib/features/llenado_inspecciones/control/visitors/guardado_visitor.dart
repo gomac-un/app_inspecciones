@@ -25,6 +25,7 @@ class GuardadoVisitor implements ControladorDePreguntaVisitor<Pregunta> {
   Future<void> guardarInspeccion() {
     final preguntasRespondidas =
         _controladores.map((c) => c.accept(this)).toList();
+    
     return _repository.guardarInspeccion(preguntasRespondidas, _inspeccion);
   }
 

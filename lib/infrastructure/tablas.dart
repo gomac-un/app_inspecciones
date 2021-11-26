@@ -231,6 +231,10 @@ class Respuestas extends Table {
   /// No null solo si la opcion seleccionada u opcion respondida requiereCriticidadDelInspector
   IntColumn get criticidadDelInspector => integer().nullable()();
 
+  /// caché de la criticidad calculada usando campos de la respuesta y de la pregunta,
+  /// la fórmula se encuentra en [ControladorDePregunta.criticidadCalculada]
+  IntColumn get criticidadCalculada => integer()();
+
   TextColumn get preguntaId => text().nullable().customConstraint(
       'NULLABLE REFERENCES preguntas(id) ON DELETE CASCADE')();
 

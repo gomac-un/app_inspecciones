@@ -12,13 +12,14 @@ import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
-import 'package:inspecciones/infrastructure/core/typedefs.dart';
-import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
-import 'package:inspecciones/infrastructure/datasources/flutter_downloader/errors.dart';
-import 'package:inspecciones/infrastructure/datasources/providers.dart';
-import 'package:inspecciones/infrastructure/drift_database.dart';
-import 'package:inspecciones/infrastructure/utils/transformador_excepciones_api.dart';
 import 'package:path/path.dart' as path;
+
+import '../core/typedefs.dart';
+import '../datasources/cuestionarios_remote_datasource.dart';
+import '../datasources/flutter_downloader/errors.dart';
+import '../datasources/providers.dart';
+import '../drift_database.dart';
+import '../utils/transformador_excepciones_api.dart';
 
 class CuestionariosRepository {
   final Reader _read;
@@ -414,7 +415,9 @@ class CuestionarioSerializer {
                 'id': opcion.id,
                 'titulo': opcion.titulo,
                 'descripcion': opcion.descripcion,
-                'criticidad': opcion.criticidad
+                'criticidad': opcion.criticidad,
+                'requiere_criticidad_del_inspector':
+                    opcion.requiereCriticidadDelInspector,
               })
           .toList();
 

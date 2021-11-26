@@ -1,7 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
-import 'package:inspecciones/infrastructure/drift_database.dart';
+
+import '../drift_database.dart';
 
 part 'guardado_cuestionario_dao.drift.dart';
 

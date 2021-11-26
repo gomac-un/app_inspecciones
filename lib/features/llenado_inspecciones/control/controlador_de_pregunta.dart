@@ -13,8 +13,11 @@ abstract class ControladorDePregunta<T extends Pregunta,
   late final MetaRespuesta respuesta =
       pregunta.respuesta?.metaRespuesta ?? MetaRespuesta.vacia();
 
+  // se asigna 1 por defecto porque el widget no acepta null, por lo tanto se
+  //solo las opciones de respuesta que acepten criticidad del inspector deben
+  // guardar este valor, de lo contrario se guarda null
   late final criticidadDelInspectorControl =
-      fb.control(respuesta.criticidadDelInspector ?? -1);
+      fb.control(respuesta.criticidadDelInspector ?? 1);
 
   late final observacionControl = fb.control(respuesta.observaciones);
   late final reparadoControl = fb.control(respuesta.reparada);
@@ -60,7 +63,10 @@ abstract class ControladorDePregunta<T extends Pregunta,
 
   bool esValido() => control.valid;
 
-  /// las preguntas de seleccion deben sobreescribir este método para agregarle la criticidad del inspector
+  bool get requiereCriticidadDelInspector;
+
+  /// las preguntas de seleccion deben sobreescribir este método para agregarle
+  /// la criticidad del inspector
   MetaRespuesta guardarMetaRespuesta() => MetaRespuesta(
         observaciones: observacionControl.value!,
         fotosBase: fotosBaseControl.value!,
@@ -68,14 +74,21 @@ abstract class ControladorDePregunta<T extends Pregunta,
         observacionesReparacion: observacionReparacionControl.value!,
         fotosReparacion: fotosReparacionControl.value!,
         momentoRespuesta: momentoRespuesta,
+        criticidadDelInspector: requiereCriticidadDelInspector
+            ? criticidadDelInspectorControl.value
+            : null,
       );
 
   /// solo se puede usar para leer el calculo, para componentes de la ui que deben
   /// reaccionar a cambios de este calculo se debe usar [criticidadCalculadaProvider]
   int get criticidadCalculada => (criticidadPregunta *
-          (criticidadRespuesta ??
-              1) * // si no se conoce el valor, la criticidad por defecto es 1
-          _porcentajeCalificacion(criticidadDelInspectorControl.value ?? 1) *
+          // si no hay respuesta la criticidad es 0
+          (criticidadRespuesta ?? 0) *
+          // si no aplica, no modifica el calculo
+          (requiereCriticidadDelInspector //TODO: escucharlo en el provider
+              ? _calificacionToPorcentaje(criticidadDelInspectorControl.value!)
+              : 1) *
+          // si esta reparada la criticidad es 0
           (reparadoControl.value! ? 0 : 1))
       .round();
 
@@ -87,12 +100,9 @@ abstract class ControladorDePregunta<T extends Pregunta,
 
   V accept<V>(ControladorDePreguntaVisitor<V> visitor);
 
-  static double _porcentajeCalificacion(int calificacion) {
+  /// verificar que este factor solo pueda reducir la criticidad
+  static double _calificacionToPorcentaje(int calificacion) {
     switch (calificacion.round()) {
-      case -1:
-      case 0: //estos dos valores solo ocurren si no aplica
-        return 1;
-
       case 1:
         return 0.55;
 
@@ -107,7 +117,7 @@ abstract class ControladorDePregunta<T extends Pregunta,
 
       default:
         throw Exception(
-            "el valor de calificacion mayor a 4, revise el reactive_slider");
+            "el valor de calificacion inválido, solo se permite de 1 a 4");
     }
   }
 }

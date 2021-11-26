@@ -12,7 +12,7 @@ class Inspeccion {
 
   final String inspectorId;
 
-  //late final CuestionarioInspeccionado cuestionario;
+  int criticidadCalculada;
 
   Inspeccion({
     this.id,
@@ -23,6 +23,7 @@ class Inspeccion {
     this.momentoBorradorGuardado,
     this.momentoFinalizacion,
     this.momentoEnvio,
+    required this.criticidadCalculada,
   });
 }
 

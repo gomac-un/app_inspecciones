@@ -2,7 +2,6 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 import '../../domain/bloques/preguntas/opcion_de_respuesta.dart';
 import '../../domain/bloques/preguntas/pregunta_de_seleccion_unica.dart';
-import '../../domain/metarespuesta.dart';
 import '../controlador_de_pregunta.dart';
 import '../visitors/controlador_de_pregunta_visitor.dart';
 
@@ -16,14 +15,11 @@ class ControladorDePreguntaDeSeleccionUnica extends ControladorDePregunta<
       : super(pregunta);
 
   @override
-  int? get criticidadRespuesta => respuestaEspecificaControl.value?.criticidad;
+  bool get requiereCriticidadDelInspector =>
+      respuestaEspecificaControl.value?.requiereCriticidadDelInspector ?? false;
 
   @override
-  MetaRespuesta guardarMetaRespuesta() =>
-      respuestaEspecificaControl.value?.requiereCriticidadDelInspector ?? false
-          ? super.guardarMetaRespuesta().copyWith(
-              criticidadDelInspector: criticidadDelInspectorControl.value)
-          : super.guardarMetaRespuesta();
+  int? get criticidadRespuesta => respuestaEspecificaControl.value?.criticidad;
 
   @override
   R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>

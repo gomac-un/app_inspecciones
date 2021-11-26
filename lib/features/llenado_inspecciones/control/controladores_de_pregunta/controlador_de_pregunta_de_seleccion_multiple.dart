@@ -2,7 +2,6 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 import '../../control/visitors/controlador_de_pregunta_visitor.dart';
 import '../../domain/bloques/preguntas/pregunta_de_seleccion_multiple.dart';
-import '../../domain/metarespuesta.dart';
 import '../controlador_de_pregunta.dart';
 
 class ControladorDePreguntaDeSeleccionMultiple
@@ -19,6 +18,9 @@ class ControladorDePreguntaDeSeleccionMultiple
 
   ControladorDePreguntaDeSeleccionMultiple(PreguntaDeSeleccionMultiple pregunta)
       : super(pregunta);
+
+  @override
+  bool get requiereCriticidadDelInspector => false;
 
   @override
   int get criticidadRespuesta {
@@ -62,15 +64,12 @@ class ControladorDeSubPreguntaDeSeleccionMultiple extends ControladorDePregunta<
       : super(pregunta);
 
   @override
-  int get criticidadRespuesta =>
-      pregunta.opcion.criticidad * (estaSeleccionada ? 1 : 0);
+  bool get requiereCriticidadDelInspector =>
+      pregunta.opcion.requiereCriticidadDelInspector;
 
   @override
-  MetaRespuesta guardarMetaRespuesta() =>
-      pregunta.opcion.requiereCriticidadDelInspector
-          ? super.guardarMetaRespuesta().copyWith(
-              criticidadDelInspector: criticidadDelInspectorControl.value)
-          : super.guardarMetaRespuesta();
+  int get criticidadRespuesta =>
+      pregunta.opcion.criticidad * (estaSeleccionada ? 1 : 0);
 
   bool get estaSeleccionada => respuestaEspecificaControl.value!;
 

@@ -15,6 +15,9 @@ class ControladorDePreguntaNumerica
   ControladorDePreguntaNumerica(PreguntaNumerica pregunta) : super(pregunta);
 
   @override
+  bool get requiereCriticidadDelInspector => false;
+
+  @override
   int? get criticidadRespuesta => valor == null
       ? null
       : pregunta.rangosDeCriticidad.singleWhere(

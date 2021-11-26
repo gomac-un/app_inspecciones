@@ -7,24 +7,20 @@ import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart';
-import 'package:inspecciones/infrastructure/core/typedefs.dart';
-import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
-import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/utils/future_either_x.dart';
 import 'package:path/path.dart' as path;
 
+import '../core/typedefs.dart';
 import '../datasources/inspecciones_remote_datasource.dart';
+import '../datasources/providers.dart';
 import '../drift_database.dart' as drift;
 import '../utils/transformador_excepciones_api.dart';
-import 'fotos_repository.dart';
 
 class InspeccionesRemoteRepository {
   final Reader _read;
   InspeccionesRemoteDataSource get _api =>
       _read(inspeccionesRemoteDataSourceProvider);
-  FotosRemoteDataSource get _apiFotos => _read(fotosRemoteDataSourceProvider);
   drift.Database get _db => _read(drift.driftDatabaseProvider);
-  FotosRepository get _fotosRepository => _read(fotosRepositoryProvider);
 
   InspeccionesRemoteRepository(this._read);
 

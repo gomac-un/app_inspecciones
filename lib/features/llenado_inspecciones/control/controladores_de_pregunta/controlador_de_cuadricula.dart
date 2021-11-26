@@ -27,6 +27,9 @@ abstract class ControladorDeCuadricula<
   ControladorDeCuadricula(T pregunta) : super(pregunta);
 
   @override
+  bool get requiereCriticidadDelInspector => false;
+
+  @override
   int get criticidadRespuesta => controladoresPreguntas.fold(
         0,
         (count, c) => count + c.criticidadCalculada,
