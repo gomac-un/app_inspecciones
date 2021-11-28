@@ -39,13 +39,14 @@ class PreguntaCard extends StatelessWidget {
               title: Text(pregunta.titulo),
               subtitle: Text(pregunta.descripcion),
             ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Etiquetas: ${pregunta.etiquetas.join(", ")}",
-                style: Theme.of(context).textTheme.subtitle2,
+            if (pregunta.etiquetas.isNotEmpty)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Etiquetas: ${pregunta.etiquetas.join(", ")}",
+                  style: Theme.of(context).textTheme.subtitle2,
+                ),
               ),
-            ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: child,

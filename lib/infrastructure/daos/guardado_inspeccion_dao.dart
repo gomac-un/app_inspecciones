@@ -34,10 +34,13 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
                 ? DateTime.now()
                 : null),
         estado: Value(estado),
+        criticidadCalculada:
+            Value(inspeccionForm.inspeccion.criticidadCalculada),
+        criticidadCalculadaConReparaciones:
+            Value(inspeccionForm.inspeccion.criticidadCalculadaConReparaciones),
       ));
 
       await _deleteRespuestas(inspeccion.id);
-
 
       for (final pregunta in preguntas) {
         //TODO: implementar en un visitor
@@ -118,6 +121,9 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
       inspectorId: inspeccionDominio.inspectorId,
       momentoInicio: inspeccionDominio.momentoInicio,
       estado: inspeccionDominio.estado,
+      criticidadCalculada: inspeccionDominio.criticidadCalculada,
+      criticidadCalculadaConReparaciones:
+          inspeccionDominio.criticidadCalculadaConReparaciones,
     );
     return into(inspecciones).insertReturning(ins);
   }
@@ -192,6 +198,10 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
         opcionRespondidaId: Value(opcionRespondida?.id),
         opcionRespondidaEstaSeleccionada:
             Value(opcionRespondidaEstaSeleccionada),
+        criticidadDelInspector: Value(metaRespuesta.criticidadDelInspector),
+        criticidadCalculada: Value(metaRespuesta.criticidadCalculada),
+        criticidadCalculadaConReparaciones:
+            Value(metaRespuesta.criticidadCalculadaConReparaciones),
       ));
 
   Future<void> _deleteRespuestas(String inspeccionId) =>

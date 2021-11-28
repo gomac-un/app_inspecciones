@@ -46,6 +46,7 @@ dependencies:
     #   url: https://github.com/victorcatn/textfield_tags.git
     path: ../textfield_tags
   uuid: ^3.0.5
+  rxdart: ^0.27.3
 
 dev_dependencies:
   build_runner: ^2.1.5

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
 import 'package:dartz/dartz.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/error/errors.dart';
@@ -141,15 +142,19 @@ class InspeccionSerializer {
 
   InspeccionSerializer(this.inspeccionCompleta, this.idFotosSubidas);
 
-  JsonMap serializarInspeccion() {
-    final JsonMap res = {};
-    res['id'] = inspeccion.id;
-    res['cuestionario'] = cuestionario.id;
-    res['momento_inicio'] = inspeccion.momentoInicio.toUtc().toIso8601String();
-    res['activo'] = inspeccion.activo.id;
-    res['respuestas'] = preguntas.map(_serializarPregunta).toList();
-    return res;
-  }
+  JsonMap serializarInspeccion() => {
+        'id': inspeccion.id,
+        'cuestionario': cuestionario.id,
+        'activo': inspeccion.activo.id,
+        'momento_inicio': inspeccion.momentoInicio.toUtc().toIso8601String(),
+        'momento_finalizacion':
+            inspeccion.momentoFinalizacion?.toUtc().toIso8601String(),
+        'estado': _serializarEnum(inspeccion.estado),
+        'criticidad_calculada': inspeccion.criticidadCalculada,
+        'criticidad_calculada_con_reparaciones':
+            inspeccion.criticidadCalculadaConReparaciones,
+        'respuestas': preguntas.map(_serializarPregunta).toList(),
+      };
 
   JsonMap _serializarPregunta(Pregunta pregunta) {
     final respuesta = pregunta.respuesta;
@@ -213,10 +218,18 @@ class InspeccionSerializer {
         'fotos_base': _serializarFotos(metaRespuesta.fotosBase),
         'fotos_reparacion': _serializarFotos(metaRespuesta.fotosReparacion),
         'criticidad_del_inspector': metaRespuesta.criticidadDelInspector,
+        'criticidad_calculada': metaRespuesta.criticidadCalculada,
+        'criticidad_calculada_con_reparaciones':
+            metaRespuesta.criticidadCalculadaConReparaciones,
       };
 
   JsonList _serializarFotos(List<AppImage> fotos) =>
       fotos.map((a) => idFotosSubidas[a]).toList();
+
+  String _serializarEnum(dynamic e) =>
+      EnumToString.convertToString(e, camelCase: true)
+          .toLowerCase()
+          .replaceAll(" ", "_");
 
 /*
   JsonMap _serializarPregunta(PreguntaDeSeleccion preguntaCR) {

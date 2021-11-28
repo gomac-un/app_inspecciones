@@ -13,6 +13,7 @@ class Inspeccion {
   final String inspectorId;
 
   int criticidadCalculada;
+  int criticidadCalculadaConReparaciones;
 
   Inspeccion({
     this.id,
@@ -24,6 +25,7 @@ class Inspeccion {
     this.momentoFinalizacion,
     this.momentoEnvio,
     required this.criticidadCalculada,
+    required this.criticidadCalculadaConReparaciones,
   });
 }
 

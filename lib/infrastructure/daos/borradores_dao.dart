@@ -61,6 +61,9 @@ class BorradoresDao extends DatabaseAccessor<Database>
                 momentoEnvio: inspeccion.momentoEnvio,
                 momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
                 inspectorId: inspeccion.inspectorId,
+                criticidadCalculada: inspeccion.criticidadCalculada,
+                criticidadCalculadaConReparaciones:
+                    inspeccion.criticidadCalculadaConReparaciones,
               ),
               dominio.Cuestionario(
                 id: cuestionario.id,
@@ -70,16 +73,6 @@ class BorradoresDao extends DatabaseAccessor<Database>
                   await _calcNroPreguntas(cuestionarioId: cuestionario.id),
               avance: await _calcNroPreguntasRespondidas(
                   inspeccionId: inspeccion.id),
-              criticidadTotal: await _calcCriticidadInspeccion(
-                cuestionarioId: cuestionario.id,
-                inspeccionId: inspeccion.id,
-                conReparaciones: false,
-              ),
-              criticidadReparacion: await _calcCriticidadInspeccion(
-                cuestionarioId: cuestionario.id,
-                inspeccionId: inspeccion.id,
-                conReparaciones: true,
-              ),
             );
           },
         ),
@@ -87,7 +80,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
     );
   }
 
-  //TODO: optimizar
+  /*
   Future<double> _calcCriticidadInspeccion({
     required String cuestionarioId,
     required String inspeccionId,
@@ -128,7 +121,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
         .get()
         .then((l) => l.fold<double>(0, (p, c) => p + (c ?? 0)));
   }
-
+  */
   /// Devuelve la cantidad total de preguntas que tiene el cuestionario con id=[cuestionarioId]
   Future<int> _calcNroPreguntas({required String cuestionarioId}) {
     final count = countAll();
@@ -154,7 +147,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
     return query.map((row) => row.read(count)).getSingle();
   }
 
-  Future<dominio.Activo> buildActivo({required String activoId}) async {
+  Future<dominio.Activo> buildActivo({required String activoId}) async { 
     final etiquetas =
         await db.utilsDao.getEtiquetasDeActivo(activoId: activoId);
 

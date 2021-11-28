@@ -202,6 +202,11 @@ class Inspecciones extends Table {
       text().map(const _EnumToStringConverter<EstadoDeInspeccion>(
           EstadoDeInspeccion.values))();
 
+  /// caché de la criticidad calculada usando campos de la respuesta y de la pregunta,
+  /// la fórmula se encuentra en [ControladorLlenadoInspeccion.criticidadCalculada]
+  IntColumn get criticidadCalculada => integer()();
+  IntColumn get criticidadCalculadaConReparaciones => integer()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -234,6 +239,7 @@ class Respuestas extends Table {
   /// caché de la criticidad calculada usando campos de la respuesta y de la pregunta,
   /// la fórmula se encuentra en [ControladorDePregunta.criticidadCalculada]
   IntColumn get criticidadCalculada => integer()();
+  IntColumn get criticidadCalculadaConReparaciones => integer()();
 
   TextColumn get preguntaId => text().nullable().customConstraint(
       'NULLABLE REFERENCES preguntas(id) ON DELETE CASCADE')();

@@ -13,15 +13,10 @@ class Borrador {
   /// Total de preguntas del cuestionario
   final int totalPreguntas;
 
-  final double criticidadTotal;
-  final double criticidadReparacion;
-
   Borrador(
     this.inspeccion,
     this.cuestionario, {
     required this.avance,
     required this.totalPreguntas,
-    required this.criticidadTotal,
-    required this.criticidadReparacion,
   });
 }

@@ -16,8 +16,8 @@ import 'llenado_de_inspeccion_screen.dart';
 
 //TODO: Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 /// Pantalla con lista de todas las inspecciones pendientes por subir.
-class BorradoresPage extends ConsumerWidget {
-  const BorradoresPage({Key? key}) : super(key: key);
+class InspeccionesPage extends ConsumerWidget {
+  const InspeccionesPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,11 +64,12 @@ class BorradoresPage extends ConsumerWidget {
             itemCount: borradores.length,
             itemBuilder: (context, index) {
               final borrador = borradores[index];
-              final momentoGuardado = borrador.inspeccion.momentoBorradorGuardado;
+              final momentoGuardado =
+                  borrador.inspeccion.momentoBorradorGuardado;
               final criticidad =
                   borrador.inspeccion.estado == EstadoDeInspeccion.finalizada
-                      ? 'Criticidad total inicial: '
-                      : 'Criticidad parcial inicial: ';
+                      ? 'Criticidad total: '
+                      : 'Criticidad parcial: ';
 
               return ListTile(
                 onTap: () => context.goNamed(
@@ -99,12 +100,12 @@ class BorradoresPage extends ConsumerWidget {
                         ? ''
                         : "Fecha de guardado: ${DateFormat.yMd().add_jm().format(momentoGuardado)}"),
                     Text(
-                      '$criticidad ${borrador.criticidadTotal}',
+                      '$criticidad ${borrador.inspeccion.criticidadCalculada}',
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     Text(
-                      'Criticidad reparaciones pendientes: ${borrador.criticidadReparacion}',
+                      'Criticidad con reparaciones: ${borrador.inspeccion.criticidadCalculadaConReparaciones}',
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),

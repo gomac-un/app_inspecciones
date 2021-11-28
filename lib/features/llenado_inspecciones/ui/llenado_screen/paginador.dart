@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/llenado_inspecciones/control/controlador_de_pregunta.dart';
+import 'package:inspecciones/utils/hooks.dart';
 
 import '../../control/controlador_llenado_inspeccion.dart';
 import '../../domain/bloque.dart';
@@ -16,7 +17,7 @@ final pageStorageBucketProvider =
     Provider.autoDispose((ref) => PageStorageBucket());
 
 //TODO: separar la responsabilidad de paginar y de filtrar en widges diferentes
-class PaginadorYFiltradorDePreguntas extends ConsumerWidget {
+class PaginadorYFiltradorDePreguntas extends HookConsumerWidget {
   final ControladorLlenadoInspeccion control;
   final PreguntaCardFactory factory;
 
@@ -26,14 +27,17 @@ class PaginadorYFiltradorDePreguntas extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final filtro = ref.watch(filtroPreguntasProvider);
+    final filtro = useValueStream(control.filtroPreguntas);
 
+    // TODO: evitar el comportamiento extraño cuando por ejemplo se tiene el filtro
+    // de criticas pero se repara y la card solo se esconde cuando hay un rebuild,
+    // se debe guardar mas bien las cards y solo actualizarlas al cambiar de filtro
     switch (filtro) {
       case FiltroPreguntas.todas:
         return _buildInspeccionPaginada();
       case FiltroPreguntas.criticas:
-        return _buildInspeccionEnUnaSolaPagina(
-            control.controladores.where((c) => c.criticidadCalculada > 0));
+        return _buildInspeccionEnUnaSolaPagina(control.controladores
+            .where((c) => c.criticidadCalculada.value > 0));
       case FiltroPreguntas.invalidas:
         return _buildInspeccionEnUnaSolaPagina(
             control.controladores.where((c) => !c.esValido()));

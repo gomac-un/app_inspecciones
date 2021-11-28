@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../control/controlador_llenado_inspeccion.dart';
 import '../widgets/loading_dialog.dart';
@@ -56,7 +55,9 @@ void mostrarError({
               actions: actions,
             ));
 
-void mostrarInvalido(BuildContext context) => mostrarError(
+void mostrarInvalido(BuildContext context,
+        ControladorLlenadoInspeccion controladorInspeccion) =>
+    mostrarError(
       context: context,
       title: "Inspeccion con respuestas no válidas",
       msg:
@@ -66,16 +67,14 @@ void mostrarInvalido(BuildContext context) => mostrarError(
           child: const Text('Cancelar'),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        Consumer(builder: (context, ref, _) {
-          return TextButton(
-            child: const Text("Aceptar"),
-            onPressed: () {
-              ref.read(filtroPreguntasProvider.notifier).state =
-                  FiltroPreguntas.invalidas;
-              Navigator.of(context).pop();
-            },
-          );
-        }),
+        TextButton(
+          child: const Text("Aceptar"),
+          onPressed: () {
+            controladorInspeccion.filtroPreguntas.value =
+                FiltroPreguntas.invalidas;
+            Navigator.of(context).pop();
+          },
+        ),
       ],
     );
 

@@ -41,9 +41,9 @@ class UserDrawer extends ConsumerWidget {
                       onTap: () => context.goNamed("cuestionarios"),
                     ),
                   MenuItem(
-                    texto: 'Borradores',
+                    texto: 'Inspecciones',
                     icon: Icons.list_alt_outlined,
-                    onTap: () => context.goNamed("borradores"),
+                    onTap: () => context.goNamed("inspecciones"),
                   ),
                   if (false) //TODO: eliminar
                     MenuItem(

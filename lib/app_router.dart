@@ -45,11 +45,11 @@ final goRouterProvider = Provider((ref) => GoRouter(
           ),
         ),
         GoRoute(
-          path: '/borradores',
-          name: 'borradores',
+          path: '/inspecciones',
+          name: 'inspecciones',
           pageBuilder: (context, state) => MaterialPage<void>(
             key: state.pageKey,
-            child: const BorradoresPage(),
+            child: const InspeccionesPage(),
           ),
         ),
         GoRoute(

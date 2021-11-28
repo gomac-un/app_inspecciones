@@ -9,6 +9,9 @@ class MetaRespuesta {
   final DateTime? momentoRespuesta;
   final int? criticidadDelInspector;
 
+  final int criticidadCalculada;
+  final int criticidadCalculadaConReparaciones;
+
   MetaRespuesta({
     this.observaciones = "",
     this.fotosBase = const [],
@@ -17,6 +20,8 @@ class MetaRespuesta {
     this.fotosReparacion = const [],
     this.momentoRespuesta,
     this.criticidadDelInspector,
+    this.criticidadCalculada = 0,
+    this.criticidadCalculadaConReparaciones = 0,
   });
 
   MetaRespuesta.vacia() : this();

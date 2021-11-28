@@ -2,6 +2,14 @@
 
 Aplicacion escrita en Flutter para la creación de cuestionarios y el llenado de inspeciones con el fin de recolectar información durante la inspeccion de activos.
 
+## Registro
+Para registrar un usuario se debe abrir el siguiente link como un intent de android:
+
+http://gomac.com/registro?org=1
+intent://gomac.com/registro?org=1
+
+donde org=id debe ser el id de la organizacion donde quedará registrado
+
 ## Características
 Inspecciones cumple dos objetivos importantes: recolectar informacion relevante en procesos de inspecciones de activos y hacer mas rápida y eficiente la labor de los inspectores.
 

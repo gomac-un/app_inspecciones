@@ -1,14 +1,19 @@
+import 'package:dartz/dartz.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../control/visitors/controlador_de_pregunta_visitor.dart';
+import '../../domain/bloques/preguntas/opcion_de_respuesta.dart';
 import '../../domain/bloques/preguntas/pregunta_de_seleccion_multiple.dart';
 import '../controlador_de_pregunta.dart';
+import '../controlador_llenado_inspeccion.dart';
 
 class ControladorDePreguntaDeSeleccionMultiple
     extends ControladorDePregunta<PreguntaDeSeleccionMultiple, FormArray> {
   late final List<ControladorDeSubPreguntaDeSeleccionMultiple>
       controladoresPreguntas = pregunta.respuestas
-          .map((p) => ControladorDeSubPreguntaDeSeleccionMultiple(p))
+          .map((p) =>
+              ControladorDeSubPreguntaDeSeleccionMultiple(p, controlInspeccion))
           .toList();
 
   @override
@@ -16,20 +21,43 @@ class ControladorDePreguntaDeSeleccionMultiple
       controladoresPreguntas.map((c) => c.control).toList(),
       [MultipleValidator().validate]);
 
-  ControladorDePreguntaDeSeleccionMultiple(PreguntaDeSeleccionMultiple pregunta)
-      : super(pregunta);
+  ControladorDePreguntaDeSeleccionMultiple(PreguntaDeSeleccionMultiple pregunta,
+      ControladorLlenadoInspeccion controlInspeccion)
+      : super(pregunta, controlInspeccion);
 
   @override
-  bool get requiereCriticidadDelInspector => false;
+  late final ValueStream<bool> requiereCriticidadDelInspector =
+      BehaviorSubject.seeded(false);
 
   @override
-  int get criticidadRespuesta {
+  late final ValueStream<int> criticidadRespuesta = Rx.combineLatest<
+      Tuple2<ControladorDeSubPreguntaDeSeleccionMultiple, bool>, int>(
+    controladoresPreguntas.map(
+      (c) => Rx.combineLatest2<bool, int,
+          Tuple2<ControladorDeSubPreguntaDeSeleccionMultiple, bool>>(
+        c.respuestaEspecificaControl.toValueStreamNN(),
+        c.criticidadCalculada,
+        (seleccionada, criticidad) => Tuple2(c, seleccionada && criticidad > 0),
+      ),
+    ),
+    (l) {
+      final opcionesSeleccionadas =
+          l.where((t) => t.value2).map((e) => e.value1.pregunta.opcion);
+      return _calcularCriticidad(opcionesSeleccionadas);
+    },
+  ).toVSwithInitial(criticidadRespuestaSync);
+
+  int get criticidadRespuestaSync {
     final opcionesSeleccionadas = controladoresPreguntas
         // la opcion esta seleccionada y no esta reparada
         .where((c) =>
-            c.respuestaEspecificaControl.value! && c.criticidadCalculada > 0)
+            c.respuestaEspecificaControl.value! &&
+            c.criticidadCalculada.value > 0)
         .map((c) => c.pregunta.opcion);
+    return _calcularCriticidad(opcionesSeleccionadas);
+  }
 
+  int _calcularCriticidad(Iterable<OpcionDeRespuesta> opcionesSeleccionadas) {
     if (opcionesSeleccionadas.any((r) => r.criticidad == 4) ||
         opcionesSeleccionadas.where((r) => r.criticidad >= 3).length >= 2) {
       return 4;
@@ -60,18 +88,24 @@ class ControladorDeSubPreguntaDeSeleccionMultiple extends ControladorDePregunta<
       fb.control(pregunta.respuesta?.estaSeleccionada ?? false);
 
   ControladorDeSubPreguntaDeSeleccionMultiple(
-      SubPreguntaDeSeleccionMultiple pregunta)
-      : super(pregunta);
+      SubPreguntaDeSeleccionMultiple pregunta,
+      ControladorLlenadoInspeccion controlInspeccion)
+      : super(pregunta, controlInspeccion);
 
   @override
-  bool get requiereCriticidadDelInspector =>
-      pregunta.opcion.requiereCriticidadDelInspector;
+  late final ValueStream<bool> requiereCriticidadDelInspector =
+      BehaviorSubject.seeded(pregunta.opcion.requiereCriticidadDelInspector);
 
   @override
-  int get criticidadRespuesta =>
-      pregunta.opcion.criticidad * (estaSeleccionada ? 1 : 0);
+  late final ValueStream<int?> criticidadRespuesta = respuestaEspecificaControl
+      .valueChanges
+      .map((estaSeleccionada) => estaSeleccionada! ? 1 : 0)
+      .toVSwithInitial(criticidadRespuestaSync);
 
-  bool get estaSeleccionada => respuestaEspecificaControl.value!;
+  int get criticidadRespuestaSync =>
+      pregunta.opcion.criticidad * (estaSeleccionadaSync ? 1 : 0);
+
+  bool get estaSeleccionadaSync => respuestaEspecificaControl.value!;
 
   @override
   R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>

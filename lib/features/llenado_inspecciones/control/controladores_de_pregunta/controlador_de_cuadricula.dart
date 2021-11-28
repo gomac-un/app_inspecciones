@@ -1,4 +1,5 @@
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../domain/bloques/preguntas/cuadricula.dart';
 import '../../domain/bloques/preguntas/opcion_de_respuesta.dart';
@@ -7,6 +8,7 @@ import '../../domain/bloques/preguntas/pregunta_de_seleccion_multiple.dart';
 import '../../domain/bloques/preguntas/pregunta_de_seleccion_unica.dart';
 import '../../domain/respuesta.dart';
 import '../controlador_de_pregunta.dart';
+import '../controlador_llenado_inspeccion.dart';
 import '../visitors/controlador_de_pregunta_visitor.dart';
 import 'controlador_de_pregunta_de_seleccion_multiple.dart';
 import 'controlador_de_pregunta_de_seleccion_unica.dart';
@@ -24,15 +26,23 @@ abstract class ControladorDeCuadricula<
   late final FormArray respuestaEspecificaControl =
       fb.array(controladoresPreguntas.map((c) => c.control).toList());
 
-  ControladorDeCuadricula(T pregunta) : super(pregunta);
+  ControladorDeCuadricula(
+      T pregunta, ControladorLlenadoInspeccion controlInspeccion)
+      : super(pregunta, controlInspeccion);
 
   @override
-  bool get requiereCriticidadDelInspector => false;
+  late final ValueStream<bool> requiereCriticidadDelInspector =
+      BehaviorSubject.seeded(false);
 
   @override
-  int get criticidadRespuesta => controladoresPreguntas.fold(
+  late final ValueStream<int?> criticidadRespuesta = Rx.combineLatest<int, int>(
+          controladoresPreguntas.map((c) => c.criticidadCalculada),
+          (values) => values.fold(0, (count, c) => count + c))
+      .toVSwithInitial(criticidadRespuestaSync);
+
+  int get criticidadRespuestaSync => controladoresPreguntas.fold(
         0,
-        (count, c) => count + c.criticidadCalculada,
+        (count, c) => count + c.criticidadCalculada.value,
       );
 }
 
@@ -49,12 +59,14 @@ class ControladorDeCuadriculaDeSeleccionMultiple
         ControladorDePreguntaDeSeleccionMultiple> {
   @override
   late final controladoresPreguntas = pregunta.preguntas
-      .map((p) => ControladorDePreguntaDeSeleccionMultiple(p))
+      .map(
+          (p) => ControladorDePreguntaDeSeleccionMultiple(p, controlInspeccion))
       .toList();
 
   ControladorDeCuadriculaDeSeleccionMultiple(
-      CuadriculaDeSeleccionMultiple pregunta)
-      : super(pregunta);
+      CuadriculaDeSeleccionMultiple pregunta,
+      ControladorLlenadoInspeccion controlInspeccion)
+      : super(pregunta, controlInspeccion);
 
   @override
   R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>
@@ -69,11 +81,12 @@ class ControladorDeCuadriculaDeSeleccionUnica extends ControladorDeCuadricula<
     ControladorDePreguntaDeSeleccionUnica> {
   @override
   late final controladoresPreguntas = pregunta.preguntas
-      .map((p) => ControladorDePreguntaDeSeleccionUnica(p))
+      .map((p) => ControladorDePreguntaDeSeleccionUnica(p, controlInspeccion))
       .toList();
 
-  ControladorDeCuadriculaDeSeleccionUnica(CuadriculaDeSeleccionUnica pregunta)
-      : super(pregunta);
+  ControladorDeCuadriculaDeSeleccionUnica(CuadriculaDeSeleccionUnica pregunta,
+      ControladorLlenadoInspeccion controlInspeccion)
+      : super(pregunta, controlInspeccion);
 
   @override
   R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>

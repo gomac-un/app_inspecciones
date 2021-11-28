@@ -118,10 +118,13 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   Future<dominio.Inspeccion> _buildInspeccionNueva(
           {required String activoId, required String inspectorId}) async =>
       dominio.Inspeccion(
-          estado: dominio.EstadoDeInspeccion.borrador,
-          activo: await db.borradoresDao.buildActivo(activoId: activoId),
-          momentoInicio: DateTime.now(),
-          inspectorId: inspectorId);
+        estado: dominio.EstadoDeInspeccion.borrador,
+        activo: await db.borradoresDao.buildActivo(activoId: activoId),
+        momentoInicio: DateTime.now(),
+        inspectorId: inspectorId,
+        criticidadCalculada: 0,
+        criticidadCalculadaConReparaciones: 0,
+      );
 
   Future<dominio.Inspeccion> _buildInspeccionExistente(
           Inspeccion inspeccion) async =>
@@ -135,6 +138,9 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         momentoFinalizacion: inspeccion.momentoFinalizacion,
         momentoEnvio: inspeccion.momentoEnvio,
         inspectorId: inspeccion.inspectorId,
+        criticidadCalculada: inspeccion.criticidadCalculada,
+        criticidadCalculadaConReparaciones:
+            inspeccion.criticidadCalculadaConReparaciones,
       );
 
   /// Devuelve los titulos que pertenecen al cuestionario
@@ -582,6 +588,10 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         fotosReparacion: respuesta.fotosReparacion,
         momentoRespuesta: respuesta.momentoRespuesta,
         criticidadDelInspector: respuesta.criticidadDelInspector,
+        criticidadCalculada: respuesta
+            .criticidadCalculada, // en realidad no se necesita en la carga, solo en el guardado
+        criticidadCalculadaConReparaciones: respuesta
+            .criticidadCalculadaConReparaciones, // en realidad no se necesita en la carga, solo en el guardado
       );
 
   dominio.OpcionDeRespuesta _buildOpcionDeRespuesta(OpcionDeRespuesta opcion) =>

@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/domain/inspecciones/inspecciones_failure.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../domain/bloques/pregunta.dart';
 import '../domain/cuestionario.dart';
@@ -14,7 +14,6 @@ import 'controlador_factory.dart';
 import 'visitors/guardado_visitor.dart';
 
 typedef CallbackWithMessage = void Function(String message);
-
 typedef GuardadoCallback = Future<void> Function({
   VoidCallback? onStart,
   VoidCallback? onFinish,
@@ -27,37 +26,28 @@ typedef EjecucionCallback = Future<void> Function(
 
 final controladorFactoryProvider = Provider((ref) => ControladorFactory());
 
-final cuestionarioProvider = FutureProvider.family<
-        Either<InspeccionesFailure, CuestionarioInspeccionado>,
-        IdentificadorDeInspeccion>(
-    (ref, inspeccionId) => ref
-        .watch(inspeccionesRepositoryProvider)
-        .cargarInspeccionLocal(inspeccionId));
-//TODO: hacer que este y otros providers hagan dispose cuando se dejen de usar
-// para liberar memoria
-final controladorLlenadoInspeccionProvider = FutureProvider.family<
-        ControladorLlenadoInspeccion, IdentificadorDeInspeccion>(
-    (ref, inspeccionId) async => ControladorLlenadoInspeccion(
-          (await ref.watch(cuestionarioProvider(inspeccionId).future)).fold(
-              (l) => throw l, (r) => r), //TODO: mirar como manejar errores
-          ref.watch(controladorFactoryProvider),
-          ref.read,
-        ));
-
-final estadoDeInspeccionProvider = StateProvider(
-  (ref) => EstadoDeInspeccion.finalizada,
-  // TODO: mirar como declarar que simplemente esta cargando,
-  //de todas maneras este estado no se debe ver en la ui porque el constructor
-  //de [ControladorLlenadoInspeccion] le pone el valor que viene de la DB.
-);
+final controladorLlenadoInspeccionProvider = FutureProvider.autoDispose
+    .family<ControladorLlenadoInspeccion, IdentificadorDeInspeccion>(
+        (ref, inspeccionId) async {
+  final res = ControladorLlenadoInspeccion(
+    (await ref
+            .watch(inspeccionesRepositoryProvider)
+            .cargarInspeccionLocal(inspeccionId))
+        .fold((l) => throw l, (r) => r), //TODO: mirar como manejar errores
+    ref.watch(controladorFactoryProvider),
+    ref.read,
+  );
+  ref.onDispose(() {
+    res.dispose();
+  });
+  return res;
+});
 
 enum FiltroPreguntas {
   todas,
   criticas,
   invalidas,
 }
-final filtroDisponibleProvider = StateProvider((_) => FiltroPreguntas.values);
-final filtroPreguntasProvider = StateProvider((_) => FiltroPreguntas.todas);
 
 class ControladorLlenadoInspeccion {
   InspeccionesRepository get repository =>
@@ -70,20 +60,55 @@ class ControladorLlenadoInspeccion {
 
   late final List<ControladorDePregunta> controladores = cuestionario.bloques
       .whereType<Pregunta>()
-      .map(factory.crearControlador)
+      .map((p) => factory.crearControlador(p, this))
       .toList();
+
+  late final ValueStream<List<ControladorDePregunta>> controladoresCriticos =
+      Rx.combineLatest<Tuple2<ControladorDePregunta, int>,
+              List<ControladorDePregunta>>(
+          controladores
+              .map((c) => c.criticidadCalculada.map((cr) => Tuple2(c, cr))),
+          (values) => values
+              .where((v) => v.value2 > 0)
+              .map((e) => e.value1)
+              .toList()).toVSwithInitial(controladoresCriticosSync);
+
+  List<ControladorDePregunta> get controladoresCriticosSync =>
+      controladores.where((c) => c.criticidadCalculada.value > 0).toList();
+
+  late final ValueStream<int> criticidadTotal = Rx.combineLatest<int, int>(
+          controladores.map((c) => c.criticidadCalculada),
+          (values) => values.fold(0, (a, b) => a + b))
+      .toVSwithInitial(criticidadTotalSync);
+
+  int get criticidadTotalSync =>
+      controladores.fold(0, (a, b) => a + b.criticidadCalculada.value);
+
+  late final ValueStream<int> criticidadTotalConReparaciones =
+      Rx.combineLatest<int, int>(
+              controladores.map((c) => c.criticidadCalculadaConReparaciones),
+              (values) => values.fold(0, (a, b) => a + b))
+          .toVSwithInitial(criticidadTotalConReparacionesSync);
+
+  int get criticidadTotalConReparacionesSync => controladores.fold(
+      0, (a, b) => a + b.criticidadCalculadaConReparaciones.value);
 
   late final FormArray formArray =
       fb.array(controladores.map((e) => e.control).toList());
+
+  late final estadoDeInspeccion =
+      BehaviorSubject.seeded(cuestionario.inspeccion.estado);
+
+  late final filtrosDisponibles =
+      BehaviorSubject.seeded(FiltroPreguntas.values);
+
+  late final filtroPreguntas = BehaviorSubject.seeded(FiltroPreguntas.todas);
 
   ControladorLlenadoInspeccion(
     this.cuestionario,
     this.factory,
     this._read,
-  ) {
-    _read(estadoDeInspeccionProvider.notifier).state =
-        cuestionario.inspeccion.estado;
-  }
+  );
 
   @pragma('vm:notify-debugger-on-exception')
   Future<void> guardarInspeccion({
@@ -94,8 +119,10 @@ class ControladorLlenadoInspeccion {
   }) async {
     try {
       onStart?.call();
-      final estado = _read(estadoDeInspeccionProvider);
-      cuestionario.inspeccion.estado = estado;
+      cuestionario.inspeccion.estado = estadoDeInspeccion.value;
+      cuestionario.inspeccion.criticidadCalculada = criticidadTotal.value;
+      cuestionario.inspeccion.criticidadCalculadaConReparaciones =
+          criticidadTotalConReparaciones.value;
       final visitor = GuardadoVisitor(
         repository,
         controladores,
@@ -132,9 +159,8 @@ class ControladorLlenadoInspeccion {
     }
 
     mensajeReparacion?.call();
-    _read(estadoDeInspeccionProvider.notifier).state =
-        EstadoDeInspeccion.enReparacion;
-    _read(filtroPreguntasProvider.notifier).state = FiltroPreguntas.criticas;
+    estadoDeInspeccion.value = EstadoDeInspeccion.enReparacion;
+    filtroPreguntas.value = FiltroPreguntas.criticas;
   }
 
   void finalizar(
@@ -149,14 +175,13 @@ class ControladorLlenadoInspeccion {
 
     final c = await confirmation();
     if (c == null || !c) return;
-    _read(estadoDeInspeccionProvider.notifier).state =
-        EstadoDeInspeccion.finalizada;
+    estadoDeInspeccion.value = EstadoDeInspeccion.finalizada;
 
     await ejecutarGuardado(
         guardarInspeccion); //TODO: si falla se debe devolver al estado inicial
 
     formArray.markAsDisabled();
-    _read(filtroPreguntasProvider.notifier).state = FiltroPreguntas.todas;
+    filtroPreguntas.value = FiltroPreguntas.todas;
   }
 
   bool _validarInspeccion() {
@@ -169,5 +194,6 @@ class ControladorLlenadoInspeccion {
 
   void dispose() {
     formArray.dispose();
+    estadoDeInspeccion.close();
   }
 }
