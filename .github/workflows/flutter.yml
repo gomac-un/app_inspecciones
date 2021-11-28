@@ -7,9 +7,9 @@ name: Build
 
 on:
   push:
-    branches: [ actualizacion_flutter ]
+    branches: [ main ]
   pull_request:
-    branches: [ actualizacion_flutter ]
+    branches: [ main ]
 
 jobs:
    # Compile the latest sqlite3 library, which will be used to run tests in moor
