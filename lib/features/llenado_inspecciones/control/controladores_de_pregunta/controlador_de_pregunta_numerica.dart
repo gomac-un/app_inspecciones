@@ -1,34 +1,49 @@
 import 'package:flutter/foundation.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../domain/bloques/preguntas/pregunta_numerica.dart';
 import '../controlador_de_pregunta.dart';
+import '../controlador_llenado_inspeccion.dart';
 import '../visitors/controlador_de_pregunta_visitor.dart';
 
 class ControladorDePreguntaNumerica
-    extends ControladorDePregunta<PreguntaNumerica> {
+    extends ControladorDePregunta<PreguntaNumerica, FormControl<double?>> {
   @override
-  late final FormControl<double?> respuestaEspecificaControl = fb.control(
+  late final respuestaEspecificaControl = fb.control(
       pregunta.respuesta?.respuestaNumerica,
       [DoubleValidator().validate, Validators.required]);
 
-  ControladorDePreguntaNumerica(PreguntaNumerica pregunta) : super(pregunta);
+  ControladorDePreguntaNumerica(
+      PreguntaNumerica pregunta, ControladorLlenadoInspeccion controlInspeccion)
+      : super(pregunta, controlInspeccion);
 
   @override
-  int? get criticidadRespuesta => valor == null
-      ? null
-      : pregunta.rangosDeCriticidad.singleWhere(
-          (r) => valor! >= r.inicio && valor! <= r.fin,
-          orElse: () {
-            FlutterError.reportError(FlutterErrorDetails(
-              exception: Exception('rangos incompletos'),
-              library: 'inspecciones',
-              context: ErrorDescription(
-                  'rangos de criticidad incompletos, usando criticidad 0 por defecto'),
-            ));
-            return RangoDeCriticidad(0, 0, 0);
-          },
-        ).criticidad;
+  late final ValueStream<bool> requiereCriticidadDelInspector =
+      BehaviorSubject.seeded(false);
+
+  @override
+  late final ValueStream<int?> criticidadRespuesta = respuestaEspecificaControl
+      .valueChanges
+      .map((value) => value == null ? null : _encontrarCriticidadDeValor(value))
+      .toVSwithInitial(criticidadRespuestaSync);
+
+  int? get criticidadRespuestaSync =>
+      valor == null ? null : _encontrarCriticidadDeValor(valor!);
+
+  int _encontrarCriticidadDeValor(double valor) =>
+      pregunta.rangosDeCriticidad.singleWhere(
+        (r) => valor >= r.inicio && valor <= r.fin,
+        orElse: () {
+          FlutterError.reportError(FlutterErrorDetails(
+            exception: Exception('rangos incompletos'),
+            library: 'inspecciones',
+            context: ErrorDescription(
+                'rangos de criticidad incompletos, usando criticidad 0 por defecto'),
+          ));
+          return RangoDeCriticidad(0, 0, 0);
+        },
+      ).criticidad;
 
   @override
   R accept<R>(ControladorDePreguntaVisitor<R> visitor) =>

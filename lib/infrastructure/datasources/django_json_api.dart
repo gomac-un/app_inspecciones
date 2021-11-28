@@ -61,13 +61,14 @@ class DjangoJsonApi
           .appendSegment('organizaciones', addTrailingSlash: false)
           .appendSegment(id?.toString() ?? 'mi_organizacion'));
 
+/*
   /// Le informa al servidor que debe registrar un nuevo cliente y el servidor
   /// retorna una id, esta id es unica y será usada para generar
   /// las ids de los objetos generados localmente de tal manera que al subirlos,
   /// no hayan choques de ids
   @override
   Future<JsonMap> registrarApp() =>
-      _client.request('POST', _apiUri.appendSegment('dispositivos'), body: {});
+      _client.request('POST', _apiUri.appendSegment('dispositivos'), body: {});*/
 
   @override
   Future<JsonMap> registrarUsuario(JsonMap form) =>
@@ -106,6 +107,17 @@ class DjangoJsonApi
       body: activo);
 
   @override
+  Future<void> borrarActivo(String activoId) => _client.request(
+      'DELETE',
+      _apiUri
+          .appendSegment('activos', addTrailingSlash: false)
+          .appendSegment(activoId));
+
+  /*@override
+  Future<JsonMap> guardarActivo(JsonMap activo) =>
+      _client.request('POST', _apiUri.appendSegment('activos'), body: activo);*/
+
+  @override
   Future<JsonMap> getInspeccion(int id) => _client.request(
       'GET',
       _apiUri
@@ -139,7 +151,7 @@ class DjangoJsonApi
   }
 
   @override
-  Future<JsonMap> crearCuestionario(JsonMap cuestionario) =>
+  Future<JsonMap> subirCuestionario(JsonMap cuestionario) =>
       _client.request('POST', _apiUri.appendSegment("cuestionarios-completos"),
           body: cuestionario);
 
@@ -175,6 +187,82 @@ class DjangoJsonApi
     await ZipFile.extractToDirectory(
         zipFile: zipFotos, destinationDir: destinationDir);
   }
+
+  @override
+  Future<JsonMap> descargarCuestionario(String cuestionarioId) =>
+      _client.request(
+          'GET',
+          _apiUri
+              .appendSegment('cuestionarios-completos', addTrailingSlash: false)
+              .appendSegment(cuestionarioId));
+
+  @override
+  Future<JsonList> getCuestionarios() =>
+      _client.request('GET', _apiUri.appendSegment('cuestionarios'));
+
+  @override
+  Future<JsonMap> subirFotosCuestionario(JsonList fotos) => _client.request(
+      'POST',
+      _apiUri
+          .appendSegment('cuestionarios-completos', addTrailingSlash: false)
+          .appendSegment("subir_fotos"),
+      body: {"fotos": fotos},
+      format: 'multipart');
+
+  @override
+  Future<JsonMap> subirFotosInspeccion(JsonList fotos) => _client.request(
+      'POST',
+      _apiUri
+          .appendSegment('inspecciones-completas', addTrailingSlash: false)
+          .appendSegment("subir_fotos"),
+      body: {"fotos": fotos},
+      format: 'multipart');
+
+  @override
+  Future<JsonMap> subirInspeccion(JsonMap inspeccion) =>
+      _client.request('POST', _apiUri.appendSegment("inspecciones-completas"),
+          body: inspeccion);
+
+  @override
+  Future<JsonList> getListaDeEtiquetasDeActivos() =>
+      _client.request('GET', _apiUri.appendSegment('etiquetas-activos'));
+
+  ///TODO: mirar como hacer para subirlas todas en una sola request
+  @override
+  Future<void> subirListaDeEtiquetasDeActivos(JsonList lista) async {
+    for (final etiqueta in lista) {
+      await _client.request('POST', _apiUri.appendSegment('etiquetas-activos'),
+          body: etiqueta);
+    }
+  }
+
+  @override
+  Future<JsonList> getListaDeEtiquetasDePreguntas() =>
+      _client.request('GET', _apiUri.appendSegment('etiquetas-preguntas'));
+
+  ///TODO: mirar como hacer para subirlas todas en una sola request
+  @override
+  Future<void> subirListaDeEtiquetasDePreguntas(JsonList lista) async {
+    for (final etiqueta in lista) {
+      await _client.request(
+          'POST', _apiUri.appendSegment('etiquetas-preguntas'),
+          body: etiqueta);
+    }
+  }
+
+  @override
+  Future<void> eliminarEtiquetaDeActivo(String etiquetaId) => _client.request(
+      'DELETE',
+      _apiUri
+          .appendSegment('etiquetas-activos', addTrailingSlash: false)
+          .appendSegment(etiquetaId));
+
+  @override
+  Future<void> eliminarEtiquetaDePregunta(String etiquetaId) => _client.request(
+      'DELETE',
+      _apiUri
+          .appendSegment('etiquetas-preguntas', addTrailingSlash: false)
+          .appendSegment(etiquetaId));
 }
 
 extension ManipulacionesUri on Uri {

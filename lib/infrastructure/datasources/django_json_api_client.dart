@@ -30,6 +30,8 @@ class DjangoJsonApiClient {
       _ejecutarRequest<T>(
           () => _sendUnstreamed(method, url, headers, body, format));
 
+  void close() => _inner.close();
+
   /// Sends a non-streaming [Request] and returns a non-streaming [Response].
   Future<http.Response> _sendUnstreamed(String method, Uri url,
       Map<String, String>? headers, JsonMap? body, String format) async {
@@ -89,6 +91,16 @@ class DjangoJsonApiClient {
       } else if (value is XFile) {
         final multipartFile = await _buildMultipartFile(value, field);
         request.files.add(multipartFile);
+      } else if (value is List<AppImage>) {
+        for (final image in value) {
+          final file = image.when(
+              remote: (_) => XFile(''), //Esto no pasa
+              mobile: (f) => XFile(f),
+              web: (f) => XFile(f));
+
+          final multipartFile = await _buildMultipartFile(file, field);
+          request.files.add(multipartFile);
+        }
       } else {
         throw UnimplementedError(
             "value of type ${value.runtimeType} is not supported for multipart request");
@@ -99,7 +111,10 @@ class DjangoJsonApiClient {
 
   Future<http.MultipartFile> _buildMultipartFile(
       XFile value, String field) async {
-    final fileName = path.basename(value.path);
+    var fileName = path.basename(value.path);
+    //MACHETAZO MONUMENTAL
+    if (!fileName.contains(".")) fileName = "$fileName.jpg";
+
     final stream = http.ByteStream(value.openRead());
     final length = await value.length();
     final multipartFile = http.MultipartFile(
@@ -117,11 +132,11 @@ class DjangoJsonApiClient {
       Future<http.Response> Function() request) async {
     final http.Response response;
 
-    //try {
-    response = await request().timeout(const Duration(seconds: 5));
-    // } catch (e) {
-    //   throw ErrorDeConexion("$e");
-    // }
+    try {
+      response = await request().timeout(const Duration(seconds: 5));
+    } on SocketException catch (e) {
+      throw ErrorDeConexion("$e");
+    }
     //NOTE: este es un buen lugar para poner breakpoints en el debug de peticiones
 
     final statusCode = response.statusCode;
@@ -152,6 +167,8 @@ class DjangoJsonApiClient {
     if ([405, 415].contains(statusCode)) {
       throw ErrorEnLaComunicacionConLaApi(response.jsonDecoded["detail"]);
     }
+    if (statusCode == 204) return Future.value();
+
     if (statusCode == 200 || statusCode == 201) {
       return response.jsonDecoded;
     } else {

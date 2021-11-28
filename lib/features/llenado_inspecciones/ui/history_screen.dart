@@ -3,7 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/borrador.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 
-import '../widgets/user_drawer.dart';
+import '../../../presentation/widgets/user_drawer.dart';
 
 final borradoresDaoProvider =
     Provider((ref) => ref.watch(driftDatabaseProvider).borradoresDao);
@@ -31,7 +31,9 @@ class HistoryInspeccionesPage extends ConsumerWidget {
         ],
       ),
       body: StreamBuilder<List<Borrador>>(
-          stream: ref.watch(borradoresDaoProvider).borradores(enviadas: true),
+          stream: ref
+              .watch(borradoresDaoProvider)
+              .borradores(mostrarSoloEnviadas: true),
           builder: (context, snapshot) {
             final textTheme = Theme.of(context).textTheme;
 
@@ -63,7 +65,7 @@ class HistoryInspeccionesPage extends ConsumerWidget {
                 return ListTile(
                   tileColor: Theme.of(context).cardColor,
                   title: Text(
-                    "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.modelo} (${borrador.cuestionario.tipoDeInspeccion})",
+                    "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.etiquetas} (${borrador.cuestionario.tipoDeInspeccion})",
                     style: textTheme.headline6,
                   ),
                   subtitle: Column(

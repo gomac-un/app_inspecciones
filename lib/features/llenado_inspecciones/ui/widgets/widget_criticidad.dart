@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:inspecciones/utils/hooks.dart';
 
 import '../../control/controlador_de_pregunta.dart';
-import '../../control/controlador_llenado_inspeccion.dart';
-import '../../control/providers.dart';
 import '../../domain/inspeccion.dart';
 
-class WidgetCriticidad extends ConsumerWidget {
+class WidgetCriticidad extends HookWidget {
   final ControladorDePregunta control;
 
   const WidgetCriticidad(
@@ -15,9 +14,11 @@ class WidgetCriticidad extends ConsumerWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context, ref) {
-    final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider).state;
-    final criticidadCalculada = ref.watch(criticidadCalculadaProvider(control));
+  Widget build(BuildContext context) {
+    final estadoDeInspeccion =
+        useValueStream(control.controlInspeccion.estadoDeInspeccion);
+    final criticidadCalculada =
+        useValueStream(control.criticidadCalculadaConReparaciones);
 
     return estadoDeInspeccion == EstadoDeInspeccion.borrador
         ? _WidgetCriticidad.borrador(

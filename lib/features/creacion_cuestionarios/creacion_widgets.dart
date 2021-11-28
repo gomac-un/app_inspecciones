@@ -1,12 +1,11 @@
-import 'package:enum_to_string/enum_to_string.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/core/enums.dart';
+import 'package:inspecciones/features/configuracion_organizacion/administrador_de_etiquetas.dart';
+import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
+import 'package:inspecciones/presentation/widgets/app_image_multi_image_picker.dart';
+import 'package:inspecciones/presentation/widgets/reactive_textfield_tags.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-import '../../infrastructure/drift_database.dart';
-import 'ayuda_posicion.dart';
 import 'creacion_controls.dart';
 import 'creacion_form_controller.dart';
 import 'creador_cuadricula_card.dart';
@@ -75,24 +74,14 @@ class ControlWidgetAnimado extends StatelessWidget {
   }
 }
 
-class CamposGenerales extends ConsumerWidget {
+class CamposGenerales extends StatelessWidget {
   final CamposGeneralesPreguntaController controller;
   const CamposGenerales({Key? key, required this.controller}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, ref) {
-    /// Se accede a este provider del formulario base de creación para poder cargar los sistemas
-    final formController = ref.watch(creacionFormControllerProvider);
-
+  Widget build(BuildContext context) {
     /// Como es de selección, se asegura que los unicos tipos de pregunta que pueda seleccionar el creador
     /// sean de unica o multiple respuesta
-    /// TODO: reestructurar estos estados
-    final List<TipoDePregunta> itemsTipoPregunta = controller.parteDeCuadricula
-        ? [
-            TipoDePregunta.parteDeCuadriculaUnica,
-            TipoDePregunta.parteDeCuadriculaMultiple
-          ]
-        : [TipoDePregunta.unicaRespuesta, TipoDePregunta.multipleRespuesta];
 
     return Column(
       children: [
@@ -120,159 +109,49 @@ class CamposGenerales extends ConsumerWidget {
           textCapitalization: TextCapitalization.sentences,
         ),
         const SizedBox(height: 10),
-        //TODO: averiguar por que los siguientes reactive widgets que son nullables
-        // no se deshabilitan en la ui cuando el cuestionario está finalizado
-        /// Dependiendo del sistema elegido, se cargan los subsistemas asociados.
-        ReactiveDropdownField<Sistema?>(
-          formControl: controller.sistemaControl,
-          items: formController.todosLosSistemas
-              .map((e) => DropdownMenuItem<Sistema>(
-                    value: e,
-                    child: Text(e.nombre),
-                  ))
-              .toList(),
-          validationMessages: (control) =>
-              {ValidationMessage.required: 'Seleccione el sistema'},
-          decoration: const InputDecoration(
-            labelText: 'Sistema',
-          ),
-        ),
+        Consumer(builder: (context, ref, _) {
+          final todasLasJerarquias =
+              ref.watch(listaEtiquetasDePreguntasProvider).asData?.value ??
+                  const <Jerarquia>[];
 
-        const SizedBox(height: 10),
-        ValueListenableBuilder<List<SubSistema>>(
-            valueListenable: controller.subSistemasDisponibles,
-            builder: (context, value, child) {
-              return ReactiveDropdownField<SubSistema?>(
-                formControl: controller.subSistemaControl,
-                validationMessages: (control) =>
-                    {ValidationMessage.required: 'Seleccione el subsistema'},
-                items: value
-                    .map((e) => DropdownMenuItem<SubSistema>(
-                          value: e,
-                          child: Text(e.nombre),
-                        ))
-                    .toList(),
-                decoration: const InputDecoration(
-                  labelText: 'Subsistema',
-                ),
-                onTap: () {
-                  FocusScope.of(context)
-                      .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-                },
+          return ReactiveTextFieldTags(
+            decoration: const InputDecoration(labelText: "etiquetas"),
+            formControl: controller.etiquetasControl,
+            optionsBuilder: (TextEditingValue val) => controller
+                .getEtiquetasDisponibles(todasLasJerarquias)
+                .where((e) =>
+                    e.clave.toLowerCase().contains(val.text.toLowerCase())),
+            onMenu: () {
+              showDialog(
+                context: context,
+                builder: (_) => const MenuDeEtiquetas(TipoDeEtiqueta.pregunta),
               );
-            }),
-        const SizedBox(height: 5),
-        const Divider(height: 15, color: Colors.black),
-        Row(
-          children: [
-            const Expanded(
-              flex: 3,
-              child: Text(
-                'Posición',
-                textAlign: TextAlign.start,
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomLeft,
-              child: TextButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => const Dialog(child: AyudaPosicion()),
-                  );
-                },
-                child: const Text(
-                  '¿Necesitas ayuda?',
-                  textAlign: TextAlign.end,
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 5),
-        ReactiveDropdownField<String?>(
-          formControl: controller.ejeControl,
-          validationMessages: (control) =>
-              {ValidationMessage.required: 'Este valor es requerido'},
-          items: formController.ejes
-              .map((e) => DropdownMenuItem<String>(
-                    value: e,
-                    child: Text(e),
-                  ))
-              .toList(),
-          decoration: const InputDecoration(
-            labelText: 'Posición Y',
-          ),
-          onTap: () {
-            FocusScope.of(context)
-                .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-          },
-        ),
+            },
+          );
+        }),
         const SizedBox(height: 10),
-        ReactiveDropdownField<String?>(
-          formControl: controller.ladoControl,
-          validationMessages: (control) =>
-              {ValidationMessage.required: 'Este valor es requerido'},
-          items: formController.lados
-              .map((e) => DropdownMenuItem<String>(
-                    value: e,
-                    child: Text(e),
-                  ))
-              .toList(),
+        InputDecorator(
           decoration: const InputDecoration(
-            labelText: 'Posición X',
+              labelText: 'Criticidad de la pregunta', filled: false),
+          child: ReactiveSlider(
+            formControl: controller.criticidadControl,
+            max: 4,
+            divisions: 4,
+            labelBuilder: (v) => v.round().toString(),
+            activeColor: Colors.red,
           ),
-          onTap: () {
-            FocusScope.of(context)
-                .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-          },
         ),
-        const SizedBox(height: 10),
-        ReactiveDropdownField<String?>(
-          formControl: controller.posicionZControl,
-          validationMessages: (control) =>
-              {ValidationMessage.required: 'Este valor es requerido'},
-          items: formController.posZ
-              .map((e) => DropdownMenuItem<String>(
-                    value: e,
-                    child: Text(e),
-                  ))
-              .toList(),
-          decoration: const InputDecoration(
-            labelText: 'Posición Z',
-          ),
-          onTap: () {
-            FocusScope.of(context)
-                .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-          },
-        ),
-        const SizedBox(height: 10),
-        ReactiveDropdownField<TipoDePregunta>(
-          formControl: controller.tipoDePreguntaControl,
-          validationMessages: (control) =>
-              {ValidationMessage.required: 'Seleccione el tipo de pregunta'},
-          items: itemsTipoPregunta
-              .map((e) => DropdownMenuItem<TipoDePregunta>(
-                    value: e,
-                    child:
-                        Text(EnumToString.convertToString(e, camelCase: true)),
-                  ))
-              .toList(),
-          decoration: const InputDecoration(
-            labelText: 'Tipo de pregunta',
-          ),
-          onTap: () {
-            FocusScope.of(context)
-                .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-          },
+        AppImageMultiImagePicker(
+          formControl: controller.fotosGuiaControl,
+          label: 'Fotos guía',
+          maxImages: 3,
         ),
       ],
     );
   }
 }
 
-/// Reúne todas las acciones comunes a todos los bloques, incluye agregar nuevo
+/// Reune todas las acciones comunes a todos los bloques, incluye agregar nuevo
 /// tipo de pregunta, agregar titulo, copiar y pegar bloque
 class BotonesDeBloque extends ConsumerWidget {
   const BotonesDeBloque({
@@ -285,8 +164,9 @@ class BotonesDeBloque extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     if (controllerActual.control.disabled) return const SizedBox.shrink();
-    final formController = ref.watch(creacionFormControllerProvider);
-    final animatedList = AnimatedList.of(context);
+    final formController = ref.watch(
+        creacionFormControllerProvider(ref.watch(cuestionarioIdProvider)));
+    final animatedList = SliverAnimatedList.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -299,7 +179,7 @@ class BotonesDeBloque extends ConsumerWidget {
             formController,
             animatedList,
             //TODO: mover a logica de creacion al [formController]
-            CreadorPreguntaController(formController.repository, null, null),
+            CreadorPreguntaController(),
           ),
         ),
 
@@ -310,8 +190,7 @@ class BotonesDeBloque extends ConsumerWidget {
           onPressed: () => agregarBloque(
             formController,
             animatedList,
-            CreadorPreguntaNumericaController(
-                formController.repository, null, null),
+            CreadorPreguntaNumericaController(),
           ),
         ),
 
@@ -322,8 +201,7 @@ class BotonesDeBloque extends ConsumerWidget {
           onPressed: () => agregarBloque(
             formController,
             animatedList,
-            CreadorPreguntaCuadriculaController(
-                formController.repository, null, null),
+            CreadorPreguntaCuadriculaController(),
           ),
         ),
 
@@ -435,7 +313,7 @@ class BotonesDeBloque extends ConsumerWidget {
 
   /// Pega bloque despues del bloque actual [formGroup]
   Future<void> pegarBloque(CreacionFormController formController,
-      AnimatedListState animatedList) async {
+      SliverAnimatedListState animatedList) async {
     final bloqueCopiado = formController.bloqueCopiado;
     if (bloqueCopiado != null) {
       agregarBloque(formController, animatedList, bloqueCopiado.copy());
@@ -443,8 +321,8 @@ class BotonesDeBloque extends ConsumerWidget {
   }
 
   /// Borra el bloque seleccionado [formGroup]
-  void borrarBloque(
-      CreacionFormController formController, AnimatedListState animatedList) {
+  void borrarBloque(CreacionFormController formController,
+      SliverAnimatedListState animatedList) {
     final index = formController.controllersBloques.indexOf(controllerActual);
     if (index == 0) return; //no borre el primer titulo
     /// Elimina de la lista en la pantalla
@@ -463,7 +341,7 @@ class BotonesDeBloque extends ConsumerWidget {
   /// Agrega un bloque despues del seleccionado
   void agregarBloque(
     CreacionFormController formController,
-    AnimatedListState animatedList,
+    SliverAnimatedListState animatedList,
     CreacionController nuevo,
   ) {
     /// Lo inserta en la lista de la UI

@@ -38,21 +38,19 @@ class UserDrawer extends ConsumerWidget {
                       texto:
                           'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
                       icon: Icons.app_registration_outlined,
-                      onTap: kIsWeb
-                          ? null
-                          : () => context.goNamed("cuestionarios"),
+                      onTap: () => context.goNamed("cuestionarios"),
                     ),
                   MenuItem(
-                    texto: 'Borradores',
+                    texto: 'Inspecciones',
                     icon: Icons.list_alt_outlined,
-                    onTap: kIsWeb ? null : () => context.goNamed("borradores"),
+                    onTap: () => context.goNamed("inspecciones"),
                   ),
-                  MenuItem(
-                    texto: 'Sincronizar con GOMAC',
-                    icon: Icons.sync_outlined,
-                    onTap:
-                        kIsWeb ? null : () => context.goNamed("sincronizacion"),
-                  ),
+                  if (false) //TODO: eliminar
+                    MenuItem(
+                      texto: 'Sincronizar con GOMAC',
+                      icon: Icons.sync_outlined,
+                      onTap: () => context.goNamed("sincronizacion"),
+                    ),
                   if (user.esAdmin)
                     MenuItem(
                       texto: 'Herramientas de desarrollador',
@@ -62,11 +60,9 @@ class UserDrawer extends ConsumerWidget {
                   MenuItem(
                     texto: 'Limpiar datos de la app',
                     icon: Icons.cleaning_services_outlined,
-                    onTap: kIsWeb
-                        ? null
-                        : () => _mostrarConfirmacionLimpieza(
-                              context: context,
-                            ),
+                    onTap: () => _mostrarConfirmacionLimpieza(
+                      context: context,
+                    ),
                   ),
                   MenuItem(
                     texto: 'Cambiar el tema',

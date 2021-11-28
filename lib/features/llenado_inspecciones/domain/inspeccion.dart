@@ -1,29 +1,31 @@
-import 'cuestionario.dart';
-import 'modelos.dart';
+import 'activo.dart';
 
 class Inspeccion {
-  final int id;
-  final EstadoDeInspeccion estado;
+  final String? id;
+  EstadoDeInspeccion
+      estado; // no es final porque se usa para indicar el estado en el guardado
   final Activo activo;
+  final DateTime momentoInicio;
   final DateTime? momentoBorradorGuardado;
+  final DateTime? momentoFinalizacion;
   final DateTime? momentoEnvio;
 
-  final double criticidadTotal;
-  final double criticidadReparacion;
-  final bool esNueva;
-  //inspector //TODO: agregarle el dato del inspector que la esta haciendo
+  final String inspectorId;
 
-  late final CuestionarioInspeccionado cuestionario;
+  int criticidadCalculada;
+  int criticidadCalculadaConReparaciones;
 
   Inspeccion({
-    required this.id,
+    this.id,
     required this.estado,
     required this.activo,
+    required this.momentoInicio,
+    required this.inspectorId,
     this.momentoBorradorGuardado,
+    this.momentoFinalizacion,
     this.momentoEnvio,
-    required this.criticidadTotal,
-    required this.criticidadReparacion,
-    required this.esNueva,
+    required this.criticidadCalculada,
+    required this.criticidadCalculadaConReparaciones,
   });
 }
 

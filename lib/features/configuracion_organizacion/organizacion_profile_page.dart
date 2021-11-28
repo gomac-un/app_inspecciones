@@ -1,5 +1,7 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 
 import 'configuracion_organizacion_page.dart';
@@ -7,8 +9,8 @@ import 'domain/entities.dart';
 import 'widgets/profile_widget.dart';
 import 'widgets/simple_future_provider_refreshable_builder.dart';
 
-final miOrganizacionProvider = FutureProvider.autoDispose((ref) =>
-    ref.watch(organizacionRemoteRepositoryProvider).getMiOrganizacion());
+final miOrganizacionProvider = FutureProvider.autoDispose(
+    (ref) => ref.watch(organizacionRepositoryProvider).getMiOrganizacion());
 
 class OrganizacionProfilePage extends ConsumerWidget {
   const OrganizacionProfilePage({Key? key}) : super(key: key);
@@ -16,27 +18,31 @@ class OrganizacionProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     return SimpleFutureProviderRefreshableBuilder(
-        provider: miOrganizacionProvider,
-        builder: (context, Organizacion organizacion) => ListView(
-              children: [
-                const SizedBox(height: 24),
-                ProfileWidget(
-                  imagePath: organizacion.logo,
-                  onClicked: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => ConfiguracionOrganizacionPage(
-                            organizacion: organizacion,
-                          ))),
-                ),
-                const SizedBox(height: 24),
-                buildName(organizacion.nombre, organizacion.link),
-                const SizedBox(height: 24),
-                Center(child: buildUpgradeButton()),
-                const SizedBox(height: 24),
-                const _EstadisticasWidget(),
-                const SizedBox(height: 48),
-                buildAbout(organizacion.acerca),
-              ],
-            ));
+      provider: miOrganizacionProvider,
+      builder: (context, Either<ApiFailure, Organizacion> r) => r.fold(
+        (f) => Text("$f"),
+        (organizacion) => ListView(
+          children: [
+            const SizedBox(height: 24),
+            ProfileWidget(
+              imagePath: organizacion.logo,
+              onClicked: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => ConfiguracionOrganizacionPage(
+                        organizacion: organizacion,
+                      ))),
+            ),
+            const SizedBox(height: 24),
+            buildName(organizacion.nombre, organizacion.link),
+            const SizedBox(height: 24),
+            Center(child: buildUpgradeButton()),
+            const SizedBox(height: 24),
+            const _EstadisticasWidget(),
+            const SizedBox(height: 48),
+            buildAbout(organizacion.acerca),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget buildName(String nombre, String link) => Column(

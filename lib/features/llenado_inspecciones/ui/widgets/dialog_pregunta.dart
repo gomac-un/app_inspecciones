@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/utils/hooks.dart';
 
 import '../../control/controlador_de_pregunta.dart';
-import '../../control/controlador_llenado_inspeccion.dart';
-import '../../control/providers.dart';
 import '../../domain/inspeccion.dart';
 import '../pregunta_card_factory.dart';
 
-class IconDialogPregunta extends ConsumerWidget {
+class IconDialogPregunta extends HookWidget {
   const IconDialogPregunta({
     Key? key,
     required this.controladorPregunta,
@@ -16,14 +16,13 @@ class IconDialogPregunta extends ConsumerWidget {
   final ControladorDePregunta controladorPregunta;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider).state;
-    final reparado =
-        ref.watch(reparadoProvider(controladorPregunta.reparadoControl));
-    final controlValido =
-        ref.watch(controlValidoProvider(controladorPregunta.control));
+  Widget build(BuildContext context) {
+    final estadoDeInspeccion = useValueStream(
+        controladorPregunta.controlInspeccion.estadoDeInspeccion);
+    final reparado = useControlValue(controladorPregunta.reparadoControl)!;
+    final controlValido = useControlValid(controladorPregunta.control);
     final criticidadCalculada =
-        ref.watch(criticidadCalculadaProvider(controladorPregunta));
+        useValueStream(controladorPregunta.criticidadCalculadaConReparaciones);
 
     final Color? color;
     final IconData icon;

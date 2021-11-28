@@ -1,19 +1,20 @@
-import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:inspecciones/core/error/errors.dart';
-import 'package:inspecciones/infrastructure/drift_database.dart';
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
+import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
+
+import '../drift_database.dart';
 
 part 'guardado_cuestionario_dao.drift.dart';
 
 @DriftAccessor(tables: [
+  EtiquetasDeActivo,
+  Cuestionarios,
+  CuestionariosXEtiquetas,
   Bloques,
   Titulos,
-  CuadriculasDePreguntas,
+  EtiquetasDePregunta,
   Preguntas,
-  Cuestionarios,
-  CuestionarioDeModelos,
+  PreguntasXEtiquetas,
   OpcionesDeRespuesta,
   CriticidadesNumericas,
 ])
@@ -25,20 +26,20 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
 
   /// Guarda o crea un cuestionario con sus respectivas preguntas.
   Future<void> guardarCuestionario(
-    CuestionariosCompanion cuestionarioForm,
+      CuestionarioCompletoCompanion cuestionario) async {
+    final cuestionarioInsertable = cuestionario.cuestionario;
+    final etiquetasAplicablesForm = cuestionario.etiquetas;
+    final bloquesForm = cuestionario.bloques;
 
-    /// Información sobre los modelos a los que aplica [cuestionario], periodicidad y contratista
-    List<CuestionarioDeModelosCompanion> cuestionariosDeModelosForm,
-    List<Object> bloquesForm,
-  ) async {
     /// Como es una transaccion si algo falla, ningun cambio queda en la DB
     return transaction(
       () async {
-        final Cuestionario cuestionario =
-            await _upsertCuestionario(cuestionarioForm);
-        await _upsertModelos(cuestionariosDeModelosForm, cuestionario);
+        final cuestionario = await _upsertCuestionario(cuestionarioInsertable);
+        await _insertEtiquetasDeActivo(etiquetasAplicablesForm, cuestionario);
 
-        // La estrategia es borrar todo y volverlo a crear para que sea mas simple
+        // La estrategia es borrar todo y volverlo a crear para que sea mas simple,
+        // a veces en la version web no se borran en cascada, por lo que se deben
+        // hacer los inserts subsecuentes con insertOrReplace
         await (delete(bloques)
               ..where(
                   (bloque) => bloque.cuestionarioId.equals(cuestionario.id)))
@@ -46,7 +47,6 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
 
         /// Procesamiento de cada object del formulario de acuerdo a si es
         /// titulo, pregunta de selección o numerica y cuadricula.
-        /// En los condicionales, se mira de que tipo especifico es el [element],
         /// Hay que tener especial cuidado en tratar todo tipo posible que
         /// venga desde el formulario creacion (metodos toDB), ya que si llega
         /// uno de distinto tipo, va a fallar, esto se debería evitar usando
@@ -59,42 +59,53 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
           final element = entry.value;
           final bloque = await into(bloques).insertReturning(
             BloquesCompanion.insert(nOrden: i, cuestionarioId: cuestionario.id),
-          );
+          ); // cuando se descarga del server se pueden ignorar los ids de los bloques
 
-          if (element is TitulosCompanion) {
-            await into(titulos).insert(element.copyWith(
-              bloqueId: Value(bloque.id),
-            ));
-          } else if (element is PreguntaConOpcionesDeRespuestaCompanion) {
-            await _procesarPregunta(element.pregunta, cuestionario, bloque,
-                opcionesDeRespuesta: element.opcionesDeRespuesta);
-          } else if (element
-              is CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion) {
-            final cuadricula = await into(cuadriculasDePreguntas)
-                .insertReturning(element.cuadricula.copyWith(
-              bloqueId: Value(bloque.id),
-            ));
-
-            final preguntasInsertadas = await Future.wait(element.preguntas.map(
-                (e) => _procesarPregunta(e.pregunta, cuestionario, bloque,
-                    opcionesDeRespuesta: [])));
-
-            await (delete(preguntas)
-                  ..where((rxor) =>
-                      rxor.id.isNotIn(preguntasInsertadas.map((e) => e.id)) &
-                      rxor.bloqueId.equals(bloque.id)))
-                .go();
-            await _insertOpcionesDeRespuesta(
-              element.opcionesDeRespuesta,
-              cuadricula: cuadricula,
-            );
+          if (element is TituloDCompanion) {
+            await into(titulos).insert(
+                element.titulo.copyWith(
+                  bloqueId: Value(bloque.id),
+                ),
+                mode: InsertMode.insertOrReplace);
           } else if (element is PreguntaNumericaCompanion) {
-            await _procesarPregunta(
+            await _insertarPregunta(
               element.pregunta,
               cuestionario,
-              bloque,
+              bloque: bloque,
               criticidades: element.criticidades,
+              etiquetas: element.etiquetas,
             );
+          } else if (element is PreguntaDeSeleccionCompanion) {
+            await _insertarPregunta(
+              element.pregunta,
+              cuestionario,
+              bloque: bloque,
+              opcionesDeRespuesta: element.opcionesDeRespuesta,
+              etiquetas: element.etiquetas,
+            );
+          } else if (element
+              is CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion) {
+            final cuadricula = await _insertarPregunta(
+              element.cuadricula.pregunta,
+              cuestionario,
+              bloque: bloque,
+              opcionesDeRespuesta: element.cuadricula.opcionesDeRespuesta,
+              etiquetas: element.cuadricula.etiquetas,
+            );
+
+            await (delete(preguntas)
+                  ..where((p) => p.cuadriculaId.equals(cuadricula.id)))
+                .go();
+
+            for (final pregunta in element.preguntas) {
+              await _insertarPregunta(
+                pregunta.pregunta,
+                cuestionario,
+                cuadricula:
+                    cuadricula, // no va asociada a un bloque, solo a la cuadricula
+                opcionesDeRespuesta: [],
+              );
+            }
           } else {
             throw TaggedUnionError(element);
           }
@@ -104,133 +115,123 @@ class GuardadoDeCuestionarioDao extends DatabaseAccessor<Database>
   }
 
   /// crea o actualiza un cuestionario
-  /// Si el companion viene con id TIENE que estar ya en la db entonces se actualiza, sino se inserta
+
   Future<Cuestionario> _upsertCuestionario(
-      CuestionariosCompanion cuestionarioForm) async {
-    if (cuestionarioForm.id.present) {
-      await update(cuestionarios).replace(cuestionarioForm);
-      return (select(cuestionarios)
-            ..where((c) => c.id.equals(cuestionarioForm.id.value)))
-          .getSingle();
-    } else {
-      return into(cuestionarios).insertReturning(cuestionarioForm);
-    }
+      CuestionariosCompanion cuestionario) async {
+    return into(cuestionarios)
+        .insertReturning(cuestionario, mode: InsertMode.insertOrReplace);
   }
 
   /// Actualiza los modelos asociados a [cuestionario]
-  Future<void> _upsertModelos(
-    List<CuestionarioDeModelosCompanion> cuestionariosDeModelosForm,
+  Future<void> _insertEtiquetasDeActivo(
+    List<EtiquetasDeActivoCompanion> etiquetasForm,
     Cuestionario cuestionario,
   ) async {
-    /// Lista de los ids de cuestionarioDeModelos que se insertarán en la actualización
-
-    final ids = await Future.wait<int>(
-        cuestionariosDeModelosForm.map((cuestionarioDeModelosForm) async {
-      /// Se le asigna [cuestionario] como cuestionario asociado
-      cuestionarioDeModelosForm = cuestionarioDeModelosForm.copyWith(
-          cuestionarioId: Value(cuestionario.id));
-      if (cuestionarioDeModelosForm.id.present) {
-        await into(cuestionarioDeModelos)
-            .insertOnConflictUpdate(cuestionarioDeModelosForm);
-        return cuestionarioDeModelosForm.id.value;
-      } else {
-        return into(cuestionarioDeModelos).insert(cuestionarioDeModelosForm);
-      }
-    }));
-
-    /// En caso de que se haya deseleccionado un modelo para [cuestionario], se elimina de la bd
-    await (delete(cuestionarioDeModelos)
-          ..where((rxor) =>
-              rxor.id.isNotIn(ids) &
-              rxor.cuestionarioId.equals(cuestionario.id)))
+    // borras las antiguas asociaciones
+    await (delete(cuestionariosXEtiquetas)
+          ..where((cxe) => cxe.cuestionarioId.equals(cuestionario.id)))
         .go();
+
+    for (final etiqueta in etiquetasForm) {
+      final query = select(etiquetasDeActivo)
+        ..where((e) =>
+            e.clave.equals(etiqueta.clave.value) &
+            e.valor.equals(etiqueta.valor.value));
+      var etiquetaDeActivo = await query.getSingleOrNull();
+      etiquetaDeActivo ??=
+          await into(etiquetasDeActivo).insertReturning(etiqueta);
+
+      await into(cuestionariosXEtiquetas).insert(
+        CuestionariosXEtiquetasCompanion.insert(
+          cuestionarioId: cuestionario.id,
+          etiquetaId: etiquetaDeActivo.id,
+        ),
+      );
+    }
   }
 
-  Future<Pregunta> _procesarPregunta(
+  Future<Pregunta> _insertarPregunta(
     PreguntasCompanion preguntaCompanion,
-    Cuestionario cuestionario,
-    Bloque bloque, {
+    Cuestionario cuestionario, {
+    Bloque? bloque,
+    Pregunta? cuadricula,
     List<OpcionesDeRespuestaCompanion>? opcionesDeRespuesta,
     List<CriticidadesNumericasCompanion>? criticidades,
+    List<EtiquetasDePreguntaCompanion> etiquetas = const [],
   }) async {
-    final fotosManager =
-        db.fotosRepository; //TODO: eliminar la dependencia a fotosRepository
-    final fotosGuiaProcesadas = await fotosManager.organizarFotos(
-      preguntaCompanion.fotosGuia.valueOrDefault(const Nil()),
-      Categoria.cuestionario,
-      identificador: cuestionario.id.toString(),
-    );
-
+    if (bloque == null && cuadricula == null) {
+      throw ArgumentError('bloque o cuadricula debe ser presente');
+    }
     final preguntaAInsertar = preguntaCompanion.copyWith(
-      bloqueId: Value(bloque.id),
-      fotosGuia: Value(fotosGuiaProcesadas),
+      bloqueId: Value(bloque?.id),
+      cuadriculaId: Value(cuadricula?.id),
     );
 
-    final pregunta = await into(preguntas).insertReturning(preguntaAInsertar);
+    final pregunta = await into(preguntas)
+        .insertReturning(preguntaAInsertar, mode: InsertMode.insertOrReplace);
     if (opcionesDeRespuesta != null) {
-      await _insertOpcionesDeRespuesta(opcionesDeRespuesta, pregunta: pregunta);
+      await _insertOpcionesDeRespuesta(opcionesDeRespuesta, pregunta);
     } else if (criticidades != null) {
       await _insertCriticidades(criticidades, pregunta);
     } else {
       throw TaggedUnionError("debe enviar opcionesDeRespuesta o criticidades");
     }
+    await _insertEtiquetasDePregunta(etiquetas, pregunta);
 
     return pregunta;
   }
 
   Future<void> _insertOpcionesDeRespuesta(
-    List<OpcionesDeRespuestaCompanion> opcionesDeRespuestaForm, {
-    Pregunta? pregunta,
-    CuadriculaDePreguntas? cuadricula,
-  }) async {
-    if (pregunta == null && cuadricula == null) {
-      throw TaggedUnionError(
-          "debe enviar ya sea una pregunta o una cuadricula");
-    }
-    final opcionesId =
-        await Future.wait<int>(opcionesDeRespuestaForm.map((opcionForm) async {
-      /// Asociación de cada opción con [preguntaId o cuadriculaId]
-      if (pregunta != null) {
-        opcionForm = opcionForm.copyWith(preguntaId: Value(pregunta.id));
-      } else if (cuadricula != null) {
-        opcionForm = opcionForm.copyWith(cuadriculaId: Value(cuadricula.id));
-      }
-
-      return into(opcionesDeRespuesta).insert(opcionForm);
-    }));
-
-    final Expression<bool> Function(dynamic rxor) asociada;
-    if (pregunta != null) {
-      asociada = (rxor) => rxor.preguntaId.equals(pregunta.id);
-    } else if (cuadricula != null) {
-      asociada = (rxor) => rxor.cuadriculaId.equals(cuadricula.id);
-    } else {
-      throw TaggedUnionError(
-          "debe enviar ya sea una pregunta o una cuadricula");
-    }
-
-    /// Se eliminan de la bd las opciones de respuesta que fueron eliminadas desde el form
+      List<OpcionesDeRespuestaCompanion> opcionesDeRespuestaForm,
+      Pregunta pregunta) async {
     await (delete(opcionesDeRespuesta)
-          ..where((rxor) => rxor.id.isNotIn(opcionesId) & asociada(rxor)))
+          ..where((rxor) => rxor.preguntaId.equals(pregunta.id)))
         .go();
+    for (final opcion in opcionesDeRespuestaForm) {
+      await into(opcionesDeRespuesta).insert(opcion.copyWith(
+        preguntaId: Value(pregunta.id),
+      ));
+    }
   }
 
   Future<void> _insertCriticidades(
     List<CriticidadesNumericasCompanion> criticidadesForm,
     Pregunta pregunta,
   ) async {
-    /// Inserción de la opciones de respuesta de la pregunta
-    final criticidadesId =
-        await Future.wait<int>(criticidadesForm.map((criticidadForm) async {
-      criticidadForm = criticidadForm.copyWith(preguntaId: Value(pregunta.id));
-      return into(criticidadesNumericas).insert(criticidadForm);
-    }));
-
-    /// Se eliminan de la bd las opciones de respuesta que fueron eliminadas desde el form
     await (delete(criticidadesNumericas)
-          ..where((rxor) =>
-              rxor.id.isNotIn(criticidadesId) &
-              rxor.preguntaId.equals(pregunta.id)))
+          ..where((rxor) => rxor.preguntaId.equals(pregunta.id)))
         .go();
+    for (final criticidad in criticidadesForm) {
+      await into(criticidadesNumericas).insert(criticidad.copyWith(
+        preguntaId: Value(pregunta.id),
+      ));
+    }
+  }
+
+  Future<void> _insertEtiquetasDePregunta(
+    List<EtiquetasDePreguntaCompanion> etiquetasForm,
+    Pregunta pregunta,
+  ) async {
+    // borras las antiguas asociaciones
+    await (delete(preguntasXEtiquetas)
+          ..where((pxe) => pxe.preguntaId.equals(pregunta.id)))
+        .go();
+
+    for (final etiqueta in etiquetasForm) {
+      final query = select(etiquetasDePregunta)
+        ..where((e) =>
+            e.clave.equals(etiqueta.clave.value) &
+            e.valor.equals(etiqueta.valor.value));
+      var etiquetaDePregunta = await query.getSingleOrNull();
+      etiquetaDePregunta ??=
+          await into(etiquetasDePregunta).insertReturning(etiqueta);
+
+      await into(preguntasXEtiquetas).insert(
+        PreguntasXEtiquetasCompanion.insert(
+          preguntaId: pregunta.id,
+          etiquetaId: etiquetaDePregunta.id,
+        ),
+      );
+    }
   }
 }

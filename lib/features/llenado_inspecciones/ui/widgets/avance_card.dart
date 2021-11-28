@@ -1,22 +1,25 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/features/llenado_inspecciones/control/controlador_llenado_inspeccion.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:inspecciones/utils/hooks.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-class AvanceCard extends ConsumerWidget {
-  final FormArray control;
-  final int criticas;
-  const AvanceCard(this.control, this.criticas, {Key? key}) : super(key: key);
+import '../../control/controlador_llenado_inspeccion.dart';
+import '../../domain/inspeccion.dart';
+
+class AvanceCard extends HookWidget {
+  final ControladorLlenadoInspeccion control;
+  const AvanceCard(this.control, {Key? key}) : super(key: key);
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final estadoDeInspeccion = ref.watch(estadoDeInspeccionProvider).state;
+  Widget build(BuildContext context) {
+    //TODO: arreglar la reactividad
+    final controles = control.formArray;
+    final int criticas = useValueStream(control.controladoresCriticos).length;
+    final estadoDeInspeccion = useValueStream(control.estadoDeInspeccion);
     return Container(
-      width: double.infinity,
-      color: const Color.fromRGBO(28, 44, 60, 1),
+      //width: double.infinity,
+      color: Theme.of(context).colorScheme.primary,
       child: ReactiveValueListenableBuilder(
-        formControl: control,
+        formControl: controles,
         builder: (context, value, child) {
           final double avance;
           switch (estadoDeInspeccion) {
@@ -50,10 +53,11 @@ class AvanceCard extends ConsumerWidget {
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
             children: [
               LinearProgressIndicator(
                   value: avance,
-                  backgroundColor: Colors.white,
+                  //backgroundColor: Colors.white,
                   color: Theme.of(context).colorScheme.secondary),
               const SizedBox(height: 3),
               Text(

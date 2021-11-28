@@ -1,11 +1,12 @@
 import 'dart:convert';
 
-import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
-import 'package:inspecciones/presentation/widgets/alertas.dart';
-import 'package:inspecciones/presentation/widgets/reactive_filter_chip_selection.dart';
+import 'package:inspecciones/features/configuracion_organizacion/administrador_de_etiquetas.dart';
+import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
+import 'package:inspecciones/infrastructure/drift_database.dart';
+import 'package:inspecciones/presentation/widgets/reactive_textfield_tags.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_form_controller.dart';
@@ -13,9 +14,8 @@ import 'creacion_widgets.dart';
 import 'pregunta_card.dart';
 
 /// pantalla de edicion de un cuestionario
-/// TODO: opcion para la creacion de cuestionarios con excel
 class EdicionFormPage extends ConsumerWidget {
-  final int? cuestionarioId;
+  final String? cuestionarioId;
 
   const EdicionFormPage({Key? key, this.cuestionarioId}) : super(key: key);
 
@@ -26,157 +26,158 @@ class EdicionFormPage extends ConsumerWidget {
         cuestionarioIdProvider.overrideWithValue(cuestionarioId),
       ],
       child: Consumer(builder: (context, ref, _) {
-        final formController = ref.watch(creacionFormControllerFutureProvider);
+        final formController =
+            ref.watch(creacionFormControllerFutureProvider(cuestionarioId));
         return formController.when(
-            data: (_) => const EdicionForm(),
-            loading: (prev) => const CircularProgressIndicator(),
-            error: (e, s, prev) => throw e);
+            data: (_) => EdicionForm(
+                  cuestionarioId: cuestionarioId,
+                ),
+            loading: () => const CircularProgressIndicator(),
+            error: (e, s) => throw e);
       }),
     );
   }
 }
 
 class EdicionForm extends ConsumerWidget {
-  const EdicionForm({Key? key}) : super(key: key);
+  final String? cuestionarioId;
+  const EdicionForm({Key? key, required this.cuestionarioId}) : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
-    final controller = ref.watch(creacionFormControllerProvider);
+    final controller =
+        ref.watch(creacionFormControllerProvider(cuestionarioId));
     return ReactiveForm(
       formGroup: controller.control,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            controller.estado == EstadoDeCuestionario.borrador
-                ? 'Creación de cuestionario'
-                : 'Visualización cuestionario',
-          ),
+          title: const Text("cuestionario"),
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              PreguntaCard(
-                titulo: 'Tipo de inspección',
-                child: Column(
-                  children: [
-                    ReactiveDropdownField<String?>(
-                      formControl: controller.tipoDeInspeccionControl,
-                      validationMessages: (control) => {
-                        ValidationMessage.required: 'Este valor es requerido'
-                      },
-                      items: controller.todosLosTiposDeInspeccion
-                          .map((e) => DropdownMenuItem<String>(
-                                value: e,
-                                child: Text(e),
-                              ))
-                          .toList(),
-                      decoration: const InputDecoration(
-                        labelText: 'Seleccione el tipo de inspeccion',
-                      ),
-                      onTap: () {
-                        FocusScope.of(context)
-                            .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-                      },
+        body: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PreguntaCard(
+                    titulo: 'Tipo de inspección',
+                    child: Column(
+                      children: [
+                        ReactiveDropdownField<String?>(
+                          formControl: controller.tipoDeInspeccionControl,
+                          validationMessages: (control) => {
+                            ValidationMessage.required:
+                                'Este valor es requerido'
+                          },
+                          items: controller.todosLosTiposDeInspeccion
+                              .map((e) => DropdownMenuItem<String>(
+                                    value: e,
+                                    child: Text(e),
+                                  ))
+                              .toList(),
+                          decoration: const InputDecoration(
+                            labelText: 'Seleccione el tipo de inspeccion',
+                          ),
+                          onTap: () {
+                            FocusScope.of(context)
+                                .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+                          },
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        /// En caso de que se seleccione 'Otra', se activa textfield para que escriba el tipo de inspeccion
+                        ReactiveValueListenableBuilder<String?>(
+                            formControl: controller.tipoDeInspeccionControl,
+                            builder: (context, value, child) {
+                              if (value.value ==
+                                  CreacionFormController.otroTipoDeInspeccion) {
+                                return ReactiveTextField(
+                                  formControl:
+                                      controller.nuevoTipoDeInspeccionControl,
+                                  validationMessages: (control) => {
+                                    ValidationMessage.required:
+                                        'Este valor es requerido'
+                                  },
+                                  decoration: const InputDecoration(
+                                    labelText: 'Escriba el tipo de inspeccion',
+                                    prefixIcon: Icon(Icons.text_fields),
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            }),
+                      ],
                     ),
-
-                    const SizedBox(height: 10),
-
-                    /// En caso de que se seleccione 'Otra', se activa textfield para que escriba el tipo de inspeccion
-                    ReactiveValueListenableBuilder<String?>(
-                        formControl: controller.tipoDeInspeccionControl,
-                        builder: (context, value, child) {
-                          if (value.value ==
-                              CreacionFormController.otroTipoDeInspeccion) {
-                            return ReactiveTextField(
-                              formControl:
-                                  controller.nuevoTipoDeInspeccionControl,
-                              validationMessages: (control) => {
-                                ValidationMessage.required:
-                                    'Este valor es requerido'
-                              },
-                              decoration: const InputDecoration(
-                                labelText: 'Escriba el tipo de inspeccion',
-                                prefixIcon: Icon(Icons.text_fields),
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        }),
-                  ],
-                ),
-              ),
-              PreguntaCard(
-                titulo: 'Modelos de vehículo',
-                child: ReactiveFilterChipSelection(
-                  formControl: controller.modelosControl,
-                  posibleItems: controller.todosLosModelos,
-                  decoration: const InputDecoration(
-                    labelText: 'Modelos a los que aplica esta inspección',
                   ),
-                  labelAccesor: id,
-                  validationMessages: (control) => {
-                    ValidationMessage.minLength:
-                        'Seleccione al menos un modelo',
-                    'yaExiste':
-                        'Ya existe un cuestionario de este tipo para este modelo'
-                  },
-                ),
-              ),
+                  PreguntaCard(
+                    titulo: 'Etiquetas aplicables',
+                    child: Consumer(builder: (context, ref, _) {
+                      final todasLasJerarquias = ref
+                              .watch(listaEtiquetasDeActivosProvider)
+                              .asData
+                              ?.value ??
+                          const <Jerarquia>[];
 
-              PreguntaCard(
-                titulo: 'Contratista',
-                child: ReactiveDropdownField(
-                  formControl: controller.contratistaControl,
-                  validationMessages: (control) =>
-                      {ValidationMessage.required: 'Seleccione un contratista'},
-                  items: controller.todosLosContratistas
-                      .map((e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(e.nombre),
-                          ))
-                      .toList(),
-                  decoration: const InputDecoration(
-                    labelText: 'Seleccione un contratista',
+                      return ReactiveTextFieldTags(
+                        decoration:
+                            const InputDecoration(labelText: "etiquetas"),
+                        formControl: controller.etiquetasControl,
+                        validationMessages: (control) => {
+                          ValidationMessage.minLength:
+                              'Se requiere al menos una etiqueta'
+                        },
+                        optionsBuilder: (TextEditingValue val) => controller
+                            .getTodasLasEtiquetas(todasLasJerarquias)
+                            .where((e) => e.clave
+                                .toLowerCase()
+                                .contains(val.text.toLowerCase())),
+                        onMenu: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) =>
+                                const MenuDeEtiquetas(TipoDeEtiqueta.activo),
+                          );
+                        },
+                      );
+                    }),
                   ),
-                  onTap: () {
-                    FocusScope.of(context)
-                        .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-                  },
-                ),
-              ),
-              PreguntaCard(
-                titulo: 'Periodicidad (en días)',
-                child: ReactiveSlider(
-                  formControl: controller.periodicidadControl,
-                  max: 100.0,
-                  divisions: 100,
-                  labelBuilder: (v) => v.round().toString(),
-                ),
-              ),
-
-              /// Cuando se agrega un bloque, esta lista empieza a mostrarlos en la pantalla.
-              AnimatedList(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                initialItemCount: controller.controllersBloques.length,
-                itemBuilder: (context, index, animation) {
-                  return ProviderScope(
-                    overrides: [
-                      numeroDeBloqueProvider.overrideWithValue(index)
-                    ],
-                    child: ControlWidgetAnimado(
-                      controller: controller.controllersBloques[index],
-                      animation: animation,
+                  PreguntaCard(
+                    titulo: 'Periodicidad (en días)',
+                    child: ReactiveSlider(
+                      formControl: controller.periodicidadControl,
+                      max: 100.0,
+                      divisions: 100,
+                      labelBuilder: (v) => v.round().toString(),
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
-              const SizedBox(height: 60),
-            ],
-          ),
+            ),
+
+            /// Cuando se agrega un bloque, esta lista empieza a mostrarlos en la pantalla.
+            SliverAnimatedList(
+              initialItemCount: controller.controllersBloques.length,
+              itemBuilder: (context, index, animation) {
+                return ProviderScope(
+                  overrides: [numeroDeBloqueProvider.overrideWithValue(index)],
+                  child: ControlWidgetAnimado(
+                    controller: controller.controllersBloques[index],
+                    animation: animation,
+                  ),
+                );
+              },
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
         ),
-        floatingActionButton: controller.estado == EstadoDeCuestionario.borrador
-            ? const BotonesGuardado()
+        floatingActionButton: controller.datosIniciales.cuestionario.estado
+                    .valueOrDefault(EstadoDeCuestionario.borrador) ==
+                EstadoDeCuestionario.borrador
+            ? BotonesGuardado(
+                controller: controller,
+              )
             : null,
       ),
     );
@@ -185,11 +186,11 @@ class EdicionForm extends ConsumerWidget {
 
 /// Row con botón de guardar borrador y finalizar cuestionario
 class BotonesGuardado extends ConsumerWidget {
-  const BotonesGuardado({Key? key}) : super(key: key);
+  final CreacionFormController controller;
+  const BotonesGuardado({Key? key, required this.controller}) : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
-    final controller = ref.watch(creacionFormControllerProvider);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -217,19 +218,10 @@ class BotonesGuardado extends ConsumerWidget {
     await controller.guardarCuestionarioEnLocal(EstadoDeCuestionario.borrador);
     //TODO: Mostrar tambien cuando hay un error.
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: const Text("Guardado exitoso"),
-          actions: [
-            TextButton(
-              onPressed: Navigator.of(context).pop,
-              child: const Text('Aceptar'),
-            )
-          ],
-        );
-      },
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Cuestionario guardado'),
+      ),
     );
   }
 
@@ -239,63 +231,63 @@ class BotonesGuardado extends ConsumerWidget {
       BuildContext context, CreacionFormController controller) async {
     final form = controller.control;
     form.markAllAsTouched();
-    return !form.valid
-        ? showDialog(
-            context: context,
-            builder: (BuildContext context) => AlertDialog(
-              title: const Text("Alerta"),
-              content:
-                  const Text("El cuestionario tiene errores, por favor revise"),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    //TODO: hacer primero scroll hasta abajo para que el control
-                    // que falla quede en la parte de arriba de la pantalla si
-                    // es que estaba abajo
-                    try {
-                      _focusFirstError(form);
-                    } on StateError {
-                      showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                                content: Text(const JsonEncoder.withIndent('  ')
-                                    .convert(form.errors)),
-                              ));
-                    }
-                  },
-                  child: const Text("Ok"),
-                ),
-              ],
+    if (!form.valid) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text("El cuestionario tiene errores, por favor revise"),
+        action: SnackBarAction(
+          label: "ver errores",
+          onPressed: () => _mostrarErrores(context, form),
+        ),
+      ));
+      //TODO: hacer primero scroll hasta abajo para que el control
+      // que falla quede en la parte de arriba de la pantalla si
+      // es que estaba abajo
+      try {
+        _focusFirstError(form);
+      } on StateError {
+        _mostrarErrores(context, form);
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text("Alerta"),
+          content: const Text(
+              "¿Está seguro que desea finalizar este cuestionario? Si lo hace, "
+              "no podrá editarlo después y tendrá que crear una nueva versión"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancelar"),
             ),
-          )
-        : showDialog(
-            context: context,
-            builder: (BuildContext context) => AlertDialog(
-              title: const Text("Alerta"),
-              content: const Text(
-                  "¿Está seguro que desea finalizar este cuestionario? Si lo hace, no podrá editarlo después"),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Cancelar"),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
 
-                    await controller.guardarCuestionarioEnLocal(
-                        EstadoDeCuestionario.finalizada);
+                await controller.guardarCuestionarioEnLocal(
+                    EstadoDeCuestionario.finalizado);
 
-                    mostrarMensaje(context, TipoDeMensaje.exito,
-                        'Cuestionario creado exitosamente');
-                  },
-                  child: const Text("Aceptar"),
-                ),
-              ],
+                Navigator.of(context).pop(true);
+              },
+              child: const Text("Aceptar"),
             ),
-          );
+          ],
+        ),
+      );
+    }
   }
+
+  void _mostrarErrores(BuildContext context, FormGroup form) => showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+            title: const Text("Errores:"),
+            content: Scrollbar(
+              child: SingleChildScrollView(
+                child: Text(
+                    const JsonEncoder.withIndent('  ').convert(form.errors)),
+              ),
+            ),
+          ));
 
   void _focusFirstError(AbstractControl control) {
     // esto solo deberia pasar si el controlador superior no tiene ningun descendiente invalido

@@ -50,7 +50,7 @@ class ConfiguracionOrganizacionControl {
     try {
       onStart?.call();
 
-      final repo = _read(organizacionRemoteRepositoryProvider);
+      final repo = _read(organizacionRepositoryProvider);
 
       final Either<ApiFailure, Unit> res;
       if (organizacion == null) {

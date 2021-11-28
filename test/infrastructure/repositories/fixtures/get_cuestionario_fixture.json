@@ -1,0 +1,150 @@
+{
+  "id": "3d20ce74-6d29-48e0-8f52-97fe9cdd9e0e",
+  "tipo_de_inspeccion": "preoperacional",
+  "version": 1,
+  "periodicidad_dias": 1,
+  "etiquetas_aplicables": [
+    {
+      "clave": "color",
+      "valor": "amarillo"
+    }
+  ],
+  "creador": 1,
+  "bloques": [
+    {
+      "id": "99edc591-25ae-427e-ba54-789943979cd0",
+      "n_orden": 1,
+      "titulo": {
+        "id": "289ec066-e10f-4545-87de-51fdbe4735a8",
+        "titulo": "tit",
+        "descripcion": "desc",
+        "fotos_urls": [
+          {
+            "foto": "http://testserver/media/fotos_cuestionarios/perfil.png"
+          }
+        ]
+      },
+      "pregunta": null
+    },
+    {
+      "id": "90ef2491-ad10-44d5-bfd0-9a1b876c0aae",
+      "n_orden": 2,
+      "titulo": null,
+      "pregunta": {
+        "id": "e4a4958c-1ee6-458d-a152-f3f3c9a2780e",
+        "criticidades_numericas": [],
+        "preguntas": [],
+        "titulo": "tit",
+        "descripcion": "desc",
+        "criticidad": 1,
+        "tipo_de_pregunta": "seleccion_unica",
+        "tipo_de_cuadricula": null,
+        "unidades": null,
+        "fotos_guia_urls": [
+          {
+            "foto": "http://testserver/media/fotos_cuestionarios/perfil.png"
+          }
+        ],
+        "etiquetas": [
+          {
+            "clave": "sistema",
+            "valor": "motor"
+          }
+        ],
+        "opciones_de_respuesta": [
+          {
+            "id": "ef6e754b-789f-4f61-81af-1466c3db402e",
+            "titulo": "tit",
+            "descripcion": "desc",
+            "criticidad": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "606c92d4-bc2b-476c-bb78-6e1f1a093661",
+      "n_orden": 3,
+      "titulo": null,
+      "pregunta": {
+        "id": "78ede784-d05b-427f-ab08-2788b68866e9",
+        "preguntas": [],
+        "titulo": "tit",
+        "descripcion": "desc",
+        "criticidad": 1,
+        "tipo_de_pregunta": "numerica",
+        "tipo_de_cuadricula": null,
+        "unidades": "metros",
+        "fotos_guia_urls": [
+          {
+            "foto": "http://testserver/media/fotos_cuestionarios/perfil.png"
+          }
+        ],
+        "etiquetas": [
+          {
+            "clave": "sistema",
+            "valor": "motor"
+          }
+        ],
+        "opciones_de_respuesta": [],
+        "criticidades_numericas": [
+          {
+            "id": "54a98b78-8708-4c3a-8ab9-cb509068d1cc",
+            "valor_minimo": 0,
+            "valor_maximo": 10,
+            "criticidad": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "adff2670-ea5c-4102-b568-52f430ddd3d1",
+      "n_orden": 4,
+      "titulo": null,
+      "pregunta": {
+        "id": "4c39dc71-a6b6-4837-8ce1-8a6679033a87",
+        "titulo": "cuadricula",
+        "descripcion": "desc",
+        "criticidad": 1,
+        "tipo_de_pregunta": "cuadricula",
+        "tipo_de_cuadricula": "seleccion_unica",
+        "unidades": null,
+        "fotos_guia_urls": [
+          {
+            "foto": "http://testserver/media/fotos_cuestionarios/perfil.png"
+          }
+        ],
+        "etiquetas": [
+          {
+            "clave": "sistema",
+            "valor": "motor"
+          }
+        ],
+        "opciones_de_respuesta": [
+          {
+            "id": "3da37d95-be2f-47ec-a889-ead6fcb25753",
+            "titulo": "tit",
+            "descripcion": "desc",
+            "criticidad": 1
+          }
+        ],
+        "criticidades_numericas": [],
+        "preguntas": [
+          {
+            "id": "1c0754a6-d4e0-495b-bacd-e6cca5034ffe",
+            "fotos_guia_urls": [],
+            "etiquetas": [],
+            "opciones_de_respuesta": [],
+            "criticidades_numericas": [],
+            "preguntas": [],
+            "titulo": "tit",
+            "descripcion": "",
+            "criticidad": 1,
+            "tipo_de_pregunta": "parte_de_cuadricula",
+            "tipo_de_cuadricula": null,
+            "unidades": null
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -159,7 +159,7 @@ class InstalarDatabaseStep extends SincronizacionStep {
 
     ///Realiza la inserción de datos
     try {
-      await _db.instalarBD(parsed);
+      await _db.sincronizacionDao.instalarDB(parsed);
       emitWithLog(
         const SincronizacionStepState.success('Instalación exitosa'),
       );

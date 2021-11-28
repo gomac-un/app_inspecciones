@@ -1,19 +1,38 @@
 import 'package:inspecciones/core/entities/app_image.dart';
+import 'package:inspecciones/utils/rx_x.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../domain/bloques/pregunta.dart';
 import '../domain/metarespuesta.dart';
+import 'controlador_llenado_inspeccion.dart';
 import 'visitors/controlador_de_pregunta_visitor.dart';
 
-abstract class ControladorDePregunta<T extends Pregunta> {
-  final T pregunta;
-  late DateTime? momentoRespuesta =
-      pregunta.respuesta?.metaRespuesta.momentoRespuesta;
+export 'package:inspecciones/utils/rx_x.dart';
+
+abstract class ControladorDePregunta<P extends Pregunta,
+    R extends AbstractControl> {
+  final ControladorLlenadoInspeccion controlInspeccion;
+
+  final P pregunta;
+
+  /// guarda el momento de la ultima edicion
+  late final ValueStream<DateTime?> momentoRespuesta =
+      respuestaEspecificaControl.valueChanges
+          .map<DateTime?>((_) => DateTime.now())
+          .publishValueSeeded(
+              pregunta.respuesta?.metaRespuesta.momentoRespuesta)
+        ..connect();
+
   late final MetaRespuesta respuesta =
       pregunta.respuesta?.metaRespuesta ?? MetaRespuesta.vacia();
 
-  late final criticidadInspectorControl =
-      fb.control(respuesta.criticidadInspector);
+  // se asigna 1 por defecto porque el widget no acepta null, por lo tanto se
+  //solo las opciones de respuesta que acepten criticidad del inspector deben
+  // guardar este valor, de lo contrario se guarda null
+  late final criticidadDelInspectorControl =
+      fb.control(respuesta.criticidadDelInspector ?? 1);
+
   late final observacionControl = fb.control(respuesta.observaciones);
   late final reparadoControl = fb.control(respuesta.reparada);
 
@@ -24,9 +43,10 @@ abstract class ControladorDePregunta<T extends Pregunta> {
   late final fotosReparacionControl =
       fb.control<List<AppImage>>(respuesta.fotosReparacion);
 
-  abstract final AbstractControl respuestaEspecificaControl;
+  abstract final R respuestaEspecificaControl;
+
   late final metaRespuestaControl = fb.group({
-    "criticidadInspector": criticidadInspectorControl,
+    "criticidadDelInspector": criticidadDelInspectorControl,
     "observacion": observacionControl,
     "observacionReparacion": observacionReparacionControl,
     "reparado": reparadoControl,
@@ -43,7 +63,7 @@ abstract class ControladorDePregunta<T extends Pregunta> {
   /// sea necesario
   final FormGroup control = FormGroup({});
 
-  ControladorDePregunta(this.pregunta) {
+  ControladorDePregunta(this.pregunta, this.controlInspeccion) {
     // el addAll es necesario para que el grupo sea invalido cuando uno de los controles
     // sean invalidos,
     // TODO: investigar por que ocurre esto
@@ -51,39 +71,103 @@ abstract class ControladorDePregunta<T extends Pregunta> {
       'metaRespuesta': metaRespuestaControl,
       "respuestaEspecifica": respuestaEspecificaControl,
     });
-    respuestaEspecificaControl.valueChanges.listen((_) {
-      momentoRespuesta = DateTime.now();
-    }); //guarda el momento de la ultima edicion
   }
 
   bool esValido() => control.valid;
 
-  MetaRespuesta guardarMetaRespuesta() => MetaRespuesta(
-      observaciones: observacionControl.value!,
-      fotosBase: fotosBaseControl.value!,
-      reparada: reparadoControl.value!,
-      observacionesReparacion: observacionReparacionControl.value!,
-      fotosReparacion: fotosReparacionControl.value!,
-      momentoRespuesta: momentoRespuesta);
+  ValueStream<bool> get requiereCriticidadDelInspector;
 
-  /// solo se puede usar para leer el calculo, para componentes de la ui que deben
-  /// reaccionar a cambios de este calculo se debe usar [criticidadCalculadaProvider]
-  int get criticidadCalculada => (criticidadPregunta *
-          (criticidadRespuesta ??
-              1) * // si no se conoce el valor, la criticidad por defecto es 1
-          _porcentajeCalificacion(criticidadInspectorControl.value!) *
-          (reparadoControl.value! ? 0 : 1))
-      .round();
+  /// las preguntas de seleccion deben sobreescribir este método para agregarle
+  /// la criticidad del inspector
+  MetaRespuesta guardarMetaRespuesta() => MetaRespuesta(
+        observaciones: observacionControl.value!,
+        fotosBase: fotosBaseControl.value!,
+        reparada: reparadoControl.value!,
+        observacionesReparacion: observacionReparacionControl.value!,
+        fotosReparacion: fotosReparacionControl.value!,
+        momentoRespuesta: momentoRespuesta.value,
+        criticidadDelInspector: requiereCriticidadDelInspector.value
+            ? criticidadDelInspectorControl.value
+            : null,
+        criticidadCalculada: criticidadCalculada.value,
+        criticidadCalculadaConReparaciones:
+            criticidadCalculadaConReparaciones.value,
+      );
+
+  late final ValueStream<
+      int> criticidadCalculada = Rx.combineLatest3<int?, bool, int, int>(
+    criticidadRespuesta,
+    requiereCriticidadDelInspector,
+    criticidadDelInspectorControl.valueChanges
+        .map((r) => r!)
+        .toVSwithInitial(criticidadDelInspectorControl.value!),
+    (criticidadRespuesta, requiereCriticidadDelInspector,
+        criticidadDelInspector) {
+      return _calcularCriticidad(
+          criticidadPregunta: criticidadPregunta,
+          criticidadRespuesta: criticidadRespuesta,
+          requiereCriticidadDelInspector: requiereCriticidadDelInspector,
+          criticidadDelInspector: criticidadDelInspector);
+    },
+  )
+      /*.throttleTime(
+            const Duration(milliseconds: 10),
+            trailing: true,
+            leading: false,
+          ) // para limpiar ruido*/
+      .toVSwithInitial(criticidadCalculadaSync);
+
+  late final ValueStream<int> criticidadCalculadaConReparaciones =
+      Rx.combineLatest2<int, bool, int>(
+    criticidadCalculada,
+    reparadoControl.valueChanges
+        .map((r) => r!)
+        .toVSwithInitial(reparadoControl.value!),
+    (criticidadCalculada, reparado) => _calcularCriticidadConReparaciones(
+        criticidad: criticidadCalculada, reparado: reparado),
+  ).toVSwithInitial(criticidadCalculadaConReparacionesSync);
+
+  int get criticidadCalculadaSync => _calcularCriticidad(
+        criticidadPregunta: criticidadPregunta,
+        criticidadRespuesta: criticidadRespuesta.value,
+        requiereCriticidadDelInspector: requiereCriticidadDelInspector.value,
+        criticidadDelInspector: criticidadDelInspectorControl.value!,
+      );
+
+  int get criticidadCalculadaConReparacionesSync =>
+      _calcularCriticidadConReparaciones(
+          criticidad: criticidadCalculadaSync,
+          reparado: reparadoControl.value!);
+
+  int _calcularCriticidad(
+      {required int criticidadPregunta,
+      required int? criticidadRespuesta,
+      required bool requiereCriticidadDelInspector,
+      required int criticidadDelInspector}) {
+    return (criticidadPregunta *
+            // si no hay respuesta la criticidad es 0
+            (criticidadRespuesta ?? 0) *
+            // si no aplica, no modifica el calculo
+            (requiereCriticidadDelInspector
+                ? _calificacionToPorcentaje(criticidadDelInspector)
+                : 1))
+        .round();
+  }
+
+  /// si esta reparada la criticidad es 0
+  int _calcularCriticidadConReparaciones(
+      {required int criticidad, required bool reparado}) {
+    return criticidad * (reparado ? 0 : 1);
+  }
 
   int get criticidadPregunta => pregunta.criticidad;
 
-  /// debe basarse unicamente en informacion obtenida de respuestaEspecificaControl
-  /// para que [criticidadCalculadaProvider] funcione bien
-  int? get criticidadRespuesta;
+  ValueStream<int?> get criticidadRespuesta;
 
-  R accept<R>(ControladorDePreguntaVisitor<R> visitor);
+  V accept<V>(ControladorDePreguntaVisitor<V> visitor);
 
-  static double _porcentajeCalificacion(int calificacion) {
+  /// verificar que este factor solo pueda reducir la criticidad
+  static double _calificacionToPorcentaje(int calificacion) {
     switch (calificacion.round()) {
       case 1:
         return 0.55;
@@ -99,8 +183,12 @@ abstract class ControladorDePregunta<T extends Pregunta> {
 
       default:
         throw Exception(
-            "el valor de calificacion mayor a 4, revise el reactive_slider");
+            "el valor de calificacion inválido, solo se permite de 1 a 4");
     }
+  }
+
+  void dispose() {
+    control.dispose();
   }
 }
 

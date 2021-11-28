@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:inspecciones/features/llenado_inspecciones/ui/widgets/widget_criticidad.dart';
 
 import '../../control/controlador_de_pregunta.dart';
 import '../../domain/bloques/pregunta.dart';
-import 'widget_criticidad.dart';
 import 'widget_respuesta.dart';
 
 class PreguntaCard extends StatelessWidget {
@@ -39,13 +39,14 @@ class PreguntaCard extends StatelessWidget {
               title: Text(pregunta.titulo),
               subtitle: Text(pregunta.descripcion),
             ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Posicion: ${pregunta.posicion}",
-                style: Theme.of(context).textTheme.subtitle2,
+            if (pregunta.etiquetas.isNotEmpty)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Etiquetas: ${pregunta.etiquetas.join(", ")}",
+                  style: Theme.of(context).textTheme.subtitle2,
+                ),
               ),
-            ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: child,

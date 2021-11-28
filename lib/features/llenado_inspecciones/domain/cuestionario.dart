@@ -14,7 +14,7 @@ class CuestionarioInspeccionado {
 }
 
 class Cuestionario {
-  final int id;
+  final String id;
   final String tipoDeInspeccion;
 
   Cuestionario({required this.id, required this.tipoDeInspeccion});

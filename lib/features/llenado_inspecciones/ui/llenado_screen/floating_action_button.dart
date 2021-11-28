@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -14,6 +13,7 @@ class FABNavigation extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     final pageController = ref.watch(llenadoPageControllerProvider);
+    final position = pageController.position;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -22,8 +22,7 @@ class FABNavigation extends ConsumerWidget {
           child: SizedBox(width: 1),
         ),
         //if (pageController.page!.round() != 0)
-        if (pageController.position.pixels !=
-            pageController.position.minScrollExtent)
+        if (position.hasPixels && position.pixels != position.minScrollExtent)
           FloatingActionButton(
             heroTag: 'back',
             onPressed: () => pageController.previousPage(
@@ -34,8 +33,7 @@ class FABNavigation extends ConsumerWidget {
         const SizedBox(
           width: 10,
         ),
-        if (pageController.position.pixels !=
-            pageController.position.maxScrollExtent)
+        if (position.hasPixels && position.pixels != position.maxScrollExtent)
           FloatingActionButton(
             heroTag: 'next',
             onPressed: () => pageController.nextPage(

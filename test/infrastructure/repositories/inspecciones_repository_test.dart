@@ -1,14 +1,16 @@
 import 'package:dartz/dartz.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/activo.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/cuestionario.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/modelos.dart';
 import 'package:inspecciones/infrastructure/core/api_exceptions.dart';
+import 'package:inspecciones/infrastructure/daos/sincronizacion_dao.dart';
 import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/inspecciones_remote_datasource.dart';
+import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart' as drift;
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_remote_repository.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -21,23 +23,28 @@ import 'inspecciones_repository_test.mocks.dart';
     InspeccionesRemoteDataSource,
     FotosRemoteDataSource,
     drift.Database,
-    FotosRepository
+    SincronizacionDao,
   ],
 )
 main() {
   late MockInspeccionesRemoteDataSource _api;
-  late MockFotosRemoteDataSource _apiFotos;
   late MockDatabase _db;
-  late MockFotosRepository _fotosRepository;
+  late MockSincronizacionDao _sincronizacionDao;
   late InspeccionesRemoteRepository repository;
+  late ProviderContainer container;
 
   setUp(() {
     _api = MockInspeccionesRemoteDataSource();
-    _apiFotos = MockFotosRemoteDataSource();
     _db = MockDatabase();
-    _fotosRepository = MockFotosRepository();
-    repository =
-        InspeccionesRemoteRepository(_api, _apiFotos, _db, _fotosRepository);
+    _sincronizacionDao = MockSincronizacionDao();
+    when(_db.sincronizacionDao).thenAnswer((_) => _sincronizacionDao);
+    container = ProviderContainer(
+      overrides: [
+        inspeccionesRemoteDataSourceProvider.overrideWithValue(_api),
+        drift.driftDatabaseProvider.overrideWithValue(_db),
+      ],
+    );
+    repository = InspeccionesRemoteRepository(container.read);
   });
 
   group("getInspeccionServidor", () {
@@ -45,14 +52,15 @@ main() {
         "debería devolver el [IdentificadorDeInspeccion] si no hay excepciones",
         () async {
       when(_api.getInspeccion(1)).thenAnswer((_) async => {});
-      when(_db.guardarInspeccionBD({})).thenAnswer((_) => Future.value(
-            IdentificadorDeInspeccion(activo: "1", cuestionarioId: 1),
-          ));
+      when(_sincronizacionDao.guardarInspeccionBD({}))
+          .thenAnswer((_) => Future.value(
+                IdentificadorDeInspeccion(activo: "a1", cuestionarioId: "c1"),
+              ));
 
       final res = await repository.getInspeccionServidor(1);
 
       expect(res,
-          Right(IdentificadorDeInspeccion(activo: "1", cuestionarioId: 1)));
+          Right(IdentificadorDeInspeccion(activo: "a1", cuestionarioId: "c1")));
     });
     test("debería devolver Left(ApiFailure) si hay ErrorDeConexion", () async {
       when(_api.getInspeccion(1))
@@ -77,7 +85,7 @@ main() {
         () async {
       // TODO: estas excepciones se deberian convertir a Failures
       when(_api.getInspeccion(1)).thenAnswer((_) async => {});
-      when(_db.guardarInspeccionBD({}))
+      when(_sincronizacionDao.guardarInspeccionBD({}))
           .thenAnswer((_) async => throw Exception());
 
       await expectLater(
@@ -87,50 +95,46 @@ main() {
   group("subirInspeccion", () {
     test("debería devolver Right(unit) si no hay excepciones", () async {
       final inspeccion = Inspeccion(
-        id: 1,
+        id: "i1",
         estado: EstadoDeInspeccion.borrador,
-        criticidadTotal: 1,
-        criticidadReparacion: 1,
-        activo: Activo(id: "1", modelo: "1"),
-        esNueva: true,
+        activo: Activo(
+          id: "a1",
+          etiquetas: [],
+        ),
+        momentoInicio: DateTime.now(),
+        inspectorId: "p1",
       );
       final cuestionario = CuestionarioInspeccionado(
-          Cuestionario(id: 1, tipoDeInspeccion: "a"), inspeccion, []);
-      inspeccion.cuestionario = cuestionario;
+          Cuestionario(id: "c1", tipoDeInspeccion: "preoperacional"),
+          inspeccion, []);
 
-      when(_db.getInspeccionConRespuestas(any))
-          .thenAnswer((_) async => {"id": "1"});
-      when(_api.crearInspeccion({"id": "1"})).thenAnswer((_) async => {});
-      when(_fotosRepository.getFotosDeDocumento(
-        Categoria.inspeccion,
-        identificador: "1",
-      )).thenAnswer((_) async => []);
-      when(_apiFotos.subirFotos([], "1", Categoria.inspeccion))
-          .thenAnswer((_) async => {});
+      when(_sincronizacionDao.getInspeccionConRespuestas(any))
+          .thenAnswer((_) async => {"id": "i1"});
+      when(_api.crearInspeccion({"id": "i1"})).thenAnswer((_) async => {});
 
-      final res = await repository.subirInspeccion(inspeccion);
+      final res = await repository.subirInspeccion(
+          IdentificadorDeInspeccion(activo: "a1", cuestionarioId: "c1"));
 
       expect(res, const Right(unit));
     });
     test("debería devolver Left(ApiFailure) si hay ErrorDeConexion", () async {
       final inspeccion = Inspeccion(
-        id: 1,
+        id: "i1",
         estado: EstadoDeInspeccion.borrador,
-        criticidadTotal: 1,
-        criticidadReparacion: 1,
-        activo: Activo(id: "1", modelo: "1"),
-        esNueva: true,
+        activo: Activo(id: "a1", etiquetas: []),
+        momentoInicio: DateTime.now(),
+        inspectorId: "p1",
       );
       final cuestionario = CuestionarioInspeccionado(
-          Cuestionario(id: 1, tipoDeInspeccion: "a"), inspeccion, []);
-      inspeccion.cuestionario = cuestionario;
+          Cuestionario(id: "c1", tipoDeInspeccion: "a"), inspeccion, []);
 
-      when(_db.getInspeccionConRespuestas(any))
-          .thenAnswer((_) async => {"id": "1"});
-      when(_api.crearInspeccion({"id": "1"}))
+      when(_sincronizacionDao.getInspeccionConRespuestas(any))
+          .thenAnswer((_) async => {"id": "i1"});
+      when(_api.crearInspeccion({"id": "i1"}))
           .thenAnswer((_) async => throw const ErrorDeConexion(""));
 
-      final res = await repository.subirInspeccion(inspeccion);
+      final res = await repository.subirInspeccion(
+          IdentificadorDeInspeccion(activo: "a1", cuestionarioId: "c1"));
 
       expect(res, const Left(ApiFailure.errorDeConexion("")));
     });

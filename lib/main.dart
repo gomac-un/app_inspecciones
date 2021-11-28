@@ -3,16 +3,17 @@ import 'dart:async';
 import 'package:file/local.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
+//import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/core/entities/app_image.dart';
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
+//import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_router.dart';
+import 'infrastructure/core/directorio_de_datos.dart';
 import 'infrastructure/datasources/local_preferences_datasource.dart';
 import 'infrastructure/datasources/providers.dart';
+import 'infrastructure/repositories/providers.dart';
 import 'presentation/pages/splash_screen.dart';
 import 'riverpod_logger.dart';
 import 'utils.dart';
@@ -48,40 +49,21 @@ Future<void> _ejecutarAppConRiverpod() async {
       home: SplashPage(),
     ),
   );
-  if (!kIsWeb) await FlutterDownloader.initialize(debug: kDebugMode);
   final prefs = await SharedPreferences.getInstance();
 
-  final webOverrides = [
-    apiUriProvider.overrideWithValue(
-      Uri(
-        scheme: 'http',
-        host: 'localhost',
-        port: 8000,
-        pathSegments: ['inspecciones', 'api', 'v1'],
-      ),
-    )
-  ];
   final androidOverrides = [
-    apiUriProvider.overrideWithValue(
-      Uri(
-        scheme: 'http',
-        host: '10.0.2.2',
-        port: 8000,
-        pathSegments: ['inspecciones', 'api', 'v1'],
-      ),
-    ),
     if (!kIsWeb)
       directorioDeDatosProvider.overrideWithValue(await getDirectorioDeDatos()),
     fileSystemProvider.overrideWithValue(const LocalFileSystem()),
-    //TODO: mirar si se puede usar un memoryFileSystem para web
   ];
 
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        if (kIsWeb) ...webOverrides,
         if (!kIsWeb) ...androidOverrides,
+        apiUriProvider.overrideWithValue(
+            _buildApiUri(isWeb: kIsWeb, isProduction: !kDebugMode))
       ],
       observers: [RiverpodLogger()],
       child: const RemoveFocusOnTap(
@@ -90,10 +72,20 @@ Future<void> _ejecutarAppConRiverpod() async {
     ),
   );
 }
-//TODO: permitir tener una version de produccion donde el apiUriProvider sea
-/*
-Uri(
-    scheme: 'https',
-    host: 'gomac.medellin.unal.edu.co',
-    pathSegments: ['inspecciones/api/v1'])
- */
+
+Uri _buildApiUri({required bool isWeb, required bool isProduction}) {
+  final String host;
+  if (isProduction) {
+    host = 'shepherdator.ddns.net';
+  } else if (isWeb) {
+    host = 'localhost';
+  } else {
+    host = '10.0.2.2';
+  }
+  return Uri(
+    scheme: 'http',
+    host: host,
+    port: isProduction ? 80 : 8000,
+    pathSegments: ['inspecciones', 'api', 'v1'],
+  );
+}

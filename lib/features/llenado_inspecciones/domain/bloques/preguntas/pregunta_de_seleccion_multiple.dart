@@ -1,30 +1,35 @@
+import 'package:inspecciones/core/entities/app_image.dart';
+
+import '../../etiqueta.dart';
 import '../pregunta.dart';
 import 'opcion_de_respuesta.dart';
 import 'pregunta_de_seleccion.dart';
 
 class PreguntaDeSeleccionMultiple
     extends PreguntaDeSeleccion<RespuestaDeSeleccionMultiple> {
-  final List<SubPreguntaDeSeleccionMultiple> respuestas;
+  final List<SubPreguntaDeSeleccionMultiple>
+      respuestas; // aqui se traen las respuestas en el cargado
 
   PreguntaDeSeleccionMultiple(
     List<OpcionDeRespuesta> opcionesDeRespuesta,
     this.respuestas, {
-    required int id,
+    required String id,
     required String titulo,
     required String descripcion,
+    required List<AppImage> fotosGuia,
     required int criticidad,
-    required String posicion,
-    required bool calificable,
-    RespuestaDeSeleccionMultiple? respuesta,
+    required List<Etiqueta> etiquetas,
+    RespuestaDeSeleccionMultiple?
+        respuesta, // aqui se depositan las respuestas para el guardado
   }) : super(
           opcionesDeRespuesta,
           id: id,
           respuesta: respuesta,
           titulo: titulo,
           descripcion: descripcion,
+          fotosGuia: fotosGuia,
           criticidad: criticidad,
-          posicion: posicion,
-          calificable: calificable,
+          etiquetas: etiquetas,
         );
 }
 
@@ -33,20 +38,20 @@ class SubPreguntaDeSeleccionMultiple
   final OpcionDeRespuesta opcion;
   SubPreguntaDeSeleccionMultiple(
     this.opcion, {
-    required int id,
+    required String id,
     required String titulo,
     required String descripcion,
+    required List<AppImage> fotosGuia,
     required int criticidad,
-    required String posicion,
-    required bool calificable,
+    required List<Etiqueta> etiquetas,
     SubRespuestaDeSeleccionMultiple? respuesta,
   }) : super(
           id: id,
           respuesta: respuesta,
           titulo: titulo,
           descripcion: descripcion,
+          fotosGuia: fotosGuia,
           criticidad: criticidad,
-          posicion: posicion,
-          calificable: calificable,
+          etiquetas: etiquetas,
         );
 }

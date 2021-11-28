@@ -42,8 +42,8 @@ class InspectorProfilePage extends ConsumerWidget {
                     buildAbout(perfil),
                   ],
                 )),
-        loading: (b) => const Center(child: CircularProgressIndicator()),
-        error: (e, s, b) => Center(child: Text(e.toString())),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, s) => Center(child: Text(e.toString())),
       ),
     );
   }

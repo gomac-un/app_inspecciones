@@ -2,21 +2,22 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/borrador.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
-import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
-import 'package:inspecciones/features/llenado_inspecciones/infrastructure/inspecciones_repository.dart';
-import 'package:inspecciones/features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
+import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 import 'package:inspecciones/utils/future_either_x.dart';
+import 'package:intl/intl.dart';
 
-import '../widgets/user_drawer.dart';
-import '../../features/llenado_inspecciones/ui/inicio_inspeccion_form_widget.dart';
+import '../domain/borrador.dart';
+import '../domain/identificador_inspeccion.dart';
+import '../domain/inspeccion.dart';
+import '../infrastructure/inspecciones_repository.dart';
+import 'inicio_inspeccion_form_widget.dart';
+import 'llenado_de_inspeccion_screen.dart';
 
 //TODO: Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 /// Pantalla con lista de todas las inspecciones pendientes por subir.
-class BorradoresPage extends ConsumerWidget {
-  const BorradoresPage({Key? key}) : super(key: key);
+class InspeccionesPage extends ConsumerWidget {
+  const InspeccionesPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -63,11 +64,12 @@ class BorradoresPage extends ConsumerWidget {
             itemCount: borradores.length,
             itemBuilder: (context, index) {
               final borrador = borradores[index];
-              final f = borrador.inspeccion.momentoBorradorGuardado;
+              final momentoGuardado =
+                  borrador.inspeccion.momentoBorradorGuardado;
               final criticidad =
                   borrador.inspeccion.estado == EstadoDeInspeccion.finalizada
-                      ? 'Criticidad total inicial: '
-                      : 'Criticidad parcial inicial: ';
+                      ? 'Criticidad total: '
+                      : 'Criticidad parcial: ';
 
               return ListTile(
                 onTap: () => context.goNamed(
@@ -77,10 +79,10 @@ class BorradoresPage extends ConsumerWidget {
                     "cuestionarioid": borrador.cuestionario.id.toString(),
                   },
                 ),
-                //TODO: mostrar la información de manera didáctica
+                //TODO: mejorar la manera de mostrar la informacion
                 tileColor: Theme.of(context).cardColor,
                 title: Text(
-                    "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.modelo} (${borrador.cuestionario.tipoDeInspeccion})",
+                    "${borrador.inspeccion.activo.id} - ${borrador.inspeccion.activo.etiquetas.join(", ")} (${borrador.cuestionario.tipoDeInspeccion})",
                     style: Theme.of(context).textTheme.subtitle1),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,20 +92,20 @@ class BorradoresPage extends ConsumerWidget {
                       "Estado: ${EnumToString.convertToString(borrador.inspeccion.estado, camelCase: true)}",
                     ),
                     Text(
-                      "Avance: ${((borrador.avance / borrador.total) * 100).round()}%",
+                      "Avance: ${((borrador.avance / borrador.totalPreguntas) * 100).round()}%",
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),
-                    Text(f == null
+                    Text(momentoGuardado == null
                         ? ''
-                        : "Fecha de guardado: ${f.day}/${f.month}/${f.year} ${f.hour}:${f.minute}"),
+                        : "Fecha de guardado: ${DateFormat.yMd().add_jm().format(momentoGuardado)}"),
                     Text(
-                      '$criticidad ${borrador.inspeccion.criticidadTotal}',
+                      '$criticidad ${borrador.inspeccion.criticidadCalculada}',
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     Text(
-                      'Criticidad reparaciones pendientes: ${borrador.inspeccion.criticidadReparacion}',
+                      'Criticidad con reparaciones: ${borrador.inspeccion.criticidadCalculadaConReparaciones}',
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),
@@ -116,16 +118,17 @@ class BorradoresPage extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.secondary,
                     ),
                     onPressed: () => _subirInspeccion(context, ref, borrador)),
-                trailing: borrador.inspeccion.esNueva
-                    ? IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _eliminarBorrador(
-                          borrador,
-                          context,
-                          ref.read(inspeccionesRepositoryProvider),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+                trailing:
+                    borrador.inspeccion.estado == EstadoDeInspeccion.finalizada
+                        ? IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => _eliminarBorrador(
+                              borrador,
+                              context,
+                              ref.read(inspeccionesRepositoryProvider),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
               );
             },
           );
@@ -140,7 +143,9 @@ class BorradoresPage extends ConsumerWidget {
     final remoteRepo = ref.read(inspeccionesRemoteRepositoryProvider);
     final localRepo = ref.read(inspeccionesRepositoryProvider);
     await remoteRepo
-        .subirInspeccion(borrador.inspeccion, borrador.cuestionario)
+        .subirInspeccion(IdentificadorDeInspeccion(
+            activo: borrador.inspeccion.activo.id,
+            cuestionarioId: borrador.cuestionario.id))
         .leftMap((f) => apiFailureToInspeccionesFailure(f))
         .flatMap((_) => localRepo.eliminarRespuestas(borrador))
         .leftMap((f) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(

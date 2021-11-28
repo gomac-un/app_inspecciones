@@ -1,21 +1,23 @@
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/features/llenado_inspecciones/ui/avance_card.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
+import 'package:inspecciones/utils/hooks.dart';
 
 import '../control/controlador_llenado_inspeccion.dart';
 import '../domain/identificador_inspeccion.dart';
 import '../domain/inspeccion.dart';
-import 'icon_menu.dart';
 import 'llenado_screen/actions.dart';
 import 'llenado_screen/filter_widget.dart';
 import 'llenado_screen/floating_action_button.dart';
 import 'llenado_screen/paginador.dart';
 import 'pregunta_card_factory.dart';
+import 'widgets/avance_card.dart';
+import 'widgets/icon_menu.dart';
 
-class InspeccionPage extends ConsumerWidget {
+class InspeccionPage extends HookConsumerWidget {
   final IdentificadorDeInspeccion inspeccionId;
 
   const InspeccionPage({Key? key, required this.inspeccionId})
@@ -27,19 +29,19 @@ class InspeccionPage extends ConsumerWidget {
         ref.watch(controladorLlenadoInspeccionProvider(inspeccionId));
 
     return controlFuture.when(
-        loading: (prev) => const Center(child: CircularProgressIndicator()),
-        error: (e, s, prev) => Text(e.toString()),
-        data: (control) {
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, s) => Text(e.toString()),
+        data: (controladorInspeccion) {
           final estadoDeInspeccion =
-              ref.watch(estadoDeInspeccionProvider).state;
+              useValueStream(controladorInspeccion.estadoDeInspeccion);
+
           final mostrarBotonesDeNavegacion =
-              kIsWeb && ref.watch(showFABProvider).state;
+              kIsWeb && ref.watch(showFABProvider);
 
           return Scaffold(
-            backgroundColor: Theme.of(context).backgroundColor,
-            drawer: estadoDeInspeccion == EstadoDeInspeccion.finalizada
-                ? const UserDrawer()
-                : const UserDrawer(),
+            backgroundColor:
+                Theme.of(context).backgroundColor, //TODO: mirar si es necesario
+            drawer: const UserDrawer(),
             //TODO: mirar si es necesario deshabilitar el drawer mientras se está llenando una inspeccion
             appBar: AppBar(
               title: Text(
@@ -51,29 +53,32 @@ class InspeccionPage extends ConsumerWidget {
               ),
               backgroundColor:
                   estadoDeInspeccion == EstadoDeInspeccion.enReparacion
-                      ? const Color.fromRGBO(240, 184, 35, 1)
+                      ? const Color.fromRGBO(255, 100, 35, 1)
                       : null,
               actions: [
-                const FilterWidget(),
+                FilterWidget(controladorInspeccion),
                 PopupMenuButton<IconMenu>(
                     onSelected: (value) {
                       switch (value) {
-                        case IconsMenu.Reparar:
-                          control.iniciarReparaciones(
-                            onInvalid: () => mostrarInvalido(context),
+                        case IconsMenu.reparar:
+                          controladorInspeccion.iniciarReparaciones(
+                            onInvalid: () =>
+                                mostrarInvalido(context, controladorInspeccion),
                             mensajeReparacion: () =>
                                 mostrarMensajeReparacion(context),
                           );
                           break;
-                        case IconsMenu.Finalizar:
-                          control.finalizar(
+                        case IconsMenu.finalizar:
+                          controladorInspeccion.finalizar(
                               confirmation: () =>
                                   _confirmarFinalizacion(context),
                               ejecutarGuardado: agregarMensajesAccion(context),
-                              onInvalid: () => mostrarInvalido(context));
+                              onInvalid: () => mostrarInvalido(
+                                  context, controladorInspeccion));
                           break;
-                        case IconsMenu.Informacion:
-                          _mostrarInformacionInspeccion(context);
+                        case IconsMenu.informacion:
+                          _mostrarInformacionInspeccion(
+                              context, controladorInspeccion);
                           break;
                       }
                     },
@@ -89,22 +94,18 @@ class InspeccionPage extends ConsumerWidget {
             ),
 
             body: Column(children: [
-              AvanceCard(
-                  control.formArray,
-                  control.controladores
-                      .where((c) => c.criticidadCalculada > 0)
-                      .toList()
-                      .length),
+              AvanceCard(controladorInspeccion),
               const SizedBox(height: 3),
               Expanded(
-                  child: PaginadorYFiltradorDePreguntas(control,
-                      factory: ref.watch(preguntaCardFactoryProvider))),
+                child: PaginadorYFiltradorDePreguntas(controladorInspeccion,
+                    factory: ref.watch(preguntaCardFactoryProvider)),
+              ),
             ]),
             floatingActionButton: mostrarBotonesDeNavegacion
                 ? FABNavigation(
-                    botonGuardar: _buildBotonGuardar(control),
+                    botonGuardar: _buildBotonGuardar(controladorInspeccion),
                   )
-                : _buildBotonGuardar(control),
+                : _buildBotonGuardar(controladorInspeccion),
             floatingActionButtonLocation: mostrarBotonesDeNavegacion
                 ? FloatingActionButtonLocation.centerFloat
                 : FloatingActionButtonLocation.endFloat,
@@ -155,22 +156,41 @@ class InspeccionPage extends ConsumerWidget {
         ),
       );
 
-  void _mostrarInformacionInspeccion(BuildContext context) {
+  void _mostrarInformacionInspeccion(
+      BuildContext context, ControladorLlenadoInspeccion control) {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-            title: const Text('Información'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const <Widget>[
-                Text('Criticidad: Criticidad total', textAlign: TextAlign.left),
-                Text('Tiempo transcurrido: 2m', textAlign: TextAlign.left),
-                Text('Número de preguntas: 65', textAlign: TextAlign.left),
-              ],
-            ));
+        return DialogInformacionInspeccion(control);
       },
     );
+  }
+}
+
+class DialogInformacionInspeccion extends HookWidget {
+  final ControladorLlenadoInspeccion control;
+  const DialogInformacionInspeccion(
+    this.control, {
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final criticidadTotal = useValueStream(control.criticidadTotal);
+    final criticidadTotalConReparaciones =
+        useValueStream(control.criticidadTotalConReparaciones);
+    return AlertDialog(
+        title: const Text('Información'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Criticidad: $criticidadTotal', textAlign: TextAlign.left),
+            Text('Criticidad con reparaciones: $criticidadTotalConReparaciones',
+                textAlign: TextAlign.left),
+            const Text('Tiempo transcurrido: 2m', textAlign: TextAlign.left),
+            const Text('Número de preguntas: 65', textAlign: TextAlign.left),
+          ],
+        ));
   }
 }

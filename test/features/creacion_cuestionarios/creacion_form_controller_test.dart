@@ -17,15 +17,9 @@ void main() {
 
   setUp(() async {
     repository = MockCuestionariosRepository();
-    final lista = [1, 2, 3];
-    final sistemas = lista
-        .map((element) => Sistema(id: element, nombre: 'Sistema $element'))
-        .toList();
     when(repository.getTiposDeInspecciones()).thenAnswer((_) async => []);
-    when(repository.getModelos()).thenAnswer((_) async => ['mod 1', 'mod 2']);
-    when(repository.getContratistas()).thenAnswer((_) async => []);
-    when(repository.getSistemas()).thenAnswer((_) async => []);
-    when(repository.getSubSistemas(sistemas[0])).thenAnswer((_) async => []);
+    when(repository.getEtiquetas()).thenAnswer(
+        (_) async => [EtiquetaDeActivo(id: 1, clave: "clave", valor: "valor")]);
     controller = await CreacionFormController.create(repository, null);
   });
 
@@ -51,7 +45,7 @@ void main() {
     final lengthInitial = controller.controllersBloques.length;
     final despuesDe = controller.controllersBloques.last;
     final despuesDeIndex = controller.controllersBloques.indexOf(despuesDe);
-    final nuevoBloque = CreadorPreguntaController(repository, null, null);
+    final nuevoBloque = CreadorPreguntaController();
     //act
     controller.agregarBloqueDespuesDe(
         bloque: nuevoBloque, despuesDe: despuesDe);
@@ -80,7 +74,7 @@ void main() {
       () {
     // Se agrega un bloque porque no permite eliminar el inicial
     final despuesDe = controller.controllersBloques.last;
-    final nuevoBloque = CreadorPreguntaController(repository, null, null);
+    final nuevoBloque = CreadorPreguntaController();
     controller.agregarBloqueDespuesDe(
         bloque: nuevoBloque, despuesDe: despuesDe);
     expect(controller.controllersBloques.contains(nuevoBloque), isTrue);
@@ -95,9 +89,9 @@ void main() {
     expect(controller.tipoDeInspeccionControl.valid, isFalse);
   });
 
-  test('lista de modelos del cuestionario no puede estar vacía', () {
-    controller.modelosControl.value = [];
-    expect(controller.modelosControl.hasError('minLength'), isTrue);
+  test('lista de etiquetas del cuestionario no puede estar vacía', () {
+    controller.etiquetasControl.value = {};
+    expect(controller.etiquetasControl.hasError('minLength'), isTrue);
   });
   test(
       'cuando se selecciona "Otra" en tipo de inspección el campo "nuevo tipo de inspección" es obligatorio',

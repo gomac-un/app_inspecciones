@@ -1,0 +1,113 @@
+{
+    "id": "d32ca126-dbe1-4869-8112-474aeb8a34b4",
+    "tipo_de_inspeccion": "preoperacional",
+    "version": 1,
+    "periodicidad_dias": 1,
+    "etiquetas_aplicables": [
+        {
+            "clave": "color",
+            "valor": "amarillo"
+        }
+    ],
+    "bloques": [
+        {
+            "n_orden": 0,
+            "titulo": {
+                "id": "664a0e98-7cab-4070-ac2a-59007416ba52",
+                "titulo": "titulo",
+                "descripcion": "",
+                "fotos": [
+                    "664a0e98-7cab-4070-ac2a-59007416ba53",
+                    "664a0e98-7cab-4070-ac2a-59007416ba54"
+                ]
+            }
+        },
+        {
+            "n_orden": 1,
+            "pregunta": {
+                "id": "c28c6d44-179c-4aa3-9852-8411e12962fb",
+                "titulo": "tit",
+                "descripcion": "desc",
+                "criticidad": 1,
+                "etiquetas": [
+                    {
+                        "clave": "sistema",
+                        "valor": "motor"
+                    }
+                ],
+                "fotos_guia": [],
+                "tipo_de_pregunta": "seleccion_unica",
+                "opciones_de_respuesta": [
+                    {
+                        "id": "36b824a6-f342-467e-ac57-4949066f15c5",
+                        "titulo": "tit",
+                        "descripcion": "desc",
+                        "criticidad": 1
+                    }
+                ]
+            }
+        },
+        {
+            "n_orden": 2,
+            "pregunta": {
+                "id": "4514c156-988e-44bb-a0c2-c9e216ed09f3",
+                "titulo": "tit",
+                "descripcion": "desc",
+                "criticidad": 1,
+                "etiquetas": [
+                    {
+                        "clave": "sistema",
+                        "valor": "motor"
+                    }
+                ],
+                "fotos_guia": [],
+                "tipo_de_pregunta": "numerica",
+                "criticidades_numericas": [
+                    {
+                        "id": "52656dca-01aa-4fa9-9221-530c02df3b7b",
+                        "criticidad": 1,
+                        "valor_minimo": 0,
+                        "valor_maximo": 10
+                    }
+                ]
+            }
+        },
+        {
+            "n_orden": 3,
+            "pregunta": {
+                "id": "57e0fc73-15ff-4e5c-a43f-65ccd0a08769",
+                "titulo": "cuadricula",
+                "descripcion": "desc",
+                "criticidad": 1,
+                "etiquetas": [
+                    {
+                        "clave": "sistema",
+                        "valor": "motor"
+                    }
+                ],
+                "fotos_guia": [
+                    "8876414b-e018-4d40-bb86-9e31b96da560"
+                ],
+                "tipo_de_pregunta": "cuadricula",
+                "tipo_de_cuadricula": "seleccion_unica",
+                "opciones_de_respuesta": [
+                    {
+                        "id": "3417dec5-7783-4ca2-9f28-56b09dbd55b2",
+                        "titulo": "tit",
+                        "descripcion": "desc",
+                        "criticidad": 1
+                    }
+                ],
+                "preguntas": [
+                    {
+                        "id": "b5d44619-7a0a-4c8d-9486-bab7da37fe67",
+                        "titulo": "tit",
+                        "descripcion": "",
+                        "criticidad": 1,
+                        "tipo_de_pregunta": "parte_de_cuadricula"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -28,7 +28,7 @@ class OrganizacionPage extends HookConsumerWidget {
               tabs: const [
                 Tab(icon: Icon(Icons.corporate_fare_outlined)),
                 Tab(icon: Icon(Icons.people_outline_outlined)),
-                Tab(icon: Icon(Icons.commute_sharp)),
+                Tab(icon: Icon(Icons.view_in_ar_outlined)),
               ],
             ),
             title: const Text('Organizacion'),
@@ -59,19 +59,17 @@ class OrganizacionPage extends HookConsumerWidget {
       );
     } else if (tabController.index == 1) {
       return FloatingActionButton.extended(
-        onPressed: () => ref
-            .read(organizacionRemoteRepositoryProvider)
-            .getMiOrganizacion()
-            .then(
-              (r) => r.map((o) => context
-                  .goNamed("registro", queryParams: {"org": o.id.toString()})),
-            ),
+        onPressed: () =>
+            ref.read(organizacionRepositoryProvider).getMiOrganizacion().then(
+                  (r) => r.map((o) => context.goNamed("registro",
+                      queryParams: {"org": o.id.toString()})),
+                ),
         label: const Text("Registrar"),
         icon: const Icon(Icons.how_to_reg_outlined),
       );
     } else if (tabController.index == 2) {
       return FloatingActionButton.extended(
-        onPressed: () => ref.read(agregarActivoProvider).state++,
+        onPressed: () => ref.read(agregarActivoProvider.notifier).state++,
         label: const Text("Activo"),
         icon: const Icon(Icons.add_outlined),
       );

@@ -7,6 +7,6 @@ part 'identificador_inspeccion.freezed.dart';
 class IdentificadorDeInspeccion with _$IdentificadorDeInspeccion {
   factory IdentificadorDeInspeccion({
     required String activo,
-    required int cuestionarioId,
+    required String cuestionarioId,
   }) = _IdentificadorDeInspeccion;
 }

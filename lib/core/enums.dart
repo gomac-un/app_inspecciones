@@ -1,4 +1,4 @@
-enum TipoDePregunta {
+/*enum TipoDePregunta {
   unicaRespuesta,
   multipleRespuesta,
   parteDeCuadriculaUnica,
@@ -6,11 +6,11 @@ enum TipoDePregunta {
   numerica,
   binaria,
   fecha,
-}
+}*/
 
 enum EstadoDeCuestionario {
   borrador,
-  finalizada,
+  finalizado,
 }
 
 /// Estados que puede tener un sistema paraa un activo en un grupo o ronda de inspección determinado.

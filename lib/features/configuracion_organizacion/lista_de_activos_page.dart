@@ -1,29 +1,50 @@
+import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
+import 'package:inspecciones/presentation/widgets/reactive_textfield_tags.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:textfield_tags/textfield_tags.dart';
 
+import 'administrador_de_etiquetas.dart';
 import 'domain/entities.dart';
 import 'widgets/simple_future_provider_refreshable_builder.dart';
 
 class ActivoController {
   final ActivoEnLista _activo;
+  final Reader _read;
 
   late final idControl = fb.control<String>(_activo.id, [Validators.required]);
 
-  late final tagsControl = fb.control<Set<String>>(
-      _activo.etiquetas.map((e) => '${e.clave}:${e.valor}').toSet());
+  late final tagsControl = fb.control<Set<Etiqueta>>(_activo.etiquetas.toSet());
 
-  ActivoController(this._activo);
+  ActivoController(this._read, this._activo);
 
-  ActivoEnLista guardar() => ActivoEnLista(
-      idControl.value!,
-      tagsControl.value!
-          .map((e) => Etiqueta(e.split(":").first, e.split(":").last))
-          .toList());
+  ActivoEnLista guardar() =>
+      ActivoEnLista(idControl.value!, tagsControl.value!.toList());
+
+  List<Etiqueta> getEtiquetasDisponibles(List<Jerarquia> todas) {
+    final usadas = tagsControl.value!;
+
+    final result = <Etiqueta>[];
+
+    for (final jerarquia in todas) {
+      final ruta = <String>[];
+      for (final nivel in jerarquia.niveles) {
+        final etiquetaParaNivel =
+            usadas.firstWhereOrNull((e) => e.clave == nivel);
+        if (etiquetaParaNivel != null) {
+          ruta.add(etiquetaParaNivel.valor);
+          continue;
+        } else {
+          result.addAll(jerarquia.getEtiquetasDeNivel(nivel, ruta));
+          break;
+        }
+      }
+    }
+    return result;
+  }
 
   void dispose() {
     tagsControl.dispose();
@@ -37,38 +58,47 @@ class ActivoEnListaConController {
 }
 
 class ListaDeActivosViewModel
-    extends StateNotifier<List<ActivoEnListaConController>> {
+    extends StateNotifier<Set<ActivoEnListaConController>> {
   final Reader _read;
 
-  ListaDeActivosViewModel(this._read, List<ActivoEnLista> activos)
-      : super(activos.map((a) => ActivoEnListaConController(a, null)).toList());
+  ListaDeActivosViewModel(this._read, Set<ActivoEnLista> activos)
+      : super(activos.map((a) => ActivoEnListaConController(a, null)).toSet());
 
   void agregarActivo() {
     final nuevoActivo = ActivoEnLista("", []);
-    state = [
+    state = {
+      ActivoEnListaConController(
+          nuevoActivo, ActivoController(_read, nuevoActivo)),
       ...state,
-      ActivoEnListaConController(nuevoActivo, ActivoController(nuevoActivo))
-    ];
+    };
   }
 
   void inicioEdicionActivo(ActivoEnLista activo) {
     state = state
         .map((a) => a.activo == activo
-            ? ActivoEnListaConController(a.activo, ActivoController(a.activo))
+            ? ActivoEnListaConController(
+                a.activo, ActivoController(_read, a.activo))
             : a)
-        .toList();
+        .toSet();
   }
 
   void finEdicionActivo(ActivoController controller) {
     final activoActualizado = controller.guardar();
-    _read(organizacionRemoteRepositoryProvider)
-        .guardarActivo(activoActualizado);
+    _read(organizacionRepositoryProvider).guardarActivo(activoActualizado);
 
     state = state
         .map((a) => a.controller == controller
             ? ActivoEnListaConController(activoActualizado, null)
             : a)
-        .toList();
+        .toSet();
+  }
+
+  void borrarActivo(ActivoEnLista activo) async {
+    final res =
+        await _read(organizacionRepositoryProvider).borrarActivo(activo);
+    res.fold((l) => print(l), (r) => null);
+    state.removeWhere((e) => e.activo == activo);
+    state = {...state};
   }
 
   @override
@@ -86,16 +116,16 @@ class ListaDeActivosViewModel
 final agregarActivoProvider = StateProvider((ref) => 0);
 
 final _listaActivosProvider =
-    FutureProvider.autoDispose<Either<ApiFailure, List<ActivoEnLista>>>(
-  (ref) => ref.watch(organizacionRemoteRepositoryProvider).getListaDeActivos(),
+    FutureProvider.autoDispose<Tuple2<ApiFailure?, Set<ActivoEnLista>>>(
+  (ref) => ref.watch(organizacionRepositoryProvider).refreshListaDeActivos(),
 );
 
 final _viewModelProvider = StateNotifierProvider.autoDispose.family<
     ListaDeActivosViewModel,
-    List<ActivoEnListaConController>,
-    List<ActivoEnLista>>((ref, lista) {
+    Set<ActivoEnListaConController>,
+    Set<ActivoEnLista>>((ref, lista) {
   final viewModel = ListaDeActivosViewModel(ref.read, lista);
-  ref.listen(agregarActivoProvider, (_) {
+  ref.listen(agregarActivoProvider, (_, __) {
     viewModel.agregarActivo();
   });
   return viewModel;
@@ -106,23 +136,40 @@ class ListaDeActivosPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
+    ref.listen<AsyncValue<Tuple2<ApiFailure?, Set<ActivoEnLista>>>>(
+        _listaActivosProvider, (_, next) {
+      next.whenData((value) {
+        final ApiFailure? maybeFailure = value.value1;
+        if (maybeFailure != null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(maybeFailure.toString()),
+          ));
+        }
+      });
+    });
     return SimpleFutureProviderRefreshableBuilder(
       provider: _listaActivosProvider,
-      builder: (context, List<ActivoEnLista> activosFromRepo) {
+      builder: (context, Tuple2<ApiFailure?, Set<ActivoEnLista>> res) {
+        final activosFromRepo = res.value2;
         final viewModel =
             ref.watch(_viewModelProvider(activosFromRepo).notifier);
         final activos = ref.watch(_viewModelProvider(activosFromRepo));
         return ListView.separated(
-          padding: const EdgeInsets.only(
-              bottom: 60), // para que el fab no estorbe en el ultimo
-          itemCount: activos.length,
+          // para que el fab no estorbe en el ultimo
+          padding: const EdgeInsets.only(bottom: 60),
+          itemCount: activos.length + 1, // +1 para el espacio al final
           separatorBuilder: (context, index) => const Divider(),
           itemBuilder: (context, index) {
-            final activo = activos[index].activo;
-            final controller = activos[index].controller;
+            if (index == activos.length) return const SizedBox(height: 60);
+
+            final activo = activos.elementAt(index).activo;
+            final controller = activos.elementAt(index).controller;
             return controller == null
-                ? _buildActivo(viewModel, activo)
-                : _buildActivoEditable(viewModel, controller);
+                ? _buildActivo(activo,
+                    onEdicion: viewModel.inicioEdicionActivo,
+                    onBorrar: viewModel.borrarActivo)
+                : _buildActivoEditable(
+                    context, viewModel.finEdicionActivo, controller);
           },
         );
       },
@@ -130,45 +177,74 @@ class ListaDeActivosPage extends ConsumerWidget {
   }
 
   ListTile _buildActivo(
-          ListaDeActivosViewModel viewModel, ActivoEnLista activo) =>
+    ActivoEnLista activo, {
+    void Function(ActivoEnLista activo)? onEdicion,
+    void Function(ActivoEnLista activo)? onBorrar,
+  }) =>
       ListTile(
         title: Text(activo.id),
-        trailing: IconButton(
-          icon: const Icon(Icons.edit_outlined),
-          onPressed: () => viewModel.inicioEdicionActivo(activo),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => onEdicion?.call(activo),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => onBorrar?.call(activo),
+            ),
+          ],
         ),
         subtitle: Text(
             activo.etiquetas.map((e) => "${e.clave}:${e.valor}").join(", ")),
       );
 
   ListTile _buildActivoEditable(
-          ListaDeActivosViewModel viewModel, ActivoController controller) =>
+    BuildContext context,
+    void Function(ActivoController controller) onFinalizarEdicion,
+    ActivoController controller,
+  ) =>
       ListTile(
         title: ReactiveTextField(
+          autofocus: true,
           formControl: controller.idControl,
+          decoration: const InputDecoration(
+            labelText: "identificador",
+          ),
         ),
         trailing: IconButton(
           icon: const Icon(Icons.save_outlined),
-          onPressed: () => viewModel.finEdicionActivo(controller),
+          onPressed: () => onFinalizarEdicion(controller),
         ),
-        subtitle: ReactiveTextFieldTags(
-            formControl: controller.tagsControl,
-            validator: (String tag) {
-              if (tag.isEmpty) return "ingrese algo";
+        subtitle: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Consumer(builder: (context, ref, _) {
+            final todasLasJerarquias =
+                ref.watch(listaEtiquetasDeActivosProvider).asData?.value ??
+                    const <Jerarquia>[];
 
-              final splited = tag.split(":");
-
-              if (splited.length == 1) {
-                return "agregue : para separar la etiqueta";
-              }
-
-              if (splited.length > 2) return "solo se permite un :";
-
-              if (splited[0].isEmpty || splited[1].isEmpty) {
-                return "agregue texto antes y despues de :";
-              }
-
-              return null;
-            }),
+            return ReactiveTextFieldTags(
+              decoration: const InputDecoration(labelText: "etiquetas"),
+              formControl: controller.tagsControl,
+              optionsBuilder: (TextEditingValue val) async {
+                /*WidgetsBinding.instance!.addPostFrameCallback((_) {
+                  Future.delayed(
+                      const Duration(seconds: 3), () => yourFunction());
+                });*/
+                return controller
+                    .getEtiquetasDisponibles(todasLasJerarquias)
+                    .where((e) =>
+                        e.clave.toLowerCase().contains(val.text.toLowerCase()));
+              },
+              onMenu: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => const MenuDeEtiquetas(TipoDeEtiqueta.activo),
+                );
+              },
+            );
+          }),
+        ),
       );
 }

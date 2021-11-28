@@ -1,19 +1,28 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_test;
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/infrastructure/core/api_exceptions.dart';
 import 'package:inspecciones/infrastructure/datasources/django_json_api.dart';
+import 'package:inspecciones/infrastructure/datasources/django_json_api_client.dart';
+import 'package:inspecciones/infrastructure/repositories/app_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+
+import 'django_json_api_test.mocks.dart';
 
 @TestOn('vm') // Uses dart:io
 //@TestOn('browser') // Uses web-only Flutter SDK
 
 /// para probar en chrome se usa
 /// `flutter test test/infrastructure/datasources/django_json_api_test.dart --platform chrome`
+@GenerateMocks([AppRepository])
 void main() {
   final apiUri = Uri.parse("http://127.0.0.1:8000/inspecciones/api/v1");
   test("appendSegment deberia agregar una nuevo segmento al final de la uri",
@@ -47,49 +56,76 @@ void main() {
   });
 
   group("DjangoJsonApiClient", () {
+    late AppRepository appRepository;
+    late ProviderContainer container;
+
+    setUp(() {
+      appRepository = MockAppRepository();
+      when(appRepository.getToken()).thenAnswer((_) => null);
+      container = ProviderContainer(
+          overrides: [appRepositoryProvider.overrideWithValue(appRepository)]);
+    });
     test('una peticion GET deberia usar el token asignado en el header',
         () async {
-      final DjangoJsonApiClient client =
-          DjangoJsonApiClient(
-        "123",
+      when(appRepository.getToken()).thenAnswer((_) => "123");
+
+      final DjangoJsonApiClient client = DjangoJsonApiClient(
+        container.read,
         http_test.MockClient((request) async {
           expect(request.headers[HttpHeaders.authorizationHeader], "Token 123");
-          return http.Response("", 404);
+          return http.Response("{}", 200);
         }),
       );
 
-      await client.get(apiUri);
+      await client.request("GET", apiUri);
     });
     test("debería lanzar las excepciones generadas por el cliente interno",
         () async {
-      final DjangoJsonApiClient client =
-          DjangoJsonApiClient(
-        "123",
-        http_test.MockClient((request) => throw const SocketException("")),
+      final DjangoJsonApiClient client = DjangoJsonApiClient(
+        container.read,
+        http_test.MockClient((request) => throw Exception("e1")),
       );
       await expectLater(
-          () => client.get(apiUri), throwsA(isA<SocketException>()));
+          () => client.request("GET", apiUri),
+          throwsA(isA<Exception>()
+              .having((e) => e.toString(), "message", "Exception: e1")));
     });
   });
 
   group("django json api", () {
-    DjangoJsonApi buildDjangoJsonApi(http_test.MockClientHandler fn) =>
-        DjangoJsonApi(
-          http_test.MockClient(fn),
-          apiUri,
-        );
+    //late AppRepository appRepository;
+    //late ProviderContainer container;
+
+    setUp(() {
+      //appRepository = MockAppRepository();
+      /*container = ProviderContainer(
+          overrides: [appRepositoryProvider.overrideWithValue(appRepository)]);*/
+    });
+
+    DjangoJsonApi buildDjangoJsonApi(http_test.MockClientHandler fn) {
+      final appRepository = MockAppRepository();
+      when(appRepository.getToken()).thenAnswer((_) => "123");
+      final containerPadre = ProviderContainer(
+          overrides: [appRepositoryProvider.overrideWithValue(appRepository)]);
+      final container = ProviderContainer(parent: containerPadre, overrides: [
+        djangoJsonApiClientProvider.overrideWithValue(
+            DjangoJsonApiClient(containerPadre.read, http_test.MockClient(fn)))
+      ]);
+      return DjangoJsonApi(
+        //http_test.MockClient(fn),
+        container.read,
+        apiUri,
+      );
+    }
+
     test(
         "si se usan un cliente autenticado, getInspeccion debería realizar una peticion con el token",
         () async {
       String authHeader = "";
-      final api = DjangoJsonApi(
-        DjangoJsonApiClient("123",
-            http_test.MockClient((request) async {
-          authHeader = request.headers[HttpHeaders.authorizationHeader]!;
-          return http.Response("{}", 200);
-        })),
-        apiUri,
-      );
+      final api = buildDjangoJsonApi((request) async {
+        authHeader = request.headers[HttpHeaders.authorizationHeader]!;
+        return http.Response("{}", 200);
+      });
       await api.getInspeccion(1);
       expect(authHeader, contains("123"));
     });

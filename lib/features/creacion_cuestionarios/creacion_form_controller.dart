@@ -3,75 +3,71 @@ import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/core/error/errors.dart';
+import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/organizacion_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
-import 'package:inspecciones/infrastructure/tablas_unidas.dart';
-import 'package:inspecciones/utils/iterable_x.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'creacion_controls.dart';
 import 'creacion_validators.dart';
+import 'tablas_unidas.dart';
 
-final cuestionarioIdProvider = Provider<int?>((ref) => throw Exception(
+final cuestionarioIdProvider = Provider<String?>((ref) => throw Exception(
     "se debe definir cuestionarioId dentro de la pagina de creacion"));
 
-final creacionFormControllerFutureProvider = FutureProvider(
-  (ref) => CreacionFormController.create(
-    ref.watch(cuestionariosRepositoryProvider),
-    ref.watch(cuestionarioIdProvider),
-  ),
-  dependencies: [cuestionarioIdProvider, cuestionariosRepositoryProvider],
+final creacionFormControllerFutureProvider =
+    FutureProvider.autoDispose.family<CreacionFormController, String?>(
+  (ref, cuestionarioId) async {
+    final res = await CreacionFormController.create(
+      ref.watch(cuestionariosRepositoryProvider),
+      ref.watch(organizacionRepositoryProvider),
+      cuestionarioId,
+    );
+    ref.onDispose(res.dispose);
+    return res;
+  },
 );
 
-final creacionFormControllerProvider = Provider(
-  (ref) => ref.watch(creacionFormControllerFutureProvider).when(
-        data: id,
-        loading: (previous) => throw Exception(
-            "creacionFormControllerFutureProvider no se ha cargado"),
-        error: (e, s, previous) => throw e,
-      ),
-  dependencies: [creacionFormControllerFutureProvider],
+final creacionFormControllerProvider =
+    Provider.autoDispose.family<CreacionFormController, String?>(
+  (ref, cuestionarioId) =>
+      ref.watch(creacionFormControllerFutureProvider(cuestionarioId)).when(
+            data: id,
+            loading: () => throw Exception(
+                "creacionFormControllerFutureProvider no se ha cargado"),
+            error: (e, s) => throw e,
+          ),
 );
 
 class CreacionFormController {
   final CuestionariosRepository repository;
+  final OrganizacionRepository organizacionRepository;
 
   ///constantes
   static const otroTipoDeInspeccion = "Otra";
-  static const todosLosModelosValue = "Todos";
 
   /// información usada para inicializar los campos en caso de que sea una edición
-  final CuestionarioConContratistaYModelosCompanion datosIniciales;
+  final CuestionarioCompletoCompanion datosIniciales;
 
   /// inicialización de los campos del cuestionario usando los valores guardados
   /// en caso de que sea una edicion. si es uno nuevo se definen valores por defecto
   late final tipoDeInspeccionControl = fb.control<String?>(
-    datosIniciales.cuestionario.tipoDeInspeccion.value,
+    datosIniciales.cuestionario.tipoDeInspeccion.valueOrDefault(""),
     [Validators.required],
   );
   late final nuevoTipoDeInspeccionControl = fb.control<String?>(null);
-  late final contratistaControl = fb.control<Contratista?>(
-    datosIniciales.contratista,
+
+  late final periodicidadControl = fb.control<int>(
+    datosIniciales.cuestionario.periodicidadDias.valueOrDefault(1),
     [Validators.required],
   );
-  late final periodicidadControl = fb.control<double>(
-    //Test genera error cuando esta lista está vacía.
-    datosIniciales.cuestionarioDeModelo.isNotEmpty
-        ? datosIniciales.cuestionarioDeModelo.first.periodicidad
-            .valueOrDefault(0)
-            .toDouble()
-        : 0,
-    [Validators.required],
-  );
-  late final modelosControl = fb.control<List<String>>(
-    datosIniciales.cuestionarioDeModelo.map((e) {
-      if (!e.modelo.present) {
-        throw Exception(
-            'El cuestionario ${datosIniciales.cuestionario.id} tiene un modelo inválido');
-      }
-      return e.modelo.value;
-    }).toList(),
+
+  late final etiquetasControl = fb.control<Set<Etiqueta>>(
+    datosIniciales.etiquetas
+        .map((e) => Etiqueta(e.clave.value, e.valor.value))
+        .toSet(),
     [Validators.minLength(1)],
   );
 
@@ -85,97 +81,68 @@ class CreacionFormController {
   late final FormGroup control;
 
   /// Informacion traida desde la base de datos
-  final List<Sistema> todosLosSistemas;
-  final List<String> todosLosTiposDeInspeccion;
-  final List<String> todosLosModelos;
-  final List<Contratista> todosLosContratistas;
 
-  /// Si cuestionario es nuevo, se le asigna borrador.
-  late final estado = datosIniciales.cuestionario.estado
-      .valueOrDefault(EstadoDeCuestionario.borrador);
+  final List<String> todosLosTiposDeInspeccion;
+  final List<EtiquetaDeActivo> todasLasEtiquetas;
 
   /// Se modifica cuando se copia un bloque desde creacion_controls.dart
   CreacionController? bloqueCopiado;
 
-  /// TODO: evitar quemar estos valores
-  final ejes = [
-    "Primer eje",
-    "Segundo eje",
-    "Tercer eje",
-    "Entre primer y segundo eje",
-    "Entre segundo y tercer eje",
-    "Adelante",
-    "Atrás"
-  ];
-  final lados = [
-    'Izquierda',
-    'Centro',
-    'Derecha',
-  ];
-  final posZ = ['Arriba', 'Medio', 'Abajo'];
+  List<Etiqueta> getTodasLasEtiquetas(List<Jerarquia> todasLasJerarquias) =>
+      todasLasJerarquias
+          .expand((e) => e.getTodasLasEtiquetas())
+          .where((e) => !etiquetasControl.value!.contains(e))
+          .toList();
 
   /// static factory que instancia un [CreacionFormController] de manera asíncrona
   /// ya que tiene que cargar información desde la base de datos
   static Future<CreacionFormController> create(
     CuestionariosRepository repository,
-    int? cuestionarioId,
+    OrganizacionRepository organizacionRepository,
+    String? cuestionarioId,
   ) async {
     final todosLosTiposDeInspeccion = await repository.getTiposDeInspecciones();
 
     /// Sirve para activar otro campo en el formulario, si se selecciona
     todosLosTiposDeInspeccion.add(otroTipoDeInspeccion);
 
-    final todosLosModelos = await repository.getModelos();
-
-    /// El modelo especial 'Todos' aplica a cualquier modelo
-    todosLosModelos.add(todosLosModelosValue);
-
-    final todosLosContratistas = await repository.getContratistas();
-    final todosLosSistemas = await repository.getSistemas();
+    final todasLasEtiquetas = await repository.getEtiquetas();
 
     if (cuestionarioId == null) {
       return CreacionFormController._(
         repository,
-        todosLosContratistas,
-        todosLosModelos,
-        todosLosSistemas,
+        organizacionRepository,
+        todasLasEtiquetas,
         todosLosTiposDeInspeccion,
-        (await _cargarBloques(repository, null, null)).toList(),
-        // para que retorne un bloque por defecto ya que es nuevo cuestionario
+        await _buildControllers(null),
       );
     }
 
     /// Dereferenciadores del cuestionarioId, en caso de que llegue
     final datosIniciales =
-        await repository.getModelosYContratista(cuestionarioId);
+        (await repository.getCuestionarioCompleto(cuestionarioId))
+            .toCompanion();
 
-    final bloquesBD = await repository.cargarCuestionario(cuestionarioId);
-
-    final controllersBloques = await _cargarBloques(
-        repository, datosIniciales.cuestionario, bloquesBD);
+    final controllersBloques = await _buildControllers(datosIniciales.bloques);
 
     return CreacionFormController._(
       repository,
-      todosLosContratistas,
-      todosLosModelos,
-      todosLosSistemas,
+      organizacionRepository,
+      todasLasEtiquetas,
       todosLosTiposDeInspeccion,
-      controllersBloques.toList(),
-      datosIniciales: CuestionarioConContratistaYModelosCompanion.fromDataClass(
-          datosIniciales),
+      controllersBloques,
+      datosIniciales: datosIniciales,
     );
   }
 
   /// TODO: reducir el numero de parámetros agrupandolos de alguna manera
   CreacionFormController._(
     this.repository,
-    this.todosLosContratistas,
-    this.todosLosModelos,
-    this.todosLosSistemas,
+    this.organizacionRepository,
+    this.todasLasEtiquetas,
     this.todosLosTiposDeInspeccion,
     this.controllersBloques, {
-    this.datosIniciales =
-        const CuestionarioConContratistaYModelosCompanion.vacio(),
+    this.datosIniciales = const CuestionarioCompletoCompanion.vacio(),
   }) {
     bloquesControl =
         FormArray(controllersBloques.map((e) => e.control).toList());
@@ -183,121 +150,62 @@ class CreacionFormController {
       {
         'tipoDeInspeccion': tipoDeInspeccionControl,
         'nuevoTipoDeInspeccion': nuevoTipoDeInspeccionControl,
-        'contratista': contratistaControl,
         'periodicidad': periodicidadControl,
-        'modelos': modelosControl,
+        'etiquetas': etiquetasControl,
         'bloques': bloquesControl,
       },
       asyncValidators: [
-        cuestionariosExistentes(
+        /*cuestionariosExistentes(
           datosIniciales.cuestionario.id.present
               ? datosIniciales.cuestionario.id.value
               : null,
           tipoDeInspeccionControl,
-          modelosControl,
+          etiquetasControl,
           repository,
-        )
+        )*/
       ],
       validators: [
         nuevoTipoDeInspeccionValidator(
             tipoDeInspeccionControl, nuevoTipoDeInspeccionControl)
       ],
     );
-    if (datosIniciales.cuestionario.estado.value ==
-        EstadoDeCuestionario.finalizada) {
+    if (datosIniciales.cuestionario.estado
+            .valueOrDefault(EstadoDeCuestionario.borrador) ==
+        EstadoDeCuestionario.finalizado) {
       control.markAsDisabled();
     }
   }
 
-  /// Carga los bloques del cuestionario
-  ///
-  /// El flujo es: desde la Bd se devuelve [bloquesBD] al invocar ([CreacionDao.cargarCuestionario()]),
-  /// luego se recorren y dependiendo del tipo especifico de IBloqueOrdenable que sea, se devuelve el control correspondiente
-  /// para que [ControlWidget] en creacion_card.dart pueda devolver la card adecuada para cada tipo
-  static Future<Iterable<CreacionController>> _cargarBloques(
-      CuestionariosRepository repository,
-      Cuestionario? cuestionario,
-      List<IBloqueOrdenable>? bloquesBD) async {
-    if (cuestionario == null || bloquesBD == null) {
+  static Future<List<CreacionController>> _buildControllers(
+      List<Companion>? bloques) async {
+    if (bloques == null) {
       /// Si se está creando el cuestionario, se agrega un titulo por defecto como bloque inicial
       return [CreadorTituloController()];
     }
 
     /// Si es un cuestionario que ya existía y se va a editar
     ///Ordenamiento y creacion de los controles dependiendo del tipo de elemento
-    return (bloquesBD
-          ..sort(
-            (a, b) => a.nOrden.compareTo(b.nOrden),
-          ))
-        .asyncMap<CreacionController>((e) async {
-      ///! aca pueden haber errores de tiempo de ejecucion si el bloque no tiene al
-      ///menos una pregunta o si la primera no tiene sistemaId, aunque
-      ///las validaciones de los controles deberían evitar que esto pase
-      if (e is BloqueConTitulo) {
-        return CreadorTituloController(e.titulo.toCompanion(true));
+    return bloques.map<CreacionController>((e) {
+      if (e is TituloDCompanion) {
+        return CreadorTituloController(e);
       }
-      if (e is BloqueConPreguntaSimple) {
+      if (e is PreguntaDeSeleccionCompanion) {
         return CreadorPreguntaController(
-          repository,
-          await _maybeGetSistema(e.pregunta.pregunta.sistemaId, repository),
-          await _maybeGetSubSistema(
-              e.pregunta.pregunta.subSistemaId, repository),
-          datosIniciales:
-              PreguntaConOpcionesDeRespuestaCompanion.fromDataClass(e.pregunta),
+          datosIniciales: e,
         );
       }
-      if (e is BloqueConCuadricula) {
-        return CreadorPreguntaCuadriculaController(
-          repository,
-          e.preguntas.isEmpty
-              ? null
-              : await _maybeGetSistema(
-                  e.preguntas.first.pregunta.sistemaId, repository),
-          e.preguntas.isEmpty
-              ? null
-              : await _maybeGetSubSistema(
-                  e.preguntas.first.pregunta.subSistemaId, repository),
-          datosIniciales: CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion
-              .fromDataClass(CuadriculaConPreguntasYConOpcionesDeRespuesta(
-            e.cuadricula.cuadricula,
-            e.preguntas,
-            e.cuadricula.opcionesDeRespuesta,
-          )),
-        );
-      }
-      if (e is BloqueConPreguntaNumerica) {
+      if (e is PreguntaNumericaCompanion) {
         return CreadorPreguntaNumericaController(
-          repository,
-          await _maybeGetSistema(e.pregunta.pregunta.sistemaId, repository),
-          await _maybeGetSubSistema(
-              e.pregunta.pregunta.subSistemaId, repository),
-          datosIniciales: PreguntaNumericaCompanion.fromDataClass(e.pregunta),
+          datosIniciales: e,
+        );
+      }
+      if (e is CuadriculaConPreguntasYConOpcionesDeRespuestaCompanion) {
+        return CreadorPreguntaCuadriculaController(
+          datosIniciales: e,
         );
       }
       throw TaggedUnionError(e);
-    });
-  }
-
-  static Future<Sistema?> _maybeGetSistema(
-      int? sistemaId, CuestionariosRepository repository) async {
-    final Sistema? sistema;
-    if (sistemaId == null) {
-      sistema = null;
-    } else {
-      sistema = await repository.getSistemaPorId(sistemaId);
-    }
-    return sistema;
-  }
-
-  static Future<SubSistema?> _maybeGetSubSistema(
-      int? subSistemaId, CuestionariosRepository repository) async {
-    final SubSistema? subSistema;
-    if (subSistemaId == null) {
-      subSistema = null;
-    } else {
-      subSistema = await repository.getSubSistemaPorId(subSistemaId);
-    }
-    return subSistema;
+    }).toList();
   }
 
   /// Agrega un nuevo bloque despues de [despuesDe]
@@ -324,33 +232,29 @@ class CreacionFormController {
   /// Esta función guarda el cuestionario como esté, sin realizar validaciones,
   /// pero si es una finalización, si se deben hacer todas las validaciones previas.
   Future<void> guardarCuestionarioEnLocal(EstadoDeCuestionario estado) async {
-    final String? tipoDeInspeccion = tipoDeInspeccionControl.value != null &&
+    final String tipoDeInspeccion = tipoDeInspeccionControl.value != null &&
             tipoDeInspeccionControl.value == otroTipoDeInspeccion
-        ? nuevoTipoDeInspeccionControl.value
-        : tipoDeInspeccionControl.value;
-
-    final int? contratistaId = contratistaControl.value?.id;
+        ? nuevoTipoDeInspeccionControl.value!
+        : tipoDeInspeccionControl.value!;
 
     final CuestionariosCompanion cuestionario =
         datosIniciales.cuestionario.copyWith(
       tipoDeInspeccion: Value(tipoDeInspeccion),
+      version: Value(datosIniciales.cuestionario.version.valueOrDefault(1)),
+      periodicidadDias: Value(periodicidadControl.value!),
       estado: Value(estado),
-      esLocal: const Value(true),
+      subido: const Value(false),
     );
 
-    final List<CuestionarioDeModelosCompanion> cuestionariosDeModelos =
-        modelosControl.value!
-            .map((modelo) => CuestionarioDeModelosCompanion(
-                  modelo: Value(modelo),
-                  periodicidad: Value(periodicidadControl.value!.round()),
-                  contratistaId: Value(contratistaId),
-                ))
-            .toList();
+    final List<EtiquetasDeActivoCompanion> etiquetas = etiquetasControl.value!
+        .map((e) =>
+            EtiquetasDeActivoCompanion.insert(clave: e.clave, valor: e.valor))
+        .toList();
 
     final bloquesForm = controllersBloques.map((e) => e.toDB()).toList();
 
     // TODO: si se vuelve muy lento, usar un bloc y/o un isolate
     await repository.guardarCuestionario(
-        cuestionario, cuestionariosDeModelos, bloquesForm);
+        CuestionarioCompletoCompanion(cuestionario, etiquetas, bloquesForm));
   }
 }
