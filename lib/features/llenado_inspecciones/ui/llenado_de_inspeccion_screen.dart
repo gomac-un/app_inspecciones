@@ -103,9 +103,10 @@ class InspeccionPage extends HookConsumerWidget {
             ]),
             floatingActionButton: mostrarBotonesDeNavegacion
                 ? FABNavigation(
-                    botonGuardar: _buildBotonGuardar(controladorInspeccion),
+                    botonGuardar: _buildBotonGuardar(
+                        controladorInspeccion, estadoDeInspeccion),
                   )
-                : _buildBotonGuardar(controladorInspeccion),
+                : _buildBotonGuardar(controladorInspeccion, estadoDeInspeccion),
             floatingActionButtonLocation: mostrarBotonesDeNavegacion
                 ? FloatingActionButtonLocation.centerFloat
                 : FloatingActionButtonLocation.endFloat,
@@ -113,12 +114,15 @@ class InspeccionPage extends HookConsumerWidget {
         });
   }
 
-  Widget _buildBotonGuardar(ControladorLlenadoInspeccion control) {
-    return BotonGuardar(
-      guardar: control.guardarInspeccion,
-      icon: const Icon(Icons.save),
-      tooltip: "Guardar borrador",
-    );
+  Widget _buildBotonGuardar(ControladorLlenadoInspeccion control,
+      EstadoDeInspeccion estadoDeInspeccion) {
+    return estadoDeInspeccion == EstadoDeInspeccion.finalizada
+        ? const SizedBox.shrink()
+        : BotonGuardar(
+            guardar: control.guardarInspeccion,
+            icon: const Icon(Icons.save),
+            tooltip: "Guardar borrador",
+          );
   }
 
   Future<bool?> _confirmarFinalizacion(BuildContext context) =>

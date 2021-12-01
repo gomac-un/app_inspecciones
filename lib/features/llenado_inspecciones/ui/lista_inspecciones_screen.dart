@@ -17,7 +17,9 @@ import 'llenado_de_inspeccion_screen.dart';
 //TODO: Implementar que se puedan seleccionar varias inspecciones para eliminarlas.
 /// Pantalla con lista de todas las inspecciones pendientes por subir.
 class InspeccionesPage extends ConsumerWidget {
-  const InspeccionesPage({Key? key}) : super(key: key);
+  //se agrega esta variable mutable para que no pueda ser const, ver [app_router.dart]
+  int a = 0;
+  InspeccionesPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

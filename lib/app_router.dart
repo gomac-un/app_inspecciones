@@ -47,10 +47,14 @@ final goRouterProvider = Provider((ref) => GoRouter(
         GoRoute(
           path: '/inspecciones',
           name: 'inspecciones',
-          pageBuilder: (context, state) => MaterialPage<void>(
-            key: state.pageKey,
-            child: const InspeccionesPage(),
-          ),
+          pageBuilder: (context, state) {
+            return MaterialPage<void>(
+              key: state.pageKey,
+              // TODO: averiguar por que si se hace const, al navegar desde el drawer estando
+              // en la pantalla de llenado, no se navega acá.
+              child: InspeccionesPage(),
+            );
+          },
         ),
         GoRoute(
           path: '/history',
@@ -63,15 +67,17 @@ final goRouterProvider = Provider((ref) => GoRouter(
         GoRoute(
           path: '/inspeccion/:activoid/:cuestionarioid',
           name: 'inspeccion',
-          pageBuilder: (context, state) => MaterialPage<void>(
-            key: state.pageKey,
-            child: InspeccionPage(
-              inspeccionId: IdentificadorDeInspeccion(
-                activo: state.params['activoid']!,
-                cuestionarioId: state.params['cuestionarioid']!,
+          pageBuilder: (context, state) {
+            return MaterialPage<void>(
+              key: state.pageKey,
+              child: InspeccionPage(
+                inspeccionId: IdentificadorDeInspeccion(
+                  activo: state.params['activoid']!,
+                  cuestionarioId: state.params['cuestionarioid']!,
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
         /*
         GoRoute(

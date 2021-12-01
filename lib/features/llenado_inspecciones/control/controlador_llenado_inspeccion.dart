@@ -108,7 +108,11 @@ class ControladorLlenadoInspeccion {
     this.cuestionario,
     this.factory,
     this._read,
-  );
+  ) {
+    if (cuestionario.inspeccion.estado == EstadoDeInspeccion.finalizada) {
+      formArray.markAsDisabled();
+    }
+  }
 
   @pragma('vm:notify-debugger-on-exception')
   Future<void> guardarInspeccion({
@@ -186,10 +190,7 @@ class ControladorLlenadoInspeccion {
 
   bool _validarInspeccion() {
     formArray.markAllAsTouched();
-    if (!formArray.valid) {
-      return false;
-    }
-    return true;
+    return formArray.valid;
   }
 
   void dispose() {
