@@ -191,7 +191,6 @@ class Inspecciones extends Table {
       'NOT NULL REFERENCES cuestionarios(id) ON DELETE NO ACTION')();
   TextColumn get activoId => text().customConstraint(
       'NOT NULL REFERENCES activos(id) ON DELETE NO ACTION')();
-  TextColumn get inspectorId => text()();
 
   DateTimeColumn get momentoInicio => dateTime()();
   DateTimeColumn get momentoBorradorGuardado => dateTime().nullable()();

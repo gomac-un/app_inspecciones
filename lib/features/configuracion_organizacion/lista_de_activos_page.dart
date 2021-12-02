@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/infrastructure/repositories/organizacion_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/presentation/widgets/reactive_textfield_tags.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -13,13 +14,17 @@ import 'widgets/simple_future_provider_refreshable_builder.dart';
 
 class ActivoController {
   final ActivoEnLista _activo;
-  final Reader _read;
 
   late final idControl = fb.control<String>(_activo.id, [Validators.required]);
 
   late final tagsControl = fb.control<Set<Etiqueta>>(_activo.etiquetas.toSet());
 
-  ActivoController(this._read, this._activo);
+  late final control = fb.group({
+    'id': idControl,
+    'tags': tagsControl,
+  });
+
+  ActivoController(this._activo);
 
   ActivoEnLista guardar() =>
       ActivoEnLista(idControl.value!, tagsControl.value!.toList());
@@ -47,7 +52,7 @@ class ActivoController {
   }
 
   void dispose() {
-    tagsControl.dispose();
+    control.dispose();
   }
 }
 
@@ -60,6 +65,8 @@ class ActivoEnListaConController {
 class ListaDeActivosViewModel
     extends StateNotifier<Set<ActivoEnListaConController>> {
   final Reader _read;
+  OrganizacionRepository get _organizacionRepository =>
+      _read(organizacionRepositoryProvider);
 
   ListaDeActivosViewModel(this._read, Set<ActivoEnLista> activos)
       : super(activos.map((a) => ActivoEnListaConController(a, null)).toSet());
@@ -67,8 +74,7 @@ class ListaDeActivosViewModel
   void agregarActivo() {
     final nuevoActivo = ActivoEnLista("", []);
     state = {
-      ActivoEnListaConController(
-          nuevoActivo, ActivoController(_read, nuevoActivo)),
+      ActivoEnListaConController(nuevoActivo, ActivoController(nuevoActivo)),
       ...state,
     };
   }
@@ -76,15 +82,14 @@ class ListaDeActivosViewModel
   void inicioEdicionActivo(ActivoEnLista activo) {
     state = state
         .map((a) => a.activo == activo
-            ? ActivoEnListaConController(
-                a.activo, ActivoController(_read, a.activo))
+            ? ActivoEnListaConController(a.activo, ActivoController(a.activo))
             : a)
         .toSet();
   }
 
   void finEdicionActivo(ActivoController controller) {
     final activoActualizado = controller.guardar();
-    _read(organizacionRepositoryProvider).guardarActivo(activoActualizado);
+    _organizacionRepository.guardarActivo(activoActualizado);
 
     state = state
         .map((a) => a.controller == controller
@@ -94,11 +99,11 @@ class ListaDeActivosViewModel
   }
 
   void borrarActivo(ActivoEnLista activo) async {
-    final res =
-        await _read(organizacionRepositoryProvider).borrarActivo(activo);
-    res.fold((l) => print(l), (r) => null);
-    state.removeWhere((e) => e.activo == activo);
-    state = {...state};
+    final res = await _organizacionRepository.borrarActivo(activo);
+    res.fold((l) => throw l, (r) {
+      state.removeWhere((e) => e.activo == activo);
+      state = {...state};
+    });
   }
 
   @override
@@ -112,7 +117,7 @@ class ListaDeActivosViewModel
 
 /// El provider del viewModel de los activos escucha a este provider para
 /// saber cuando se debe agregar uno nuevo. El numero no importa, lo importante
-/// es que cambie
+/// es que cambie. Nótese que esto es un machetazo.
 final agregarActivoProvider = StateProvider((ref) => 0);
 
 final _listaActivosProvider =

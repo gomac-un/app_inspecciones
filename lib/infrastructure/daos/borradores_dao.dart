@@ -60,7 +60,6 @@ class BorradoresDao extends DatabaseAccessor<Database>
                 momentoInicio: inspeccion.momentoInicio,
                 momentoEnvio: inspeccion.momentoEnvio,
                 momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
-                inspectorId: inspeccion.inspectorId,
                 criticidadCalculada: inspeccion.criticidadCalculada,
                 criticidadCalculadaConReparaciones:
                     inspeccion.criticidadCalculadaConReparaciones,
@@ -147,7 +146,7 @@ class BorradoresDao extends DatabaseAccessor<Database>
     return query.map((row) => row.read(count)).getSingle();
   }
 
-  Future<dominio.Activo> buildActivo({required String activoId}) async { 
+  Future<dominio.Activo> buildActivo({required String activoId}) async {
     final etiquetas =
         await db.utilsDao.getEtiquetasDeActivo(activoId: activoId);
 

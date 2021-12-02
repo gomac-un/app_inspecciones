@@ -60,7 +60,6 @@ class InspeccionesRepository {
         await _db.cargaDeInspeccionDao.cargarInspeccion(
       cuestionarioId: id.cuestionarioId,
       activoId: id.activo,
-      inspectorId: "1", //TODO: traer el id del inspector
     );
     return Right(cuestionarioInspeccionado);
     // } catch (e) {

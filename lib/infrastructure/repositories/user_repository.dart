@@ -34,8 +34,7 @@ class UserRepository {
       {required Credenciales credenciales, bool offline = false}) async {
     if (offline) {
       return Right(Usuario.offline(
-        documento: credenciales.username,
-        password: credenciales.password,
+        username: credenciales.username,
       ));
     }
     final hayInternet = await _hayInternet();
@@ -65,10 +64,7 @@ class UserRepository {
       });
 
   Usuario _buildUsuarioOnline(Credenciales credenciales, bool esAdmin) =>
-      Usuario.online(
-          documento: credenciales.username,
-          password: credenciales.password,
-          esAdmin: esAdmin);
+      Usuario.online(username: credenciales.username, esAdmin: esAdmin);
 
   Future<void> saveLocalUser({required Usuario user}) async {
     await _localPreferences.saveUser(user);

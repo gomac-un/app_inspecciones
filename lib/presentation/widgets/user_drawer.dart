@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -33,13 +32,12 @@ class UserDrawer extends ConsumerWidget {
                     icon: Icons.corporate_fare_outlined,
                     onTap: () => context.goNamed("organizacion"),
                   ),
-                  if (user.esAdmin)
-                    MenuItem(
-                      texto:
-                          'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
-                      icon: Icons.app_registration_outlined,
-                      onTap: () => context.goNamed("cuestionarios"),
-                    ),
+                  MenuItem(
+                    texto:
+                        'Cuestionarios', //TODO: mostrar el numero de  cuestionarios creados pendientes por subir
+                    icon: Icons.app_registration_outlined,
+                    onTap: () => context.goNamed("cuestionarios"),
+                  ),
                   MenuItem(
                     texto: 'Inspecciones',
                     icon: Icons.list_alt_outlined,
@@ -120,13 +118,13 @@ class AvatarCard extends ConsumerWidget {
       ),
       accountEmail: Text(
         /// Nombre de usuario
-        user.documento,
+        user.username,
       ),
       currentAccountPicture: CircleAvatar(
         foregroundColor: Theme.of(context).colorScheme.primary,
         child: Center(
           child: Text(
-            user.documento[0],
+            user.username[0],
             style: const TextStyle(fontSize: 30),
           ),
         ),

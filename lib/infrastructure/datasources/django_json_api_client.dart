@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cross_file/cross_file.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:path/path.dart' as path;
 
@@ -18,6 +19,8 @@ final djangoJsonApiClientProvider =
 class DjangoJsonApiClient {
   final Reader _read;
   String? get _token => _read(appRepositoryProvider).getToken();
+  AuthService get _authService => _read(authProvider.notifier);
+
   final http.Client _inner;
 
   DjangoJsonApiClient(this._read, [http.Client? inner])
@@ -150,6 +153,8 @@ class DjangoJsonApiClient {
     }
 
     if (statusCode == 401) {
+      //acoplamiento con el service para tratar el caso en el que venza el token
+      _authService.logout();
       throw ErrorDeCredenciales(response.jsonDecoded["detail"]);
     }
     if (statusCode == 403) {

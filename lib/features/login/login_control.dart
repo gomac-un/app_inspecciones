@@ -10,8 +10,8 @@ final loginControlProvider = Provider((ref) => LoginControl(ref.read));
 
 /// View model para el login
 class LoginControl extends FormGroup {
-  final Reader read;
-  LoginControl(this.read)
+  final Reader _read;
+  LoginControl(this._read)
       : super({
           'usuario': fb.control('', [Validators.required]),
           'password': fb.control('', [Validators.required]),
@@ -26,15 +26,20 @@ class LoginControl extends FormGroup {
     try {
       onStart?.call();
 
-      final credenciales = getCredenciales();
-      final authService = read(authProvider.notifier);
-      await authService.login(credenciales,
+      final authService = _read(authProvider.notifier);
+      await authService.login(getCredenciales(),
           offline: false, onSuccess: onSuccess, onFailure: onFailure);
     } catch (exception, _) {
       onFailure?.call(AuthFailure.unexpectedError(exception));
     } finally {
+      reset();
       onFinish?.call();
     }
+  }
+
+  Future<void> loginOffline() async {
+    final authService = _read(authProvider.notifier);
+    return authService.login(getCredenciales(), offline: true);
   }
 
   Credenciales getCredenciales() {

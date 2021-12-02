@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
@@ -93,7 +92,7 @@ class _LoginForm extends ConsumerWidget {
                               if (from != null) context.go(from!);
                             },
                             onFailure: (failure) =>
-                                _onFailure(context, ref.read, failure),
+                                _onFailure(context, form, failure),
                           ),
                   child: isLoading
                       ? const SizedBox.square(
@@ -113,7 +112,7 @@ class _LoginForm extends ConsumerWidget {
   }
 
   Future<void> _onFailure(
-      BuildContext context, Reader read, AuthFailure failure) async {
+      BuildContext context, LoginControl form, AuthFailure failure) async {
     failure.when(
       usuarioOPasswordInvalidos: () {
         showDialog(
@@ -131,27 +130,20 @@ class _LoginForm extends ConsumerWidget {
       },
       noHayInternet: () => _problemaDialog(
         context: context,
-        onContinuar: () => _loginOffline(context, read),
+        onContinuar: () => form.loginOffline(),
         razon: 'No tiene conexión a internet',
       ),
       noHayConexionAlServidor: () => _problemaDialog(
         context: context,
-        onContinuar: () => _loginOffline(context, read),
-        razon:
-            'No se puede conectar al servidor, por favor informe al encargado',
+        onContinuar: () => form.loginOffline(),
+        razon: 'No se puede conectar al servidor',
       ),
       unexpectedError: (e) => _problemaDialog(
         context: context,
-        onContinuar: () => _loginOffline(context, read),
+        onContinuar: () => form.loginOffline(),
         razon: 'Ocurrió un error inesperado: $e',
       ),
     );
-  }
-
-  Future<void> _loginOffline(BuildContext context, Reader read) async {
-    final authService = read(authProvider.notifier);
-    return authService.login(read(loginControlProvider).getCredenciales(),
-        offline: true);
   }
 
   /// Cuando ocurre un problema en la autenticación, el usuario puede ingresar como inspector y llenar inspecciones.

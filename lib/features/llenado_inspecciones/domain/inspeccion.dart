@@ -10,8 +10,6 @@ class Inspeccion {
   final DateTime? momentoFinalizacion;
   final DateTime? momentoEnvio;
 
-  final String inspectorId;
-
   int criticidadCalculada;
   int criticidadCalculadaConReparaciones;
 
@@ -20,7 +18,6 @@ class Inspeccion {
     required this.estado,
     required this.activo,
     required this.momentoInicio,
-    required this.inspectorId,
     this.momentoBorradorGuardado,
     this.momentoFinalizacion,
     this.momentoEnvio,

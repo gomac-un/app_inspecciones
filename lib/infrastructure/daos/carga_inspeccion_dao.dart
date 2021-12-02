@@ -50,7 +50,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   Future<dominio.CuestionarioInspeccionado> cargarInspeccion({
     required String cuestionarioId,
     required String activoId,
-    required String inspectorId,
   }) async {
     final inspeccion = await _getInspeccion(
         cuestionarioId: cuestionarioId, activoId: activoId);
@@ -87,8 +86,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     return dominio.CuestionarioInspeccionado(
       await _getCuestionario(cuestionarioId),
       inspeccion == null
-          ? await _buildInspeccionNueva(
-              activoId: activoId, inspectorId: inspectorId)
+          ? await _buildInspeccionNueva(activoId: activoId)
           : await _buildInspeccionExistente(inspeccion),
       bloques.map((e) => e.value2).toList(),
     );
@@ -116,12 +114,11 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   }
 
   Future<dominio.Inspeccion> _buildInspeccionNueva(
-          {required String activoId, required String inspectorId}) async =>
+          {required String activoId}) async =>
       dominio.Inspeccion(
         estado: dominio.EstadoDeInspeccion.borrador,
         activo: await db.borradoresDao.buildActivo(activoId: activoId),
         momentoInicio: DateTime.now(),
-        inspectorId: inspectorId,
         criticidadCalculada: 0,
         criticidadCalculadaConReparaciones: 0,
       );
@@ -137,7 +134,6 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
         momentoFinalizacion: inspeccion.momentoFinalizacion,
         momentoEnvio: inspeccion.momentoEnvio,
-        inspectorId: inspeccion.inspectorId,
         criticidadCalculada: inspeccion.criticidadCalculada,
         criticidadCalculadaConReparaciones:
             inspeccion.criticidadCalculadaConReparaciones,

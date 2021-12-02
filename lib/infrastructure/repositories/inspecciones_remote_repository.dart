@@ -48,7 +48,6 @@ class InspeccionesRemoteRepository {
     final inspeccionCompleta = await _db.cargaDeInspeccionDao.cargarInspeccion(
       cuestionarioId: id.cuestionarioId,
       activoId: id.activo,
-      inspectorId: "1", //TODO: traer el id del inspector
     );
 
     final idFotosSubidas = await _subirFotos(

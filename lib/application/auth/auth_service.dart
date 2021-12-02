@@ -8,6 +8,7 @@ import 'package:inspecciones/core/entities/usuario.dart';
 import 'package:inspecciones/domain/auth/auth_failure.dart';
 import 'package:inspecciones/features/login/credenciales.dart';
 import 'package:inspecciones/infrastructure/repositories/app_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/organizacion_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/infrastructure/repositories/user_repository.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -58,6 +59,8 @@ class AuthService extends StateNotifier<AuthState> {
   final Reader _read;
   UserRepository get _userRepository => _read(userRepositoryProvider);
   AppRepository get _appRepository => _read(appRepositoryProvider);
+  OrganizacionRepository get _organizacionRepository =>
+      _read(organizacionRepositoryProvider);
 
   AuthService(this._read) : super(const AuthState.loading()) {
     //TODO: eliminar duplicacion de codigo con login
@@ -72,6 +75,9 @@ class AuthService extends StateNotifier<AuthState> {
     );
   }
 
+  /// autentica y guarda el usuario y el token en local,
+  ///como es escuchado por [AppRouter] redirige al home luego de autenticar
+  /// TODO: establecer bien las responsabilidades de login_control, auth_service y los repositories
   Future<void> login(
     Credenciales credenciales, {
     required bool offline,
@@ -82,17 +88,21 @@ class AuthService extends StateNotifier<AuthState> {
         // automaticamente guarda y registra el token
         .authenticateUser(credenciales: credenciales, offline: offline);
 
-    autentication.fold(
-      (failure) => onFailure?.call(failure),
-      (usuario) {
-        /// Guarda los datos del usuario, para que no tenga que iniciar sesión la próxima vez
-        _userRepository.saveLocalUser(user: usuario);
+    await autentication.fold(
+      (failure) async => onFailure?.call(failure),
+      (usuario) async {
+        // Guarda los datos del usuario, para que no tenga que iniciar sesión la próxima vez
+        await _userRepository.saveLocalUser(user: usuario);
+
+        // descarga la información básica de la organizacion desde el server
+        if (!offline) await _syncOrganizacion();
 
         // para distinguir a los usuarios con Sentry
         Sentry.configureScope(
-          (scope) => scope.user = SentryUser(id: usuario.documento),
+          (scope) => scope.user = SentryUser(id: usuario.username),
         );
 
+        // [AppRouter] escucha este evento y redirige al home
         state = AuthState.authenticated(usuario: usuario);
         onSuccess?.call();
       },
@@ -109,5 +119,11 @@ class AuthService extends StateNotifier<AuthState> {
     );
     state = const AuthState.unauthenticated();
     await _appRepository.guardarToken(null);
+  }
+
+  Future<void> _syncOrganizacion() async {
+    await _organizacionRepository.refreshListaDeActivos();
+    await _organizacionRepository.sincronizarEtiquetasDeActivos();
+    await _organizacionRepository.sincronizarEtiquetasDePreguntas();
   }
 }

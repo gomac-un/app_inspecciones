@@ -7,19 +7,15 @@ part 'usuario.g.dart';
 class Usuario with _$Usuario {
   const factory Usuario.online({
     /// Nombre de usuario
-    required String documento,
-    required String password,
+    required String username,
 
-    /// True si puede crear cuestionarios.
+    /// usado para permisos
     required bool esAdmin,
   }) = UsuarioOnline;
 
   const factory Usuario.offline({
     /// Nombre de usuario
-    required String documento,
-    required String password,
-
-    /// True si puede crear cuestionarios.
+    required String username,
     @Default(false) bool esAdmin,
   }) = UsuarioOffline;
 

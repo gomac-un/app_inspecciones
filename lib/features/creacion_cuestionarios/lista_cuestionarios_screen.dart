@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
@@ -16,11 +17,14 @@ final cuestionariosServidorProvider = FutureProvider.autoDispose((ref) =>
     ref.watch(cuestionariosRepositoryProvider).getListaDeCuestionariosServer());
 
 /// Pantalla que muestra la lista de cuestionarios subidos y en proceso.
+/// TODO: boton para descargarlos todos
 class CuestionariosPage extends ConsumerWidget {
   const CuestionariosPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, ref) {
+    final user = ref.watch(userProvider);
+    if (user == null) return const Text("usuario no identificado");
     final viewModel = ref.watch(_cuestionarioListViewModelProvider);
     final cuestionariosServer = ref.watch(cuestionariosServidorProvider);
     return Scaffold(
@@ -80,10 +84,12 @@ class CuestionariosPage extends ConsumerWidget {
           },
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: FloatingActionButtonCreacionCuestionario(),
-        ));
+        floatingActionButton: !user.esAdmin
+            ? null
+            : const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: FloatingActionButtonCreacionCuestionario(),
+              ));
   }
 
   ListTile _buildCuestionarioTile(BuildContext context,

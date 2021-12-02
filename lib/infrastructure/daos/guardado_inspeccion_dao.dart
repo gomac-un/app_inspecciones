@@ -118,7 +118,6 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
       id: _generarInspeccionId(inspeccionDominio.activo.id),
       cuestionarioId: cuestionarioId,
       activoId: inspeccionDominio.activo.id,
-      inspectorId: inspeccionDominio.inspectorId,
       momentoInicio: inspeccionDominio.momentoInicio,
       estado: inspeccionDominio.estado,
       criticidadCalculada: inspeccionDominio.criticidadCalculada,

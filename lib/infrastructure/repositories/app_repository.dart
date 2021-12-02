@@ -35,6 +35,8 @@ class AppRepository {
   /// Obtiene el token almacenado
   String? getToken() => _localPreferences.getToken();
 
+  
+
   DateTime? getUltimaSincronizacion() =>
       _localPreferences.getUltimaSincronizacion();
 
