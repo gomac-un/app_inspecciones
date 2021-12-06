@@ -168,7 +168,7 @@ class InspeccionSerializer {
       res['tipo_de_respuesta'] = "numerica";
       res['valor_numerico'] = respuesta.respuestaNumerica;
     } else if (pregunta is PreguntaDeSeleccionMultiple) {
-      res.addAll(_serializarRespuestaDeSeleccionMultiple(pregunta.respuesta!));
+      res.addAll(_serializarRespuestaDeSeleccionMultiple(pregunta.respuestas));
     } else if (pregunta is SubPreguntaDeSeleccionMultiple) {
       final respuesta = pregunta.respuesta!;
       res['pregunta'] = null;
@@ -193,11 +193,11 @@ class InspeccionSerializer {
 
   //TODO: revisar
   JsonMap _serializarRespuestaDeSeleccionMultiple(
-          RespuestaDeSeleccionMultiple respuesta) =>
+          List<SubPreguntaDeSeleccionMultiple> respuesta) =>
       {
         'tipo_de_respuesta': 'seleccion_multiple',
         'subrespuestas_multiple':
-            respuesta.opciones.map((sub) => _serializarPregunta(sub)).toList(),
+            respuesta.map((sub) => _serializarPregunta(sub)).toList(),
       };
 
   JsonMap _serializarRespuestaDeSeleccionUnica(
