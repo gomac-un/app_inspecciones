@@ -34,8 +34,10 @@ class OrganizacionProfilePage extends ConsumerWidget {
             const SizedBox(height: 24),
             buildName(organizacion.nombre, organizacion.link),
             const SizedBox(height: 24),
+            //TODO: mostrar el boton de upgrade cuando se implementen los planes
+            /*
             Center(child: buildUpgradeButton()),
-            const SizedBox(height: 24),
+            const SizedBox(height: 24),*/
             const _EstadisticasWidget(),
             const SizedBox(height: 48),
             buildAbout(organizacion.acerca),

@@ -22,6 +22,12 @@ class OrganizacionRepository {
 
   OrganizacionRepository(this._read);
 
+  Future<void> syncOrganizacion() async {
+    await refreshListaDeActivos();
+    await sincronizarEtiquetasDeActivos();
+    await sincronizarEtiquetasDePreguntas();
+  }
+
   Future<Either<ApiFailure, List<UsuarioEnLista>>> getListaDeUsuarios() =>
       apiExceptionToApiFailure(
         () => _api
@@ -50,12 +56,14 @@ class OrganizacionRepository {
 
   Future<Either<ApiFailure, Unit>> guardarActivo(ActivoEnLista activo) =>
       apiExceptionToApiFailure(
-        () => _api.guardarActivo(activo.toMap()).then((r) => unit),
+        () => _api
+            .guardarActivo(activo.identificador, activo.toMap())
+            .then((r) => unit),
       );
 
   Future<Either<ApiFailure, Unit>> borrarActivo(ActivoEnLista activo) =>
       apiExceptionToApiFailure(
-        () => _api.borrarActivo(activo.id),
+        () => _api.borrarActivo(activo.identificador),
       ).nestedEvaluatedMap(
           (_) => _db.organizacionDao.borrarActivo(activo).then((r) => unit));
 

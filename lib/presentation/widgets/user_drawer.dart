@@ -111,10 +111,11 @@ class AvatarCard extends ConsumerWidget {
     if (user == null) return const Text("usuario no identificado");
     return UserAccountsDrawerHeader(
       accountName: Text(
-        user.esAdmin
-            ? "Administrador"
-            : "Inspector" " - " +
-                user.map(online: (_) => "online", offline: (_) => "offline"),
+        (user.esAdmin ? "Administrador" : "Inspector") +
+            " - " +
+            user.map(online: (_) => "online", offline: (_) => "offline") +
+            " - " +
+            user.organizacion,
       ),
       accountEmail: Text(
         /// Nombre de usuario

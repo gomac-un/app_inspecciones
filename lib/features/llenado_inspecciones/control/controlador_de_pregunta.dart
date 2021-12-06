@@ -20,9 +20,7 @@ abstract class ControladorDePregunta<P extends Pregunta,
   late final ValueStream<DateTime?> momentoRespuesta =
       respuestaEspecificaControl.valueChanges
           .map<DateTime?>((_) => DateTime.now())
-          .publishValueSeeded(
-              pregunta.respuesta?.metaRespuesta.momentoRespuesta)
-        ..connect();
+          .toVSwithInitial(pregunta.respuesta?.metaRespuesta.momentoRespuesta);
 
   late final MetaRespuesta respuesta =
       pregunta.respuesta?.metaRespuesta ?? MetaRespuesta.vacia();

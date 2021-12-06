@@ -11,6 +11,7 @@ final loginControlProvider = Provider((ref) => LoginControl(ref.read));
 /// View model para el login
 class LoginControl extends FormGroup {
   final Reader _read;
+  AuthService get _authService => _read(authProvider.notifier);
   LoginControl(this._read)
       : super({
           'usuario': fb.control('', [Validators.required]),
@@ -26,21 +27,21 @@ class LoginControl extends FormGroup {
     try {
       onStart?.call();
 
-      final authService = _read(authProvider.notifier);
-      await authService.login(getCredenciales(),
-          offline: false, onSuccess: onSuccess, onFailure: onFailure);
+      final res = await _authService.login(getCredenciales());
+      res.fold((l) => onFailure?.call(l), (r) {
+        onSuccess?.call();
+        reset();
+      });
     } catch (exception, _) {
       onFailure?.call(AuthFailure.unexpectedError(exception));
     } finally {
-      reset();
       onFinish?.call();
     }
   }
 
-  Future<void> loginOffline() async {
-    final authService = _read(authProvider.notifier);
-    return authService.login(getCredenciales(), offline: true);
-  }
+  ///TODO: permitir la seleccion de una organizacion de las que ya tengan informacion offline guardada
+  Future<void> loginOffline() =>
+      _authService.loginOffline(getCredenciales(), organizacion: "offline");
 
   Credenciales getCredenciales() {
     return Credenciales(

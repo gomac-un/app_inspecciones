@@ -92,7 +92,7 @@ class _LoginForm extends ConsumerWidget {
                               if (from != null) context.go(from!);
                             },
                             onFailure: (failure) =>
-                                _onFailure(context, form, failure),
+                                _errorDialog(context, form, failure),
                           ),
                   child: isLoading
                       ? const SizedBox.square(
@@ -111,7 +111,7 @@ class _LoginForm extends ConsumerWidget {
     );
   }
 
-  Future<void> _onFailure(
+  Future<void> _errorDialog(
       BuildContext context, LoginControl form, AuthFailure failure) async {
     failure.when(
       usuarioOPasswordInvalidos: () {

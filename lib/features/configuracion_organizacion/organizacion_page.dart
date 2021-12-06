@@ -7,7 +7,6 @@ import 'package:inspecciones/features/configuracion_organizacion/organizacion_pr
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
-import 'configuracion_organizacion_page.dart';
 import 'lista_de_activos_page.dart';
 
 class OrganizacionPage extends HookConsumerWidget {
@@ -31,7 +30,7 @@ class OrganizacionPage extends HookConsumerWidget {
                 Tab(icon: Icon(Icons.view_in_ar_outlined)),
               ],
             ),
-            title: const Text('Organizacion'),
+            title: const Text('Organización'),
           ),
           body: child,
           floatingActionButton: _buildFab(context, _tabController, ref),
@@ -50,14 +49,7 @@ class OrganizacionPage extends HookConsumerWidget {
 
   FloatingActionButton? _buildFab(
       BuildContext context, TabController tabController, WidgetRef ref) {
-    if (tabController.index == 0) {
-      return FloatingActionButton.extended(
-        onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => const ConfiguracionOrganizacionPage())),
-        label: const Text("Nueva"),
-        icon: const Icon(Icons.add_outlined),
-      );
-    } else if (tabController.index == 1) {
+    if (tabController.index == 1) {
       return FloatingActionButton.extended(
         onPressed: () =>
             ref.read(organizacionRepositoryProvider).getMiOrganizacion().then(

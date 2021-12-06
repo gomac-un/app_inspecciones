@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -139,6 +140,9 @@ class DjangoJsonApiClient {
       response = await request().timeout(const Duration(seconds: 5));
     } on SocketException catch (e) {
       throw ErrorDeConexion("$e");
+    } on TimeoutException catch (e) {
+      throw ErrorDeConexion(
+          "no se pudo conectar con el servidor luego de ${e.duration!.inSeconds} segundos");
     }
     //NOTE: este es un buen lugar para poner breakpoints en el debug de peticiones
 

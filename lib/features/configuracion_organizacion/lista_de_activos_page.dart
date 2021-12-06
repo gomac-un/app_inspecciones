@@ -6,6 +6,7 @@ import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/repositories/organizacion_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/presentation/widgets/reactive_textfield_tags.dart';
+import 'package:inspecciones/utils/future_either_x.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'administrador_de_etiquetas.dart';
@@ -15,7 +16,8 @@ import 'widgets/simple_future_provider_refreshable_builder.dart';
 class ActivoController {
   final ActivoEnLista _activo;
 
-  late final idControl = fb.control<String>(_activo.id, [Validators.required]);
+  late final idControl =
+      fb.control<String>(_activo.identificador, [Validators.required]);
 
   late final tagsControl = fb.control<Set<Etiqueta>>(_activo.etiquetas.toSet());
 
@@ -87,22 +89,24 @@ class ListaDeActivosViewModel
         .toSet();
   }
 
-  void finEdicionActivo(ActivoController controller) {
+  Future<Either<ApiFailure, Unit>> finEdicionActivo(
+      ActivoController controller) {
     final activoActualizado = controller.guardar();
-    _organizacionRepository.guardarActivo(activoActualizado);
-
-    state = state
-        .map((a) => a.controller == controller
-            ? ActivoEnListaConController(activoActualizado, null)
-            : a)
-        .toSet();
+    return _organizacionRepository.guardarActivo(activoActualizado).map((_) {
+      state = state
+          .map((a) => a.controller == controller
+              ? ActivoEnListaConController(activoActualizado, null)
+              : a)
+          .toSet();
+      return const Right(unit);
+    });
   }
 
-  void borrarActivo(ActivoEnLista activo) async {
-    final res = await _organizacionRepository.borrarActivo(activo);
-    res.fold((l) => throw l, (r) {
+  Future<Either<ApiFailure, Unit>> borrarActivo(ActivoEnLista activo) {
+    return _organizacionRepository.borrarActivo(activo).map((_) {
       state.removeWhere((e) => e.activo == activo);
       state = {...state};
+      return const Right(unit);
     });
   }
 
@@ -170,11 +174,8 @@ class ListaDeActivosPage extends ConsumerWidget {
             final activo = activos.elementAt(index).activo;
             final controller = activos.elementAt(index).controller;
             return controller == null
-                ? _buildActivo(activo,
-                    onEdicion: viewModel.inicioEdicionActivo,
-                    onBorrar: viewModel.borrarActivo)
-                : _buildActivoEditable(
-                    context, viewModel.finEdicionActivo, controller);
+                ? _buildActivo(context, viewModel, activo)
+                : _buildActivoEditable(context, viewModel, controller);
           },
         );
       },
@@ -182,22 +183,32 @@ class ListaDeActivosPage extends ConsumerWidget {
   }
 
   ListTile _buildActivo(
-    ActivoEnLista activo, {
-    void Function(ActivoEnLista activo)? onEdicion,
-    void Function(ActivoEnLista activo)? onBorrar,
-  }) =>
+    BuildContext context,
+    ListaDeActivosViewModel viewModel,
+    ActivoEnLista activo,
+  ) =>
       ListTile(
-        title: Text(activo.id),
+        key: ObjectKey(activo),
+        title: Text(activo.identificador),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
               icon: const Icon(Icons.edit_outlined),
-              onPressed: () => onEdicion?.call(activo),
+              onPressed: () => viewModel.inicioEdicionActivo(activo),
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              onPressed: () => onBorrar?.call(activo),
+              onPressed: () async => ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    await viewModel.borrarActivo(activo).then(
+                          (r) => r.fold(
+                              (l) => l.toString(), (r) => "activo borrado"),
+                        ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -207,10 +218,11 @@ class ListaDeActivosPage extends ConsumerWidget {
 
   ListTile _buildActivoEditable(
     BuildContext context,
-    void Function(ActivoController controller) onFinalizarEdicion,
+    ListaDeActivosViewModel viewModel,
     ActivoController controller,
   ) =>
       ListTile(
+        key: ObjectKey(controller),
         title: ReactiveTextField(
           autofocus: true,
           formControl: controller.idControl,
@@ -220,7 +232,16 @@ class ListaDeActivosPage extends ConsumerWidget {
         ),
         trailing: IconButton(
           icon: const Icon(Icons.save_outlined),
-          onPressed: () => onFinalizarEdicion(controller),
+          onPressed: () async => ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                await viewModel.finEdicionActivo(controller).then(
+                      (r) =>
+                          r.fold((l) => l.toString(), (r) => "activo guardado"),
+                    ),
+              ),
+            ),
+          ),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),

@@ -54,11 +54,12 @@ part 'tablas.dart';
 )
 class Database extends _$Database {
   // En el caso de que la db crezca mucho y las consultas empiecen a relentizar
-  //la UI se debe considerar el uso de los isolates https://drift.simonbinder.eu/docs/advanced-features/isolates/
+  // la UI se debe considerar el uso de los isolates https://drift.simonbinder.eu/docs/advanced-features/isolates/
+  // o cambiar a un bd menos relacional
   Database(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 1;
 
   @override
   MigrationStrategy get migration {
@@ -67,7 +68,7 @@ class Database extends _$Database {
         await m.createAll();
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        if (from == 1) {
+        if (from < 1) {
           await recrearTodasLasTablas();
         }
       },

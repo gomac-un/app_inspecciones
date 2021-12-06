@@ -7,7 +7,7 @@ abstract class OrganizacionRemoteDataSource {
   Future<JsonMap> getOrganizacion(int? id);
 
   Future<JsonList> getListaDeActivos();
-  Future<JsonMap> guardarActivo(JsonMap activo);
+  Future<JsonMap> guardarActivo(String identificador, JsonMap activo);
   Future<void> borrarActivo(String activoId);
 
   Future<JsonMap> crearOrganizacion(JsonMap formulario);

@@ -23,111 +23,67 @@ final goRouterProvider = Provider((ref) => GoRouter(
         GoRoute(
           name: 'login',
           path: '/login',
-          pageBuilder: (context, state) => MaterialPage<void>(
-            key: state.pageKey,
-            child: const LoginPage(),
-          ),
+          builder: (context, state) => const LoginPage(),
         ),
         GoRoute(
           path: '/',
           name: 'home',
-          pageBuilder: (context, state) => MaterialPage<void>(
-            key: state.pageKey,
-            child: const OrganizacionPage(),
-          ),
+          builder: (context, state) => const OrganizacionPage(),
         ),
         GoRoute(
           path: '/cuestionarios',
           name: 'cuestionarios',
-          pageBuilder: (context, state) => MaterialPage<void>(
-            key: state.pageKey,
-            child: const CuestionariosPage(),
-          ),
+          builder: (context, state) => const CuestionariosPage(),
         ),
         GoRoute(
           path: '/inspecciones',
           name: 'inspecciones',
-          pageBuilder: (context, state) {
-            return MaterialPage<void>(
-              key: state.pageKey,
-              // TODO: averiguar por que si se hace const, al navegar desde el drawer estando
-              // en la pantalla de llenado, no se navega acá.
-              child: InspeccionesPage(),
-            );
-          },
+          builder: (context, state) => const InspeccionesPage(),
         ),
         GoRoute(
           path: '/history',
           name: 'history',
-          pageBuilder: (context, state) => MaterialPage<void>(
-            key: state.pageKey,
-            child: const HistoryInspeccionesPage(),
-          ),
+          builder: (context, state) => const HistoryInspeccionesPage(),
         ),
         GoRoute(
           path: '/inspeccion/:activoid/:cuestionarioid',
           name: 'inspeccion',
-          pageBuilder: (context, state) {
-            return MaterialPage<void>(
-              key: state.pageKey,
-              child: InspeccionPage(
-                inspeccionId: IdentificadorDeInspeccion(
-                  activo: state.params['activoid']!,
-                  cuestionarioId: state.params['cuestionarioid']!,
-                ),
-              ),
-            );
-          },
-        ),
-        /*
-        GoRoute(
-          path: '/sincronizacion',
-          name: 'sincronizacion',
-          pageBuilder: (context, state) => MaterialPage<void>(
-            key: state.pageKey,
-            child: const SincronizacionPage(),
+          builder: (context, state) => InspeccionPage(
+            inspeccionId: IdentificadorDeInspeccion(
+              activo: state.params['activoid']!,
+              cuestionarioId: state.params['cuestionarioid']!,
+            ),
           ),
-        ),*/
+        ),
         GoRoute(
           path: '/registro',
           name: 'registro',
-          pageBuilder: (context, state) => MaterialPage<void>(
-            key: state.pageKey,
-            child: RegistroUsuarioPage(
-              organizacionId: int.parse(state.queryParams['org']!),
-            ),
+          builder: (context, state) => RegistroUsuarioPage(
+            organizacionId: int.parse(state.queryParams['org']!),
           ),
         ),
         GoRoute(
           path: '/organizacion',
           name: 'organizacion',
-          pageBuilder: (context, state) => MaterialPage<void>(
-            key: state.pageKey,
-            child: const OrganizacionPage(),
-          ),
+          builder: (context, state) => const OrganizacionPage(),
         ),
       ],
 
-      errorPageBuilder: (context, state) => MaterialPage<void>(
-        key: state.pageKey,
-        child: Text(state.error.toString()),
-      ),
-
       // redireccion automatica a la pantalla de login si el usuario no esta autenticado
       redirect: (state) {
-        final logueado = ref.read(authListenableProvider).loggedIn;
+        final autenticado = ref.read(authListenableProvider).loggedIn;
 
         final urlsNoProtegidas = ['/login', '/registro'];
         final vaHaciaProtegida = !urlsNoProtegidas.contains(state.subloc);
         final vaHaciaLogin = state.subloc == '/login';
 
-        // si el usuario no esta logueado y va hacia una pagina protegida, se tiene que loguear primero
-        if (!logueado && vaHaciaProtegida) {
+        // si el usuario no esta autenticado y va hacia una pagina protegida, se tiene que loguear primero
+        if (!autenticado && vaHaciaProtegida) {
           return '/login?from=${state.location}';
         }
 
         // si el usuario esta autenticado y va hacia login, no se tiene que loguear otra vez
-        if (logueado && vaHaciaLogin) return '/';
+        if (autenticado && vaHaciaLogin) return '/';
 
         // no hay redireccion
         return null;

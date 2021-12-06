@@ -56,7 +56,7 @@ class OrganizacionDao extends DatabaseAccessor<Database>
             .go();*/
         for (final activo in activosEnLista) {
           final activoInsertado = await into(activos).insertReturning(
-              ActivosCompanion.insert(id: activo.id),
+              ActivosCompanion.insert(id: activo.identificador),
               mode: InsertMode.insertOrReplace);
           for (final etiqueta in activo.etiquetas) {
             await _asignarEtiqueta(activoInsertado, etiqueta);
@@ -78,7 +78,8 @@ class OrganizacionDao extends DatabaseAccessor<Database>
   }
 
   Future<void> borrarActivo(ActivoEnLista activo) {
-    return (delete(activos)..where((a) => a.id.equals(activo.id))).go();
+    return (delete(activos)..where((a) => a.id.equals(activo.identificador)))
+        .go();
   }
 
   Future<void> setEtiquetasJerarquicasDeActivos(
@@ -119,11 +120,15 @@ class OrganizacionDao extends DatabaseAccessor<Database>
 
   Stream<List<dominio.Jerarquia>> watchEtiquetasDeActivos() => select(
         etiquetasJerarquicasDeActivo,
-      ).map((e) => dominio.Jerarquia.fromMap(e.json, esLocal: e.esLocal)).watch();
+      )
+          .map((e) => dominio.Jerarquia.fromMap(e.json, esLocal: e.esLocal))
+          .watch();
 
   Stream<List<dominio.Jerarquia>> watchEtiquetasDePreguntas() => select(
         etiquetasJerarquicasDePregunta,
-      ).map((e) => dominio.Jerarquia.fromMap(e.json, esLocal: e.esLocal)).watch();
+      )
+          .map((e) => dominio.Jerarquia.fromMap(e.json, esLocal: e.esLocal))
+          .watch();
 
   Future<void> eliminarEtiquetaDeActivo(dominio.Jerarquia etiqueta) =>
       (delete(etiquetasJerarquicasDeActivo)
