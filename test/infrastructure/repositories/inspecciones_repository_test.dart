@@ -51,7 +51,7 @@ main() {
     test(
         "debería devolver el [IdentificadorDeInspeccion] si no hay excepciones",
         () async {
-      when(_api.getInspeccion(1)).thenAnswer((_) async => {});
+      when(_api.descargarInspeccion(1)).thenAnswer((_) async => {});
       when(_sincronizacionDao.guardarInspeccionBD({}))
           .thenAnswer((_) => Future.value(
                 IdentificadorDeInspeccion(activo: "a1", cuestionarioId: "c1"),
@@ -63,7 +63,7 @@ main() {
           Right(IdentificadorDeInspeccion(activo: "a1", cuestionarioId: "c1")));
     });
     test("debería devolver Left(ApiFailure) si hay ErrorDeConexion", () async {
-      when(_api.getInspeccion(1))
+      when(_api.descargarInspeccion(1))
           .thenAnswer((_) async => throw const ErrorDeConexion(""));
 
       final res = await repository.descargarInspeccion(1);
@@ -74,7 +74,7 @@ main() {
         "debería devolver Left(ApiFailure.errorInesperadoDelServidor) si la api lanza una excepcion inesperada",
         () async {
       //TODO: debería ser errorInesperadoDelDatasource o considerar dejar propagar la excepcion
-      when(_api.getInspeccion(1)).thenAnswer((_) async => throw Exception());
+      when(_api.descargarInspeccion(1)).thenAnswer((_) async => throw Exception());
 
       final res = await repository.descargarInspeccion(1);
 
@@ -84,7 +84,7 @@ main() {
     test("debería lanzar excepcion si guardarInspeccionBD lanza excepcion",
         () async {
       // TODO: estas excepciones se deberian convertir a Failures
-      when(_api.getInspeccion(1)).thenAnswer((_) async => {});
+      when(_api.descargarInspeccion(1)).thenAnswer((_) async => {});
       when(_sincronizacionDao.guardarInspeccionBD({}))
           .thenAnswer((_) async => throw Exception());
 

@@ -30,10 +30,10 @@ class InspeccionesRemoteRepository {
   /// se puede iniciar la inspeccion desde la pantalla de borradores
   Future<Either<ApiFailure, IdentificadorDeInspeccion>> descargarInspeccion(
       int id) async {
-    throw UnimplementedError();
-    /*final json = await _api.descargarCuestionario(cuestionarioId);
-    final parsed = _deserializarCuestionario(json);
-    await _db.guardadoDeCuestionarioDao.guardarCuestionario(parsed);
+    throw UnimplementedError(); /*
+    final json = await _api.descargarInspeccion(id);
+    final parsed = _deserializarInspeccion(json);
+    await _db.guardadoDeInspeccionDao.guardarInspeccion(parsed);
     return const Right(unit);*/
     /*
     final inspeccionMap = apiExceptionToApiFailure(

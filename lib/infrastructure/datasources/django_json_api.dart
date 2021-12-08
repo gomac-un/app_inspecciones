@@ -52,15 +52,6 @@ class DjangoJsonApi
           .appendSegment('organizaciones', addTrailingSlash: false)
           .appendSegment(id?.toString() ?? 'mi_organizacion'));
 
-/*
-  /// Le informa al servidor que debe registrar un nuevo cliente y el servidor
-  /// retorna una id, esta id es unica y será usada para generar
-  /// las ids de los objetos generados localmente de tal manera que al subirlos,
-  /// no hayan choques de ids
-  @override
-  Future<JsonMap> registrarApp() =>
-      _client.request('POST', _apiUri.appendSegment('dispositivos'), body: {});*/
-
   @override
   Future<JsonMap> registrarUsuario(JsonMap form) =>
       _client.request('POST', _apiUri.appendSegment('users'),
@@ -105,30 +96,6 @@ class DjangoJsonApi
           .appendSegment('activos', addTrailingSlash: false)
           .appendSegment(activoId));
 
-  /*@override
-  Future<JsonMap> guardarActivo(JsonMap activo) =>
-      _client.request('POST', _apiUri.appendSegment('activos'), body: activo);*/
-
-  @override
-  Future<JsonMap> getInspeccion(int id) => _client.request(
-      'GET',
-      _apiUri
-          .appendSegment("inspecciones", addTrailingSlash: false)
-          .appendSegment("$id"));
-
-  @override
-  Future<JsonMap> crearInspeccion(JsonMap inspeccion) => _client
-      .request('POST', _apiUri.appendSegment("inspecciones"), body: inspeccion);
-
-  @override
-  Future<JsonMap> actualizarInspeccion(int inspeccionId, JsonMap inspeccion) =>
-      _client.request(
-          'PUT',
-          _apiUri
-              .appendSegment("inspecciones", addTrailingSlash: false)
-              .appendSegment("$inspeccionId"),
-          body: inspeccion);
-
   @override
   Future<JsonMap> subirCuestionario(JsonMap cuestionario) =>
       _client.request('POST', _apiUri.appendSegment("cuestionarios-completos"),
@@ -167,6 +134,22 @@ class DjangoJsonApi
   @override
   Future<JsonMap> subirInspeccion(JsonMap inspeccion) =>
       _client.request('POST', _apiUri.appendSegment("inspecciones-completas"),
+          body: inspeccion);
+
+  @override
+  Future<JsonMap> descargarInspeccion(int id) => _client.request(
+      'GET',
+      _apiUri
+          .appendSegment("inspecciones-completas", addTrailingSlash: false)
+          .appendSegment("$id"));
+
+  @override
+  Future<JsonMap> actualizarInspeccion(int inspeccionId, JsonMap inspeccion) =>
+      _client.request(
+          'PUT',
+          _apiUri
+              .appendSegment("inspecciones-completas", addTrailingSlash: false)
+              .appendSegment("$inspeccionId"),
           body: inspeccion);
 
   @override

@@ -126,7 +126,7 @@ void main() {
         authHeader = request.headers[HttpHeaders.authorizationHeader]!;
         return http.Response("{}", 200);
       });
-      await api.getInspeccion(1);
+      await api.descargarInspeccion(1);
       expect(authHeader, contains("123"));
     });
 
@@ -172,14 +172,14 @@ void main() {
         final api =
             buildDjangoJsonApi((request) => throw const SocketException(""));
         await expectLater(
-            () => api.getInspeccion(1), throwsA(isA<ErrorDeConexion>()));
+            () => api.descargarInspeccion(1), throwsA(isA<ErrorDeConexion>()));
       });
       test(
           'getInspeccion debería lanzar ErrorInesperadoDelServidor cuando el status es 500',
           () async {
         final api = buildDjangoJsonApi(
             (request) async => http.Response("no json", 500));
-        await expectLater(() => api.getInspeccion(1),
+        await expectLater(() => api.descargarInspeccion(1),
             throwsA(isA<ErrorInesperadoDelServidor>()));
       });
       test(
@@ -187,7 +187,7 @@ void main() {
           () async {
         final api =
             buildDjangoJsonApi((request) async => http.Response("boo", 200));
-        await expectLater(() => api.getInspeccion(1),
+        await expectLater(() => api.descargarInspeccion(1),
             throwsA(isA<ErrorDecodificandoLaRespuesta>()));
       });
       test(
@@ -197,7 +197,7 @@ void main() {
             (request) async => http.Response(r'{"detail":""}', 401));
 
         await expectLater(
-            () => api.getInspeccion(1), throwsA(isA<ErrorDeCredenciales>()));
+            () => api.descargarInspeccion(1), throwsA(isA<ErrorDeCredenciales>()));
       });
       test(
           'getInspeccion debería lanzar ErrorEnLaComunicacionConLaApi cuando el estatus es 404',
@@ -205,7 +205,7 @@ void main() {
         final api =
             buildDjangoJsonApi((request) async => http.Response('404', 404));
 
-        await expectLater(() => api.getInspeccion(-1),
+        await expectLater(() => api.descargarInspeccion(-1),
             throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
       });
       test(
@@ -215,7 +215,7 @@ void main() {
             '{"id":["Este campo es requerido."],"clase":["Este campo es requerido."]}',
             400));
 
-        await expectLater(() => api.getInspeccion(1),
+        await expectLater(() => api.descargarInspeccion(1),
             throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
       });
       test(
@@ -224,7 +224,7 @@ void main() {
         final api = buildDjangoJsonApi((request) async => http.Response.bytes(
             utf8.encode(r'{"detail":"Método \"DELETE\" no permitido."}'), 405));
 
-        await expectLater(() => api.getInspeccion(1),
+        await expectLater(() => api.descargarInspeccion(1),
             throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
       });
       test(
@@ -235,7 +235,7 @@ void main() {
                 r'{"detail":"Tipo de medio \"text/plain; charset=utf-8\" incompatible en la solicitud."}'),
             415));
 
-        await expectLater(() => api.getInspeccion(1),
+        await expectLater(() => api.descargarInspeccion(1),
             throwsA(isA<ErrorEnLaComunicacionConLaApi>()));
       });
       test(
@@ -244,7 +244,7 @@ void main() {
         final api =
             buildDjangoJsonApi((request) async => http.Response("", 485));
 
-        await expectLater(() => api.getInspeccion(1),
+        await expectLater(() => api.descargarInspeccion(1),
             throwsA(isA<ErrorInesperadoDelServidor>()));
       });
     });
