@@ -86,15 +86,15 @@ class OrganizacionRepository {
           List<Jerarquia> etiquetas) =>
       _db.organizacionDao.setEtiquetasJerarquicasDePreguntas(etiquetas);
 
-  Future<Either<ApiFailure, Unit>> sincronizarEtiquetasDeActivos() async {
-    return apiExceptionToApiFailure(
-      () => _api.getListaDeEtiquetasDeActivos().then((l) =>
-          l.map((j) => Jerarquia.fromMap(j['json'], esLocal: false)).toList()),
-    )
-        .nestedEvaluatedMap((etiquetas) =>
-            _db.organizacionDao.setEtiquetasJerarquicasDeActivos(etiquetas))
-        .flatMap((_) => _subirEtiquetasPendientesDeActivos());
-  }
+  Future<Either<ApiFailure, Unit>> sincronizarEtiquetasDeActivos() =>
+      _subirEtiquetasPendientesDeActivos().flatMap((_) =>
+          apiExceptionToApiFailure(
+            () => _api.getListaDeEtiquetasDeActivos().then((l) => l
+                .map((j) => Jerarquia.fromMap(j['json'], esLocal: false))
+                .toList()),
+          ).nestedEvaluatedMap((etiquetas) => _db.organizacionDao
+              .setEtiquetasJerarquicasDeActivos(etiquetas)
+              .then((_) => unit)));
 
   Future<Either<ApiFailure, Unit>> _subirEtiquetasPendientesDeActivos() async {
     final etiquetasPendientes =

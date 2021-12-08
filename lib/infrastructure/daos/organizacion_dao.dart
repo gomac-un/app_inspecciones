@@ -140,6 +140,18 @@ class OrganizacionDao extends DatabaseAccessor<Database>
             ..where((e) => e.nombre.equals(etiqueta.niveles.first)))
           .go();
 
+  Future<void> volverEtiquetaEditableDeActivo(dominio.Jerarquia etiqueta) =>
+      (update(etiquetasJerarquicasDeActivo)
+            ..where((e) => e.nombre.equals(etiqueta.niveles.first)))
+          .write(const EtiquetasJerarquicasDeActivoCompanion(
+              esLocal: Value(true)));
+
+  Future<void> volverEtiquetaEditableDePregunta(dominio.Jerarquia etiqueta) =>
+      (update(etiquetasJerarquicasDePregunta)
+            ..where((e) => e.nombre.equals(etiqueta.niveles.first)))
+          .write(const EtiquetasJerarquicasDePreguntaCompanion(
+              esLocal: Value(true)));
+
   Future<void> agregarEtiquetaDeActivo(dominio.Jerarquia etiqueta) =>
       into(etiquetasJerarquicasDeActivo).insert(
           EtiquetasJerarquicasDeActivoCompanion.insert(

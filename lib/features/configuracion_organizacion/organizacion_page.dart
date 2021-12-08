@@ -8,6 +8,7 @@ import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 
 import 'lista_de_activos_page.dart';
+import 'lista_de_etiquetas_page.dart';
 
 class OrganizacionPage extends HookConsumerWidget {
   const OrganizacionPage({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class OrganizacionPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     TabController _tabController =
-        useTabController(initialLength: 3, initialIndex: 0);
+        useTabController(initialLength: 4, initialIndex: 0);
     return AnimatedBuilder(
       animation: _tabController,
       builder: (context, child) {
@@ -28,6 +29,7 @@ class OrganizacionPage extends HookConsumerWidget {
                 Tab(icon: Icon(Icons.corporate_fare_outlined)),
                 Tab(icon: Icon(Icons.people_outline_outlined)),
                 Tab(icon: Icon(Icons.view_in_ar_outlined)),
+                Tab(icon: Icon(Icons.label_outline)),
               ],
             ),
             title: const Text('Organización'),
@@ -42,6 +44,7 @@ class OrganizacionPage extends HookConsumerWidget {
           OrganizacionProfilePage(),
           ListaDeInspectoresPage(),
           ListaDeActivosPage(),
+          ListaDeEtiquetasPage(),
         ],
       ),
     );

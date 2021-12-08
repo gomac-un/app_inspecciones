@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
@@ -65,6 +66,11 @@ class MenuDeEtiquetas extends ConsumerWidget {
               .read(organizacionRemoteDataSourceProvider)
               .eliminarEtiquetaDePregunta;
 
+  Future<void> Function(Jerarquia) getVolverEtiquetaEditable(WidgetRef ref) =>
+      tipoDeEtiqueta == TipoDeEtiqueta.activo
+          ? ref.read(_organizacionDaoProvider).volverEtiquetaEditableDeActivo
+          : ref.read(_organizacionDaoProvider).volverEtiquetaEditableDePregunta;
+
   Future<void> Function(Jerarquia) getAgregarEtiqueta(WidgetRef ref) =>
       tipoDeEtiqueta == TipoDeEtiqueta.activo
           ? ref.read(_organizacionDaoProvider).agregarEtiquetaDeActivo
@@ -83,18 +89,23 @@ class MenuDeEtiquetas extends ConsumerWidget {
           return AlertDialog(
             title: Row(
               children: [
-                const Text("etiquetas"),
+                Text(
+                    "Etiquetas de ${EnumToString.convertToString(tipoDeEtiqueta)}"),
                 IconButton(
                   icon: const Icon(Icons.sync_outlined),
-                  onPressed: () =>
-                      getSincronizarEtiquetas(ref)().then((res) => res.fold(
+                  tooltip: "sincronizar etiquetas",
+                  onPressed: () => getSincronizarEtiquetas(ref)().then((res) =>
+                      res.fold(
                           (l) => showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
                                     title: const Text("error"),
                                     content: Text(l.toString()),
                                   )),
-                          (r) => null)),
+                          (r) => ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                content: Text("etiquetas sincronizadas"),
+                              )))),
                 ),
               ],
             ),
@@ -126,36 +137,75 @@ class MenuDeEtiquetas extends ConsumerWidget {
                               arbol: arbol,
                               esLocal: true));
                         },
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outlined),
-                          onPressed: () async {
-                            final res = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                      title: const Text("eliminar"),
-                                      content: const Text(
-                                          "¿Está seguro de eliminar esta etiqueta? los activos que la hayan usado quedarán con ella y tendrá que limpiarlos manualmente."),
-                                      actions: [
-                                        TextButton(
-                                            onPressed: () =>
-                                                Navigator.of(context)
-                                                    .pop(false),
-                                            child: const Text("no")),
-                                        TextButton(
-                                            onPressed: () =>
-                                                Navigator.of(context).pop(true),
-                                            child: const Text("si")),
-                                      ],
-                                    ));
-                            if (res == null) return;
-                            if (res) {
-                              if (!etiqueta.esLocal) {
-                                await getEliminarEtiquetaRemota(ref)(
-                                    etiqueta.niveles.first);
-                              }
-                              await getEliminarEtiquetaLocal(ref)(etiqueta);
-                            }
-                          },
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!etiqueta.esLocal)
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined),
+                                onPressed: () async {
+                                  final res = await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                            title: const Text("eliminar"),
+                                            content: const Text(
+                                                "Está a punto de permitir la modificación de una etiqueta que ya está subida, asegúrese que nadie más la esté editando ya que se podría perder información"),
+                                            actions: [
+                                              TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.of(context)
+                                                          .pop(false),
+                                                  child:
+                                                      const Text("Cancelar")),
+                                              TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.of(context)
+                                                          .pop(true),
+                                                  child: const Text("ok")),
+                                            ],
+                                          ));
+                                  if (res ?? false) {
+                                    await getVolverEtiquetaEditable(ref)(
+                                        etiqueta);
+                                  }
+                                },
+                              ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outlined),
+                              onPressed: () async {
+                                final res = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                          title: const Text("Alerta"),
+                                          content: const Text(
+                                              "¿Está seguro de eliminar esta etiqueta? los activos que la hayan usado quedarán con ella y tendrá que limpiarlos manualmente."),
+                                          actions: [
+                                            TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pop(false),
+                                                child: const Text("no")),
+                                            TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pop(true),
+                                                child: const Text("si")),
+                                          ],
+                                        ));
+                                if (res == null) return;
+                                if (res) {
+                                  if (!etiqueta.esLocal) {
+                                    await getEliminarEtiquetaRemota(ref)(
+                                        etiqueta.niveles.first);
+                                  }
+                                  await getEliminarEtiquetaLocal(ref)(etiqueta);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text("etiqueta eliminada")));
+                                }
+                              },
+                            ),
+                          ],
                         ),
                       )
                   ],
@@ -223,19 +273,22 @@ class CreacionDeEtiquetaDialog extends ConsumerWidget {
     return ReactiveForm(
       formGroup: viewModel.form,
       child: AlertDialog(
-        title: const Text("agregar etiqueta"),
+        title: const Text("Agregar etiqueta"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ReactiveTextField(
               formControl: viewModel.claveControl,
               decoration: const InputDecoration(
-                labelText: "etiqueta",
+                labelText: "Etiqueta",
               ),
             ),
+            const SizedBox(height: 10),
             ReactiveCheckboxListTile(
               formControl: viewModel.jerarquiaControl,
-              title: const Text("jerarquía"),
+              title: const Text("Jerarquía"),
+              subtitle: const Text(
+                  "Las jerarquías ayudan a filtrar conjuntos de etiquetas, por ejemplo: pais > ciudad > barrio"),
             ),
           ],
         ),
@@ -252,7 +305,7 @@ class CreacionDeEtiquetaDialog extends ConsumerWidget {
                     ? null
                     : () {
                         Navigator.of(context).pop(
-                          Tuple2(viewModel.claveControl.value!,
+                          Tuple2(viewModel.claveControl.value!.trim(),
                               viewModel.jerarquiaControl.value!),
                         );
                       },
@@ -308,6 +361,13 @@ class CreacionDeNivelesDialog extends HookConsumerWidget {
             "Por favor agregue todos los niveles que tiene la jerarquía, por favor no use nombres de niveles que ya existan en otra etiqueta",
             style: Theme.of(context).textTheme.caption,
           ),
+          Text(
+            "Importante: No se pueden modificar los niveles una vez creados",
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Colors.red),
+          ),
           Flexible(
             child: Scrollbar(
               child: SingleChildScrollView(
@@ -332,6 +392,7 @@ class CreacionDeNivelesDialog extends HookConsumerWidget {
                               labelText: "nuevo nivel",
                             ),
                             showErrors: (_) => false,
+                            onEditingComplete: viewModel.agregarNivel,
                           ),
                         ),
                         IconButton(
@@ -370,7 +431,7 @@ class NivelesViewModel extends StateNotifier<IList<String>> {
   void agregarNivel() {
     nuevoNivelControl.markAsTouched();
     if (nuevoNivelControl.valid) {
-      state = state.appendElement(nuevoNivelControl.value!);
+      state = state.appendElement(nuevoNivelControl.value!.trim());
       nuevoNivelControl.reset();
     }
   }
@@ -401,9 +462,9 @@ class CreacionDeArbolDeEtiquetasDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final stateNotifierState =
-        useStateNotifier<IList<EtiquetaEnJerarquia>, ArbolDeEtiquetasViewModel>(
-            () => ArbolDeEtiquetasViewModel(arbol));
+    final stateNotifierState = useStateNotifier<
+        IList<EtiquetaEnJerarquiaConController>,
+        ArbolDeEtiquetasViewModel>(() => ArbolDeEtiquetasViewModel(arbol));
 
     final viewModel = stateNotifierState.notifier;
     final valores = stateNotifierState.state;
@@ -432,60 +493,9 @@ class CreacionDeArbolDeEtiquetasDialog extends HookConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       for (final valor in valores.toIterable())
-                        ListTile(
-                          title:
-                              Text("${valor.valor} (${valor.children.length})"),
-                          onTap: esUltimoNivel
-                              ? null
-                              : () async {
-                                  final children = await showDialog<
-                                      List<EtiquetaEnJerarquia>>(
-                                    context: context,
-                                    builder: (_) =>
-                                        CreacionDeArbolDeEtiquetasDialog(
-                                      niveles: niveles,
-                                      profundidad: profundidad + 1,
-                                      arbol: valor.children,
-                                      valorPadre: valor.valor,
-                                      readOnly: readOnly,
-                                    ),
-                                  );
-                                  if (children == null) return;
-
-                                  viewModel.agregarHijo(valor, children);
-                                },
-                          trailing: readOnly
-                              ? null
-                              : IconButton(
-                                  icon: const Icon(Icons.delete_outlined),
-                                  onPressed: () async {
-                                    final confirmacion = await showDialog<bool>(
-                                      context: context,
-                                      builder: (_) => AlertDialog(
-                                        title: Text("Eliminar ${valor.valor}"),
-                                        content: Text(
-                                            "¿Está seguro que desea eliminar ${valor.valor}? esto eliminará también todas las etiquetas que dependen de esta."),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.of(context)
-                                                    .pop(false),
-                                            child: const Text("no"),
-                                          ),
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.of(context).pop(true),
-                                            child: const Text("si"),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                    if (confirmacion == true) {
-                                      viewModel.eliminarValor(valor);
-                                    }
-                                  },
-                                ),
-                        ),
+                        valor.nombreControl == null
+                            ? _buildEtiqueta(context, viewModel, valor)
+                            : _buildEtiquetaEditable(viewModel, valor),
                       if (!readOnly)
                         Row(
                           children: [
@@ -495,7 +505,10 @@ class CreacionDeArbolDeEtiquetasDialog extends HookConsumerWidget {
                                 decoration: InputDecoration(
                                   labelText: clave,
                                 ),
-                                showErrors: (_) => false,
+                                showErrors: (c) =>
+                                    c.hasErrors &&
+                                    !c.hasError(ValidationMessage.required),
+                                onEditingComplete: viewModel.agregarValor,
                               ),
                             ),
                             IconButton(
@@ -521,38 +534,160 @@ class CreacionDeArbolDeEtiquetasDialog extends HookConsumerWidget {
     );
   }
 
+  Widget _buildEtiquetaEditable(ArbolDeEtiquetasViewModel viewModel,
+      EtiquetaEnJerarquiaConController valor) {
+    return ListTile(
+      title: ReactiveTextField(
+        formControl: valor.nombreControl,
+        decoration: InputDecoration(
+          labelText: clave,
+        ),
+        onSubmitted: () => viewModel.finalizarEdicion(valor),
+      ),
+      trailing: IconButton(
+        icon: const Icon(Icons.check),
+        onPressed: () => viewModel.finalizarEdicion(valor),
+      ),
+    );
+  }
+
+  Widget _buildEtiqueta(
+      BuildContext context,
+      ArbolDeEtiquetasViewModel viewModel,
+      EtiquetaEnJerarquiaConController valor) {
+    final etiqueta = valor.etiqueta;
+    return ListTile(
+      title: Text("${etiqueta.valor} (${etiqueta.children.length})"),
+      onTap: esUltimoNivel
+          ? null
+          : () async {
+              final children = await showDialog<List<EtiquetaEnJerarquia>>(
+                context: context,
+                builder: (_) => CreacionDeArbolDeEtiquetasDialog(
+                  niveles: niveles,
+                  profundidad: profundidad + 1,
+                  arbol: etiqueta.children,
+                  valorPadre: etiqueta.valor,
+                  readOnly: readOnly,
+                ),
+              );
+              if (children == null) return;
+
+              viewModel.agregarSubArbol(valor, children);
+            },
+      trailing: readOnly
+          ? null
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () => viewModel.comenzarEdicion(valor),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outlined),
+                  onPressed: () async {
+                    final confirmacion = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: Text("Eliminar ${etiqueta.valor}"),
+                        content: Text(
+                            "¿Está seguro que desea eliminar ${etiqueta.valor}? esto eliminará también todas las etiquetas que dependen de esta."),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text("no"),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: const Text("si"),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmacion == true) {
+                      viewModel.eliminarValor(valor);
+                    }
+                  },
+                ),
+              ],
+            ),
+    );
+  }
+
   void _popConLaInformacion(
       BuildContext context, ArbolDeEtiquetasViewModel viewModel) {
     if (readOnly) return Navigator.of(context).pop();
     viewModel.agregarValor();
     // ignore: invalid_use_of_protected_member
-    Navigator.of(context).pop(viewModel.state.toIterable().toList());
+    Navigator.of(context)
+        .pop(viewModel.state.map((ec) => ec.etiqueta).toIterable().toList());
   }
 }
 
+class EtiquetaEnJerarquiaConController {
+  final FormControl<String>? nombreControl;
+  final EtiquetaEnJerarquia etiqueta;
+  EtiquetaEnJerarquiaConController(this.etiqueta, [this.nombreControl]);
+}
+
 class ArbolDeEtiquetasViewModel
-    extends StateNotifier<IList<EtiquetaEnJerarquia>> {
-  late final nuevoValorControl = fb.control("", [Validators.required]);
+    extends StateNotifier<IList<EtiquetaEnJerarquiaConController>> {
+  late final nuevoValorControl =
+      fb.control("", [Validators.required, _noSeRepiteValidator]);
 
   ArbolDeEtiquetasViewModel(List<EtiquetaEnJerarquia> valoresIniciales)
-      : super(IList.from(valoresIniciales));
+      : super(IList.from(
+            valoresIniciales.map((e) => EtiquetaEnJerarquiaConController(e))));
 
   void agregarValor() {
     nuevoValorControl.markAsTouched();
+    nuevoValorControl.updateValueAndValidity();
     if (nuevoValorControl.valid) {
-      state =
-          state.appendElement(EtiquetaEnJerarquia(nuevoValorControl.value!));
+      state = state.appendElement(EtiquetaEnJerarquiaConController(
+          EtiquetaEnJerarquia(nuevoValorControl.value!.trim())));
       nuevoValorControl.reset();
     }
   }
 
-  void eliminarValor(EtiquetaEnJerarquia valor) {
+  void eliminarValor(EtiquetaEnJerarquiaConController valor) {
     state = state.remove(valor);
   }
 
-  void agregarHijo(
-      EtiquetaEnJerarquia valor, List<EtiquetaEnJerarquia> children) {
+  void agregarSubArbol(EtiquetaEnJerarquiaConController valor,
+      List<EtiquetaEnJerarquia> children) {
     state = state.update(
-        valor, (etiqueta) => etiqueta.copyWith(children: children));
+        valor,
+        (etiqueta) => EtiquetaEnJerarquiaConController(
+            etiqueta.etiqueta.copyWith(children: children)));
+  }
+
+  void comenzarEdicion(EtiquetaEnJerarquiaConController valor) {
+    state = state.update(
+        valor,
+        (etiqueta) => EtiquetaEnJerarquiaConController(etiqueta.etiqueta,
+            fb.control(etiqueta.etiqueta.valor, [Validators.required])));
+  }
+
+  void finalizarEdicion(EtiquetaEnJerarquiaConController valor) {
+    if (!valor.nombreControl!.valid) return;
+    state = state.update(
+        valor,
+        (etiqueta) => EtiquetaEnJerarquiaConController(etiqueta.etiqueta
+            .copyWith(valor: valor.nombreControl!.value!.trim())));
+  }
+
+  Map<String, dynamic>? _noSeRepiteValidator(AbstractControl<dynamic> control) {
+    final error = <String, dynamic>{'repetido': true};
+
+    if (control.value == null) {
+      return null;
+    }
+
+    if (state.any((a) => a.etiqueta.valor == control.value!)) {
+      return error;
+    }
+
+    return null;
   }
 }
