@@ -11,7 +11,7 @@ import '../domain/borrador.dart';
 import '../domain/cuestionario.dart';
 import '../domain/identificador_inspeccion.dart';
 
-final inspeccionesRepositoryProvider = Provider(
+final inspeccionesRepositoryProvider = Provider.autoDispose(
   (ref) => InspeccionesRepository(
     ref.watch(drift.driftDatabaseProvider),
   ),

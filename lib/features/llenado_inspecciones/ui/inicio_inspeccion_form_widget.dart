@@ -76,12 +76,22 @@ class InicioInspeccionController {
         activo: activoControl.value!,
         cuestionarioId: tipoInspeccionControl.value!.id,
       );
+
+  void dispose() {
+    tiposDeInspeccionDisponibles.dispose();
+    controlLocal.dispose();
+    controlPendiente.dispose();
+  }
 }
 
-final inicioDeInspeccionProvider = Provider((ref) => InicioInspeccionController(
-      ref.watch(inspeccionesRemoteRepositoryProvider),
-      ref.watch(inspeccionesRepositoryProvider),
-    ));
+final inicioDeInspeccionProvider = Provider.autoDispose((ref) {
+  final res = InicioInspeccionController(
+    ref.watch(inspeccionesRemoteRepositoryProvider),
+    ref.watch(inspeccionesRepositoryProvider),
+  );
+  ref.onDispose(res.dispose);
+  return res;
+});
 
 enum TipoDeCarga {
   local,

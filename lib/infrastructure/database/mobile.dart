@@ -10,13 +10,14 @@ import 'package:path/path.dart' as path;
 import '../drift_database.dart';
 import 'database_name.dart';
 
+// TODO: mirar si es seguro hacer este provider autodisposable
 final driftDatabaseProvider = Provider((ref) {
-  return Database(
-    _getQueryExecutor(
-      ref.watch(directorioDeDatosProvider),
-      ref.watch(databaseNameProvider),
-    ),
-  );
+  final res = Database(_getQueryExecutor(
+    ref.watch(directorioDeDatosProvider),
+    ref.watch(databaseNameProvider),
+  ));
+  ref.onDispose(res.close);
+  return res;
 });
 
 QueryExecutor _getQueryExecutor(DirectorioDeDatos directorio, String dbname) {

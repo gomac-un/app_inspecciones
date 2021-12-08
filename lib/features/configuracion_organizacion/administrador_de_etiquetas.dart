@@ -14,8 +14,8 @@ import 'domain/entities.dart';
 
 // TODO: eliminar la duplicacion de codigo
 
-final _organizacionDaoProvider =
-    Provider((ref) => ref.watch(driftDatabaseProvider).organizacionDao);
+final _organizacionDaoProvider = Provider.autoDispose(
+    (ref) => ref.watch(driftDatabaseProvider).organizacionDao);
 
 final listaEtiquetasDeActivosProvider =
     StreamProvider.autoDispose<List<Jerarquia>>(
@@ -675,6 +675,7 @@ class ArbolDeEtiquetasViewModel
         valor,
         (etiqueta) => EtiquetaEnJerarquiaConController(etiqueta.etiqueta
             .copyWith(valor: valor.nombreControl!.value!.trim())));
+    valor.nombreControl!.dispose();
   }
 
   Map<String, dynamic>? _noSeRepiteValidator(AbstractControl<dynamic> control) {
@@ -689,5 +690,14 @@ class ArbolDeEtiquetasViewModel
     }
 
     return null;
+  }
+
+  @override
+  void dispose() {
+    nuevoValorControl.dispose();
+    for (final etiqueta in state.toIterable()) {
+      etiqueta.nombreControl?.dispose();
+    }
+    super.dispose();
   }
 }

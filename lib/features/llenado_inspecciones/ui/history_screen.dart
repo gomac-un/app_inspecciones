@@ -5,8 +5,8 @@ import 'package:inspecciones/infrastructure/drift_database.dart';
 
 import '../../../presentation/widgets/user_drawer.dart';
 
-final borradoresDaoProvider =
-    Provider((ref) => ref.watch(driftDatabaseProvider).borradoresDao);
+final borradoresDaoProvider = Provider.autoDispose(
+    (ref) => ref.watch(driftDatabaseProvider).borradoresDao);
 
 /// Vista con el historial de las inspecciones enviadas satisfactoriamente al servidor
 class HistoryInspeccionesPage extends ConsumerWidget {
