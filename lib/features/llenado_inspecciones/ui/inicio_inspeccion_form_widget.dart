@@ -61,7 +61,7 @@ class InicioInspeccionController {
     Function(IdentificadorDeInspeccion f)? onSuccess,
   }) async {
     final inspeccionId = int.parse(codigoInspeccionControl.value!);
-    final res = await _remoteRepository.getInspeccionServidor(inspeccionId);
+    final res = await _remoteRepository.descargarInspeccion(inspeccionId);
 
     res.fold(
       (f) => onError?.call(f),

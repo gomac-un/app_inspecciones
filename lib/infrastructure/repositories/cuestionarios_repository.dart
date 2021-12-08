@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:cross_file/cross_file.dart';
@@ -16,7 +15,6 @@ import 'package:path/path.dart' as path;
 
 import '../core/typedefs.dart';
 import '../datasources/cuestionarios_remote_datasource.dart';
-import '../datasources/flutter_downloader/errors.dart';
 import '../datasources/providers.dart';
 import '../drift_database.dart';
 import '../utils/transformador_excepciones_api.dart';
@@ -47,6 +45,7 @@ class CuestionariosRepository {
 
   Future<Either<ApiFailure, Unit>> descargarCuestionario(
       {required String cuestionarioId}) async {
+    //TODO: implementar de manera funcional
     final json = await _api.descargarCuestionario(cuestionarioId);
     final parsed = _deserializarCuestionario(json);
     await _db.guardadoDeCuestionarioDao.guardarCuestionario(parsed);
@@ -246,7 +245,7 @@ class CuestionariosRepository {
 
   String _getName(AppImage foto) {
     var res = path.basename(_getFile(foto).path);
-    //MACHETAZO MONUMENTAL
+    //MACHETAZO MONUMENTAL para que funcione en web
     if (!res.contains(".")) res = "$res.jpg";
     return res;
   }
@@ -255,35 +254,6 @@ class CuestionariosRepository {
       remote: (_) => XFile(''), //Esto no pasa
       mobile: (f) => XFile(f),
       web: (f) => XFile(f));
-
-  /// Descarga los cuestionarios y todo lo necesario para tratarlos:
-  /// activos, sistemas, contratistas y subsistemas
-  /// En caso de que ya exista el archivo, lo borra y lo descarga de nuevo
-
-  Future<Either<ApiFailure, File>> descargarTodosLosCuestionarios(
-      String token) async {
-    try {
-      return Right(await _api.descargarTodosLosCuestionarios(token));
-    } on ErrorDeDescargaFlutterDownloader {
-      return const Left(ApiFailure.errorDeComunicacionConLaApi(
-          "FlutterDownloader no pudo descargar los cuestionarios"));
-    } catch (e) {
-      return Left(ApiFailure.errorDeProgramacion(e.toString()));
-    }
-  }
-
-  /// Descarga todas las fotos de todos los cuestionarios
-  Future<Either<ApiFailure, Unit>> descargarFotos(String token) async {
-    try {
-      await _api.descargarTodasLasFotos(token);
-      return const Right(unit);
-    } on ErrorDeDescargaFlutterDownloader {
-      return const Left(ApiFailure.errorDeComunicacionConLaApi(
-          "FlutterDownloader no pudo descargar las fotos"));
-    } catch (e) {
-      return Left(ApiFailure.errorDeProgramacion(e.toString()));
-    }
-  }
 
   Stream<List<Cuestionario>> getCuestionariosLocales() =>
       _db.cargaDeCuestionarioDao.watchCuestionarios();

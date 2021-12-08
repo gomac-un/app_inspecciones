@@ -1,27 +1,18 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:enum_to_string/enum_to_string.dart';
-import 'package:flutter_archive/flutter_archive.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/infrastructure/core/typedefs.dart';
-import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
-import 'package:inspecciones/infrastructure/datasources/organizacion_remote_datasource.dart';
-import 'package:inspecciones/infrastructure/repositories/fotos_repository.dart';
-import 'package:path/path.dart' as path;
 
 import 'auth_remote_datasource.dart';
 import 'cuestionarios_remote_datasource.dart';
 import 'django_json_api_client.dart';
-import 'flutter_downloader/flutter_downloader_as_future.dart';
 import 'inspecciones_remote_datasource.dart';
+import 'organizacion_remote_datasource.dart';
 
 class DjangoJsonApi
     implements
         AuthRemoteDataSource,
         CuestionariosRemoteDataSource,
-        FotosRemoteDataSource,
         InspeccionesRemoteDataSource,
         OrganizacionRemoteDataSource {
   final Reader _read;
@@ -139,55 +130,9 @@ class DjangoJsonApi
           body: inspeccion);
 
   @override
-  Future<JsonMap> subirFotos(Iterable<AppImage> fotos, String idDocumento,
-      Categoria tipoDocumento) async {
-    final body = {
-      'iddocumento': idDocumento,
-      'tipodocumento': EnumToString.convertToString(tipoDocumento),
-      'fotos': fotos,
-    };
-
-    return _client.request('POST', _apiUri.appendSegment('subir-fotos'),
-        body: body, format: 'multipart');
-  }
-
-  @override
   Future<JsonMap> subirCuestionario(JsonMap cuestionario) =>
       _client.request('POST', _apiUri.appendSegment("cuestionarios-completos"),
           body: cuestionario);
-
-  /// TODO: mirar como hacer para no tener el token como parámetro
-  @override
-  Future<File> descargarTodosLosCuestionarios(String token) async {
-    final uri = _apiUri.appendSegment('server');
-    return flutterDownloaderAsFuture(
-      uri,
-      'server.json',
-      headers: {HttpHeaders.authorizationHeader: "Token $token"},
-    );
-  }
-
-  /// TODO: mirar como hacer para no tener el token como parámetro
-  /// Descarga todas las fotos de todos los cuestionarios
-  @override
-  Future<void> descargarTodasLasFotos(String token) async {
-    final uri = _apiUri
-        .appendSegment('media', addTrailingSlash: false)
-        .appendSegment('fotos-app-inspecciones', addTrailingSlash: false)
-        .appendSegment('cuestionarios.zip', addTrailingSlash: false);
-    final zipFotos = await flutterDownloaderAsFuture(
-      uri,
-      'cuestionarios.zip',
-      headers: {HttpHeaders.authorizationHeader: "Token $token"},
-    );
-
-    //descompresion
-    final destinationDir =
-        Directory(path.join(await directorioDeDescarga(), 'cuestionarios'));
-
-    await ZipFile.extractToDirectory(
-        zipFile: zipFotos, destinationDir: destinationDir);
-  }
 
   @override
   Future<JsonMap> descargarCuestionario(String cuestionarioId) =>

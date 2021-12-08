@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/usuario.dart';
-import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>(
@@ -13,9 +12,6 @@ abstract class LocalPreferencesDataSource {
   Future<bool> saveUser(Usuario user);
   Future<bool> deleteUser();
   Usuario? getUser();
-
-  Future<bool> saveUltimaSincronizacion(DateTime momento);
-  DateTime? getUltimaSincronizacion();
 
   Future<bool> saveToken(String? token);
   String? getToken();
@@ -29,7 +25,6 @@ abstract class LocalPreferencesDataSource {
 
 class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
   static const _userKey = 'user';
-  static const _ultimaActualizacionKey = 'ultimaActualizacion';
   static const _tokenKey = 'token';
   static const _temaKey = 'tema';
   //TODO: si hay que guardar mas preferencias considerar guardarlas todas en un solo json
@@ -52,24 +47,6 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
     final mayBeUser = _preferences.getString(_userKey);
     if (mayBeUser == null) return null;
     return Usuario.fromJson(json.decode(mayBeUser) as Map<String, dynamic>);
-  }
-
-  final String dateformat = "yyyy-MM-dd hh:mm:ss";
-
-  /// Guarda el momento de la ultima sincronización con gomac
-  @override
-  Future<bool> saveUltimaSincronizacion(DateTime momento) {
-    final date = DateFormat(dateformat).format(momento);
-    return _preferences.setString(_ultimaActualizacionKey, date);
-  }
-
-  /// Devuelve el momento de la ultima sincronización con Gomac
-  @override
-  DateTime? getUltimaSincronizacion() {
-    final rawUltimaActualizacion =
-        _preferences.getString(_ultimaActualizacionKey);
-    if (rawUltimaActualizacion == null) return null;
-    return DateFormat(dateformat).parse(rawUltimaActualizacion);
   }
 
   @override

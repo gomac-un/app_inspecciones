@@ -57,7 +57,7 @@ main() {
                 IdentificadorDeInspeccion(activo: "a1", cuestionarioId: "c1"),
               ));
 
-      final res = await repository.getInspeccionServidor(1);
+      final res = await repository.descargarInspeccion(1);
 
       expect(res,
           Right(IdentificadorDeInspeccion(activo: "a1", cuestionarioId: "c1")));
@@ -66,7 +66,7 @@ main() {
       when(_api.getInspeccion(1))
           .thenAnswer((_) async => throw const ErrorDeConexion(""));
 
-      final res = await repository.getInspeccionServidor(1);
+      final res = await repository.descargarInspeccion(1);
 
       expect(res, const Left(ApiFailure.errorDeConexion("")));
     });
@@ -76,7 +76,7 @@ main() {
       //TODO: debería ser errorInesperadoDelDatasource o considerar dejar propagar la excepcion
       when(_api.getInspeccion(1)).thenAnswer((_) async => throw Exception());
 
-      final res = await repository.getInspeccionServidor(1);
+      final res = await repository.descargarInspeccion(1);
 
       expect(
           res, const Left(ApiFailure.errorInesperadoDelServidor("Exception")));
@@ -89,7 +89,7 @@ main() {
           .thenAnswer((_) async => throw Exception());
 
       await expectLater(
-          () => repository.getInspeccionServidor(1), throwsA(isA<Exception>()));
+          () => repository.descargarInspeccion(1), throwsA(isA<Exception>()));
     });
   });
   group("subirInspeccion", () {

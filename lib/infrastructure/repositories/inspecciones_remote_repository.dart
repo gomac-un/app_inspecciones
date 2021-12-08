@@ -8,7 +8,6 @@ import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart';
-import 'package:inspecciones/utils/future_either_x.dart';
 import 'package:path/path.dart' as path;
 
 import '../core/typedefs.dart';
@@ -29,8 +28,14 @@ class InspeccionesRemoteRepository {
   ///  poder continuarla en la app.
   /// retorna Right(unit) si se decargó exitosamente, de ser así, posteriormente
   /// se puede iniciar la inspeccion desde la pantalla de borradores
-  Future<Either<ApiFailure, IdentificadorDeInspeccion>> getInspeccionServidor(
+  Future<Either<ApiFailure, IdentificadorDeInspeccion>> descargarInspeccion(
       int id) async {
+    throw UnimplementedError();
+    /*final json = await _api.descargarCuestionario(cuestionarioId);
+    final parsed = _deserializarCuestionario(json);
+    await _db.guardadoDeCuestionarioDao.guardarCuestionario(parsed);
+    return const Right(unit);*/
+    /*
     final inspeccionMap = apiExceptionToApiFailure(
       () => _api.getInspeccion(id),
     );
@@ -38,7 +43,7 @@ class InspeccionesRemoteRepository {
     /// Al descargarla, se debe guardar en la bd para poder acceder a ella
     return inspeccionMap.nestedEvaluatedMap(
       (ins) => _db.sincronizacionDao.guardarInspeccionBD(ins),
-    );
+    );*/
   }
 
   /// Envia [inspeccion] al server

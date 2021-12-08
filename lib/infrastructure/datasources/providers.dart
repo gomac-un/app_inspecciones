@@ -1,7 +1,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/infrastructure/datasources/auth_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/cuestionarios_remote_datasource.dart';
-import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
 
 import 'django_json_api.dart';
 import 'inspecciones_remote_datasource.dart';
@@ -25,9 +24,6 @@ final inspeccionesRemoteDataSourceProvider =
 final cuestionariosRemoteDataSourceProvider =
     Provider<CuestionariosRemoteDataSource>(
         (ref) => ref.watch(_djangoJsonApiProvider));
-
-final fotosRemoteDataSourceProvider =
-    Provider<FotosRemoteDataSource>((ref) => ref.watch(_djangoJsonApiProvider));
 
 final organizacionRemoteDataSourceProvider =
     Provider<OrganizacionRemoteDataSource>(
