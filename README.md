@@ -2,6 +2,10 @@
 
 Aplicacion escrita en Flutter para la creación de cuestionarios y el llenado de inspeciones con el fin de recolectar información durante la inspeccion de activos.
 
+Se requiere generar código:
+```
+flutter packages pub run build_runner build --delete-conflicting-outputs
+```
 ## Registro
 Para registrar un usuario se debe abrir el siguiente link como un intent de android:
 

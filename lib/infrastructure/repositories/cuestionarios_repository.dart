@@ -7,7 +7,6 @@ import 'package:drift/drift.dart' hide DataClass;
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
-import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
@@ -58,8 +57,7 @@ class CuestionariosRepository {
       tipoDeInspeccion: json['tipo_de_inspeccion'],
       version: json['version'],
       periodicidadDias: json['periodicidad_dias'],
-      estado: EstadoDeCuestionario
-          .finalizado, // si viene del server suponemos que esta finalizado
+      estado: EnumToString.fromString(EstadoDeCuestionario.values, json['estado'])!,
       subido: true,
     );
     final etiquetas = (json['etiquetas_aplicables'] as JsonList)
@@ -291,6 +289,7 @@ class CuestionarioSerializer {
     res['id'] = cuestionario.id;
     res['tipo_de_inspeccion'] = cuestionario.tipoDeInspeccion;
     res['version'] = cuestionario.version;
+    res['estado'] = cuestionario.estado;
     res['periodicidad_dias'] = cuestionario.periodicidadDias;
     res['etiquetas_aplicables'] =
         _serializarEtiquetasDeCuestionario(cuestionarioCompleto.etiquetas);

@@ -52,7 +52,10 @@ class ActivosXEtiquetas extends Table {
   @override
   Set<Column> get primaryKey => {activoId, etiquetaId};
 }
-
+enum EstadoDeCuestionario {
+  borrador,
+  finalizado,
+}
 class Cuestionarios extends Table {
   TextColumn get id => text().clientDefault(() => _uuid.v4())();
   TextColumn get tipoDeInspeccion => text()();

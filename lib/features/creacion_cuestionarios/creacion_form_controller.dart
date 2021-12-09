@@ -1,7 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';

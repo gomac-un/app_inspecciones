@@ -46,7 +46,12 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
   Usuario? getUser() {
     final mayBeUser = _preferences.getString(_userKey);
     if (mayBeUser == null) return null;
-    return Usuario.fromJson(json.decode(mayBeUser) as Map<String, dynamic>);
+    try {
+      return Usuario.fromJson(json.decode(mayBeUser) as Map<String, dynamic>);
+    } on TypeError {
+      // posiblemente hubo un cambio de modelo
+      return null;
+    }
   }
 
   @override

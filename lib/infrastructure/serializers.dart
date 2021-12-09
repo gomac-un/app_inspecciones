@@ -1,7 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
-import 'package:inspecciones/core/enums.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 
 import 'drift_database.dart';
