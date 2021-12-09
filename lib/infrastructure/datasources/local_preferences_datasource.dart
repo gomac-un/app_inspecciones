@@ -48,7 +48,7 @@ class SharedPreferencesDataSourceImpl implements LocalPreferencesDataSource {
     if (mayBeUser == null) return null;
     try {
       return Usuario.fromJson(json.decode(mayBeUser) as Map<String, dynamic>);
-    } on TypeError {
+    } catch (e) {
       // posiblemente hubo un cambio de modelo
       return null;
     }
