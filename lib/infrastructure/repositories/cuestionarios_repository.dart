@@ -22,9 +22,7 @@ class CuestionariosRepository {
   final Reader _read;
   CuestionariosRemoteDataSource get _api =>
       _read(cuestionariosRemoteDataSourceProvider);
-  //FotosRemoteDataSource get _apiFotos => _read(fotosRemoteDataSourceProvider);
   Database get _db => _read(driftDatabaseProvider);
-  //FotosRepository get _fotosRepository => _read(fotosRepositoryProvider);
 
   CuestionariosRepository(this._read);
 
@@ -36,7 +34,8 @@ class CuestionariosRepository {
                       tipoDeInspeccion: c["tipo_de_inspeccion"],
                       version: c["version"],
                       periodicidadDias: c["periodicidad_dias"],
-                      estado: EstadoDeCuestionario.finalizado,
+                      estado: EnumToString.fromString(
+                          EstadoDeCuestionario.values, c["estado"])!,
                       subido: true,
                     ))
                 .toList()),
@@ -57,7 +56,8 @@ class CuestionariosRepository {
       tipoDeInspeccion: json['tipo_de_inspeccion'],
       version: json['version'],
       periodicidadDias: json['periodicidad_dias'],
-      estado: EnumToString.fromString(EstadoDeCuestionario.values, json['estado'])!,
+      estado:
+          EnumToString.fromString(EstadoDeCuestionario.values, json['estado'])!,
       subido: true,
     );
     final etiquetas = (json['etiquetas_aplicables'] as JsonList)
@@ -189,7 +189,7 @@ class CuestionariosRepository {
           .toList();
 
   List<AppImage> _deserializarFotos(JsonList fotos) =>
-      fotos.map((f) => AppImage.remote(f["foto"])).toList();
+      fotos.map((f) => AppImage.remote(id: f["id"], url: f["foto"])).toList();
 
   /// Envia [cuestionario] al server.
   Future<Either<ApiFailure, Unit>> subirCuestionario(
@@ -198,13 +198,22 @@ class CuestionariosRepository {
     final idFotosSubidas = await _subirFotos(cuestionario);
     final serializador = CuestionarioSerializer(cuestionario, idFotosSubidas);
     final cuestionarioSerializado = serializador.serializarCuestionario();
-    return apiExceptionToApiFailure(
-      () => _api
-          .subirCuestionario(cuestionarioSerializado)
-          .then((_) =>
-              _db.sincronizacionDao.marcarCuestionarioSubido(cuestionarioId))
-          .then((_) => unit),
-    );
+    if (cuestionario.cuestionario.subido) {
+      return apiExceptionToApiFailure(
+        () => _api
+            .actualizarCuestionario(
+                cuestionario.cuestionario.id, cuestionarioSerializado)
+            .then((_) => unit),
+      );
+    } else {
+      return apiExceptionToApiFailure(
+        () => _api
+            .subirCuestionario(cuestionarioSerializado)
+            .then((_) =>
+                _db.sincronizacionDao.marcarCuestionarioSubido(cuestionarioId))
+            .then((_) => unit),
+      );
+    }
   }
 
   Future<Map<AppImage, String>> _subirFotos(
@@ -227,16 +236,28 @@ class CuestionariosRepository {
       }
     }
 
-    final JsonMap resServer = fotos.isEmpty
+    final fotosPorSubir = fotos.where((f) => f is! RemoteImage).toList();
+
+    final JsonMap resServer = fotosPorSubir.isEmpty
         ? {}
-        : await _api.subirFotosCuestionario(fotos); // nombre: id
+        : await _api.subirFotosCuestionario(fotosPorSubir); // nombre: id
     final res = <AppImage, String>{};
     for (final foto in fotos) {
-      final id = resServer[_getName(foto)];
-      if (id == null) {
-        throw Exception("no se encontro el id de la foto");
+      getIdFromServer() {
+        final id = resServer[_getName(foto)];
+        if (id == null) {
+          throw Exception("no se encontro el id de la foto");
+        }
+        res[foto] = id;
       }
-      res[foto] = id;
+
+      foto.when(
+        remote: (id, url) {
+          res[foto] = id;
+        },
+        mobile: (_) => getIdFromServer(),
+        web: (_) => getIdFromServer(),
+      );
     }
     return res;
   }
@@ -249,9 +270,9 @@ class CuestionariosRepository {
   }
 
   XFile _getFile(AppImage foto) => foto.when(
-      remote: (_) => XFile(''), //Esto no pasa
-      mobile: (f) => XFile(f),
-      web: (f) => XFile(f));
+      remote: (_, __) => throw Error(), //Esto no pasa
+      mobile: (p) => XFile(p),
+      web: (p) => XFile(p));
 
   Stream<List<Cuestionario>> getCuestionariosLocales() =>
       _db.cargaDeCuestionarioDao.watchCuestionarios();
@@ -289,7 +310,7 @@ class CuestionarioSerializer {
     res['id'] = cuestionario.id;
     res['tipo_de_inspeccion'] = cuestionario.tipoDeInspeccion;
     res['version'] = cuestionario.version;
-    res['estado'] = cuestionario.estado;
+    res['estado'] = EnumToString.convertToString(cuestionario.estado);
     res['periodicidad_dias'] = cuestionario.periodicidadDias;
     res['etiquetas_aplicables'] =
         _serializarEtiquetasDeCuestionario(cuestionarioCompleto.etiquetas);

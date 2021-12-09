@@ -50,7 +50,7 @@ class AppImageImagePicker extends StatelessWidget {
 }
 
 Widget _appImageBuilder(AppImage image) => image.when(
-      remote: (url) => Image.network(url),
+      remote: (_, url) => Image.network(url),
       mobile: (path) => Image.file(File(path)),
       web: (path) => Image.network(path),
     );

@@ -25,8 +25,9 @@ class ConfiguracionOrganizacionControl {
 
   late final nombreControl =
       fb.control(organizacion?.nombre ?? '', [Validators.required]);
-  late final logoControl = fb.control<AppImage?>(
-      organizacion?.link == null ? null : RemoteImage(organizacion!.logo));
+  late final logoControl = fb.control<AppImage?>(organizacion?.link == null
+      ? null
+      : RemoteImage(id: "", url: organizacion!.logo));
   late final linkControl = fb.control(organizacion?.link ?? '');
   late final acercaControl = fb.control(organizacion?.acerca ?? '');
 

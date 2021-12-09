@@ -33,7 +33,7 @@ class CuestionariosPage extends ConsumerWidget {
         drawer: const UserDrawer(),
         body: StreamBuilder<List<Cuestionario>>(
           /// Se reconstruye automaticamente con los cuestionarios que se van agregando.
-          stream: viewModel.getCuestionarios(),
+          stream: viewModel.watchCuestionarios(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Text("error: ${snapshot.error}");
@@ -65,7 +65,7 @@ class CuestionariosPage extends ConsumerWidget {
                 if (index < cuestionariosLocales.length) {
                   return _buildCuestionarioTile(
                       context, cuestionariosLocales[index], viewModel,
-                      esLocal: true);
+                      estaGuardado: true);
                 } else {
                   if (index == numeroDeLocales + numeroDeRemotos) {
                     return const SizedBox(height: 80);
@@ -76,7 +76,7 @@ class CuestionariosPage extends ConsumerWidget {
                           ),
                       (r) => _buildCuestionarioTile(
                           context, r[index - numeroDeLocales], viewModel,
-                          esLocal: false));
+                          estaGuardado: false));
                 }
               },
             );
@@ -93,9 +93,9 @@ class CuestionariosPage extends ConsumerWidget {
 
   ListTile _buildCuestionarioTile(BuildContext context,
       Cuestionario cuestionario, _CuestionarioListViewModel viewModel,
-      {required bool esLocal}) {
+      {required bool estaGuardado}) {
     return ListTile(
-      onTap: !esLocal
+      onTap: !estaGuardado
           ? null
           : () => Navigator.of(context)
               .push<bool>(
@@ -115,31 +115,21 @@ class CuestionariosPage extends ConsumerWidget {
       subtitle:
           Text('Estado: ${EnumToString.convertToString(cuestionario.estado)}'),
 
-      /// Si no se ha subido apaarece la opción de subir.
-      leading: !cuestionario.subido
-          ? IconButton(
+      /// la opcion de subir solo se esconde cuando el cuestionario esta finalizado y tambien esta subido, o si es remoto
+      leading: (cuestionario.subido &&
+                  cuestionario.estado == EstadoDeCuestionario.finalizado) ||
+              !estaGuardado
+          ? const SizedBox.shrink()
+          : IconButton(
               icon: Icon(
                 Icons.cloud_upload,
                 color: cuestionario.estado == EstadoDeCuestionario.finalizado
                     ? Theme.of(context).colorScheme.secondary
                     : Colors.grey,
               ),
-              onPressed: () async {
-                /// Solo permite subirlo si está finalizado.
-                switch (cuestionario.estado) {
-                  case EstadoDeCuestionario.finalizado:
-                    _subirCuestionarioFinalizado(
-                        context, viewModel, cuestionario);
-                    break;
-                  case EstadoDeCuestionario.borrador:
-                    _alertarNoSubirBorrador(context);
-                    break;
-                }
-              })
-          : const SizedBox.shrink(),
-      trailing: esLocal
-
-          /// Los cuestionarios subidos ya no se pueden borrar
+              onPressed: () =>
+                  _subirCuestionario(context, viewModel, cuestionario)),
+      trailing: estaGuardado
           ? IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () =>
@@ -160,26 +150,7 @@ class CuestionariosPage extends ConsumerWidget {
     );
   }
 
-  Future<dynamic> _alertarNoSubirBorrador(BuildContext context) {
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Advertencia'),
-        content: const Text(
-            "Aún no ha finalizado este cuestionario, no puede ser enviado."),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text("Aceptar"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _subirCuestionarioFinalizado(
+  void _subirCuestionario(
     BuildContext context,
     _CuestionarioListViewModel viewModel,
     Cuestionario cuestionario,
@@ -276,7 +247,7 @@ class _CuestionarioListViewModel {
 
   _CuestionarioListViewModel(this._cuestionariosRepository);
 
-  Stream<List<Cuestionario>> getCuestionarios() =>
+  Stream<List<Cuestionario>> watchCuestionarios() =>
       _cuestionariosRepository.getCuestionariosLocales();
 
   Future<Either<ApiFailure, Unit>> subirCuestionario(String cuestionarioId) =>

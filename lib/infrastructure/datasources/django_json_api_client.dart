@@ -86,7 +86,7 @@ class DjangoJsonApiClient {
       } else if (value is AppImage) {
         if (value is RemoteImage) continue;
         final file = value.when(
-            remote: (_) => XFile(''), //Esto no pasa
+            remote: (_, __) => throw Error(),
             mobile: (f) => XFile(f),
             web: (f) => XFile(f));
 
@@ -98,7 +98,7 @@ class DjangoJsonApiClient {
       } else if (value is List<AppImage>) {
         for (final image in value) {
           final file = image.when(
-              remote: (_) => XFile(''), //Esto no pasa
+              remote: (_, __) => throw Error(),
               mobile: (f) => XFile(f),
               web: (f) => XFile(f));
 

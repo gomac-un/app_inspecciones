@@ -109,16 +109,29 @@ class InspeccionesRemoteRepository {
       }
     }
 
-    final JsonMap resServer = fotos.isEmpty
+    
+    final fotosPorSubir = fotos.where((f) => f is! RemoteImage).toList();
+
+    final JsonMap resServer = fotosPorSubir.isEmpty
         ? {}
-        : await _api.subirFotosInspeccion(fotos); // nombre: id
+        : await _api.subirFotosInspeccion(fotosPorSubir); // nombre: id
     final res = <AppImage, String>{};
     for (final foto in fotos) {
-      final id = resServer[_getName(foto)];
-      if (id == null) {
-        throw Exception("no se encontro el id de la foto");
+      getIdFromServer() {
+        final id = resServer[_getName(foto)];
+        if (id == null) {
+          throw Exception("no se encontro el id de la foto");
+        }
+        res[foto] = id;
       }
-      res[foto] = id;
+
+      foto.when(
+        remote: (id, url) {
+          res[foto] = id;
+        },
+        mobile: (_) => getIdFromServer(),
+        web: (_) => getIdFromServer(),
+      );
     }
     return res;
   }
@@ -131,7 +144,7 @@ class InspeccionesRemoteRepository {
   }
 
   XFile _getFile(AppImage foto) => foto.when(
-      remote: (_) => XFile(''), //Esto no pasa
+      remote: (_, __) => throw Error(),
       mobile: (f) => XFile(f),
       web: (f) => XFile(f));
 }

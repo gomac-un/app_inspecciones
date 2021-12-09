@@ -21,7 +21,6 @@ import 'inspecciones_repository_test.mocks.dart';
 @GenerateMocks(
   [
     InspeccionesRemoteDataSource,
-    FotosRemoteDataSource,
     drift.Database,
     SincronizacionDao,
   ],

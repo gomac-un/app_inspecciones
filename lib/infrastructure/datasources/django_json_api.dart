@@ -102,6 +102,18 @@ class DjangoJsonApi
           body: cuestionario);
 
   @override
+  Future<JsonMap> actualizarCuestionario(
+    String cuestionarioId,
+    JsonMap cuestionario,
+  ) =>
+      _client.request(
+          'PUT',
+          _apiUri
+              .appendSegment("cuestionarios-completos", addTrailingSlash: false)
+              .appendSegment(cuestionarioId),
+          body: cuestionario);
+
+  @override
   Future<JsonMap> descargarCuestionario(String cuestionarioId) =>
       _client.request(
           'GET',

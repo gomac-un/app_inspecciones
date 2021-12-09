@@ -52,10 +52,12 @@ class ActivosXEtiquetas extends Table {
   @override
   Set<Column> get primaryKey => {activoId, etiquetaId};
 }
+
 enum EstadoDeCuestionario {
   borrador,
   finalizado,
 }
+
 class Cuestionarios extends Table {
   TextColumn get id => text().clientDefault(() => _uuid.v4())();
   TextColumn get tipoDeInspeccion => text()();
@@ -330,7 +332,7 @@ class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
     return (json.decode(fromDb) as List)
         .cast<String>()
         .map((p) => p.startsWith("http")
-            ? AppImage.remote(p)
+            ? AppImage.remote(id: p.split("#").last, url: p.split("#").first)
             : p.startsWith("blob")
                 ? AppImage.web(p)
                 : AppImage.mobile(p))
@@ -344,12 +346,10 @@ class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
     }
     return json.encode(value
         .map((i) => i.when(
-            remote: (p) => p,
-            mobile: (p) => p,
-            web: (p) {
-              return p;
-              throw UnsupportedError("No se puede guardar una imagen web");
-            }))
+              remote: (id, url) => url + "#" + id,
+              mobile: (p) => p,
+              web: (p) => p,
+            ))
         .toList());
   }
 }

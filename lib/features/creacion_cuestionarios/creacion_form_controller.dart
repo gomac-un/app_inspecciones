@@ -242,7 +242,7 @@ class CreacionFormController {
       version: Value(datosIniciales.cuestionario.version.valueOrDefault(1)),
       periodicidadDias: Value(periodicidadControl.value!),
       estado: Value(estado),
-      subido: const Value(false),
+      subido: Value(datosIniciales.cuestionario.subido.valueOrDefault(false)),
     );
 
     final List<EtiquetasDeActivoCompanion> etiquetas = etiquetasControl.value!
