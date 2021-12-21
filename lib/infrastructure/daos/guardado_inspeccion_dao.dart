@@ -5,7 +5,7 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart'
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:intl/intl.dart';
 
-part 'guardado_inspeccion_dao.drift.dart';
+part 'guardado_inspeccion_dao.g.dart';
 
 @DriftAccessor(tables: [
   Inspecciones,

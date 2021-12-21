@@ -5,7 +5,7 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart'
     as dominio;
 import 'package:inspecciones/infrastructure/drift_database.dart';
 
-part 'carga_inspeccion_dao.drift.dart';
+part 'carga_inspeccion_dao.g.dart';
 
 @DriftAccessor(tables: [
   EtiquetasDeActivo,
@@ -39,7 +39,10 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
           etiquetasDeActivo.id.equalsExp(cuestionariosXEtiquetas.etiquetaId),
           useColumns: false),
     ])
-      ..where(etiquetasDeActivo.id.isIn(etiquetas.map((e) => e.id)));
+      ..where(
+        cuestionarios.estado.equalsValue(EstadoDeCuestionario.finalizado) &
+            etiquetasDeActivo.id.isIn(etiquetas.map((e) => e.id)),
+      );
 
     return query2.map((row) => row.readTable(cuestionarios)).get();
   }

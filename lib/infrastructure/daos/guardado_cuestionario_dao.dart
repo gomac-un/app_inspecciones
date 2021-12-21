@@ -4,7 +4,7 @@ import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart'
 
 import '../drift_database.dart';
 
-part 'guardado_cuestionario_dao.drift.dart';
+part 'guardado_cuestionario_dao.g.dart';
 
 @DriftAccessor(tables: [
   EtiquetasDeActivo,

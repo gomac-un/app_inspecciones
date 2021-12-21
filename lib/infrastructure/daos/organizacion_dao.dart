@@ -4,7 +4,7 @@ import 'package:inspecciones/features/configuracion_organizacion/domain/entities
 import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 
-part 'organizacion_dao.drift.dart';
+part 'organizacion_dao.g.dart';
 
 @DriftAccessor(tables: [
   EtiquetasJerarquicasDeActivo,

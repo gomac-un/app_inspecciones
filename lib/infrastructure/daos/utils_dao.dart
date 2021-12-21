@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 
-part 'utils_dao.drift.dart';
+part 'utils_dao.g.dart';
 
 @DriftAccessor(tables: [
   EtiquetasDeActivo,

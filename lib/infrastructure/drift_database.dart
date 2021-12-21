@@ -18,7 +18,7 @@ import 'daos/utils_dao.dart';
 
 export 'database/shared.dart';
 
-part 'drift_database.drift.dart';
+part 'drift_database.g.dart';
 part 'tablas.dart';
 
 @DriftDatabase(

@@ -1,18 +1,11 @@
 import 'package:drift/drift.dart';
-import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
-import 'package:inspecciones/infrastructure/core/typedefs.dart';
 
-// import 'daos/borradores_dao.dart';
-// import 'daos/carga_cuestionario_dao.dart';
-// import 'daos/carga_inspeccion_dao.dart';
-// import 'daos/guardado_cuestionario_dao.dart';
-// import 'daos/guardado_inspeccion_dao.dart';
 import '../drift_database.dart';
 
 export '../database/shared.dart';
 
-part 'sincronizacion_dao.drift.dart';
+part 'sincronizacion_dao.g.dart';
 
 @DriftAccessor(tables: [
   Activos,

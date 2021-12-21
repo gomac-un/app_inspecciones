@@ -4,7 +4,7 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart'
     as dominio;
 import 'package:inspecciones/infrastructure/drift_database.dart';
 
-part 'borradores_dao.drift.dart';
+part 'borradores_dao.g.dart';
 
 @DriftAccessor(tables: [
   EtiquetasDeActivo,
