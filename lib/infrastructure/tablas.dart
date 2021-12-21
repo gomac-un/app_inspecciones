@@ -44,10 +44,10 @@ class Activos extends Table {
 
 @DataClassName('ActivoXEtiqueta')
 class ActivosXEtiquetas extends Table {
-  TextColumn get activoId => text()
-      .customConstraint('NOT NULL REFERENCES activos(id) ON DELETE CASCADE')();
-  IntColumn get etiquetaId => integer().customConstraint(
-      'NOT NULL REFERENCES etiquetas_de_activo(id) ON DELETE RESTRICT')();
+  TextColumn get activoId =>
+      text().references(Activos, #id, onDelete: KeyAction.cascade)();
+  IntColumn get etiquetaId => integer()
+      .references(EtiquetasDeActivo, #id, onDelete: KeyAction.restrict)();
 
   @override
   Set<Column> get primaryKey => {activoId, etiquetaId};
@@ -79,17 +79,17 @@ class Cuestionarios extends Table {
 @DataClassName('CuestionarioXEtiqueta')
 class CuestionariosXEtiquetas extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get cuestionarioId => text().customConstraint(
-      'NOT NULL REFERENCES cuestionarios(id) ON DELETE CASCADE')();
-  IntColumn get etiquetaId => integer().customConstraint(
-      'NOT NULL REFERENCES etiquetas_de_activo(id) ON DELETE RESTRICT')();
+  TextColumn get cuestionarioId =>
+      text().references(Cuestionarios, #id, onDelete: KeyAction.cascade)();
+  IntColumn get etiquetaId => integer()
+      .references(EtiquetasDeActivo, #id, onDelete: KeyAction.restrict)();
 }
 
 class Bloques extends Table {
   TextColumn get id => text().clientDefault(() => _uuid.v4())();
   IntColumn get nOrden => integer()();
-  TextColumn get cuestionarioId => text().customConstraint(
-      'NOT NULL REFERENCES cuestionarios(id) ON DELETE CASCADE')();
+  TextColumn get cuestionarioId =>
+      text().references(Cuestionarios, #id, onDelete: KeyAction.cascade)();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -97,8 +97,8 @@ class Bloques extends Table {
 
 class Titulos extends Table {
   TextColumn get id => text().clientDefault(() => _uuid.v4())();
-  TextColumn get bloqueId => text().customConstraint(
-      'NOT NULL UNIQUE REFERENCES bloques(id) ON DELETE CASCADE')();
+  TextColumn get bloqueId =>
+      text().references(Bloques, #id, onDelete: KeyAction.cascade)();
   TextColumn get titulo => text()();
   TextColumn get descripcion => text()();
   TextColumn get fotos => text().map(const _ListImagesToTextConverter())();
@@ -129,10 +129,11 @@ class Preguntas extends Table {
   IntColumn get criticidad => integer()();
   TextColumn get fotosGuia => text().map(const _ListImagesToTextConverter())();
 
-  TextColumn get bloqueId => text().nullable().customConstraint(
-      'NULLABLE UNIQUE REFERENCES bloques(id) ON DELETE CASCADE')();
-  TextColumn get cuadriculaId => text().nullable().customConstraint(
-      'NULLABLE REFERENCES preguntas(id) ON DELETE CASCADE')();
+  TextColumn get bloqueId =>
+      text().nullable().references(Bloques, #id, onDelete: KeyAction.cascade)();
+  TextColumn get cuadriculaId => text()
+      .nullable()
+      .references(Preguntas, #id, onDelete: KeyAction.cascade)();
 
   TextColumn get tipoDePregunta => text().map(
       const _EnumToStringConverter<TipoDePregunta>(TipoDePregunta.values))();
@@ -149,10 +150,10 @@ class Preguntas extends Table {
 
 @DataClassName('PreguntaXEtiqueta')
 class PreguntasXEtiquetas extends Table {
-  TextColumn get preguntaId => text().customConstraint(
-      'NOT NULL REFERENCES preguntas(id) ON DELETE CASCADE')();
-  IntColumn get etiquetaId => integer().customConstraint(
-      'NOT NULL REFERENCES etiquetas_de_pregunta(id) ON DELETE RESTRICT')();
+  TextColumn get preguntaId =>
+      text().references(Preguntas, #id, onDelete: KeyAction.cascade)();
+  IntColumn get etiquetaId => integer()
+      .references(EtiquetasDePregunta, #id, onDelete: KeyAction.restrict)();
 
   @override
   Set<Column> get primaryKey => {preguntaId, etiquetaId};
@@ -168,8 +169,8 @@ class OpcionesDeRespuesta extends Table {
   /// Si el inspector puede asignar un nivel de criticidad a la respuesta
   BoolColumn get requiereCriticidadDelInspector => boolean()();
 
-  TextColumn get preguntaId => text().customConstraint(
-      'NOT NULL REFERENCES preguntas(id) ON DELETE CASCADE')();
+  TextColumn get preguntaId =>
+      text().references(Preguntas, #id, onDelete: KeyAction.cascade)();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -181,8 +182,8 @@ class CriticidadesNumericas extends Table {
   RealColumn get valorMinimo => real()();
   RealColumn get valorMaximo => real()();
   IntColumn get criticidad => integer()();
-  TextColumn get preguntaId => text().customConstraint(
-      'NOT NULL REFERENCES preguntas(id) ON DELETE CASCADE')();
+  TextColumn get preguntaId =>
+      text().references(Preguntas, #id, onDelete: KeyAction.cascade)();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -192,10 +193,10 @@ class CriticidadesNumericas extends Table {
 class Inspecciones extends Table {
   TextColumn get id => text()();
 
-  TextColumn get cuestionarioId => text().customConstraint(
-      'NOT NULL REFERENCES cuestionarios(id) ON DELETE NO ACTION')();
-  TextColumn get activoId => text().customConstraint(
-      'NOT NULL REFERENCES activos(id) ON DELETE NO ACTION')();
+  TextColumn get cuestionarioId =>
+      text().references(Cuestionarios, #id, onDelete: KeyAction.noAction)();
+  TextColumn get activoId =>
+      text().references(Activos, #id, onDelete: KeyAction.noAction)();
 
   DateTimeColumn get momentoInicio => dateTime()();
   DateTimeColumn get momentoBorradorGuardado => dateTime().nullable()();
@@ -245,23 +246,29 @@ class Respuestas extends Table {
   IntColumn get criticidadCalculada => integer()();
   IntColumn get criticidadCalculadaConReparaciones => integer()();
 
-  TextColumn get preguntaId => text().nullable().customConstraint(
-      'NULLABLE REFERENCES preguntas(id) ON DELETE CASCADE')();
+  TextColumn get preguntaId => text()
+      .nullable()
+      .references(Preguntas, #id, onDelete: KeyAction.cascade)();
 
-  TextColumn get respuestaCuadriculaId => text().nullable().customConstraint(
-      'NULLABLE REFERENCES respuestas(id) ON DELETE CASCADE')();
+  TextColumn get respuestaCuadriculaId => text()
+      .nullable()
+      .references(Respuestas, #id, onDelete: KeyAction.cascade)();
 
-  TextColumn get respuestaMultipleId => text().nullable().customConstraint(
-      'NULLABLE REFERENCES respuestas(id) ON DELETE CASCADE')();
+  TextColumn get respuestaMultipleId => text()
+      .nullable()
+      .references(Respuestas, #id, onDelete: KeyAction.cascade)();
 
-  TextColumn get inspeccionId => text().nullable().customConstraint(
-      'NULLABLE REFERENCES inspecciones(id) ON DELETE CASCADE')();
+  TextColumn get inspeccionId => text()
+      .nullable()
+      .references(Inspecciones, #id, onDelete: KeyAction.cascade)();
 
-  TextColumn get opcionSeleccionadaId => text().nullable().customConstraint(
-      'NULLABLE REFERENCES opciones_de_respuesta(id) ON DELETE NO ACTION')();
+  TextColumn get opcionSeleccionadaId => text()
+      .nullable()
+      .references(OpcionesDeRespuesta, #id, onDelete: KeyAction.noAction)();
 
-  TextColumn get opcionRespondidaId => text().nullable().customConstraint(
-      'NULLABLE REFERENCES opciones_de_respuesta(id) ON DELETE NO ACTION')();
+  TextColumn get opcionRespondidaId => text()
+      .nullable()
+      .references(OpcionesDeRespuesta, #id, onDelete: KeyAction.noAction)();
 
   BoolColumn get opcionRespondidaEstaSeleccionada => boolean().nullable()();
 
@@ -271,64 +278,11 @@ class Respuestas extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/*
-class ListOfImagesInColumnConverter extends TypeConverter<ListImages, String> {
-  const ListOfImagesInColumnConverter();
-  @override
-  ListImages? mapToDart(fromDb) {
-    if (fromDb == null) {
-      return null;
-    }
-
-    /// Como es DB entonces es mobil, y si empieza por http es remota
-    /// TODO: hacerlo mas robusto
-    return IList.from(jsonDecode(fromDb) as List).map((path) =>
-        (path as String).startsWith('http')
-            ? AppImage.remote(path)
-            : AppImage.mobile(path));
-  }
-
-  @override
-  String? mapToSql(value) {
-    if (value == null) {
-      return null;
-    }
-    if (value.length() == 0) return "[]";
-
-    final str = value.foldLeft<String>("[",
-        (acc, val) => acc + '"${val.when(remote: id, mobile: id, web: id)}",');
-    return str.replaceRange(str.length - 1, str.length, ']');
-  }
-}
-*/
-/*
-class _ListToTextConverter extends TypeConverter<List<String>, String> {
-  const _ListToTextConverter();
-  @override
-  List<String>? mapToDart(fromDb) {
-    if (fromDb == null) {
-      return null;
-    }
-
-    return (jsonDecode(fromDb) as List).cast<String>();
-  }
-
-  @override
-  String? mapToSql(value) {
-    if (value == null) {
-      return null;
-    }
-    return jsonEncode(value);
-  }
-}
-*/
-class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
+class _ListImagesToTextConverter
+    extends NullAwareTypeConverter<List<AppImage>, String> {
   const _ListImagesToTextConverter();
   @override
-  List<AppImage>? mapToDart(fromDb) {
-    if (fromDb == null) {
-      return null;
-    }
+  List<AppImage> requireMapToDart(fromDb) {
     return (json.decode(fromDb) as List)
         .cast<String>()
         .map((p) => p.startsWith("http")
@@ -340,10 +294,7 @@ class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
   }
 
   @override
-  String? mapToSql(value) {
-    if (value == null) {
-      return null;
-    }
+  String requireMapToSql(value) {
     return json.encode(value
         .map((i) => i.when(
               remote: (id, url) => url + "#" + id,
@@ -354,53 +305,23 @@ class _ListImagesToTextConverter extends TypeConverter<List<AppImage>, String> {
   }
 }
 
-class _JsonToTextConverter extends TypeConverter<dynamic, String> {
+class _JsonToTextConverter extends NullAwareTypeConverter<dynamic, String> {
   const _JsonToTextConverter();
   @override
-  dynamic mapToDart(fromDb) => fromDb == null ? null : json.decode(fromDb);
+  dynamic requireMapToDart(fromDb) => json.decode(fromDb);
 
   @override
-  String? mapToSql(value) => value == null ? null : json.encode(value);
+  String requireMapToSql(value) => json.encode(value);
 }
-/*
-class TipoDePreguntaConverter extends TypeConverter<TipoDePregunta, String> {
-  const TipoDePreguntaConverter();
-  @override
-  TipoDePregunta? mapToDart(fromDb) {
-    if (fromDb == null) {
-      return null;
-    }
 
-    return EnumToString.fromString(TipoDePregunta.values, fromDb);
-  }
-
-  @override
-  String? mapToSql(value) {
-    if (value == null) {
-      return null;
-    }
-    return EnumToString.convertToString(value);
-  }
-}*/
-
-class _EnumToStringConverter<T extends Enum> extends TypeConverter<T, String> {
+class _EnumToStringConverter<T extends Enum>
+    extends NullAwareTypeConverter<T, String> {
   final List<T> enumValues;
   const _EnumToStringConverter(this.enumValues);
 
   @override
-  T? mapToDart(fromDb) {
-    if (fromDb == null) {
-      return null;
-    }
-
-    return EnumToString.fromString(enumValues, fromDb);
-  }
+  T requireMapToDart(fromDb) => EnumToString.fromString(enumValues, fromDb)!;
 
   @override
-  String? mapToSql(value) {
-    if (value == null) {
-      return null;
-    }
-    return EnumToString.convertToString(value);
-  }
+  String requireMapToSql(value) => EnumToString.convertToString(value);
 }

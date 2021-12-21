@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:drift/drift.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/activo.dart';
@@ -7,7 +8,6 @@ import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_
 import 'package:inspecciones/features/llenado_inspecciones/domain/inspeccion.dart';
 import 'package:inspecciones/infrastructure/core/api_exceptions.dart';
 import 'package:inspecciones/infrastructure/daos/sincronizacion_dao.dart';
-import 'package:inspecciones/infrastructure/datasources/fotos_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/inspecciones_remote_datasource.dart';
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart' as drift;
@@ -18,11 +18,18 @@ import 'package:test/test.dart';
 
 import 'inspecciones_repository_test.mocks.dart';
 
+T aliasShim<T extends Table, D>(TableInfo<T, D>? table, String? alias) {
+  //return table.createAlias(alias).asDslTable;
+  throw 'unknown';
+}
+
 @GenerateMocks(
   [
     InspeccionesRemoteDataSource,
     drift.Database,
-    SincronizacionDao,
+  ],
+  customMocks: [
+    MockSpec<SincronizacionDao>(fallbackGenerators: {#alias: aliasShim})
   ],
 )
 main() {
@@ -73,7 +80,8 @@ main() {
         "debería devolver Left(ApiFailure.errorInesperadoDelServidor) si la api lanza una excepcion inesperada",
         () async {
       //TODO: debería ser errorInesperadoDelDatasource o considerar dejar propagar la excepcion
-      when(_api.descargarInspeccion(1)).thenAnswer((_) async => throw Exception());
+      when(_api.descargarInspeccion(1))
+          .thenAnswer((_) async => throw Exception());
 
       final res = await repository.descargarInspeccion(1);
 
