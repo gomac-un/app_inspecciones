@@ -20,8 +20,7 @@ class InicioInspeccionController {
 
   late final activoControl = fb.control<String>('', [Validators.required])
     ..valueChanges.listen((activo) async {
-      /// A medida que se escribe un activo diferente, se va consultando
-      /// que tipos de inspeccion le aplican.
+      /// A medida que se escribe se va consultando cuestionarios le aplican.
 
       if (activo == null) {
         tiposDeInspeccionDisponibles.value = [];
@@ -153,7 +152,7 @@ class CargaLocalForm extends ConsumerWidget {
       const SizedBox(height: 10),
       ReactiveTextField(
         formControl: controller.activoControl,
-        keyboardType: TextInputType.number,
+        autofocus: true,
         decoration: const InputDecoration(
           labelText: 'Escriba el identificador del activo',
           prefixIcon: Icon(Icons.view_in_ar_outlined),
