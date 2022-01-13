@@ -55,7 +55,6 @@ class ControladorLlenadoInspeccion {
   final ControladorFactory factory;
   final CuestionarioInspeccionado cuestionario;
 
-  /// usado para leer providers
   final Reader _read;
 
   late final List<ControladorDePregunta> controladores = cuestionario.bloques

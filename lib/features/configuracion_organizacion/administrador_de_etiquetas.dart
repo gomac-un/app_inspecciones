@@ -365,7 +365,7 @@ class CreacionDeNivelesDialog extends HookConsumerWidget {
             "Importante: No se pueden modificar los niveles una vez creados",
             style: Theme.of(context)
                 .textTheme
-                .bodySmall
+                .overline
                 ?.copyWith(color: Colors.red),
           ),
           Flexible(

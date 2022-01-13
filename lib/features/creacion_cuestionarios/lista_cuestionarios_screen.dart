@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
@@ -109,11 +110,9 @@ class CuestionariosPage extends ConsumerWidget {
                       content:
                           Text("Cuestionario finalizado, recuerda subirlo")))
                   : null),
-      tileColor: Theme.of(context).cardColor,
       title:
           Text("${cuestionario.tipoDeInspeccion} - v${cuestionario.version}"),
-      subtitle:
-          Text('Estado: ${EnumToString.convertToString(cuestionario.estado)}'),
+      subtitle: Text(EnumToString.convertToString(cuestionario.estado)),
 
       /// la opcion de subir solo se esconde cuando el cuestionario esta finalizado y tambien esta subido, o si es remoto
       leading: (cuestionario.subido &&
@@ -129,7 +128,61 @@ class CuestionariosPage extends ConsumerWidget {
               ),
               onPressed: () =>
                   _subirCuestionario(context, viewModel, cuestionario)),
-      trailing: estaGuardado
+      trailing: PopupMenuButton<AccionCuestionario>(
+        onSelected: (AccionCuestionario result) {
+          switch (result) {
+            case AccionCuestionario.descargar:
+              viewModel.descargarCuestionario(cuestionario).then((r) => r.fold(
+                    (l) => ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text("$l"))),
+                    (r) => ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Cuestionario descargado"))),
+                  ));
+              break;
+            case AccionCuestionario.eliminar:
+              _eliminarCuestionario(context, cuestionario, viewModel);
+              break;
+            case AccionCuestionario.subir:
+              _subirCuestionario(context, viewModel, cuestionario);
+              break;
+            case AccionCuestionario.previsualizar:
+              context.goNamed(
+                'inspeccion',
+                params: {
+                  "activoid": "previsualizacion",
+                  "cuestionarioid": cuestionario.id,
+                },
+              );
+              break;
+          }
+        },
+        itemBuilder: (BuildContext context) =>
+            <PopupMenuEntry<AccionCuestionario>>[
+          if (!estaGuardado)
+            const PopupMenuItem(
+              value: AccionCuestionario.descargar,
+              child: Text('descargar'),
+            ),
+          if (!(cuestionario.subido &&
+                  cuestionario.estado == EstadoDeCuestionario.finalizado) &&
+              estaGuardado)
+            const PopupMenuItem(
+              value: AccionCuestionario.subir,
+              child: Text('subir'),
+            ),
+          const PopupMenuItem(
+            value: AccionCuestionario.previsualizar,
+            child: Text('previsualizar'),
+          ),
+          if (estaGuardado)
+            const PopupMenuItem(
+              value: AccionCuestionario.eliminar,
+              child: Text('eliminar'),
+            ),
+        ],
+      ),
+      /*estaGuardado
           ? IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () =>
@@ -146,7 +199,7 @@ class CuestionariosPage extends ConsumerWidget {
                         (r) => ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text("Cuestionario descargado"))),
-                      ))),
+                      ))),*/
     );
   }
 
@@ -210,34 +263,15 @@ class CuestionariosPage extends ConsumerWidget {
   }
 }
 
-/// Botón de creación de cuestionarios
-class FloatingActionButtonCreacionCuestionario extends StatelessWidget {
-  const FloatingActionButtonCreacionCuestionario({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton.extended(
-      onPressed: () async {
-        final res = await Navigator.of(context).push<bool>(
-          MaterialPageRoute(
-            builder: (_) => const EdicionFormPage(),
-          ),
-        );
-        // muestra el mensaje que viene desde la pantalla de llenado
-        if (res ?? false) {
-          ScaffoldMessenger.of(context)
-            ..removeCurrentSnackBar()
-            ..showSnackBar(const SnackBar(
-                content: Text("Cuestionario finalizado, recuerda subirlo")));
-        }
-      },
-      icon: const Icon(Icons.add),
-      label: const Text("Cuestionario"),
-    );
-  }
+enum AccionCuestionario {
+  descargar,
+  subir,
+  previsualizar,
+  nuevaVersion,
+  eliminar,
 }
+
+
 
 final _cuestionarioListViewModelProvider = Provider((ref) =>
     _CuestionarioListViewModel(ref.watch(cuestionariosRepositoryProvider)));

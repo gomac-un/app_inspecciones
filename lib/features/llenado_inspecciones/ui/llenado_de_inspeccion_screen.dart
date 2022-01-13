@@ -39,8 +39,7 @@ class InspeccionPage extends HookConsumerWidget {
               kIsWeb && ref.watch(showFABProvider);
 
           return Scaffold(
-            backgroundColor:
-                Theme.of(context).backgroundColor, //TODO: mirar si es necesario
+            backgroundColor: Theme.of(context).backgroundColor,
             drawer: const UserDrawer(),
             //TODO: mirar si es necesario deshabilitar el drawer mientras se está llenando una inspeccion
             appBar: AppBar(

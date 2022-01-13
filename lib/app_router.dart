@@ -5,7 +5,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'application/auth/auth_service.dart';
 import 'features/configuracion_organizacion/organizacion_page.dart';
-import 'features/creacion_cuestionarios/lista_cuestionarios_screen.dart';
+import 'features/creacion_cuestionarios/lista_cuestionarios_page.dart';
 import 'features/llenado_inspecciones/domain/identificador_inspeccion.dart';
 import 'features/llenado_inspecciones/ui/history_screen.dart';
 import 'features/llenado_inspecciones/ui/lista_inspecciones_screen.dart';
@@ -33,7 +33,7 @@ final goRouterProvider = Provider((ref) => GoRouter(
         GoRoute(
           path: '/cuestionarios',
           name: 'cuestionarios',
-          builder: (context, state) => const CuestionariosPage(),
+          builder: (context, state) => const ListaCuestionariosPage(),
         ),
         GoRoute(
           path: '/inspecciones',

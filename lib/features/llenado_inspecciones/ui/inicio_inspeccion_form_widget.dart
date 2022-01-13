@@ -37,6 +37,7 @@ class InicioInspeccionController {
         tipoInspeccionControl.value = l.isNotEmpty ? l.first : null;
       });
     });
+    
   final tipoInspeccionControl =
       fb.control<Cuestionario?>(null, [Validators.required]);
 
@@ -98,7 +99,6 @@ enum TipoDeCarga {
 }
 final tipoDeCargaProvider = StateProvider((ref) => TipoDeCarga.local);
 
-/// Alerta que salta cuando se presiona el boton de iniciar inspeccion
 class InicioInspeccionForm extends ConsumerWidget {
   const InicioInspeccionForm({Key? key}) : super(key: key);
 

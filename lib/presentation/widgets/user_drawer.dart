@@ -43,12 +43,6 @@ class UserDrawer extends ConsumerWidget {
                     icon: Icons.list_alt_outlined,
                     onTap: () => context.goNamed("inspecciones"),
                   ),
-                  if (false) //TODO: eliminar
-                    MenuItem(
-                      texto: 'Sincronizar con GOMAC',
-                      icon: Icons.sync_outlined,
-                      onTap: () => context.goNamed("sincronizacion"),
-                    ),
                   if (user.esAdmin)
                     MenuItem(
                       texto: 'Herramientas de desarrollador',
