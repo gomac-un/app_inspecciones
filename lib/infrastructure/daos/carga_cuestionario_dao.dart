@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart' hide DataClass;
+import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/features/creacion_cuestionarios/tablas_unidas.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 
@@ -257,6 +258,79 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
 
   Future<List<EtiquetaDeActivo>> getEtiquetas() =>
       select(etiquetasDeActivo).get();
+
+  PreguntasCompanion _buildPreguntaSinId(Pregunta pregunta) =>
+      pregunta.toCompanion(true).copyWith(
+          id: const Value.absent(),
+          cuadriculaId: const Value.absent(),
+          bloqueId: const Value.absent());
+
+  PreguntaDeSeleccionCompanion _buildPreguntaDeSeleccionSinId(
+      PreguntaDeSeleccion pregunta) {
+    final preguntaCompanion = _buildPreguntaSinId(pregunta.pregunta);
+    final opcionesCompanion = pregunta.opcionesDeRespuesta
+        .map((opc) => opc.toCompanion(true).copyWith(
+            id: const Value.absent(), preguntaId: const Value.absent()))
+        .toList();
+    final etiquetasCompanion =
+        pregunta.etiquetas.map((eti) => eti.toCompanion(true)).toList();
+    return pregunta.toCompanion().copyWith(
+        pregunta: preguntaCompanion,
+        opcionesDeRespuesta: opcionesCompanion,
+        etiquetas: etiquetasCompanion);
+  }
+
+  CuestionarioCompletoCompanion duplicarCuestionario(
+      CuestionarioCompleto cuestionario) {
+    final tipoDeInspeccion = cuestionario.cuestionario.tipoDeInspeccion;
+    final cuestionarioCompanion = cuestionario.cuestionario
+        .toCompanion(true)
+        .copyWith(
+            id: const Value.absent(),
+            estado: const Value(EstadoDeCuestionario.borrador),
+            version: Value(cuestionario.cuestionario.version + 1),
+            tipoDeInspeccion: Value(tipoDeInspeccion));
+    final etiquetasDeActivoCompanion =
+        cuestionario.etiquetas.map((eti) => eti.toCompanion(true)).toList();
+    final bloquesCompanion = cuestionario.bloques.map<Companion>((e) {
+      if (e is TituloD) {
+        final tituloCompanion = e.titulo
+            .toCompanion(true)
+            .copyWith(id: const Value.absent(), bloqueId: const Value.absent());
+        return e.toCompanion().copyWith(titulo: tituloCompanion);
+      }
+      if (e is PreguntaDeSeleccion) {
+        return _buildPreguntaDeSeleccionSinId(e);
+      }
+      if (e is PreguntaNumerica) {
+        final preguntaCompanion = _buildPreguntaSinId(e.pregunta);
+        final criticidadesCompanion = e.criticidades
+            .map((criti) => criti.toCompanion(true).copyWith(
+                id: const Value.absent(), preguntaId: const Value.absent()))
+            .toList();
+        final etiquetasCompanion =
+            e.etiquetas.map((eti) => eti.toCompanion(true)).toList();
+        return e.toCompanion().copyWith(
+            pregunta: preguntaCompanion,
+            criticidades: criticidadesCompanion,
+            etiquetas: etiquetasCompanion);
+      }
+      if (e is CuadriculaConPreguntasYConOpcionesDeRespuesta) {
+        final cuadriculaCompanion =
+            _buildPreguntaDeSeleccionSinId(e.cuadricula);
+        final preguntasCompanion = e.preguntas
+            .map((preg) => _buildPreguntaDeSeleccionSinId(preg))
+            .toList();
+        return e.toCompanion().copyWith(
+            cuadricula: cuadriculaCompanion, preguntas: preguntasCompanion);
+      }
+      throw TaggedUnionError(e);
+    }).toList();
+    return cuestionario.toCompanion().copyWith(
+        cuestionario: cuestionarioCompanion,
+        etiquetas: etiquetasDeActivoCompanion,
+        bloques: bloquesCompanion);
+  }
 /*
 /// Devuelve los cuestionarios cuyo tipoDeInspeccion=[tipoDeInspeccion] y que
   ///  sean aplicables a [etiquetas].

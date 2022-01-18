@@ -280,6 +280,13 @@ class CuestionariosRepository {
   Future<void> eliminarCuestionario(Cuestionario cuestionario) =>
       _db.cargaDeCuestionarioDao.eliminarCuestionario(cuestionario);
 
+  Future<void> duplicarCuestionario(Cuestionario cuestionario) async {
+    final cuestionarioCompleto = await getCuestionarioCompleto(cuestionario.id);
+    final cuestionarioCompletoCompanion =
+        _db.cargaDeCuestionarioDao.duplicarCuestionario(cuestionarioCompleto);
+    await guardarCuestionario(cuestionarioCompletoCompanion);
+  }
+
   Future<CuestionarioCompleto> getCuestionarioCompleto(String cuestionarioId) =>
       _db.cargaDeCuestionarioDao.getCuestionarioCompleto(cuestionarioId);
 

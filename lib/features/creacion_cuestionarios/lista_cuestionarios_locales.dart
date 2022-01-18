@@ -227,5 +227,5 @@ class _CuestionarioListViewModel {
       _cuestionariosRepository.eliminarCuestionario(cuestionario);
 
   Future<void> duplicarCuestionario(Cuestionario cuestionario) =>
-      throw UnimplementedError();
+      _cuestionariosRepository.duplicarCuestionario(cuestionario);
 }
