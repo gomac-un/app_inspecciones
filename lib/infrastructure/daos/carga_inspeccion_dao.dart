@@ -493,7 +493,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
           subRespuestas,
         );
       }));
-
+      final respuesta = await _getRespuestaDePregunta(cuadricula, inspeccionId);
       return Tuple2(
         bloque.nOrden,
         _buildCuadriculaDeSeleccionMultiple(
@@ -501,6 +501,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
           opciones,
           cuadricula,
           etiquetas,
+          respuesta,
         ),
       );
     }));
@@ -511,6 +512,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
     List<OpcionDeRespuesta> opciones,
     Pregunta cuadricula,
     List<EtiquetaDePregunta> etiquetas,
+    Respuesta? respuesta,
   ) =>
       dominio.CuadriculaDeSeleccionMultiple(
         preguntasRespondidas,
@@ -522,6 +524,12 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         criticidad: cuadricula.criticidad,
         etiquetas:
             etiquetas.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList(),
+        respuesta: respuesta == null
+            ? null
+            : dominio.RespuestaDeCuadricula(
+                _buildMetaRespuesta(respuesta),
+                [],
+              ),
       );
 
   Future<List<Pregunta>> _getPreguntasDeCuadricula(String cuadriculaId) async {
