@@ -42,7 +42,7 @@ class InspeccionesRepository {
     return Right(cuestionarios
         .map((cuest) => Cuestionario(
               id: cuest.id,
-              tipoDeInspeccion: cuest.tipoDeInspeccion,
+              tipoDeInspeccion: '${cuest.tipoDeInspeccion} V${cuest.version}',
             ))
         .toList());
   }
