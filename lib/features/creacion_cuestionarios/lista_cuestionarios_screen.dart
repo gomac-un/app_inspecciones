@@ -1,10 +1,11 @@
 import 'package:dartz/dartz.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/identificador_inspeccion.dart';
+import 'package:inspecciones/features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/cuestionarios_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
@@ -147,12 +148,15 @@ class CuestionariosPage extends ConsumerWidget {
               _subirCuestionario(context, viewModel, cuestionario);
               break;
             case AccionCuestionario.previsualizar:
-              context.goNamed(
-                'inspeccion',
-                params: {
-                  "activoid": "previsualizacion",
-                  "cuestionarioid": cuestionario.id,
-                },
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => InspeccionPage(
+                    inspeccionId: IdentificadorDeInspeccion(
+                      activo: "previsualizacion",
+                      cuestionarioId: cuestionario.id,
+                    ),
+                  ),
+                ),
               );
               break;
           }
@@ -270,8 +274,6 @@ enum AccionCuestionario {
   nuevaVersion,
   eliminar,
 }
-
-
 
 final _cuestionarioListViewModelProvider = Provider((ref) =>
     _CuestionarioListViewModel(ref.watch(cuestionariosRepositoryProvider)));

@@ -72,13 +72,27 @@ class InspeccionesPage extends ConsumerWidget {
                       : 'Criticidad parcial: ';
 
               return ListTile(
-                onTap: () => context.goNamed(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => InspeccionPage(
+                      inspeccionId: IdentificadorDeInspeccion(
+                        activo: borrador.inspeccion.activo.id,
+                        cuestionarioId: borrador.cuestionario.id.toString(),
+                      ),
+                    ),
+                  ),
+                ),
+                /* 'inspeccion', arguments: {
+                  "activoid": borrador.inspeccion.activo.id,
+                  "cuestionarioid": borrador.cuestionario.id.toString(),
+                }), */
+                /* context.goNamed(
                   'inspeccion',
                   params: {
                     "activoid": borrador.inspeccion.activo.id,
                     "cuestionarioid": borrador.cuestionario.id.toString(),
                   },
-                ),
+                ), */
                 //TODO: mejorar la manera de mostrar la informacion
                 tileColor: Theme.of(context).cardColor,
                 title: Text(
@@ -120,15 +134,15 @@ class InspeccionesPage extends ConsumerWidget {
                     onPressed: () => _subirInspeccion(context, ref, borrador)),
                 trailing:
                     borrador.inspeccion.estado == EstadoDeInspeccion.finalizada
-                        ? IconButton(
+                        ? const SizedBox.shrink()
+                        : IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () => _eliminarBorrador(
                               borrador,
                               context,
                               ref.read(inspeccionesRepositoryProvider),
                             ),
-                          )
-                        : const SizedBox.shrink(),
+                          ),
               );
             },
           );

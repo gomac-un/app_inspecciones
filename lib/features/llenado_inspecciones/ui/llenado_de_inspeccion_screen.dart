@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 import 'package:inspecciones/utils/hooks.dart';
 
 import '../control/controlador_llenado_inspeccion.dart';
@@ -40,7 +39,7 @@ class InspeccionPage extends HookConsumerWidget {
 
           return Scaffold(
             backgroundColor: Theme.of(context).backgroundColor,
-            drawer: const UserDrawer(),
+            /* drawer: const UserDrawer(), */
             //TODO: mirar si es necesario deshabilitar el drawer mientras se está llenando una inspeccion
             appBar: AppBar(
               title: Text(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/domain/inspecciones/inspecciones_failure.dart';
+import 'package:inspecciones/features/llenado_inspecciones/ui/llenado_de_inspeccion_screen.dart';
 import 'package:inspecciones/infrastructure/repositories/inspecciones_remote_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -37,7 +38,7 @@ class InicioInspeccionController {
         tipoInspeccionControl.value = l.isNotEmpty ? l.first : null;
       });
     });
-    
+
   final tipoInspeccionControl =
       fb.control<Cuestionario?>(null, [Validators.required]);
 
@@ -176,8 +177,11 @@ class CargaLocalForm extends ConsumerWidget {
         formControl: controller.controlLocal,
         builder: (context, _, __) => ElevatedButton(
           onPressed: controller.controlLocal.valid
-              ? () => Navigator.of(context).pop(
-                    controller.getArgumentosParaLocal(),
+              ? () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: ((context) {
+                      return InspeccionPage(
+                          inspeccionId: controller.getArgumentosParaLocal());
+                    })),
                   )
               : null,
           child: const Text('Inspeccionar'),
