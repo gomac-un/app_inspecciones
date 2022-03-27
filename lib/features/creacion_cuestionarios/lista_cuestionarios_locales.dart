@@ -100,22 +100,27 @@ class ListaCuestionariosLocales extends ConsumerWidget {
             <PopupMenuEntry<_AccionCuestionarioLocal>>[
           if (!(cuestionario.subido &&
               cuestionario.estado == EstadoDeCuestionario.finalizado))
-            const PopupMenuItem(
+            PopupMenuItem(
               value: _AccionCuestionarioLocal.subir,
-              child: Text('subir'),
+              child: Text(EnumToString.convertToString(
+                  _AccionCuestionarioLocal.subir,
+                  camelCase: true)),
             ),
-          const PopupMenuItem(
-            value: _AccionCuestionarioLocal.previsualizar,
-            child: Text('previsualizar'),
-          ),
-          const PopupMenuItem(
-            value: _AccionCuestionarioLocal.nuevaVersion,
-            child: Text('nueva versión'),
-          ),
-          const PopupMenuItem(
-            value: _AccionCuestionarioLocal.eliminar,
-            child: Text('eliminar'),
-          ),
+          PopupMenuItem(
+              value: _AccionCuestionarioLocal.previsualizar,
+              child: Text(EnumToString.convertToString(
+                  _AccionCuestionarioLocal.previsualizar,
+                  camelCase: true))),
+          PopupMenuItem(
+              value: _AccionCuestionarioLocal.nuevaVersion,
+              child: Text(EnumToString.convertToString(
+                  _AccionCuestionarioLocal.nuevaVersion,
+                  camelCase: true))),
+          PopupMenuItem(
+              value: _AccionCuestionarioLocal.eliminar,
+              child: Text(EnumToString.convertToString(
+                  _AccionCuestionarioLocal.eliminar,
+                  camelCase: true))),
         ],
       ),
     );

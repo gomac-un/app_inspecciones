@@ -164,25 +164,32 @@ class CuestionariosPage extends ConsumerWidget {
         itemBuilder: (BuildContext context) =>
             <PopupMenuEntry<AccionCuestionario>>[
           if (!estaGuardado)
-            const PopupMenuItem(
+            PopupMenuItem(
               value: AccionCuestionario.descargar,
-              child: Text('descargar'),
+              child: Text(EnumToString.convertToString(
+                  AccionCuestionario.descargar,
+                  camelCase: true)),
             ),
           if (!(cuestionario.subido &&
                   cuestionario.estado == EstadoDeCuestionario.finalizado) &&
               estaGuardado)
-            const PopupMenuItem(
+            PopupMenuItem(
               value: AccionCuestionario.subir,
-              child: Text('subir'),
+              child: Text(EnumToString.convertToString(AccionCuestionario.subir,
+                  camelCase: true)),
             ),
-          const PopupMenuItem(
+          PopupMenuItem(
             value: AccionCuestionario.previsualizar,
-            child: Text('previsualizar'),
+            child: Text(EnumToString.convertToString(
+                AccionCuestionario.previsualizar,
+                camelCase: true)),
           ),
           if (estaGuardado)
-            const PopupMenuItem(
+            PopupMenuItem(
               value: AccionCuestionario.eliminar,
-              child: Text('eliminar'),
+              child: Text(EnumToString.convertToString(
+                  AccionCuestionario.eliminar,
+                  camelCase: true)),
             ),
         ],
       ),
