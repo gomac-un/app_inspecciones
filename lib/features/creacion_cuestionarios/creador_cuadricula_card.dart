@@ -125,7 +125,8 @@ class WidgetPreguntas extends StatelessWidget {
                             Column(
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.fullscreen),
+                                  icon: const Icon(
+                                      Icons.add_circle_outline_sharp),
                                   tooltip: 'Más detalles',
                                   onPressed: () async {
                                     final maincontext = context;
