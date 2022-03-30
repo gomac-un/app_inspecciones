@@ -22,7 +22,9 @@ class WidgetCriticidad extends HookWidget {
 
     return estadoDeInspeccion == EstadoDeInspeccion.borrador
         ? _WidgetCriticidad.borrador(
-            criticidadPregunta: control.criticidadPregunta)
+            criticidadPregunta: control.criticidadPregunta,
+            criticidadCalculada: criticidadCalculada,
+          )
         : _WidgetCriticidad.noBorrador(
             criticidadCalculada: criticidadCalculada);
   }
@@ -31,26 +33,54 @@ class WidgetCriticidad extends HookWidget {
 class _WidgetCriticidad extends StatelessWidget {
   final int criticidad;
   final String mensajeCriticidad;
+  final int? criticidadRespuesta;
+  final String? mensajeCriticidadRespuesta;
 
-  const _WidgetCriticidad.borrador({Key? key, required int criticidadPregunta})
+  const _WidgetCriticidad.borrador(
+      {Key? key,
+      required int criticidadPregunta,
+      required int criticidadCalculada})
       : criticidad = criticidadPregunta,
         mensajeCriticidad = 'Criticidad pregunta',
+        criticidadRespuesta = criticidadCalculada,
+        mensajeCriticidadRespuesta = 'Criticidad respuesta',
         super(key: key);
 
   const _WidgetCriticidad.noBorrador(
       {Key? key, required int criticidadCalculada})
       : criticidad = criticidadCalculada,
         mensajeCriticidad = 'Criticidad',
+        criticidadRespuesta = null,
+        mensajeCriticidadRespuesta = null,
         super(key: key);
 
   @override
   Widget build(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          criticidad > 0 ? _iconCritico : _iconNoCritico,
-          Text(
-            '$mensajeCriticidad: $criticidad',
-            style: Theme.of(context).textTheme.bodyText1,
+          Expanded(flex: 1, child: Container()),
+          Flexible(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: criticidad > 0 ? _iconCritico : _iconNoCritico,
+                  title: Text(
+                    '$mensajeCriticidad: $criticidad',
+                    style: Theme.of(context).textTheme.bodyText1,
+                  ),
+                ),
+                if (criticidadRespuesta != null &&
+                    mensajeCriticidadRespuesta != null)
+                  ListTile(
+                    leading: criticidadRespuesta! > 0
+                        ? _iconCritico
+                        : _iconNoCritico,
+                    title: Text(
+                      '$mensajeCriticidadRespuesta: $criticidadRespuesta',
+                      style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                  )
+              ],
+            ),
           ),
         ],
       );
