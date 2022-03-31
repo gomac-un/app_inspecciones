@@ -33,13 +33,19 @@ class Organizacion {
 }
 
 class ActivoEnLista {
+  final String id;
   final String identificador;
   final List<Etiqueta> etiquetas;
 
-  ActivoEnLista(this.identificador, this.etiquetas);
+  ActivoEnLista(
+    this.id,
+    this.identificador,
+    this.etiquetas,
+  );
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'identificador': identificador,
       'etiquetas': etiquetas.map((x) => x.toMap()).toList(),
     };
@@ -47,6 +53,7 @@ class ActivoEnLista {
 
   factory ActivoEnLista.fromMap(Map<String, dynamic> map) {
     return ActivoEnLista(
+      map['id'],
       map['identificador'],
       (map['etiquetas'] as List).map((x) => Etiqueta.fromMap(x)).toList(),
     );

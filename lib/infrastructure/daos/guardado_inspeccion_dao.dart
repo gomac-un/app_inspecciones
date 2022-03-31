@@ -10,6 +10,7 @@ part 'guardado_inspeccion_dao.g.dart';
 @DriftAccessor(tables: [
   Inspecciones,
   Respuestas,
+  Activos,
 ])
 class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
     with _$GuardadoDeInspeccionDaoMixin {
@@ -114,10 +115,13 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
     required String cuestionarioId,
     required dominio.Inspeccion inspeccionDominio,
   }) async {
+    final activoQuery = select(activos)
+      ..where((activo) => activo.id.equals(inspeccionDominio.activo.id));
+    final activo = await activoQuery.getSingle();
     final ins = InspeccionesCompanion.insert(
       id: _generarInspeccionId(inspeccionDominio.activo.id),
       cuestionarioId: cuestionarioId,
-      activoId: inspeccionDominio.activo.id,
+      activoId: activo.pk,
       momentoInicio: inspeccionDominio.momentoInicio,
       estado: inspeccionDominio.estado,
       criticidadCalculada: inspeccionDominio.criticidadCalculada,

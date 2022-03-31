@@ -24,6 +24,7 @@ class OrganizacionDao extends DatabaseAccessor<Database>
     return Future.wait(
       activosInsertados.map(
         (a) async => dominio.ActivoEnLista(
+          a.pk,
           a.id,
           await db.utilsDao.getEtiquetasDeActivo(activoId: a.id).then(
               (l) => l.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList()),
@@ -56,7 +57,8 @@ class OrganizacionDao extends DatabaseAccessor<Database>
             .go();*/
         for (final activo in activosEnLista) {
           final activoInsertado = await into(activos).insertReturning(
-              ActivosCompanion.insert(id: activo.identificador),
+              ActivosCompanion.insert(
+                  pk: Value(activo.id), id: activo.identificador),
               mode: InsertMode.insertOrReplace);
           for (final etiqueta in activo.etiquetas) {
             await _asignarEtiqueta(activoInsertado, etiqueta);

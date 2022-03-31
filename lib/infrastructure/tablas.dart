@@ -36,10 +36,13 @@ class Etiquetas extends Table {
 class EtiquetasDeActivo extends Etiquetas {}
 
 class Activos extends Table {
+  TextColumn get pk => text().clientDefault(() => _uuid.v4())();
   TextColumn get id => text()();
 
   @override
-  Set<Column> get primaryKey => {id};
+  Set<Column> get primaryKey => {pk};
+  @override
+  List<String> get customConstraints => ["UNIQUE (id)"];
 }
 
 @DataClassName('ActivoXEtiqueta')
@@ -196,7 +199,7 @@ class Inspecciones extends Table {
   TextColumn get cuestionarioId =>
       text().references(Cuestionarios, #id, onDelete: KeyAction.noAction)();
   TextColumn get activoId =>
-      text().references(Activos, #id, onDelete: KeyAction.noAction)();
+      text().references(Activos, #pk, onDelete: KeyAction.noAction)();
 
   DateTimeColumn get momentoInicio => dateTime()();
   DateTimeColumn get momentoBorradorGuardado => dateTime().nullable()();

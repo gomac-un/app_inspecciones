@@ -8,6 +8,7 @@ import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
 import '../core/typedefs.dart';
@@ -30,9 +31,10 @@ class InspeccionesRemoteRepository {
   /// se puede iniciar la inspeccion desde la pantalla de borradores
   Future<Either<ApiFailure, IdentificadorDeInspeccion>> descargarInspeccion(
       int id) async {
-    throw UnimplementedError(); /*
     final json = await _api.descargarInspeccion(id);
     final parsed = _deserializarInspeccion(json);
+    throw UnimplementedError();
+    /* 
     await _db.guardadoDeInspeccionDao.guardarInspeccion(parsed);
     return const Right(unit);*/
     /*
@@ -44,6 +46,12 @@ class InspeccionesRemoteRepository {
     return inspeccionMap.nestedEvaluatedMap(
       (ins) => _db.sincronizacionDao.guardarInspeccionBD(ins),
     );*/
+  }
+
+  Inspeccion _deserializarInspeccion(Map<String, dynamic> json) {
+    final fecha = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    var inputDate = fecha.parse(json['momento_inicio']);
+    throw Exception();
   }
 
   /// Envia [inspeccion] al server
@@ -109,7 +117,6 @@ class InspeccionesRemoteRepository {
       }
     }
 
-    
     final fotosPorSubir = fotos.where((f) => f is! RemoteImage).toList();
 
     final JsonMap resServer = fotosPorSubir.isEmpty
@@ -162,7 +169,7 @@ class InspeccionSerializer {
   JsonMap serializarInspeccion() => {
         'id': inspeccion.id,
         'cuestionario': cuestionario.id,
-        'activo': inspeccion.activo.id,
+        'activo': inspeccion.activo.pk,
         'momento_inicio': inspeccion.momentoInicio.toUtc().toIso8601String(),
         'momento_finalizacion':
             inspeccion.momentoFinalizacion?.toUtc().toIso8601String(),

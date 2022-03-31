@@ -8,10 +8,13 @@ import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/presentation/widgets/reactive_textfield_tags.dart';
 import 'package:inspecciones/utils/future_either_x.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:uuid/uuid.dart';
 
 import 'administrador_de_etiquetas.dart';
 import 'domain/entities.dart';
 import 'widgets/simple_future_provider_refreshable_builder.dart';
+
+const _uuid = Uuid();
 
 class ActivoController {
   final ActivoEnLista _activo;
@@ -29,7 +32,7 @@ class ActivoController {
   ActivoController(this._activo);
 
   ActivoEnLista guardar() =>
-      ActivoEnLista(idControl.value!, tagsControl.value!.toList());
+      ActivoEnLista(_uuid.v4(), idControl.value!, tagsControl.value!.toList());
 
   List<Etiqueta> getEtiquetasDisponibles(List<Jerarquia> todas) {
     final usadas = tagsControl.value!;
@@ -74,7 +77,7 @@ class ListaDeActivosViewModel
       : super(activos.map((a) => ActivoEnListaConController(a, null)).toSet());
 
   void agregarActivo() {
-    final nuevoActivo = ActivoEnLista("", []);
+    final nuevoActivo = ActivoEnLista("", "", []);
     state = {
       ActivoEnListaConController(nuevoActivo, ActivoController(nuevoActivo)),
       ...state,

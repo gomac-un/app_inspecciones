@@ -8,6 +8,7 @@ import 'package:inspecciones/infrastructure/drift_database.dart';
 part 'carga_inspeccion_dao.g.dart';
 
 @DriftAccessor(tables: [
+  Activos,
   EtiquetasDeActivo,
   ActivosXEtiquetas,
   Cuestionarios,
@@ -96,17 +97,21 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   }
 
   Future<Inspeccion?> _getInspeccion(
-          {required String cuestionarioId, required String activoId}) =>
-      (select(inspecciones)
-            ..where(
-              (inspeccion) =>
-                  inspeccion.cuestionarioId.equals(cuestionarioId) &
-                  inspeccion.activoId.equals(activoId) &
+      {required String cuestionarioId, required String activoId}) async {
+    final activoQuery = select(activos)
+      ..where((activo) => activo.id.equals(activoId));
+    final activo = await activoQuery.getSingle();
+    return (select(inspecciones)
+          ..where(
+            (inspeccion) =>
+                inspeccion.cuestionarioId.equals(cuestionarioId) &
+                inspeccion.activoId.equals(activo.pk) &
 
-                  /// Para no cargar las que están en el historial
-                  inspeccion.momentoEnvio.isNull(),
-            ))
-          .getSingleOrNull();
+                /// Para no cargar las que están en el historial
+                inspeccion.momentoEnvio.isNull(),
+          ))
+        .getSingleOrNull();
+  }
 
   Future<dominio.Cuestionario> _getCuestionario(String cuestionarioId) {
     return (select(cuestionarios)
