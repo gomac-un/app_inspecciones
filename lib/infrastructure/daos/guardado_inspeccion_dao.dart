@@ -96,7 +96,7 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
           ..where(
             (i) =>
                 i.cuestionarioId.equals(cuestionarioId) &
-                i.activoId.equals(inspeccionDominio.activo.id) &
+                i.activoId.equals(inspeccionDominio.activo.pk) &
 
                 /// Para no cargar las que están en el historial
                 i.momentoEnvio.isNull(),

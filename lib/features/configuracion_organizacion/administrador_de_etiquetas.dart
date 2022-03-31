@@ -3,6 +3,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
+import 'package:inspecciones/features/configuracion_organizacion/widgets/customList.dart';
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
@@ -93,18 +94,18 @@ class MenuDeEtiquetas extends ConsumerWidget {
                     "Etiquetas de ${EnumToString.convertToString(tipoDeEtiqueta)}"),
                 IconButton(
                   icon: const Icon(Icons.sync_outlined),
-                  tooltip: "sincronizar etiquetas",
+                  tooltip: "Sincronizar etiquetas",
                   onPressed: () => getSincronizarEtiquetas(ref)().then((res) =>
                       res.fold(
                           (l) => showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
-                                    title: const Text("error"),
+                                    title: const Text("Error"),
                                     content: Text(l.toString()),
                                   )),
                           (r) => ScaffoldMessenger.of(context)
                                   .showSnackBar(const SnackBar(
-                                content: Text("etiquetas sincronizadas"),
+                                content: Text("Etiquetas sincronizadas"),
                               )))),
                 ),
               ],
@@ -207,7 +208,11 @@ class MenuDeEtiquetas extends ConsumerWidget {
                             ),
                           ],
                         ),
-                      )
+                      ),
+                    Text(
+                      "Para guardar cualquier cambio que realice, presione el botón de sincronizar",
+                      style: Theme.of(context).textTheme.caption,
+                    ),
                   ],
                 ),
               ),
@@ -273,34 +278,81 @@ class CreacionDeEtiquetaDialog extends ConsumerWidget {
     return ReactiveForm(
       formGroup: viewModel.form,
       child: AlertDialog(
-        title: const Text("Agregar etiqueta"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ReactiveTextField(
-              formControl: viewModel.claveControl,
-              decoration: const InputDecoration(
-                labelText: "Etiqueta",
+        scrollable: true,
+        insetPadding: const EdgeInsets.all(8.0),
+        title: const Text("Agregar categoría"),
+        content: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ReactiveTextField(
+                formControl: viewModel.claveControl,
+                decoration: const InputDecoration(
+                  labelText: "Categoría",
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            ReactiveCheckboxListTile(
-              formControl: viewModel.jerarquiaControl,
-              title: const Text("Jerarquía"),
-              subtitle: const Text(
-                  "Las jerarquías ayudan a filtrar conjuntos de etiquetas, por ejemplo: pais > ciudad > barrio"),
-            ),
-          ],
+              const SizedBox(height: 10),
+              ReactiveCheckboxListTile(
+                formControl: viewModel.jerarquiaControl,
+                title: const Text("Subcategoría"),
+              ),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: const Text(
+                  '¿Necesitas ayuda?',
+                ),
+                trailing: const SizedBox.shrink(),
+                leading: Icon(Icons.help,
+                    color: Theme.of(context).colorScheme.secondary),
+                children: const [
+                  Text(
+                      'En el campo principal, escribe la categoría que quieres agregar.'),
+                  SizedBox(
+                    height: 8.0,
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      '¿Para que sirve?',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  CustomListItem(
+                      text:
+                          'Categoría de activo: permite asignar una inspección a los activos que la usen.'),
+                  CustomListItem(
+                      text:
+                          'Categoría de pregunta: permite clasificar componentes de preguntas.'),
+                  Text(
+                      'Si quieres agregar una subcategoría, marca la casilla de arriba'),
+                  SizedBox(
+                    height: 8.0,
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      '¿Para que sirve?',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  CustomListItem(
+                      text:
+                          'Permite clasificar de forma más detallada una categoría, por ejemplo: pais > ciudad > barrio'),
+                ],
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
-            child: const Text("cancelar"),
+            child: const Text("Cancelar"),
             onPressed: () => Navigator.of(context).pop(),
           ),
           ReactiveFormConsumer(
             builder: (context, form, child) {
               return TextButton(
-                child: const Text("agregar"),
+                child: const Text("Agregar"),
                 onPressed: !form.valid
                     ? null
                     : () {
@@ -358,11 +410,15 @@ class CreacionDeNivelesDialog extends HookConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            "Por favor agregue todos los niveles que tiene la jerarquía, por favor no use nombres de niveles que ya existan en otra etiqueta",
+            "Por favor agregue los nombres de cada subcategoría, no use nombres que ya existan en otra categoría",
             style: Theme.of(context).textTheme.caption,
           ),
           Text(
-            "Importante: No se pueden modificar los niveles una vez creados",
+            "Podrá agregar valores a cada subcategoría seleccionando el valor correspondiente en la pantalla principal ",
+            style: Theme.of(context).textTheme.caption,
+          ),
+          Text(
+            "Importante: No se pueden modificar los nombres una vez creados",
             style: Theme.of(context)
                 .textTheme
                 .overline
@@ -375,21 +431,22 @@ class CreacionDeNivelesDialog extends HookConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     for (final valor in niveles.toIterable())
-                      ListTile(
-                        title: Text(valor),
-                        onTap: null,
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outlined),
-                          onPressed: () => viewModel.eliminarNivel(valor),
+                      if (valor != claveBase)
+                        ListTile(
+                          title: Text(valor),
+                          onTap: null,
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete_outlined),
+                            onPressed: () => viewModel.eliminarNivel(valor),
+                          ),
                         ),
-                      ),
                     Row(
                       children: [
                         Expanded(
                           child: ReactiveTextField(
                             formControl: viewModel.nuevoNivelControl,
                             decoration: const InputDecoration(
-                              labelText: "nuevo nivel",
+                              labelText: "Nueva subcategoría",
                             ),
                             showErrors: (_) => false,
                             onEditingComplete: viewModel.agregarNivel,
@@ -400,7 +457,7 @@ class CreacionDeNivelesDialog extends HookConsumerWidget {
                           onPressed: () => viewModel.agregarNivel(),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -410,7 +467,7 @@ class CreacionDeNivelesDialog extends HookConsumerWidget {
       ),
       actions: [
         TextButton(
-          child: const Text("continuar"),
+          child: const Text("Continuar"),
           onPressed: () {
             viewModel.agregarNivel();
             // ignore: invalid_use_of_protected_member
@@ -476,57 +533,90 @@ class CreacionDeArbolDeEtiquetasDialog extends HookConsumerWidget {
       },
       child: AlertDialog(
         title: Text(clave + (valorPadre != null ? " de $valorPadre" : "")),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              (readOnly ? "" : "Por favor agregue cada " + clave) +
-                  (valorPadre != null
-                      ? " para el ${niveles[profundidad - 1]} $valorPadre"
-                      : ""),
-              style: Theme.of(context).textTheme.caption,
-            ),
-            Flexible(
-              child: Scrollbar(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final valor in valores.toIterable())
-                        valor.nombreControl == null
-                            ? _buildEtiqueta(context, viewModel, valor)
-                            : _buildEtiquetaEditable(viewModel, valor),
-                      if (!readOnly)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ReactiveTextField(
-                                formControl: viewModel.nuevoValorControl,
-                                decoration: InputDecoration(
-                                  labelText: clave,
+        content: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  (readOnly ? "" : "Por favor agregue cada " + clave) +
+                      (valorPadre != null
+                          ? " para el ${niveles[profundidad - 1]} $valorPadre"
+                          : ""),
+                  style: Theme.of(context).textTheme.caption,
+                ),
+                Flexible(
+                  child: Scrollbar(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final valor in valores.toIterable())
+                            valor.nombreControl == null
+                                ? _buildEtiqueta(context, viewModel, valor)
+                                : _buildEtiquetaEditable(viewModel, valor),
+                          if (!readOnly)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ReactiveTextField(
+                                    formControl: viewModel.nuevoValorControl,
+                                    decoration: InputDecoration(
+                                      labelText: clave,
+                                    ),
+                                    showErrors: (c) =>
+                                        c.hasErrors &&
+                                        !c.hasError(ValidationMessage.required),
+                                    onEditingComplete: viewModel.agregarValor,
+                                  ),
                                 ),
-                                showErrors: (c) =>
-                                    c.hasErrors &&
-                                    !c.hasError(ValidationMessage.required),
-                                onEditingComplete: viewModel.agregarValor,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.add),
-                              onPressed: () => viewModel.agregarValor(),
-                            ),
-                          ],
-                        )
-                    ],
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () => viewModel.agregarValor(),
+                                ),
+                              ],
+                            )
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                if (!esUltimoNivel && valores.toIterable().isNotEmpty)
+                  Text(
+                    (readOnly
+                        ? ""
+                        : "Para agregar ${niveles[profundidad + 1]}, seleccione ${niveles[profundidad]} correspondiente"),
+                    style: Theme.of(context).textTheme.caption,
+                  ),
+                if (!readOnly)
+                  ExpansionTile(
+                    tilePadding: EdgeInsets.zero,
+                    title: const Text(
+                      '¿Necesitas ayuda?',
+                    ),
+                    trailing: const SizedBox.shrink(),
+                    leading: Icon(Icons.help,
+                        color: Theme.of(context).colorScheme.secondary),
+                    children: [
+                      Text(
+                          'Agregue los valores que puede tener la categoría ${clave + (valorPadre != null ? " de $valorPadre" : "")}. Escriba el valor y presione + para agregarlo.'),
+                      const SizedBox(height: 8.0),
+                      const Text(
+                          'Cuando termine de agregar los valores, presione siguiente. \nNo te preocupes, podrás editar o agregar nuevos valores después.'),
+                    ],
+                  ),
+              ],
             ),
-          ],
+          ),
         ),
         actions: [
           TextButton(
-            child: const Text("atrás"),
+            child: const Text("Atrás"),
+            onPressed: () => _popConLaInformacion(context, viewModel),
+          ),
+          TextButton(
+            child: const Text("Siguiente"),
             onPressed: () => _popConLaInformacion(context, viewModel),
           ),
         ],
