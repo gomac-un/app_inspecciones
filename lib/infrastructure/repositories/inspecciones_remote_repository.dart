@@ -177,6 +177,7 @@ class InspeccionSerializer {
         'criticidad_calculada': inspeccion.criticidadCalculada,
         'criticidad_calculada_con_reparaciones':
             inspeccion.criticidadCalculadaConReparaciones,
+        'avance': inspeccion.avance,
         'respuestas': preguntas.map(_serializarPregunta).toList(),
       };
 

@@ -8,15 +8,11 @@ class Borrador {
 
   /// [avance] y [totalPreguntas] son usados para mostrar el porcentaje de avance de la inspeccion en la UI
   /// Total de Preguntas respondidas (así estén incompletas, por ejemplo, que no tengan fotos o no estén reparadas)
-  final int avance;
-
-  /// Total de preguntas del cuestionario
-  final int totalPreguntas;
+  final double avance;
 
   Borrador(
     this.inspeccion,
     this.cuestionario, {
     required this.avance,
-    required this.totalPreguntas,
   });
 }

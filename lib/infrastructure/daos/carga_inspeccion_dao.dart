@@ -129,6 +129,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         momentoInicio: DateTime.now(),
         criticidadCalculada: 0,
         criticidadCalculadaConReparaciones: 0,
+        avance: 0.0,
       );
 
   Future<dominio.Inspeccion> _buildInspeccionExistente(
@@ -145,6 +146,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         criticidadCalculada: inspeccion.criticidadCalculada,
         criticidadCalculadaConReparaciones:
             inspeccion.criticidadCalculadaConReparaciones,
+        avance: inspeccion.avance,
       );
 
   /// Devuelve los titulos que pertenecen al cuestionario

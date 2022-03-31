@@ -97,6 +97,7 @@ class ControladorLlenadoInspeccion {
 
   late final estadoDeInspeccion =
       BehaviorSubject.seeded(cuestionario.inspeccion.estado);
+  late final avance = BehaviorSubject.seeded(cuestionario.inspeccion.avance);
 
   late final filtrosDisponibles =
       BehaviorSubject.seeded(FiltroPreguntas.values);
@@ -122,10 +123,12 @@ class ControladorLlenadoInspeccion {
   }) async {
     try {
       onStart?.call();
+      cuestionario.inspeccion.avance = avance.value;
       cuestionario.inspeccion.estado = estadoDeInspeccion.value;
       cuestionario.inspeccion.criticidadCalculada = criticidadTotal.value;
       cuestionario.inspeccion.criticidadCalculadaConReparaciones =
           criticidadTotalConReparaciones.value;
+
       final visitor = GuardadoVisitor(
         repository,
         controladores,
@@ -195,5 +198,9 @@ class ControladorLlenadoInspeccion {
   void dispose() {
     formArray.dispose();
     estadoDeInspeccion.close();
+  }
+
+  void setAvance(double avanceActual) {
+    avance.value = avanceActual;
   }
 }

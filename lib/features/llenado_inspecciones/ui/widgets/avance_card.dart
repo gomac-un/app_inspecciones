@@ -15,6 +15,7 @@ class AvanceCard extends HookWidget {
     final controles = control.formArray;
     final int criticas = useValueStream(control.controladoresCriticos).length;
     final estadoDeInspeccion = useValueStream(control.estadoDeInspeccion);
+    final avanceStream = useValueStream(control.avance);
     return Container(
       color: estadoDeInspeccion == EstadoDeInspeccion.enReparacion
           ? Theme.of(context).colorScheme.secondary
@@ -31,6 +32,7 @@ class AvanceCard extends HookWidget {
                       .toList()
                       .length /
                   value.controls.length;
+              control.setAvance(avance);
               break;
             case EstadoDeInspeccion.enReparacion:
               avance = criticas == 0
@@ -58,7 +60,7 @@ class AvanceCard extends HookWidget {
             children: [
               LinearProgressIndicator(
                   backgroundColor: Colors.transparent,
-                  value: avance,
+                  value: avanceStream,
                   //backgroundColor: Colors.white,
                   color: estadoDeInspeccion == EstadoDeInspeccion.enReparacion
                       ? const Color.fromRGBO(67, 140, 201, 1)

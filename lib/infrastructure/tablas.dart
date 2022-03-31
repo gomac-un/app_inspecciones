@@ -214,6 +214,7 @@ class Inspecciones extends Table {
   /// la fórmula se encuentra en [ControladorLlenadoInspeccion.criticidadCalculada]
   IntColumn get criticidadCalculada => integer()();
   IntColumn get criticidadCalculadaConReparaciones => integer()();
+  RealColumn get avance => real().clientDefault(() => 0.0)();
 
   @override
   Set<Column> get primaryKey => {id};

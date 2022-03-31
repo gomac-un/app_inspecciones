@@ -29,17 +29,17 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
       );
       await (update(inspecciones)..where((i) => i.id.equals(inspeccion.id)))
           .write(InspeccionesCompanion(
-        momentoBorradorGuardado: Value(DateTime.now()),
-        momentoFinalizacion: Value(
-            estado == dominio.EstadoDeInspeccion.finalizada
-                ? DateTime.now()
-                : null),
-        estado: Value(estado),
-        criticidadCalculada:
-            Value(inspeccionForm.inspeccion.criticidadCalculada),
-        criticidadCalculadaConReparaciones:
-            Value(inspeccionForm.inspeccion.criticidadCalculadaConReparaciones),
-      ));
+              momentoBorradorGuardado: Value(DateTime.now()),
+              momentoFinalizacion: Value(
+                  estado == dominio.EstadoDeInspeccion.finalizada
+                      ? DateTime.now()
+                      : null),
+              estado: Value(estado),
+              criticidadCalculada:
+                  Value(inspeccionForm.inspeccion.criticidadCalculada),
+              criticidadCalculadaConReparaciones: Value(
+                  inspeccionForm.inspeccion.criticidadCalculadaConReparaciones),
+              avance: Value(inspeccionForm.inspeccion.avance)));
 
       await _deleteRespuestas(inspeccion.id);
 
@@ -60,18 +60,19 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
           await _guardarRespuestaDeSeleccionMultiple(pregunta, inspeccion.id);
         } else if (pregunta is dominio.CuadriculaDeSeleccionUnica) {
           final respuesta = pregunta.respuesta!;
-          await _guardarRespuesta(
+          final cuadriculaId = await _guardarRespuesta(
             pregunta.respuesta!.metaRespuesta,
             TipoDeRespuesta.cuadricula,
             preguntaId: pregunta.id,
             inspeccionId: inspeccion.id,
           );
           for (final subPregunta in respuesta.respuestas) {
-            await _guardarRespuestaDeSeleccionUnica(subPregunta, inspeccion.id);
+            await _guardarRespuestaDeSeleccionUnica(subPregunta, inspeccion.id,
+                cuadriculaId: cuadriculaId.id);
           }
         } else if (pregunta is dominio.CuadriculaDeSeleccionMultiple) {
           final respuesta = pregunta.respuesta!;
-          await _guardarRespuesta(
+          final cuadricula = await _guardarRespuesta(
             pregunta.respuesta!.metaRespuesta,
             TipoDeRespuesta.cuadricula,
             preguntaId: pregunta.id,
@@ -79,7 +80,8 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
           );
           for (final subPregunta in respuesta.respuestas) {
             await _guardarRespuestaDeSeleccionMultiple(
-                subPregunta, inspeccion.id);
+                subPregunta, inspeccion.id,
+                cuadriculaId: cuadricula.id);
           }
         } else {
           throw TaggedUnionError(pregunta);
@@ -119,15 +121,15 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
       ..where((activo) => activo.id.equals(inspeccionDominio.activo.id));
     final activo = await activoQuery.getSingle();
     final ins = InspeccionesCompanion.insert(
-      id: _generarInspeccionId(inspeccionDominio.activo.id),
-      cuestionarioId: cuestionarioId,
-      activoId: activo.pk,
-      momentoInicio: inspeccionDominio.momentoInicio,
-      estado: inspeccionDominio.estado,
-      criticidadCalculada: inspeccionDominio.criticidadCalculada,
-      criticidadCalculadaConReparaciones:
-          inspeccionDominio.criticidadCalculadaConReparaciones,
-    );
+        id: _generarInspeccionId(inspeccionDominio.activo.id),
+        cuestionarioId: cuestionarioId,
+        activoId: activo.pk,
+        momentoInicio: inspeccionDominio.momentoInicio,
+        estado: inspeccionDominio.estado,
+        criticidadCalculada: inspeccionDominio.criticidadCalculada,
+        criticidadCalculadaConReparaciones:
+            inspeccionDominio.criticidadCalculadaConReparaciones,
+        avance: Value(inspeccionDominio.avance));
     return into(inspecciones).insertReturning(ins);
   }
 
@@ -138,9 +140,8 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
   }
 
   Future<void> _guardarRespuestaDeSeleccionUnica(
-    dominio.PreguntaDeSeleccionUnica pregunta,
-    String inspeccionId,
-  ) {
+      dominio.PreguntaDeSeleccionUnica pregunta, String inspeccionId,
+      {String? cuadriculaId}) {
     final respuesta = pregunta.respuesta!;
     return _guardarRespuesta(
       pregunta.respuesta!.metaRespuesta,
@@ -148,19 +149,20 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
       preguntaId: pregunta.id,
       inspeccionId: inspeccionId,
       opcionSeleccionada: respuesta.opcionSeleccionada,
+      respuestaCuadriculaId: cuadriculaId,
     );
   }
 
   Future<void> _guardarRespuestaDeSeleccionMultiple(
-    dominio.PreguntaDeSeleccionMultiple pregunta,
-    String inspeccionId,
-  ) async {
+      dominio.PreguntaDeSeleccionMultiple pregunta, String inspeccionId,
+      {String? cuadriculaId}) async {
     final respuesta = pregunta.respuesta!;
     final respuestaPadre = await _guardarRespuesta(
       pregunta.respuesta!.metaRespuesta,
       TipoDeRespuesta.seleccionMultiple,
       preguntaId: pregunta.id,
       inspeccionId: inspeccionId,
+      respuestaCuadriculaId: cuadriculaId,
     );
     for (final subPregunta in respuesta.opciones) {
       final respuesta = subPregunta.respuesta!;
@@ -182,6 +184,7 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
     dominio.OpcionDeRespuesta? opcionSeleccionada,
     double? valorNumerico,
     String? respuestaMultipleId,
+    String? respuestaCuadriculaId,
     dominio.OpcionDeRespuesta? opcionRespondida,
     bool? opcionRespondidaEstaSeleccionada,
   }) =>
@@ -197,6 +200,7 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
         inspeccionId: Value(inspeccionId),
         opcionSeleccionadaId: Value(opcionSeleccionada?.id),
         valorNumerico: Value(valorNumerico),
+        respuestaCuadriculaId: Value(respuestaCuadriculaId),
         respuestaMultipleId: Value(respuestaMultipleId),
         opcionRespondidaId: Value(opcionRespondida?.id),
         opcionRespondidaEstaSeleccionada:

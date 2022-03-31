@@ -54,38 +54,27 @@ class BorradoresDao extends DatabaseAccessor<Database>
             final cuestionario = b.value2;
             return dominio.Borrador(
               dominio.Inspeccion(
-                id: inspeccion.id,
-                estado: inspeccion.estado,
-                activo: await buildActivo(activoId: inspeccion.activoId),
-                momentoInicio: inspeccion.momentoInicio,
-                momentoEnvio: inspeccion.momentoEnvio,
-                momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
-                criticidadCalculada: inspeccion.criticidadCalculada,
-                criticidadCalculadaConReparaciones:
-                    inspeccion.criticidadCalculadaConReparaciones,
-              ),
+                  id: inspeccion.id,
+                  estado: inspeccion.estado,
+                  activo: await buildActivo(activoId: inspeccion.activoId),
+                  momentoInicio: inspeccion.momentoInicio,
+                  momentoEnvio: inspeccion.momentoEnvio,
+                  momentoBorradorGuardado: inspeccion.momentoBorradorGuardado,
+                  criticidadCalculada: inspeccion.criticidadCalculada,
+                  criticidadCalculadaConReparaciones:
+                      inspeccion.criticidadCalculadaConReparaciones,
+                  avance: inspeccion.avance),
               dominio.Cuestionario(
                 id: cuestionario.id,
                 tipoDeInspeccion: cuestionario.tipoDeInspeccion,
               ),
-              totalPreguntas:
-                  await _calcNroPreguntas(cuestionarioId: cuestionario.id),
               //TODO: guardar esta variable para no tener que calcularla siempre, si no cuando se guarde
-              avance: await _calcularAvance(inspeccionId: inspeccion.id),
+              avance: inspeccion.avance,
             );
           },
         ),
       ),
     );
-  }
-
-  //Devuelve avance de la inspección
-  Future<int> _calcularAvance({required String inspeccionId}) async {
-    final multiples =
-        await _calcMultiplesRespondidas(inspeccionId: inspeccionId);
-    final otras =
-        await _calcNroPreguntasRespondidas(inspeccionId: inspeccionId);
-    return multiples + otras;
   }
 
   /*
@@ -130,63 +119,6 @@ class BorradoresDao extends DatabaseAccessor<Database>
         .then((l) => l.fold<double>(0, (p, c) => p + (c ?? 0)));
   }
   */
-  /// Devuelve la cantidad total de preguntas que tiene el cuestionario con id=[cuestionarioId]
-  Future<int> _calcNroPreguntas({required String cuestionarioId}) {
-    final count = countAll();
-    final query = selectOnly(preguntas).join([
-      innerJoin(bloques, bloques.id.equalsExp(preguntas.bloqueId)),
-    ])
-      ..where(bloques.cuestionarioId.equals(cuestionarioId))
-      ..addColumns([count]);
-    return query.map((row) => row.read(count)).getSingle();
-  }
-
-  /// Regresa el total de preguntas respondidas en una inspección con id=[id]
-  /// (Se usa en la página de borradores para mostrar el avance)
-  /// TODO: organizar para que esté no tome en cuenta las hijas de cuadriculas como independientes, si no como una sola
-  Future<int> _calcNroPreguntasRespondidas(
-      {required String inspeccionId}) async {
-    final exclude = [
-      'cuadricula',
-      'seleccionMultiple',
-      'parteDeSeleccionMultiple'
-    ];
-    final count = countAll();
-
-    //Unicas y numericas
-    final query = selectOnly(respuestas)
-      ..where(respuestas.tipoDeRespuesta.isNotIn(exclude) &
-          respuestas.inspeccionId.equals(inspeccionId) &
-          (respuestas.opcionSeleccionadaId.isNotNull() |
-              respuestas.valorNumerico.isNotNull()))
-      ..addColumns([count]);
-
-    return query.map((row) => row.read(count)).getSingle();
-  }
-
-  Future<int> _calcMultiplesRespondidas({required String inspeccionId}) async {
-    final tipoDeRespuestas = ['seleccionMultiple'];
-    //Multiples
-    final respPadresQuery = select(respuestas)
-      ..where((respuestas) =>
-          respuestas.inspeccionId.equals(inspeccionId) &
-          respuestas.tipoDeRespuesta.isIn(tipoDeRespuestas));
-    final todas = await respPadresQuery.get();
-    final respPadresId = await respPadresQuery.map((row) => row.id).get();
-    int respCount = 0;
-    for (String id in respPadresId) {
-      final subPreguntasQuery = select(respuestas)
-        ..where((tbl) => tbl.respuestaMultipleId.equals(id));
-      final subPreguntas = await subPreguntasQuery.get();
-      final respuestasResult = await subPreguntasQuery
-          .map((resp) => resp.opcionRespondidaEstaSeleccionada!)
-          .get();
-      if (respuestasResult.any((element) => element)) {
-        respCount++;
-      }
-    }
-    return respCount;
-  }
 
   Future<dominio.Activo> buildActivo({required String activoId}) async {
     final activoQuery = select(activos)

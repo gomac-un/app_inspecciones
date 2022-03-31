@@ -111,7 +111,7 @@ class InspeccionesPage extends ConsumerWidget {
                       "Estado: ${EnumToString.convertToString(borrador.inspeccion.estado, camelCase: true)}",
                     ),
                     Text(
-                      "Avance: ${((borrador.avance / borrador.totalPreguntas) * 100).round()}%",
+                      "Avance: ${(borrador.avance * 100).round()}%",
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),
