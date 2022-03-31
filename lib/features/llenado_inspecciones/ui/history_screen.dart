@@ -3,8 +3,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/borrador.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
 
-import '../../../presentation/widgets/user_drawer.dart';
-
 final borradoresDaoProvider = Provider.autoDispose(
     (ref) => ref.watch(driftDatabaseProvider).borradoresDao);
 
@@ -15,7 +13,7 @@ class HistoryInspeccionesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     return Scaffold(
-      drawer: const UserDrawer(),
+      /* drawer: const UserDrawer(), */
       appBar: AppBar(
         title: const Text('Historial'),
         actions: [

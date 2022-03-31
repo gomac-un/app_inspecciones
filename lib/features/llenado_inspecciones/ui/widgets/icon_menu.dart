@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart';
 
 class IconsMenu {
-  static const items = <IconMenu>[
-    reparar,
-    finalizar,
-    informacion,
-  ];
   static const reparar = IconMenu(
     text: 'Reparar',
     icon: Icons.home_repair_service,
@@ -18,6 +14,16 @@ class IconsMenu {
     text: 'Informacion',
     icon: Icons.privacy_tip_outlined,
   );
+  static List<IconMenu> getItems(EstadoDeInspeccion estado) {
+    switch (estado) {
+      case EstadoDeInspeccion.enReparacion:
+        return [finalizar, informacion];
+      case EstadoDeInspeccion.finalizada:
+        return [informacion];
+      default:
+        return [reparar, finalizar, informacion];
+    }
+  }
 }
 
 class IconMenu {

@@ -51,7 +51,7 @@ class InspeccionPage extends HookConsumerWidget {
               ),
               backgroundColor:
                   estadoDeInspeccion == EstadoDeInspeccion.enReparacion
-                      ? const Color.fromRGBO(255, 100, 35, 1)
+                      ? Theme.of(context).colorScheme.secondary
                       : null,
               actions: [
                 FilterWidget(controladorInspeccion),
@@ -80,14 +80,15 @@ class InspeccionPage extends HookConsumerWidget {
                           break;
                       }
                     },
-                    itemBuilder: (context) => IconsMenu.items
-                        .map((item) => PopupMenuItem<IconMenu>(
-                            value: item,
-                            child: ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: Icon(item.icon),
-                                title: Text(item.text))))
-                        .toList()),
+                    itemBuilder: (context) =>
+                        IconsMenu.getItems(estadoDeInspeccion)
+                            .map((item) => PopupMenuItem<IconMenu>(
+                                value: item,
+                                child: ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: Icon(item.icon),
+                                    title: Text(item.text))))
+                            .toList()),
               ],
             ),
 

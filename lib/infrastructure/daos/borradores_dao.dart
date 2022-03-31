@@ -70,13 +70,22 @@ class BorradoresDao extends DatabaseAccessor<Database>
               ),
               totalPreguntas:
                   await _calcNroPreguntas(cuestionarioId: cuestionario.id),
-              avance: await _calcNroPreguntasRespondidas(
-                  inspeccionId: inspeccion.id),
+              //TODO: guardar esta variable para no tener que calcularla siempre, si no cuando se guarde
+              avance: await _calcularAvance(inspeccionId: inspeccion.id),
             );
           },
         ),
       ),
     );
+  }
+
+  //Devuelve avance de la inspección
+  Future<int> _calcularAvance({required String inspeccionId}) async {
+    final multiples =
+        await _calcMultiplesRespondidas(inspeccionId: inspeccionId);
+    final otras =
+        await _calcNroPreguntasRespondidas(inspeccionId: inspeccionId);
+    return multiples + otras;
   }
 
   /*
@@ -134,24 +143,62 @@ class BorradoresDao extends DatabaseAccessor<Database>
 
   /// Regresa el total de preguntas respondidas en una inspección con id=[id]
   /// (Se usa en la página de borradores para mostrar el avance)
-  /// TODO: tener en cuenta las respuestas de tipo cuadricula y de seleccion multiple
+  /// TODO: organizar para que esté no tome en cuenta las hijas de cuadriculas como independientes, si no como una sola
   Future<int> _calcNroPreguntasRespondidas(
       {required String inspeccionId}) async {
+    final exclude = [
+      'cuadricula',
+      'seleccionMultiple',
+      'parteDeSeleccionMultiple'
+    ];
     final count = countAll();
+
+    //Unicas y numericas
     final query = selectOnly(respuestas)
-      ..where(respuestas.inspeccionId.equals(inspeccionId) &
+      ..where(respuestas.tipoDeRespuesta.isNotIn(exclude) &
+          respuestas.inspeccionId.equals(inspeccionId) &
           (respuestas.opcionSeleccionadaId.isNotNull() |
               respuestas.valorNumerico.isNotNull()))
       ..addColumns([count]);
+
     return query.map((row) => row.read(count)).getSingle();
   }
 
+  Future<int> _calcMultiplesRespondidas({required String inspeccionId}) async {
+    final tipoDeRespuestas = ['seleccionMultiple'];
+    //Multiples
+    final respPadresQuery = select(respuestas)
+      ..where((respuestas) =>
+          respuestas.inspeccionId.equals(inspeccionId) &
+          respuestas.tipoDeRespuesta.isIn(tipoDeRespuestas));
+    final todas = await respPadresQuery.get();
+    final respPadresId = await respPadresQuery.map((row) => row.id).get();
+    int respCount = 0;
+    for (String id in respPadresId) {
+      final subPreguntasQuery = select(respuestas)
+        ..where((tbl) => tbl.respuestaMultipleId.equals(id));
+      final subPreguntas = await subPreguntasQuery.get();
+      final respuestasResult = await subPreguntasQuery
+          .map((resp) => resp.opcionRespondidaEstaSeleccionada!)
+          .get();
+      if (respuestasResult.any((element) => element)) {
+        respCount++;
+      }
+    }
+    return respCount;
+  }
+
   Future<dominio.Activo> buildActivo({required String activoId}) async {
+    final activoQuery = select(activos)
+      ..where(
+          (activo) => activo.id.equals(activoId) | activo.pk.equals(activoId));
+    final activo = await activoQuery.getSingle();
     final etiquetas =
         await db.utilsDao.getEtiquetasDeActivo(activoId: activoId);
 
     return dominio.Activo(
-        id: activoId,
+        pk: activo.pk,
+        id: activo.id,
         etiquetas:
             etiquetas.map((e) => dominio.Etiqueta(e.clave, e.valor)).toList());
   }

@@ -1,7 +1,7 @@
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/features/llenado_inspecciones/ui/history_screen.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 import 'package:inspecciones/presentation/widgets/user_drawer.dart';
 import 'package:inspecciones/utils/future_either_x.dart';
@@ -26,8 +26,13 @@ class InspeccionesPage extends ConsumerWidget {
         title: const Text('Inspecciones'),
         actions: [
           IconButton(
-              icon: const Icon(Icons.history),
-              onPressed: () => context.goNamed("history")),
+            icon: const Icon(Icons.history),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const HistoryInspeccionesPage(),
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.asset(

@@ -16,8 +16,9 @@ class AvanceCard extends HookWidget {
     final int criticas = useValueStream(control.controladoresCriticos).length;
     final estadoDeInspeccion = useValueStream(control.estadoDeInspeccion);
     return Container(
-      //width: double.infinity,
-      color: Theme.of(context).colorScheme.primary,
+      color: estadoDeInspeccion == EstadoDeInspeccion.enReparacion
+          ? Theme.of(context).colorScheme.secondary
+          : Theme.of(context).colorScheme.primary,
       child: ReactiveValueListenableBuilder(
         formControl: controles,
         builder: (context, value, child) {
@@ -56,9 +57,12 @@ class AvanceCard extends HookWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               LinearProgressIndicator(
+                  backgroundColor: Colors.transparent,
                   value: avance,
                   //backgroundColor: Colors.white,
-                  color: Theme.of(context).colorScheme.secondary),
+                  color: estadoDeInspeccion == EstadoDeInspeccion.enReparacion
+                      ? const Color.fromRGBO(67, 140, 201, 1)
+                      : Theme.of(context).colorScheme.secondary),
               const SizedBox(height: 3),
               Text(
                 estadoDeInspeccion == EstadoDeInspeccion.enReparacion
