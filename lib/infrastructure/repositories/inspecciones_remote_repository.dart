@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:cross_file/cross_file.dart';
 import 'package:dartz/dartz.dart';
+import 'package:drift/drift.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart';
-import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
 import '../core/typedefs.dart';
@@ -30,29 +30,18 @@ class InspeccionesRemoteRepository {
   /// retorna Right(unit) si se decargó exitosamente, de ser así, posteriormente
   /// se puede iniciar la inspeccion desde la pantalla de borradores
   Future<Either<ApiFailure, IdentificadorDeInspeccion>> descargarInspeccion(
-      int id) async {
-    final json = await _api.descargarInspeccion(id);
-    final parsed = _deserializarInspeccion(json);
-    throw UnimplementedError();
-    /* 
-    await _db.guardadoDeInspeccionDao.guardarInspeccion(parsed);
-    return const Right(unit);*/
-    /*
-    final inspeccionMap = apiExceptionToApiFailure(
-      () => _api.getInspeccion(id),
-    );
-
-    /// Al descargarla, se debe guardar en la bd para poder acceder a ella
-    return inspeccionMap.nestedEvaluatedMap(
-      (ins) => _db.sincronizacionDao.guardarInspeccionBD(ins),
-    );*/
-  }
-
-  Inspeccion _deserializarInspeccion(Map<String, dynamic> json) {
-    final fecha = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
-    var inputDate = fecha.parse(json['momento_inicio']);
-    throw Exception();
-  }
+          String id) =>
+      apiExceptionToApiFailure(
+        () => _api.descargarInspeccion(id).then((json) async {
+          final deserializador = DeserializadorInspeccion(
+            json,
+            _read,
+          );
+          final identificadorInspeccion =
+              await deserializador._deserializarInspeccionCompleta();
+          return identificadorInspeccion;
+        }),
+      );
 
   /// Envia [inspeccion] al server
   Future<Either<ApiFailure, Unit>> subirInspeccion(
@@ -68,12 +57,22 @@ class InspeccionesRemoteRepository {
     final serializador =
         InspeccionSerializer(inspeccionCompleta, idFotosSubidas);
     final inspeccionSerializada = serializador.serializarInspeccion();
-    return apiExceptionToApiFailure(
-      () => _api
-          .subirInspeccion(inspeccionSerializada)
-          .then((_) => _db.sincronizacionDao.marcarInspeccionSubida(id))
-          .then((_) => unit),
-    );
+    if (inspeccionCompleta.inspeccion.esNueva) {
+      return apiExceptionToApiFailure(
+        () => _api
+            .subirInspeccion(inspeccionSerializada)
+            .then((_) => _db.sincronizacionDao.marcarInspeccionSubida(id))
+            .then((_) => unit),
+      );
+    } else {
+      return apiExceptionToApiFailure(
+        () => _api
+            .actualizarInspeccion(
+                inspeccionCompleta.inspeccion.id!, inspeccionSerializada)
+            .then((_) => _db.sincronizacionDao.marcarInspeccionSubida(id))
+            .then((_) => unit),
+      );
+    }
   }
 
   Future<Map<AppImage, String>> _subirFotos(List<Pregunta> preguntas) async {
@@ -156,6 +155,127 @@ class InspeccionesRemoteRepository {
       web: (f) => XFile(f));
 }
 
+class DeserializadorInspeccion {
+  final JsonMap json;
+  final Reader _read;
+  drift.Database get _db => _read(drift.driftDatabaseProvider);
+
+  DeserializadorInspeccion(this.json, this._read);
+  Future<IdentificadorDeInspeccion> _deserializarInspeccionCompleta() async {
+    final inspeccion = _deserializarInspeccion();
+    final List<drift.RespuestasCompanion> preguntas =
+        _deserializarRespuestas(json['respuestas'], false);
+    await _db.guardadoDeInspeccionDao.guardarInspeccionRemota(
+      inspeccion,
+      preguntas,
+    );
+    return IdentificadorDeInspeccion(
+        activo: json['activo'], cuestionarioId: json['cuestionario']);
+  }
+
+  drift.InspeccionesCompanion _deserializarInspeccion() {
+    final estado =
+        EnumToString.fromString(EstadoDeInspeccion.values, json['estado']) ??
+            EstadoDeInspeccion.borrador;
+    final inspeccion = drift.InspeccionesCompanion(
+      id: Value(json['id']),
+      estado: Value(estado),
+      momentoBorradorGuardado: Value(DateTime.now()),
+      momentoFinalizacion: json['momento_finalizacion'] == null
+          ? const Value.absent()
+          : Value(DateTime.tryParse(json['momento_finalizacion'])),
+      momentoEnvio: const Value.absent(),
+      momentoInicio: Value(DateTime.parse(json['momento_inicio'])),
+      avance: Value(json['avance']),
+      criticidadCalculada: Value(json['criticidad_calculada']),
+      criticidadCalculadaConReparaciones:
+          Value(json['criticidad_calculada_con_reparaciones']),
+      activoId: Value(json['activo']),
+      cuestionarioId: Value(json['cuestionario']),
+      esNueva: const Value(false),
+    );
+    return inspeccion;
+  }
+
+  List<drift.RespuestasCompanion> _deserializarRespuestas(
+      JsonList jsonRespuestas, bool isSubRespuesta) {
+    final subRespuestas = <drift.RespuestasCompanion>[];
+    final respuestas =
+        jsonRespuestas.map<drift.RespuestasCompanion>((respuesta) {
+      final tipo = respuesta['tipo_de_respuesta'];
+      switch (tipo) {
+        case "seleccion_unica":
+          return _deserializarRespuesta(
+              respuesta, drift.TipoDeRespuesta.seleccionUnica, isSubRespuesta);
+        case "numerica":
+          return _deserializarRespuesta(
+              respuesta, drift.TipoDeRespuesta.numerica, isSubRespuesta);
+        case "seleccion_multiple":
+          subRespuestas.addAll(_deserializarSubRespuestasMultiple(
+              respuesta['subrespuestas_multiple'],
+              drift.TipoDeRespuesta.parteDeSeleccionMultiple));
+          return _deserializarRespuesta(respuesta,
+              drift.TipoDeRespuesta.seleccionMultiple, isSubRespuesta);
+        case "cuadricula":
+          subRespuestas.addAll(_deserializarRespuestas(
+              respuesta['subrespuestas_cuadricula'], true));
+          return _deserializarRespuesta(
+              respuesta, drift.TipoDeRespuesta.cuadricula, false);
+        default:
+          throw Exception("tipo de respuesta desconocido: $tipo");
+      }
+    }).toList();
+    print(respuestas);
+    respuestas.addAll(subRespuestas);
+    /* final tipo =
+        EnumToString.fromString(drift.TipoDeRespuesta.values, json['tipo']); */
+    return respuestas;
+  }
+
+  List<drift.RespuestasCompanion> _deserializarSubRespuestasMultiple(
+      JsonList jsonSubRespuestas, drift.TipoDeRespuesta tipoDeSubRespuesta) {
+    return jsonSubRespuestas
+        .map<drift.RespuestasCompanion>((subRespuesta) =>
+            _deserializarRespuesta(subRespuesta, tipoDeSubRespuesta, true))
+        .toList();
+  }
+
+  drift.RespuestasCompanion _deserializarRespuesta(JsonMap jsonRespuesta,
+      drift.TipoDeRespuesta tipoDeRespuesta, bool isSub) {
+    return drift.RespuestasCompanion(
+      id: Value(jsonRespuesta['id']),
+      observacion: Value(jsonRespuesta['observacion']),
+      reparado: Value(jsonRespuesta['reparado']),
+      observacionReparacion: Value(jsonRespuesta['observacion_reparacion']),
+      momentoRespuesta: jsonRespuesta['momento_respuesta'] == null
+          ? const Value.absent()
+          : Value(DateTime.parse(jsonRespuesta['momento_respuesta'])),
+      fotosBase: Value(
+        _deserializarFotos(jsonRespuesta['fotos_base_url']),
+      ),
+      fotosReparacion:
+          Value(_deserializarFotos(jsonRespuesta['fotos_reparacion_url'])),
+      tipoDeRespuesta: Value(tipoDeRespuesta),
+      criticidadDelInspector: Value(jsonRespuesta['criticidad_del_inspector']),
+      criticidadCalculada: Value(jsonRespuesta['criticidad_calculada']),
+      criticidadCalculadaConReparaciones:
+          Value(jsonRespuesta['criticidad_calculada_con_reparaciones']),
+      preguntaId: Value(jsonRespuesta['pregunta']),
+      respuestaCuadriculaId: Value(jsonRespuesta['respuesta_cuadricula']),
+      respuestaMultipleId: Value(jsonRespuesta['respuesta_multiple']),
+      inspeccionId: Value(json['id']),
+      opcionSeleccionadaId: Value(jsonRespuesta['opcion_seleccionada']),
+      opcionRespondidaId: Value(jsonRespuesta['opcion_respondida']),
+      opcionRespondidaEstaSeleccionada:
+          Value(jsonRespuesta['opcion_respondida_esta_seleccionada']),
+      valorNumerico: Value(jsonRespuesta['valor_numerico']),
+    );
+  }
+
+  List<AppImage> _deserializarFotos(JsonList fotos) =>
+      fotos.map((f) => AppImage.remote(id: f["id"], url: f["foto"])).toList();
+}
+
 class InspeccionSerializer {
   final CuestionarioInspeccionado inspeccionCompleta;
   late final Inspeccion inspeccion = inspeccionCompleta.inspeccion;
@@ -170,9 +290,8 @@ class InspeccionSerializer {
         'id': inspeccion.id,
         'cuestionario': cuestionario.id,
         'activo': inspeccion.activo.pk,
-        'momento_inicio': inspeccion.momentoInicio.toUtc().toIso8601String(),
-        'momento_finalizacion':
-            inspeccion.momentoFinalizacion?.toUtc().toIso8601String(),
+        'momento_inicio': inspeccion.momentoInicio.toString(),
+        'momento_finalizacion': inspeccion.momentoFinalizacion?.toString(),
         'estado': _serializarEnum(inspeccion.estado),
         'criticidad_calculada': inspeccion.criticidadCalculada,
         'criticidad_calculada_con_reparaciones':
@@ -186,7 +305,7 @@ class InspeccionSerializer {
     final metaRespuesta = respuesta!.metaRespuesta;
     final res = _serializarMetaRespuesta(metaRespuesta);
     res['pregunta'] = pregunta.id;
-
+//TODO: preguntas de selección unica no permiten enviar si no está respondida
     if (pregunta is PreguntaDeSeleccionUnica) {
       res.addAll(_serializarRespuestaDeSeleccionUnica(pregunta.respuesta!));
     } else if (pregunta is PreguntaNumerica) {
@@ -230,7 +349,7 @@ class InspeccionSerializer {
       RespuestaDeSeleccionUnica respuesta) {
     return {
       'tipo_de_respuesta': 'seleccion_unica',
-      'opcion_seleccionada': respuesta.opcionSeleccionada!.id,
+      'opcion_seleccionada': respuesta.opcionSeleccionada?.id,
     };
   }
 

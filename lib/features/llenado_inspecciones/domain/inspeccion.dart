@@ -9,6 +9,7 @@ class Inspeccion {
   final DateTime? momentoBorradorGuardado;
   final DateTime? momentoFinalizacion;
   final DateTime? momentoEnvio;
+  final bool esNueva;
   double avance;
   int criticidadCalculada;
   int criticidadCalculadaConReparaciones;
@@ -18,6 +19,7 @@ class Inspeccion {
     required this.estado,
     required this.activo,
     required this.momentoInicio,
+    required this.esNueva,
     this.momentoBorradorGuardado,
     this.momentoFinalizacion,
     this.momentoEnvio,

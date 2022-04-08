@@ -91,7 +91,7 @@ class MenuDeEtiquetas extends ConsumerWidget {
             title: Row(
               children: [
                 Text(
-                    "Etiquetas de ${EnumToString.convertToString(tipoDeEtiqueta)}"),
+                    "Categoría de ${EnumToString.convertToString(tipoDeEtiqueta)}"),
                 IconButton(
                   icon: const Icon(Icons.sync_outlined),
                   tooltip: "Sincronizar etiquetas",

@@ -63,7 +63,8 @@ class BorradoresDao extends DatabaseAccessor<Database>
                   criticidadCalculada: inspeccion.criticidadCalculada,
                   criticidadCalculadaConReparaciones:
                       inspeccion.criticidadCalculadaConReparaciones,
-                  avance: inspeccion.avance),
+                  avance: inspeccion.avance,
+                  esNueva: inspeccion.esNueva),
               dominio.Cuestionario(
                 id: cuestionario.id,
                 tipoDeInspeccion: cuestionario.tipoDeInspeccion,

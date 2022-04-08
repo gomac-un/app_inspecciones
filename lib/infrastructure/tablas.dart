@@ -205,7 +205,7 @@ class Inspecciones extends Table {
   DateTimeColumn get momentoBorradorGuardado => dateTime().nullable()();
   DateTimeColumn get momentoFinalizacion => dateTime().nullable()();
   DateTimeColumn get momentoEnvio => dateTime().nullable()();
-
+  BoolColumn get esNueva => boolean().clientDefault(() => true)();
   TextColumn get estado =>
       text().map(const _EnumToStringConverter<EstadoDeInspeccion>(
           EstadoDeInspeccion.values))();
@@ -287,14 +287,13 @@ class _ListImagesToTextConverter
   const _ListImagesToTextConverter();
   @override
   List<AppImage> requireMapToDart(fromDb) {
-    return (json.decode(fromDb) as List)
-        .cast<String>()
-        .map((p) => p.startsWith("http")
-            ? AppImage.remote(id: p.split("#").last, url: p.split("#").first)
-            : p.startsWith("blob")
-                ? AppImage.web(p)
-                : AppImage.mobile(p))
-        .toList();
+    return (json.decode(fromDb) as List).cast<String>().map((p) {
+      return p.startsWith("http")
+          ? AppImage.remote(id: p.split("#").last, url: p.split("#").first)
+          : p.startsWith("blob")
+              ? AppImage.web(p)
+              : AppImage.mobile(p);
+    }).toList();
   }
 
   @override

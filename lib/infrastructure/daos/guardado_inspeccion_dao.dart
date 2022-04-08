@@ -214,4 +214,14 @@ class GuardadoDeInspeccionDao extends DatabaseAccessor<Database>
   Future<void> _deleteRespuestas(String inspeccionId) =>
       (delete(respuestas)..where((r) => r.inspeccionId.equals(inspeccionId)))
           .go();
+
+  Future<void> guardarInspeccionRemota(InspeccionesCompanion inspeccion,
+      List<RespuestasCompanion> respuestasCompanion) {
+    return transaction(() async {
+      await into(inspecciones)
+          .insert(inspeccion, mode: InsertMode.insertOrReplace);
+      await batch((batch) => batch.insertAll(respuestas, respuestasCompanion,
+          mode: InsertMode.insertOrReplace));
+    });
+  }
 }

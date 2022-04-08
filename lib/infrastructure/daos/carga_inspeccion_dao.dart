@@ -99,7 +99,8 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
   Future<Inspeccion?> _getInspeccion(
       {required String cuestionarioId, required String activoId}) async {
     final activoQuery = select(activos)
-      ..where((activo) => activo.id.equals(activoId));
+      ..where(
+          (activo) => activo.id.equals(activoId) | activo.pk.equals(activoId));
     final activo = await activoQuery.getSingle();
     return (select(inspecciones)
           ..where(
@@ -130,6 +131,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         criticidadCalculada: 0,
         criticidadCalculadaConReparaciones: 0,
         avance: 0.0,
+        esNueva: true,
       );
 
   Future<dominio.Inspeccion> _buildInspeccionExistente(
@@ -147,6 +149,7 @@ class CargaDeInspeccionDao extends DatabaseAccessor<Database>
         criticidadCalculadaConReparaciones:
             inspeccion.criticidadCalculadaConReparaciones,
         avance: inspeccion.avance,
+        esNueva: inspeccion.esNueva,
       );
 
   /// Devuelve los titulos que pertenecen al cuestionario

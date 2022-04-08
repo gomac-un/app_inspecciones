@@ -149,19 +149,20 @@ class DjangoJsonApi
           body: inspeccion);
 
   @override
-  Future<JsonMap> descargarInspeccion(int id) => _client.request(
+  Future<JsonMap> descargarInspeccion(String id) => _client.request(
       'GET',
       _apiUri
           .appendSegment("inspecciones-completas", addTrailingSlash: false)
-          .appendSegment("$id"));
+          .appendSegment(id));
 
   @override
-  Future<JsonMap> actualizarInspeccion(int inspeccionId, JsonMap inspeccion) =>
+  Future<JsonMap> actualizarInspeccion(
+          String inspeccionId, JsonMap inspeccion) =>
       _client.request(
           'PUT',
           _apiUri
               .appendSegment("inspecciones-completas", addTrailingSlash: false)
-              .appendSegment("$inspeccionId"),
+              .appendSegment(inspeccionId),
           body: inspeccion);
 
   @override
