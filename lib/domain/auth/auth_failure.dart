@@ -11,4 +11,5 @@ class AuthFailure with _$AuthFailure {
       _UsuarioOPasswordInvalidos;
   const factory AuthFailure.unexpectedError(Object exception) =
       _UnexpectedError;
+  const factory AuthFailure.databaseError(Object exception) = _DatabaseError;
 }

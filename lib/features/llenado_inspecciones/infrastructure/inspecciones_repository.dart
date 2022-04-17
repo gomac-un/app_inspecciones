@@ -87,4 +87,5 @@ InspeccionesFailure apiFailureToInspeccionesFailure(ApiFailure apiFailure) =>
       errorDeComunicacionConLaApi: (e) =>
           InspeccionesFailure.unexpectedError(e),
       errorDeProgramacion: (e) => InspeccionesFailure.unexpectedError(e),
+      errorDatabase: (e) => InspeccionesFailure.errorDatabase(e),
     );

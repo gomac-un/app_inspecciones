@@ -91,8 +91,6 @@ class AuthService extends StateNotifier<AuthState> {
         // Guarda los datos del usuario, para que no tenga que iniciar sesión la próxima vez
         await _userRepository.saveLocalUser(user: usuario);
 
-        
-
         // para distinguir a los usuarios con Sentry
         Sentry.configureScope(
           (scope) => scope.user = SentryUser(id: usuario.username),
@@ -187,5 +185,6 @@ class AuthService extends StateNotifier<AuthState> {
         errorDePermisos: (e) => AuthFailure.unexpectedError(e),
         errorDeComunicacionConLaApi: (e) => AuthFailure.unexpectedError(e),
         errorDeProgramacion: (e) => AuthFailure.unexpectedError(e),
+        errorDatabase: (e) => AuthFailure.databaseError(e),
       );
 }

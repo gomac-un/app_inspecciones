@@ -2,6 +2,11 @@ class ApiException implements Exception {
   const ApiException();
 }
 
+class ErrorDatabase implements Exception {
+  final String mensaje;
+  const ErrorDatabase(this.mensaje);
+}
+
 /// Este archivo contiene todas las excepciones que puede generar una api remota
 class ErrorDeConexion extends ApiException {
   final String mensaje;

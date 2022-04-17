@@ -20,6 +20,8 @@ Future<Either<ApiFailure, T>> apiExceptionToApiFailure<T>(
     return Left(ApiFailure.errorDePermisos(e.mensaje));
   } on ErrorEnLaComunicacionConLaApi catch (e) {
     return Left(ApiFailure.errorDeComunicacionConLaApi(e.mensaje));
+  } on ErrorDatabase catch (e) {
+    return Left(ApiFailure.errorDatabase(e.mensaje));
   } catch (e) {
     return Left(ApiFailure.errorInesperadoDelServidor(e.toString()));
   }

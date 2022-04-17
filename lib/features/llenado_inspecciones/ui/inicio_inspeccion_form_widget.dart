@@ -236,7 +236,8 @@ _mostrarError(
       ? apiFailure.maybeWhen(
           errorInesperadoDelServidor: (m) =>
               'No se pudo encontrar la inspección, asegúrese de escribir el código correctamente: $m',
-          orElse: () => 'error: $apiFailure',
+          errorDatabase: (m) => m,
+          orElse: () => 'Error: $apiFailure',
         )
       : f!.toString();
   showDialog(
@@ -246,7 +247,7 @@ _mostrarError(
       actions: [
         TextButton(
           onPressed: Navigator.of(context).pop,
-          child: const Text('Aceptar'),
+          child: const Center(child: Text('Aceptar')),
         )
       ],
     ),

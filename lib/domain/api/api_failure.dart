@@ -39,4 +39,6 @@ class ApiFailure with _$ApiFailure {
   /// Error lanzado cuando ocurre una excepcion no pronosticada
   const factory ApiFailure.errorDeProgramacion(String mensaje) =
       _ErrorDeProgramacion;
+
+  const factory ApiFailure.errorDatabase(String mensaje) = _ErrorDatabase;
 }

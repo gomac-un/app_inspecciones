@@ -138,6 +138,11 @@ class _LoginForm extends ConsumerWidget {
         onContinuar: () => form.loginOffline(),
         razon: 'No se puede conectar al servidor',
       ),
+      databaseError: (e) => _problemaDialog(
+        context: context,
+        onContinuar: () => form.loginOffline(),
+        razon: 'Ocurrió un error inesperado: $e',
+      ),
       unexpectedError: (e) => _problemaDialog(
         context: context,
         onContinuar: () => form.loginOffline(),

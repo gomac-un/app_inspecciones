@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:cross_file/cross_file.dart';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/core/error/errors.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart';
+import 'package:inspecciones/infrastructure/core/api_exceptions.dart';
 import 'package:path/path.dart' as path;
 
 import '../core/typedefs.dart';
@@ -165,10 +167,17 @@ class DeserializadorInspeccion {
     final inspeccion = _deserializarInspeccion();
     final List<drift.RespuestasCompanion> preguntas =
         _deserializarRespuestas(json['respuestas'], false);
-    await _db.guardadoDeInspeccionDao.guardarInspeccionRemota(
-      inspeccion,
-      preguntas,
-    );
+    try {
+      await _db.guardadoDeInspeccionDao.guardarInspeccionRemota(
+        inspeccion,
+        preguntas,
+      );
+    } on SqliteException {
+      //Lanzar un error diferente
+      throw const ErrorDatabase(
+          "Error al guardar la inspección. \nRevisa que el activo y el cuestionario correspondientes ya estén descargados en tu celular");
+    }
+
     return IdentificadorDeInspeccion(
         activo: json['activo'], cuestionarioId: json['cuestionario']);
   }

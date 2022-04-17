@@ -12,4 +12,6 @@ class InspeccionesFailure with _$InspeccionesFailure {
   const factory InspeccionesFailure.activoInvalido() = _ActivoInvalido;
   const factory InspeccionesFailure.unexpectedError(Object exception) =
       _UnexpectedError;
+  const factory InspeccionesFailure.errorDatabase(Object exception) =
+      _ErrorDatabase;
 }

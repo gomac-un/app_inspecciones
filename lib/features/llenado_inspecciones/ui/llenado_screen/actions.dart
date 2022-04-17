@@ -7,16 +7,24 @@ class BotonGuardar extends StatelessWidget {
   final GuardadoCallback guardar;
   final Widget icon;
   final String? tooltip;
+  final bool isDisabled;
   const BotonGuardar(
-      {Key? key, required this.guardar, required this.icon, this.tooltip})
+      {Key? key,
+      required this.guardar,
+      required this.icon,
+      this.tooltip,
+      required this.isDisabled})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
-      onPressed: () => agregarMensajesAccion(context)(guardar),
+      onPressed: () =>
+          isDisabled ? null : agregarMensajesAccion(context)(guardar),
       child: icon,
       tooltip: tooltip,
+      disabledElevation: 8,
+      backgroundColor: isDisabled ? Colors.grey : null,
     );
   }
 }
