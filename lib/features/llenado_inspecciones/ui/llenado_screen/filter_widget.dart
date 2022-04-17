@@ -15,8 +15,18 @@ class FilterWidget extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filtrosDisponibles =
-        useValueStream(controladorInspeccion.filtrosDisponibles);
+    final filtrosDisponibles = [FiltroPreguntas.todas];
+    final int criticas =
+        useValueStream(controladorInspeccion.controladoresCriticos).length;
+    if (criticas != 0) {
+      filtrosDisponibles.add(FiltroPreguntas.criticas);
+    }
+    final invalidas = controladorInspeccion.controladores
+        .any((element) => !element.esValido());
+    if (invalidas) {
+      filtrosDisponibles.add(FiltroPreguntas.invalidas);
+    }
+
     final filtro = useValueStream(controladorInspeccion.filtroPreguntas);
     return DropdownButtonHideUnderline(
       child: DropdownButton<FiltroPreguntas>(

@@ -100,7 +100,7 @@ class ControladorLlenadoInspeccion {
   late final avance = BehaviorSubject.seeded(cuestionario.inspeccion.avance);
 
   late final filtrosDisponibles =
-      BehaviorSubject.seeded(FiltroPreguntas.values);
+      BehaviorSubject.seeded([FiltroPreguntas.todas]);
 
   late final filtroPreguntas = BehaviorSubject.seeded(FiltroPreguntas.todas);
 

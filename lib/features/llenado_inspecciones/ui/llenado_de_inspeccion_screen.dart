@@ -36,7 +36,9 @@ class InspeccionPage extends HookConsumerWidget {
 
           final mostrarBotonesDeNavegacion =
               kIsWeb && ref.watch(showFABProvider);
-
+          final int criticas =
+              useValueStream(controladorInspeccion.controladoresCriticos)
+                  .length;
           return Scaffold(
             backgroundColor: Theme.of(context).backgroundColor,
             /* drawer: const UserDrawer(), */
@@ -83,7 +85,7 @@ class InspeccionPage extends HookConsumerWidget {
                       }
                     },
                     itemBuilder: (context) => IconsMenu.getItems(
-                            estadoDeInspeccion, inspeccionId.activo)
+                            estadoDeInspeccion, inspeccionId.activo, criticas)
                         .map((item) => PopupMenuItem<IconMenu>(
                             value: item,
                             child: ListTile(
