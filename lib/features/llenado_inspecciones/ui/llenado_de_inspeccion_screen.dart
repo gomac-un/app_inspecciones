@@ -43,11 +43,13 @@ class InspeccionPage extends HookConsumerWidget {
             //TODO: mirar si es necesario deshabilitar el drawer mientras se está llenando una inspeccion
             appBar: AppBar(
               title: Text(
-                "Inspección " +
-                    EnumToString.convertToString(
-                      estadoDeInspeccion,
-                      camelCase: true,
-                    ).toLowerCase(),
+                inspeccionId.activo == "previsualizacion"
+                    ? "Previsualización"
+                    : "Inspección " +
+                        EnumToString.convertToString(
+                          estadoDeInspeccion,
+                          camelCase: true,
+                        ).toLowerCase(),
               ),
               backgroundColor:
                   estadoDeInspeccion == EstadoDeInspeccion.enReparacion
@@ -80,15 +82,15 @@ class InspeccionPage extends HookConsumerWidget {
                           break;
                       }
                     },
-                    itemBuilder: (context) =>
-                        IconsMenu.getItems(estadoDeInspeccion)
-                            .map((item) => PopupMenuItem<IconMenu>(
-                                value: item,
-                                child: ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    leading: Icon(item.icon),
-                                    title: Text(item.text))))
-                            .toList()),
+                    itemBuilder: (context) => IconsMenu.getItems(
+                            estadoDeInspeccion, inspeccionId.activo)
+                        .map((item) => PopupMenuItem<IconMenu>(
+                            value: item,
+                            child: ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: Icon(item.icon),
+                                title: Text(item.text))))
+                        .toList()),
               ],
             ),
 
@@ -121,6 +123,7 @@ class InspeccionPage extends HookConsumerWidget {
             guardar: control.guardarInspeccion,
             icon: const Icon(Icons.save),
             tooltip: "Guardar borrador",
+            isDisabled: inspeccionId.activo == "previsualizacion",
           );
   }
 

@@ -47,8 +47,12 @@ class OrganizacionRepository {
           .getListaDeActivos()
           .then((l) => l.map((j) => ActivoEnLista.fromMap(j)).toList()),
     );
-
-    await remoteRes.fold((_) {}, (r) => _db.organizacionDao.setActivos(r));
+    await remoteRes.fold((_) {}, (r) async {
+      final activoPrevisulizar =
+          ActivoEnLista("previsualizar", "previsualizacion", []);
+      r.add(activoPrevisulizar);
+      await _db.organizacionDao.setActivos(r);
+    });
     final activos = await _db.organizacionDao.getActivos();
 
     return Tuple2(remoteRes.fold(id, (_) => null), activos.toSet());

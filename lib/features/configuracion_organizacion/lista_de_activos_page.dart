@@ -172,8 +172,11 @@ class ListaDeActivosPage extends ConsumerWidget {
           itemCount: activos.length + 1, // +1 para el espacio al final
           separatorBuilder: (context, index) => const Divider(),
           itemBuilder: (context, index) {
-            if (index == activos.length) return const SizedBox(height: 60);
-
+            if (index == activos.length) {
+              return const SizedBox(height: 60);
+            } else if (activos.elementAt(index).activo.id == "previsualizar") {
+              return const SizedBox.shrink();
+            }
             final activo = activos.elementAt(index).activo;
             final controller = activos.elementAt(index).controller;
             return controller == null

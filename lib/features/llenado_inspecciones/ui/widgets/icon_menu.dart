@@ -14,7 +14,8 @@ class IconsMenu {
     text: 'Informacion',
     icon: Icons.privacy_tip_outlined,
   );
-  static List<IconMenu> getItems(EstadoDeInspeccion estado) {
+  static List<IconMenu> getItems(EstadoDeInspeccion estado, String activo) {
+    if (activo == "previsualizacion") return [informacion];
     switch (estado) {
       case EstadoDeInspeccion.enReparacion:
         return [finalizar, informacion];
