@@ -44,10 +44,14 @@ class CuestionariosRepository {
   Future<Either<ApiFailure, Unit>> descargarCuestionario(
       {required String cuestionarioId}) async {
     //TODO: implementar de manera funcional
-    final json = await _api.descargarCuestionario(cuestionarioId);
-    final parsed = _deserializarCuestionario(json);
-    await _db.guardadoDeCuestionarioDao.guardarCuestionario(parsed);
-    return const Right(unit);
+    try {
+      final json = await _api.descargarCuestionario(cuestionarioId);
+      final parsed = _deserializarCuestionario(json);
+      await _db.guardadoDeCuestionarioDao.guardarCuestionario(parsed);
+      return const Right(unit);
+    } catch (e) {
+      return Left(ApiFailure.errorInesperadoDelServidor(e.toString()));
+    }
   }
 
   CuestionarioCompletoCompanion _deserializarCuestionario(JsonMap json) {

@@ -27,10 +27,10 @@ class ListaCuestionariosPage extends HookConsumerWidget {
                 controller: _tabController,
                 tabs: const [
                   Tab(
-                      text: "descargados",
+                      text: "Descargados",
                       icon: Icon(Icons.download_for_offline_outlined)),
                   Tab(
-                      text: "disponibles",
+                      text: "Disponibles",
                       icon: Icon(Icons.cloud_circle_outlined)),
                 ],
               ),
@@ -48,9 +48,9 @@ class ListaCuestionariosPage extends HookConsumerWidget {
       },
       child: TabBarView(
         controller: _tabController,
-        children: const [
-          ListaCuestionariosLocales(),
-          ListaCuestionariosRemotos(),
+        children: [
+          const ListaCuestionariosLocales(),
+          ListaCuestionariosRemotos(controller: _tabController),
         ],
       ),
     );
