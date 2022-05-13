@@ -278,6 +278,122 @@ class BotonesDeBloque extends ConsumerWidget {
                   },
                 ),
               ),
+              if (ref.watch(numeroDeBloqueProvider) > 0)
+                PopupMenuItem(
+                  value: 2,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.compare_arrows,
+                      size: 30,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    title: Text('Mover bloque',
+                        style: TextStyle(color: Colors.grey[800])),
+                    selected: true,
+                    onTap: () => {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text("Mover bloque "),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.help,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondary),
+                                    const SizedBox(
+                                      width: 5,
+                                    ),
+                                    const Expanded(
+                                      child: Text(
+                                        "Seleccione el número del bloque al que desea moverlo",
+                                        textAlign: TextAlign.justify,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 15),
+                                ReactiveFormBuilder(
+                                  builder: (context, form, child) {
+                                    final list = List<int>.generate(
+                                        formController
+                                                .bloquesControl.value?.length ??
+                                            0,
+                                        (i) => i + 1);
+                                    return Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.2,
+                                          child: ReactiveDropdownField(
+                                              formControlName: 'bloqueDestino',
+                                              items: list
+                                                  .where((e) =>
+                                                      e != 1 &&
+                                                      e !=
+                                                          ref.watch(
+                                                                  numeroDeBloqueProvider) +
+                                                              1)
+                                                  .map((e) =>
+                                                      DropdownMenuItem<int>(
+                                                          value: e,
+                                                          child: Text(
+                                                              e.toString())))
+                                                  .toList()),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        MaterialButton(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .secondary,
+                                            onPressed: () {
+                                              if (form.valid) {
+                                                moverBloque(
+                                                    form
+                                                        .control(
+                                                            'bloqueDestino')
+                                                        .value as int,
+                                                    animatedList,
+                                                    formController);
+
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    content:
+                                                        Text('Bloque movido'),
+                                                  ),
+                                                );
+                                                Navigator.of(context).pop();
+                                                Navigator.of(context).pop();
+                                              }
+                                            },
+                                            child: const Text("Mover"))
+                                      ],
+                                    );
+                                  },
+                                  form: () => FormGroup(
+                                    {
+                                      'bloqueDestino': FormControl<int>(
+                                          validators: [Validators.required])
+                                    },
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    },
+                  ),
+                ),
               PopupMenuItem(
                 value: 4,
                 child: ListTile(
@@ -302,6 +418,34 @@ class BotonesDeBloque extends ConsumerWidget {
           );
         }),
       ],
+    );
+  }
+
+  void moverBloque(int newPosition, SliverAnimatedListState animatedList,
+      CreacionFormController formController) {
+    final bloque = controllerActual;
+    final index = formController.controllersBloques.indexOf(controllerActual);
+    if (index == 0) return; //no borre el primer titulo
+    /// Elimina de la lista en la pantalla
+    animatedList.removeItem(
+      index,
+      (context, animation) => ControlWidgetAnimado(
+        controller: controllerActual,
+        animation: animation,
+      ),
+    );
+
+    /// Elimina el control de los bloques de [viewModel]
+    formController.borrarBloque(controllerActual);
+
+    /// Lo inserta en la lista de la UI
+    animatedList.insertItem(newPosition);
+    final despuesDe = formController.controllersBloques[newPosition - 2];
+
+    /// Lo agrega de los controles de [formController]
+    formController.agregarBloqueDespuesDe(
+      bloque: bloque,
+      despuesDe: despuesDe,
     );
   }
 

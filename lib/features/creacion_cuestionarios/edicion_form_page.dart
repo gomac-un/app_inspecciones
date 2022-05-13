@@ -50,7 +50,7 @@ class EdicionForm extends ConsumerWidget {
       formGroup: controller.control,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("cuestionario"),
+          title: const Text("Cuestionario"),
         ),
         body: Center(
           child: ConstrainedBox(

@@ -12,7 +12,9 @@ void main() {
   }
 
   test('etiqueta simple', () {
-    final miEtiqueta = Jerarquia.etiqueta(clave: "color", valor: "amarillo");
+    final miEtiqueta = Jerarquia.fromMap(
+        {'clave': "color", 'valor': "amarillo"},
+        esLocal: true);
     expect(
       getEtiquetas(miEtiqueta.niveles[0], miEtiqueta.arbol).first,
       Etiqueta("color", "amarillo"),
@@ -21,6 +23,7 @@ void main() {
 
   test('jerarquia con un nivel', () {
     final miJerarquia = Jerarquia(
+      esLocal: false,
       niveles: ["sistema"],
       arbol: [
         EtiquetaEnJerarquia("motor"),
@@ -33,19 +36,22 @@ void main() {
     ]);
   });
   test('jerarquia con varios niveles', () {
-    final miJerarquia = Jerarquia(niveles: [
-      "sistema",
-      "subsistema",
-      "componente",
-    ], arbol: [
-      EtiquetaEnJerarquia("motor", [
-        EtiquetaEnJerarquia("clutch", [
-          EtiquetaEnJerarquia("discos"),
-        ]),
-        EtiquetaEnJerarquia("cilindro"),
-      ]),
-      EtiquetaEnJerarquia("chasis"),
-    ]);
+    final miJerarquia = Jerarquia(
+        niveles: [
+          "sistema",
+          "subsistema",
+          "componente",
+        ],
+        esLocal: true,
+        arbol: [
+          EtiquetaEnJerarquia("motor", [
+            EtiquetaEnJerarquia("clutch", [
+              EtiquetaEnJerarquia("discos"),
+            ]),
+            EtiquetaEnJerarquia("cilindro"),
+          ]),
+          EtiquetaEnJerarquia("chasis"),
+        ]);
     final subsistemasDeMotor =
         getEtiquetas(miJerarquia.niveles[1], miJerarquia.arbol[0].children);
 
@@ -61,19 +67,22 @@ void main() {
     ]);
   });
   test('recorrido', () {
-    final miJerarquia = Jerarquia(niveles: [
-      "sistema",
-      "subsistema",
-      "componente",
-    ], arbol: [
-      EtiquetaEnJerarquia("motor", [
-        EtiquetaEnJerarquia("clutch", [
-          EtiquetaEnJerarquia("discos"),
-        ]),
-        EtiquetaEnJerarquia("cilindro"),
-      ]),
-      EtiquetaEnJerarquia("chasis"),
-    ]);
+    final miJerarquia = Jerarquia(
+        niveles: [
+          "sistema",
+          "subsistema",
+          "componente",
+        ],
+        esLocal: false,
+        arbol: [
+          EtiquetaEnJerarquia("motor", [
+            EtiquetaEnJerarquia("clutch", [
+              EtiquetaEnJerarquia("discos"),
+            ]),
+            EtiquetaEnJerarquia("cilindro"),
+          ]),
+          EtiquetaEnJerarquia("chasis"),
+        ]);
 
     void recorrerJerarquia(
         List<EtiquetaEnJerarquia> arbol, List<String> niveles, int nivel) {
