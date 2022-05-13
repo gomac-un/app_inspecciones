@@ -287,6 +287,7 @@ class CargaDeCuestionarioDao extends DatabaseAccessor<Database>
         .toCompanion(true)
         .copyWith(
             id: const Value.absent(),
+            subido: const Value(false),
             estado: const Value(EstadoDeCuestionario.borrador),
             version: Value(cuestionario.cuestionario.version + 1),
             tipoDeInspeccion: Value(tipoDeInspeccion));

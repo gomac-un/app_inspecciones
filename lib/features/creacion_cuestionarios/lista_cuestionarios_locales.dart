@@ -78,7 +78,14 @@ class ListaCuestionariosLocales extends ConsumerWidget {
                     : Colors.grey,
               ),
               onPressed: () =>
-                  _subirCuestionario(context, viewModel, cuestionario)),
+                  cuestionario.estado == EstadoDeCuestionario.finalizado
+                      ? _subirCuestionario(context, viewModel, cuestionario)
+                      : ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('El cuestionario no esta finalizado'),
+                          ),
+                        ),
+            ),
       trailing: PopupMenuButton<_AccionCuestionarioLocal>(
         onSelected: (_AccionCuestionarioLocal result) {
           switch (result) {
