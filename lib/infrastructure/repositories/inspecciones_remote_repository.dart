@@ -46,7 +46,7 @@ class InspeccionesRemoteRepository {
       );
 
   /// Envia [inspeccion] al server
-  Future<Either<ApiFailure, Unit>> subirInspeccion(
+  Future<Either<ApiFailure, String>> subirInspeccion(
       IdentificadorDeInspeccion id) async {
     //TODO: mostrar el progreso en la ui
     final inspeccionCompleta = await _db.cargaDeInspeccionDao.cargarInspeccion(
@@ -64,7 +64,7 @@ class InspeccionesRemoteRepository {
         () => _api
             .subirInspeccion(inspeccionSerializada)
             .then((_) => _db.sincronizacionDao.marcarInspeccionSubida(id))
-            .then((_) => unit),
+            .then((_) => inspeccionCompleta.inspeccion.id!),
       );
     } else {
       return apiExceptionToApiFailure(
@@ -72,7 +72,7 @@ class InspeccionesRemoteRepository {
             .actualizarInspeccion(
                 inspeccionCompleta.inspeccion.id!, inspeccionSerializada)
             .then((_) => _db.sincronizacionDao.marcarInspeccionSubida(id))
-            .then((_) => unit),
+            .then((_) => inspeccionCompleta.inspeccion.id!),
       );
     }
   }

@@ -3,11 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/features/llenado_inspecciones/domain/domain.dart';
+import 'package:inspecciones/features/llenado_inspecciones/infrastructure/inspecciones_repository.dart';
+import 'package:inspecciones/infrastructure/repositories/providers.dart';
+import 'package:inspecciones/utils/future_either_x.dart';
 import 'package:inspecciones/utils/hooks.dart';
 
 import '../control/controlador_llenado_inspeccion.dart';
-import '../domain/identificador_inspeccion.dart';
-import '../domain/inspeccion.dart';
 import 'llenado_screen/actions.dart';
 import 'llenado_screen/filter_widget.dart';
 import 'llenado_screen/floating_action_button.dart';
@@ -18,7 +20,6 @@ import 'widgets/icon_menu.dart';
 
 class InspeccionPage extends HookConsumerWidget {
   final IdentificadorDeInspeccion inspeccionId;
-
   const InspeccionPage({Key? key, required this.inspeccionId})
       : super(key: key);
 
@@ -70,11 +71,15 @@ class InspeccionPage extends HookConsumerWidget {
             ]),
             floatingActionButton: mostrarBotonesDeNavegacion
                 ? FABNavigation(
-                    botonGuardar: _buildBotonGuardar(
-                        controladorInspeccion, estadoDeInspeccion, context),
+                    botonGuardar: _buildBotonGuardar(controladorInspeccion,
+                        estadoDeInspeccion, context, ref),
                   )
                 : _buildBotonGuardar(
-                    controladorInspeccion, estadoDeInspeccion, context),
+                    controladorInspeccion,
+                    estadoDeInspeccion,
+                    context,
+                    ref,
+                  ),
             floatingActionButtonLocation: mostrarBotonesDeNavegacion
                 ? FloatingActionButtonLocation.centerFloat
                 : FloatingActionButtonLocation.endFloat,
@@ -82,13 +87,17 @@ class InspeccionPage extends HookConsumerWidget {
         });
   }
 
-  Widget _buildBotonGuardar(ControladorLlenadoInspeccion control,
-      EstadoDeInspeccion estadoDeInspeccion, BuildContext context) {
+  Widget _buildBotonGuardar(
+      ControladorLlenadoInspeccion control,
+      EstadoDeInspeccion estadoDeInspeccion,
+      BuildContext context,
+      WidgetRef ref) {
     final int criticas = useValueStream(control.controladoresCriticos).length;
     return estadoDeInspeccion == EstadoDeInspeccion.finalizada
         ? const SizedBox.shrink()
         : BotonGuardar(
             firstChild: PopupMenuButton<IconMenu>(
+              offset: const Offset(0, -135),
               icon: const Icon(Icons.done),
               onSelected: (value) {
                 switch (value) {
@@ -108,6 +117,9 @@ class InspeccionPage extends HookConsumerWidget {
                   case IconsMenu.informacion:
                     _mostrarInformacionInspeccion(context, control);
                     break;
+                  case IconsMenu.enviar:
+                    _subirInspeccion(context, ref);
+                    break;
                 }
               },
               itemBuilder: (context) => IconsMenu.getItems(
@@ -116,7 +128,8 @@ class InspeccionPage extends HookConsumerWidget {
                       value: item,
                       child: ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: Icon(item.icon),
+                          leading: Icon(item.icon,
+                              color: Theme.of(context).colorScheme.primary),
                           title: Text(item.text))))
                   .toList(),
             ),
@@ -126,6 +139,79 @@ class InspeccionPage extends HookConsumerWidget {
             isDisabled: inspeccionId.activo == "previsualizacion",
           );
   }
+
+  Future<void> _subirInspeccion(BuildContext context, WidgetRef ref) async {
+    final confirmacion = await _confirmarEnvio(context);
+    if (confirmacion ?? false) {
+      final remoteRepo = ref.read(inspeccionesRemoteRepositoryProvider);
+      final localRepo = ref.read(inspeccionesRepositoryProvider);
+      await remoteRepo
+          .subirInspeccion(IdentificadorDeInspeccion(
+            activo: inspeccionId.activo,
+            cuestionarioId: inspeccionId.cuestionarioId,
+          ))
+          .leftMap((f) => apiFailureToInspeccionesFailure(f))
+          .flatMap((id) => localRepo.eliminarRespuestas(id: id))
+          .leftMap((f) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text("$f"),
+              )))
+          .nestedEvaluatedMap((_) => showDialog(
+                context: context,
+                barrierColor: Theme.of(context).primaryColorLight,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    contentTextStyle: Theme.of(context).textTheme.headline5,
+                    title: const Icon(Icons.done_sharp,
+                        size: 100, color: Colors.green),
+                    actions: [
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Aceptar'),
+                        ),
+                      )
+                    ],
+                    content: const Text(
+                      'Inspección enviada correctamente',
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                },
+              ));
+    }
+  }
+
+  Future<bool?> _confirmarEnvio(BuildContext context) => mostrarConfirmacion(
+        context: context,
+        content: RichText(
+          text: TextSpan(
+            text: '¿Desea enviar la inspección sin finalizar?\n',
+            style: TextStyle(
+                color: Theme.of(context).hintColor,
+                fontSize: 18,
+                fontWeight: FontWeight.bold),
+            children: <TextSpan>[
+              TextSpan(
+                text: 'IMPORTANTE: ',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.secondary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextSpan(
+                text: 'Si lo hace, alguien deberá terminarla después',
+                style:
+                    TextStyle(color: Theme.of(context).hintColor, fontSize: 15),
+              ),
+            ],
+          ),
+        ),
+      );
 
   Future<bool?> _confirmarFinalizacion(BuildContext context) =>
       mostrarConfirmacion(

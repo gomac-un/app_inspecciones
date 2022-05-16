@@ -166,7 +166,7 @@ class InspeccionesPage extends ConsumerWidget {
             activo: borrador.inspeccion.activo.id,
             cuestionarioId: borrador.cuestionario.id))
         .leftMap((f) => apiFailureToInspeccionesFailure(f))
-        .flatMap((_) => localRepo.eliminarRespuestas(borrador))
+        .flatMap((_) => localRepo.eliminarRespuestas(borrador: borrador))
         .leftMap((f) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text("$f"),
             )))

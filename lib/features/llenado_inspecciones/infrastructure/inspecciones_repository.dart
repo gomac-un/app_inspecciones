@@ -28,11 +28,12 @@ class InspeccionesRepository {
   Stream<List<Borrador>> getBorradores() =>
       _db.borradoresDao.borradores(mostrarSoloEnviadas: false);
 
-  FEF<Unit> eliminarRespuestas(Borrador borrador) => _db.borradoresDao
-      .eliminarRespuestas(inspeccionId: borrador.inspeccion.id!)
-      .then((_) => const Right(unit),
-          onError: (e, s) =>
-              Left(InspeccionesFailure.unexpectedError(e.toString())));
+  FEF<Unit> eliminarRespuestas({Borrador? borrador, String? id}) =>
+      _db.borradoresDao
+          .eliminarRespuestas(inspeccionId: borrador?.inspeccion.id! ?? id!)
+          .then((_) => const Right(unit),
+              onError: (e, s) =>
+                  Left(InspeccionesFailure.unexpectedError(e.toString())));
 
   //FEF<List<Cuestionario>> cuestionariosParaActivo(String activo) async {
   Future<Either<InspeccionesFailure, List<Cuestionario>>>
