@@ -36,9 +36,7 @@ class InspeccionPage extends HookConsumerWidget {
 
           final mostrarBotonesDeNavegacion =
               kIsWeb && ref.watch(showFABProvider);
-          final int criticas =
-              useValueStream(controladorInspeccion.controladoresCriticos)
-                  .length;
+
           return Scaffold(
             backgroundColor: Theme.of(context).backgroundColor,
             /* drawer: const UserDrawer(), */
@@ -59,40 +57,6 @@ class InspeccionPage extends HookConsumerWidget {
                       : null,
               actions: [
                 FilterWidget(controladorInspeccion),
-                PopupMenuButton<IconMenu>(
-                    onSelected: (value) {
-                      switch (value) {
-                        case IconsMenu.reparar:
-                          controladorInspeccion.iniciarReparaciones(
-                            onInvalid: () =>
-                                mostrarInvalido(context, controladorInspeccion),
-                            mensajeReparacion: () =>
-                                mostrarMensajeReparacion(context),
-                          );
-                          break;
-                        case IconsMenu.finalizar:
-                          controladorInspeccion.finalizar(
-                              confirmation: () =>
-                                  _confirmarFinalizacion(context),
-                              ejecutarGuardado: agregarMensajesAccion(context),
-                              onInvalid: () => mostrarInvalido(
-                                  context, controladorInspeccion));
-                          break;
-                        case IconsMenu.informacion:
-                          _mostrarInformacionInspeccion(
-                              context, controladorInspeccion);
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) => IconsMenu.getItems(
-                            estadoDeInspeccion, inspeccionId.activo, criticas)
-                        .map((item) => PopupMenuItem<IconMenu>(
-                            value: item,
-                            child: ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: Icon(item.icon),
-                                title: Text(item.text))))
-                        .toList()),
               ],
             ),
 
@@ -107,9 +71,10 @@ class InspeccionPage extends HookConsumerWidget {
             floatingActionButton: mostrarBotonesDeNavegacion
                 ? FABNavigation(
                     botonGuardar: _buildBotonGuardar(
-                        controladorInspeccion, estadoDeInspeccion),
+                        controladorInspeccion, estadoDeInspeccion, context),
                   )
-                : _buildBotonGuardar(controladorInspeccion, estadoDeInspeccion),
+                : _buildBotonGuardar(
+                    controladorInspeccion, estadoDeInspeccion, context),
             floatingActionButtonLocation: mostrarBotonesDeNavegacion
                 ? FloatingActionButtonLocation.centerFloat
                 : FloatingActionButtonLocation.endFloat,
@@ -118,10 +83,43 @@ class InspeccionPage extends HookConsumerWidget {
   }
 
   Widget _buildBotonGuardar(ControladorLlenadoInspeccion control,
-      EstadoDeInspeccion estadoDeInspeccion) {
+      EstadoDeInspeccion estadoDeInspeccion, BuildContext context) {
+    final int criticas = useValueStream(control.controladoresCriticos).length;
     return estadoDeInspeccion == EstadoDeInspeccion.finalizada
         ? const SizedBox.shrink()
         : BotonGuardar(
+            firstChild: PopupMenuButton<IconMenu>(
+              icon: const Icon(Icons.done),
+              onSelected: (value) {
+                switch (value) {
+                  case IconsMenu.reparar:
+                    control.iniciarReparaciones(
+                      onInvalid: () => mostrarInvalido(context, control),
+                      mensajeReparacion: () =>
+                          mostrarMensajeReparacion(context),
+                    );
+                    break;
+                  case IconsMenu.finalizar:
+                    control.finalizar(
+                        confirmation: () => _confirmarFinalizacion(context),
+                        ejecutarGuardado: agregarMensajesAccion(context),
+                        onInvalid: () => mostrarInvalido(context, control));
+                    break;
+                  case IconsMenu.informacion:
+                    _mostrarInformacionInspeccion(context, control);
+                    break;
+                }
+              },
+              itemBuilder: (context) => IconsMenu.getItems(
+                      estadoDeInspeccion, inspeccionId.activo, criticas)
+                  .map((item) => PopupMenuItem<IconMenu>(
+                      value: item,
+                      child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(item.icon),
+                          title: Text(item.text))))
+                  .toList(),
+            ),
             guardar: control.guardarInspeccion,
             icon: const Icon(Icons.save),
             tooltip: "Guardar borrador",

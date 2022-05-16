@@ -6,6 +6,7 @@ import '../widgets/loading_dialog.dart';
 class BotonGuardar extends StatelessWidget {
   final GuardadoCallback guardar;
   final Widget icon;
+  final Widget firstChild;
   final String? tooltip;
   final bool isDisabled;
   const BotonGuardar(
@@ -13,19 +14,32 @@ class BotonGuardar extends StatelessWidget {
       required this.guardar,
       required this.icon,
       this.tooltip,
-      required this.isDisabled})
+      required this.isDisabled,
+      required this.firstChild})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: () =>
-          isDisabled ? null : agregarMensajesAccion(context)(guardar),
-      child: icon,
-      tooltip: tooltip,
-      disabledElevation: 8,
-      backgroundColor: isDisabled ? Colors.grey : null,
-    );
+    return Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+      FloatingActionButton(
+        child: firstChild,
+        onPressed: () {
+          //...
+        },
+        heroTag: null,
+      ),
+      const SizedBox(
+        height: 10,
+      ),
+      FloatingActionButton(
+        onPressed: () =>
+            isDisabled ? null : agregarMensajesAccion(context)(guardar),
+        child: icon,
+        tooltip: tooltip,
+        disabledElevation: 8,
+        backgroundColor: isDisabled ? Colors.grey : null,
+      ),
+    ]);
   }
 }
 

@@ -183,9 +183,8 @@ class DeserializadorInspeccion {
   }
 
   drift.InspeccionesCompanion _deserializarInspeccion() {
-    final estado =
-        EnumToString.fromString(EstadoDeInspeccion.values, json['estado']) ??
-            EstadoDeInspeccion.borrador;
+    final estado = _deserializarEstado(json['estado']);
+
     final inspeccion = drift.InspeccionesCompanion(
       id: Value(json['id']),
       estado: Value(estado),
@@ -204,6 +203,19 @@ class DeserializadorInspeccion {
       esNueva: const Value(false),
     );
     return inspeccion;
+  }
+
+  EstadoDeInspeccion _deserializarEstado(String estado) {
+    switch (estado) {
+      case 'borrador':
+        return EstadoDeInspeccion.borrador;
+      case 'finalizada':
+        return EstadoDeInspeccion.finalizada;
+      case 'en_reparacion':
+        return EstadoDeInspeccion.enReparacion;
+      default:
+        throw Exception("estado de inspección no reconocido");
+    }
   }
 
   List<drift.RespuestasCompanion> _deserializarRespuestas(
