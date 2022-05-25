@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
 
@@ -17,6 +18,7 @@ class OrganizacionProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
+    final user = ref.watch(userProvider);
     return SimpleFutureProviderRefreshableBuilder(
       provider: miOrganizacionProvider,
       builder: (context, Either<ApiFailure, Organizacion> r) => r.fold(
@@ -25,6 +27,7 @@ class OrganizacionProfilePage extends ConsumerWidget {
           children: [
             const SizedBox(height: 24),
             ProfileWidget(
+              editable: user?.esAdmin ?? false,
               imagePath: organizacion.logo,
               onClicked: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) => ConfiguracionOrganizacionPage(

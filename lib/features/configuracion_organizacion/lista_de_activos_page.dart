@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/infrastructure/repositories/organizacion_repository.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
@@ -148,6 +149,8 @@ class ListaDeActivosPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
+    final user = ref.watch(userProvider);
+    if (user == null) return const Text("usuario no identificado");
     ref.listen<AsyncValue<Tuple2<ApiFailure?, Set<ActivoEnLista>>>>(
         _listaActivosProvider, (_, next) {
       next.whenData((value) {
@@ -180,7 +183,7 @@ class ListaDeActivosPage extends ConsumerWidget {
             final activo = activos.elementAt(index).activo;
             final controller = activos.elementAt(index).controller;
             return controller == null
-                ? _buildActivo(context, viewModel, activo)
+                ? _buildActivo(context, viewModel, activo, user.esAdmin)
                 : _buildActivoEditable(context, viewModel, controller);
           },
         );
@@ -192,32 +195,36 @@ class ListaDeActivosPage extends ConsumerWidget {
     BuildContext context,
     ListaDeActivosViewModel viewModel,
     ActivoEnLista activo,
+    bool editable,
   ) =>
       ListTile(
         key: ObjectKey(activo),
         title: Text(activo.identificador),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              onPressed: () => viewModel.inicioEdicionActivo(activo),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () async => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    await viewModel.borrarActivo(activo).then(
-                          (r) => r.fold(
-                              (l) => l.toString(), (r) => "activo borrado"),
-                        ),
+        trailing: editable
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined),
+                    onPressed: () => viewModel.inicioEdicionActivo(activo),
                   ),
-                ),
-              ),
-            ),
-          ],
-        ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () async =>
+                        ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          await viewModel.borrarActivo(activo).then(
+                                (r) => r.fold((l) => l.toString(),
+                                    (r) => "activo borrado"),
+                              ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : const SizedBox.shrink(),
         subtitle: Text(
             activo.etiquetas.map((e) => "${e.clave}:${e.valor}").join(", ")),
       );

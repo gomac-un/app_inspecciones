@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/features/configuracion_organizacion/lista_de_inspectores_page.dart';
 import 'package:inspecciones/features/configuracion_organizacion/organizacion_profile_page.dart';
 import 'package:inspecciones/infrastructure/repositories/providers.dart';
@@ -15,8 +16,10 @@ class OrganizacionPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
+    final user = ref.watch(userProvider);
+    if (user == null) return const Text("usuario no identificado");
     TabController _tabController =
-        useTabController(initialLength: 4, initialIndex: 0);
+        useTabController(initialLength: user.esAdmin ? 4 : 3, initialIndex: 0);
     return AnimatedBuilder(
       animation: _tabController,
       builder: (context, child) {
@@ -25,11 +28,12 @@ class OrganizacionPage extends HookConsumerWidget {
           appBar: AppBar(
             bottom: TabBar(
               controller: _tabController,
-              tabs: const [
-                Tab(icon: Icon(Icons.corporate_fare_outlined)),
-                Tab(icon: Icon(Icons.people_outline_outlined)),
-                Tab(icon: Icon(Icons.view_in_ar_outlined)),
-                Tab(icon: Icon(Icons.label_outline)),
+              tabs: [
+                const Tab(icon: Icon(Icons.corporate_fare_outlined)),
+                if (user.esAdmin)
+                  const Tab(icon: Icon(Icons.people_outline_outlined)),
+                const Tab(icon: Icon(Icons.view_in_ar_outlined)),
+                const Tab(icon: Icon(Icons.label_outline)),
               ],
             ),
             title: const Text('Organización'),
@@ -40,11 +44,11 @@ class OrganizacionPage extends HookConsumerWidget {
       },
       child: TabBarView(
         controller: _tabController,
-        children: const [
-          OrganizacionProfilePage(),
-          ListaDeInspectoresPage(),
-          ListaDeActivosPage(),
-          ListaDeEtiquetasPage(),
+        children: [
+          const OrganizacionProfilePage(),
+          if (user.esAdmin) const ListaDeInspectoresPage(),
+          const ListaDeActivosPage(),
+          const ListaDeEtiquetasPage(),
         ],
       ),
     );
@@ -52,7 +56,8 @@ class OrganizacionPage extends HookConsumerWidget {
 
   FloatingActionButton? _buildFab(
       BuildContext context, TabController tabController, WidgetRef ref) {
-    if (tabController.index == 1) {
+    if (tabController.index == 1 &&
+        (ref.read(userProvider)?.esAdmin ?? false)) {
       return FloatingActionButton.extended(
         onPressed: () =>
             ref.read(organizacionRepositoryProvider).getMiOrganizacion().then(
@@ -62,7 +67,8 @@ class OrganizacionPage extends HookConsumerWidget {
         label: const Text("Registrar"),
         icon: const Icon(Icons.how_to_reg_outlined),
       );
-    } else if (tabController.index == 2) {
+    } else if (tabController.index == 2 &&
+        (ref.read(userProvider)?.esAdmin ?? false)) {
       return FloatingActionButton.extended(
         onPressed: () => ref.read(agregarActivoProvider.notifier).state++,
         label: const Text("Activo"),

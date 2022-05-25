@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/application/auth/auth_service.dart';
 import 'package:inspecciones/domain/api/api_failure.dart';
 import 'package:inspecciones/features/configuracion_organizacion/widgets/customList.dart';
 import 'package:inspecciones/infrastructure/datasources/providers.dart';
@@ -80,7 +81,7 @@ class MenuDeEtiquetas extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final etiquetas = getEtiquetas(ref);
-
+    final user = ref.watch(userProvider);
     //final repoLocal = ref.watch(_organizacionDaoProvider);
 
     return etiquetas.when(
@@ -138,76 +139,83 @@ class MenuDeEtiquetas extends ConsumerWidget {
                               arbol: arbol,
                               esLocal: true));
                         },
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (!etiqueta.esLocal)
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined),
-                                onPressed: () async {
-                                  final res = await showDialog<bool>(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                            title: const Text("eliminar"),
-                                            content: const Text(
-                                                "Está a punto de permitir la modificación de una etiqueta que ya está subida, asegúrese que nadie más la esté editando ya que se podría perder información"),
-                                            actions: [
-                                              TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(false),
-                                                  child:
-                                                      const Text("Cancelar")),
-                                              TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(true),
-                                                  child: const Text("ok")),
-                                            ],
-                                          ));
-                                  if (res ?? false) {
-                                    await getVolverEtiquetaEditable(ref)(
-                                        etiqueta);
-                                  }
-                                },
-                              ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outlined),
-                              onPressed: () async {
-                                final res = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                          title: const Text("Alerta"),
-                                          content: const Text(
-                                              "¿Está seguro de eliminar esta etiqueta? los activos que la hayan usado quedarán con ella y tendrá que limpiarlos manualmente."),
-                                          actions: [
-                                            TextButton(
-                                                onPressed: () =>
-                                                    Navigator.of(context)
-                                                        .pop(false),
-                                                child: const Text("no")),
-                                            TextButton(
-                                                onPressed: () =>
-                                                    Navigator.of(context)
-                                                        .pop(true),
-                                                child: const Text("si")),
-                                          ],
-                                        ));
-                                if (res == null) return;
-                                if (res) {
-                                  if (!etiqueta.esLocal) {
-                                    await getEliminarEtiquetaRemota(ref)(
-                                        etiqueta.niveles.first);
-                                  }
-                                  await getEliminarEtiquetaLocal(ref)(etiqueta);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text("etiqueta eliminada")));
-                                }
-                              },
-                            ),
-                          ],
-                        ),
+                        trailing: user?.esAdmin ?? false
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (!etiqueta.esLocal)
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined),
+                                      onPressed: () async {
+                                        final res = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                                  title: const Text("eliminar"),
+                                                  content: const Text(
+                                                      "Está a punto de permitir la modificación de una etiqueta que ya está subida, asegúrese que nadie más la esté editando ya que se podría perder información"),
+                                                  actions: [
+                                                    TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(false),
+                                                        child: const Text(
+                                                            "Cancelar")),
+                                                    TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(true),
+                                                        child:
+                                                            const Text("ok")),
+                                                  ],
+                                                ));
+                                        if (res ?? false) {
+                                          await getVolverEtiquetaEditable(ref)(
+                                              etiqueta);
+                                        }
+                                      },
+                                    ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outlined),
+                                    onPressed: () async {
+                                      final res = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                                title: const Text("Alerta"),
+                                                content: const Text(
+                                                    "¿Está seguro de eliminar esta etiqueta? los activos que la hayan usado quedarán con ella y tendrá que limpiarlos manualmente."),
+                                                actions: [
+                                                  TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.of(context)
+                                                              .pop(false),
+                                                      child: const Text("no")),
+                                                  TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.of(context)
+                                                              .pop(true),
+                                                      child: const Text("si")),
+                                                ],
+                                              ));
+                                      if (res == null) return;
+                                      if (res) {
+                                        if (!etiqueta.esLocal) {
+                                          await getEliminarEtiquetaRemota(ref)(
+                                              etiqueta.niveles.first);
+                                        }
+                                        await getEliminarEtiquetaLocal(ref)(
+                                            etiqueta);
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(const SnackBar(
+                                                content: Text(
+                                                    "etiqueta eliminada")));
+                                      }
+                                    },
+                                  ),
+                                ],
+                              )
+                            : const SizedBox.shrink(),
                       ),
                     Text(
                       "Para guardar cualquier cambio que realice, presione el botón de sincronizar",
@@ -218,49 +226,52 @@ class MenuDeEtiquetas extends ConsumerWidget {
               ),
             ),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () async {
-                  final res = await showDialog<Tuple2<String, bool>>(
-                    context: context,
-                    builder: (_) => const CreacionDeEtiquetaDialog(),
-                  );
-                  if (res != null) {
-                    final clave = res.value1;
-                    final jerarquia = res.value2;
-                    if (jerarquia) {
-                      final niveles = await showDialog<List<String>>(
-                        context: context,
-                        builder: (_) =>
-                            CreacionDeNivelesDialog(claveBase: clave),
-                      );
-                      if (niveles == null) return;
-                      final arbol = await showDialog<List<EtiquetaEnJerarquia>>(
-                        context: context,
-                        builder: (_) => CreacionDeArbolDeEtiquetasDialog(
-                          niveles: niveles,
-                          profundidad: 0,
-                        ),
-                      );
-                      if (arbol == null) return;
-                      getAgregarEtiqueta(ref)(Jerarquia(
-                          niveles: niveles, arbol: arbol, esLocal: true));
-                    } else {
-                      final niveles = [clave];
-                      final arbol = await showDialog<List<EtiquetaEnJerarquia>>(
-                        context: context,
-                        builder: (_) => CreacionDeArbolDeEtiquetasDialog(
-                          niveles: niveles,
-                          profundidad: 0,
-                        ),
-                      );
-                      if (arbol == null) return;
-                      getAgregarEtiqueta(ref)(Jerarquia(
-                          niveles: niveles, arbol: arbol, esLocal: true));
+              if (user?.esAdmin ?? false)
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () async {
+                    final res = await showDialog<Tuple2<String, bool>>(
+                      context: context,
+                      builder: (_) => const CreacionDeEtiquetaDialog(),
+                    );
+                    if (res != null) {
+                      final clave = res.value1;
+                      final jerarquia = res.value2;
+                      if (jerarquia) {
+                        final niveles = await showDialog<List<String>>(
+                          context: context,
+                          builder: (_) =>
+                              CreacionDeNivelesDialog(claveBase: clave),
+                        );
+                        if (niveles == null) return;
+                        final arbol =
+                            await showDialog<List<EtiquetaEnJerarquia>>(
+                          context: context,
+                          builder: (_) => CreacionDeArbolDeEtiquetasDialog(
+                            niveles: niveles,
+                            profundidad: 0,
+                          ),
+                        );
+                        if (arbol == null) return;
+                        getAgregarEtiqueta(ref)(Jerarquia(
+                            niveles: niveles, arbol: arbol, esLocal: true));
+                      } else {
+                        final niveles = [clave];
+                        final arbol =
+                            await showDialog<List<EtiquetaEnJerarquia>>(
+                          context: context,
+                          builder: (_) => CreacionDeArbolDeEtiquetasDialog(
+                            niveles: niveles,
+                            profundidad: 0,
+                          ),
+                        );
+                        if (arbol == null) return;
+                        getAgregarEtiqueta(ref)(Jerarquia(
+                            niveles: niveles, arbol: arbol, esLocal: true));
+                      }
                     }
-                  }
-                },
-              ),
+                  },
+                ),
             ],
           );
         });

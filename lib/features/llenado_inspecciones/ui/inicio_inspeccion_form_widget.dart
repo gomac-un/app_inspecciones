@@ -98,6 +98,7 @@ enum TipoDeCarga {
   local,
   remota,
 }
+
 final tipoDeCargaProvider = StateProvider((ref) => TipoDeCarga.local);
 
 class InicioInspeccionForm extends ConsumerWidget {
@@ -177,12 +178,15 @@ class CargaLocalForm extends ConsumerWidget {
         formControl: controller.controlLocal,
         builder: (context, _, __) => ElevatedButton(
           onPressed: controller.controlLocal.valid
-              ? () => Navigator.of(context).push(
+              ? () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
                     MaterialPageRoute(builder: ((context) {
                       return InspeccionPage(
                           inspeccionId: controller.getArgumentosParaLocal());
                     })),
-                  )
+                  );
+                }
               : null,
           child: const Text('Inspeccionar'),
         ),

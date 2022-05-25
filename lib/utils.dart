@@ -33,7 +33,7 @@ class ClearFocusOnPop extends NavigatorObserver {
   void didPop(Route route, Route? previousRoute) {
     super.didPop(route, previousRoute);
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       // solo quita el teclado pero deja el focus
       //SystemChannels.textInput.invokeMethod('TextInput.hide');
       // quita el focus despues de un pop

@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 class ProfileWidget extends StatelessWidget {
   final String imagePath;
   final bool isEdit;
+  final bool editable;
   final VoidCallback onClicked;
 
   const ProfileWidget({
     Key? key,
     required this.imagePath,
     this.isEdit = false,
+    this.editable = true,
     required this.onClicked,
   }) : super(key: key);
 
@@ -20,11 +22,12 @@ class ProfileWidget extends StatelessWidget {
       child: Stack(
         children: [
           buildImage(),
-          Positioned(
-            bottom: 0,
-            right: 4,
-            child: InkWell(onTap: onClicked, child: buildEditIcon(color)),
-          ),
+          if (editable)
+            Positioned(
+              bottom: 0,
+              right: 4,
+              child: InkWell(onTap: onClicked, child: buildEditIcon(color)),
+            ),
         ],
       ),
     );

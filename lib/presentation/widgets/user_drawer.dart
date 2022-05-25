@@ -49,13 +49,14 @@ class UserDrawer extends ConsumerWidget {
                       icon: Icons.bug_report_outlined,
                       onTap: () => _mostrarHerramientasDeDesarrollo(context),
                     ),
-                  MenuItem(
-                    texto: 'Limpiar datos de la app',
-                    icon: Icons.cleaning_services_outlined,
-                    onTap: () => _mostrarConfirmacionLimpieza(
-                      context: context,
+                  if (user.esAdmin)
+                    MenuItem(
+                      texto: 'Limpiar datos de la app',
+                      icon: Icons.cleaning_services_outlined,
+                      onTap: () => _mostrarConfirmacionLimpieza(
+                        context: context,
+                      ),
                     ),
-                  ),
                   MenuItem(
                     texto: 'Cambiar el tema',
                     icon: Icons.dark_mode_outlined,

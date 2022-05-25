@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cross_file/cross_file.dart';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:inspecciones/core/entities/app_image.dart';
@@ -172,7 +171,7 @@ class DeserializadorInspeccion {
         inspeccion,
         preguntas,
       );
-    } on SqliteException {
+    } catch (e) {
       //Lanzar un error diferente
       throw const ErrorDatabase(
           "Error al guardar la inspección. \nRevisa que el activo y el cuestionario correspondientes ya estén descargados en tu celular");
