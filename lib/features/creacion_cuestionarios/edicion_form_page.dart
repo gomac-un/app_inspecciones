@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:inspecciones/core/entities/app_image.dart';
 import 'package:inspecciones/features/configuracion_organizacion/administrador_de_etiquetas.dart';
 import 'package:inspecciones/features/configuracion_organizacion/domain/entities.dart';
 import 'package:inspecciones/infrastructure/drift_database.dart';
@@ -80,122 +81,127 @@ class _ListCuestionario extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              PreguntaCard(
-                titulo: 'Tipo de inspección',
-                child: Column(
-                  children: [
-                    ReactiveDropdownField<String?>(
-                      formControl: controller.tipoDeInspeccionControl,
-                      validationMessages: (control) => {
-                        ValidationMessage.required: 'Este valor es requerido'
-                      },
-                      items: controller.todosLosTiposDeInspeccion
-                          .map((e) => DropdownMenuItem<String>(
-                                value: e,
-                                child: Text(e),
-                              ))
-                          .toList(),
-                      decoration: const InputDecoration(
-                        labelText: 'Seleccione el tipo de inspeccion',
-                      ),
-                      onTap: () {
-                        FocusScope.of(context)
-                            .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
-                      },
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    /// En caso de que se seleccione 'Otra', se activa textfield para que escriba el tipo de inspeccion
-                    ReactiveValueListenableBuilder<String?>(
+    return Scrollbar(
+      trackVisibility: kIsWeb ? true : false,
+      thumbVisibility: kIsWeb ? true : false,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                PreguntaCard(
+                  titulo: 'Tipo de inspección',
+                  child: Column(
+                    children: [
+                      ReactiveDropdownField<String?>(
                         formControl: controller.tipoDeInspeccionControl,
-                        builder: (context, value, child) {
-                          if (value.value ==
-                              CreacionFormController.otroTipoDeInspeccion) {
-                            return ReactiveTextField(
-                              formControl:
-                                  controller.nuevoTipoDeInspeccionControl,
-                              validationMessages: (control) => {
-                                ValidationMessage.required:
-                                    'Este valor es requerido'
-                              },
-                              decoration: const InputDecoration(
-                                labelText: 'Escriba el tipo de inspeccion',
-                                prefixIcon: Icon(Icons.text_fields),
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        }),
-                  ],
-                ),
-              ),
-              PreguntaCard(
-                titulo: 'Etiquetas aplicables',
-                child: Consumer(builder: (context, ref, _) {
-                  final todasLasJerarquias = ref
-                          .watch(listaEtiquetasDeActivosProvider)
-                          .asData
-                          ?.value ??
-                      const <Jerarquia>[];
+                        validationMessages: (control) => {
+                          ValidationMessage.required: 'Este valor es requerido'
+                        },
+                        items: controller.todosLosTiposDeInspeccion
+                            .map((e) => DropdownMenuItem<String>(
+                                  value: e,
+                                  child: Text(e),
+                                ))
+                            .toList(),
+                        decoration: const InputDecoration(
+                          labelText: 'Seleccione el tipo de inspeccion',
+                        ),
+                        onTap: () {
+                          FocusScope.of(context)
+                              .unfocus(); // para que no salte el teclado si tenia un textfield seleccionado
+                        },
+                      ),
 
-                  return ReactiveTextFieldTags(
-                    decoration: const InputDecoration(labelText: "etiquetas"),
-                    formControl: controller.etiquetasControl,
-                    validationMessages: (control) => {
-                      ValidationMessage.minLength:
-                          'Se requiere al menos una etiqueta'
-                    },
-                    optionsBuilder: (TextEditingValue val) => controller
-                        .getTodasLasEtiquetas(todasLasJerarquias)
-                        .where((e) => e.clave
-                            .toLowerCase()
-                            .contains(val.text.toLowerCase())),
-                    onMenu: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) =>
-                            const MenuDeEtiquetas(TipoDeEtiqueta.activo),
-                      );
-                    },
-                  );
-                }),
-              ),
-              PreguntaCard(
-                titulo: 'Periodicidad (en días)',
-                child: ReactiveSlider(
-                  formControl: controller.periodicidadControl,
-                  max: 100.0,
-                  divisions: 100,
-                  labelBuilder: (v) => v.round().toString(),
+                      const SizedBox(height: 10),
+
+                      /// En caso de que se seleccione 'Otra', se activa textfield para que escriba el tipo de inspeccion
+                      ReactiveValueListenableBuilder<String?>(
+                          formControl: controller.tipoDeInspeccionControl,
+                          builder: (context, value, child) {
+                            if (value.value ==
+                                CreacionFormController.otroTipoDeInspeccion) {
+                              return ReactiveTextField(
+                                formControl:
+                                    controller.nuevoTipoDeInspeccionControl,
+                                validationMessages: (control) => {
+                                  ValidationMessage.required:
+                                      'Este valor es requerido'
+                                },
+                                decoration: const InputDecoration(
+                                  labelText: 'Escriba el tipo de inspeccion',
+                                  prefixIcon: Icon(Icons.text_fields),
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          }),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                PreguntaCard(
+                  titulo: 'Etiquetas aplicables',
+                  child: Consumer(builder: (context, ref, _) {
+                    final todasLasJerarquias = ref
+                            .watch(listaEtiquetasDeActivosProvider)
+                            .asData
+                            ?.value ??
+                        const <Jerarquia>[];
+
+                    return ReactiveTextFieldTags(
+                      decoration: const InputDecoration(labelText: "etiquetas"),
+                      formControl: controller.etiquetasControl,
+                      validationMessages: (control) => {
+                        ValidationMessage.minLength:
+                            'Se requiere al menos una etiqueta'
+                      },
+                      optionsBuilder: (TextEditingValue val) => controller
+                          .getTodasLasEtiquetas(todasLasJerarquias)
+                          .where((e) => e.clave
+                              .toLowerCase()
+                              .contains(val.text.toLowerCase())),
+                      onMenu: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) =>
+                              const MenuDeEtiquetas(TipoDeEtiqueta.activo),
+                        );
+                      },
+                    );
+                  }),
+                ),
+                PreguntaCard(
+                  titulo: 'Periodicidad (en días)',
+                  child: ReactiveSlider(
+                    formControl: controller.periodicidadControl,
+                    max: 100.0,
+                    divisions: 100,
+                    labelBuilder: (v) => v.round().toString(),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
 
-        /// Cuando se agrega un bloque, esta lista empieza a mostrarlos en la pantalla.
-        SliverAnimatedList(
-          initialItemCount: controller.controllersBloques.length,
-          itemBuilder: (context, index, animation) {
-            return ProviderScope(
-              overrides: [numeroDeBloqueProvider.overrideWithValue(index)],
-              child: ControlWidgetAnimado(
-                controller: controller.controllersBloques[index],
-                animation: animation,
-              ),
-            );
-          },
-        ),
+          /// Cuando se agrega un bloque, esta lista empieza a mostrarlos en la pantalla.
+          SliverAnimatedList(
+            initialItemCount: controller.controllersBloques.length,
+            itemBuilder: (context, index, animation) {
+              return ProviderScope(
+                overrides: [numeroDeBloqueProvider.overrideWithValue(index)],
+                child: ControlWidgetAnimado(
+                  controller: controller.controllersBloques[index],
+                  animation: animation,
+                ),
+              );
+            },
+          ),
 
-        const SliverToBoxAdapter(child: SizedBox(height: 100)),
-      ],
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
+      ),
     );
   }
 }
