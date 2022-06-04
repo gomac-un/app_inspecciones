@@ -127,6 +127,7 @@ class ListaDeActivosViewModel
 /// saber cuando se debe agregar uno nuevo. El numero no importa, lo importante
 /// es que cambie. Nótese que esto es un machetazo.
 final agregarActivoProvider = StateProvider((ref) => 0);
+final scrollControlerProvider = ScrollController();
 
 final _listaActivosProvider =
     FutureProvider.autoDispose<Tuple2<ApiFailure?, Set<ActivoEnLista>>>(
@@ -140,6 +141,11 @@ final _viewModelProvider = StateNotifierProvider.autoDispose.family<
   final viewModel = ListaDeActivosViewModel(ref.read, lista);
   ref.listen(agregarActivoProvider, (_, __) {
     viewModel.agregarActivo();
+    scrollControlerProvider.animateTo(
+      scrollControlerProvider.position.minScrollExtent,
+      duration: const Duration(milliseconds: 5),
+      curve: Curves.fastOutSlowIn,
+    );
   });
   return viewModel;
 });
@@ -169,7 +175,9 @@ class ListaDeActivosPage extends ConsumerWidget {
         final viewModel =
             ref.watch(_viewModelProvider(activosFromRepo).notifier);
         final activos = ref.watch(_viewModelProvider(activosFromRepo));
+
         return ListView.separated(
+          controller: scrollControlerProvider,
           // para que el fab no estorbe en el ultimo
           padding: const EdgeInsets.only(bottom: 60),
           itemCount: activos.length + 1, // +1 para el espacio al final
