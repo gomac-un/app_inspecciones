@@ -58,16 +58,17 @@ class OrganizacionRepository {
     return Tuple2(remoteRes.fold(id, (_) => null), activos.toSet());
   }
 
-  Future<Either<ApiFailure, Unit>> guardarActivo(ActivoEnLista activo) =>
+  Future<Either<ApiFailure, Unit>> guardarActivo(
+          ActivoEnLista activo, String method) =>
       apiExceptionToApiFailure(
         () => _api
-            .guardarActivo(activo.identificador, activo.toMap())
+            .guardarActivo(activo.id, activo.toMap(), method)
             .then((r) => unit),
       );
 
   Future<Either<ApiFailure, Unit>> borrarActivo(ActivoEnLista activo) =>
       apiExceptionToApiFailure(
-        () => _api.borrarActivo(activo.identificador),
+        () => _api.borrarActivo(activo.id),
       ).nestedEvaluatedMap(
           (_) => _db.organizacionDao.borrarActivo(activo).then((r) => unit));
 

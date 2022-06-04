@@ -81,13 +81,15 @@ class DjangoJsonApi
       _client.request('GET', _apiUri.appendSegment('activos'));
 
   @override
-  Future<JsonMap> guardarActivo(String identificador, JsonMap activo) =>
-      _client.request(
-          'PUT',
-          _apiUri
-              .appendSegment('activos', addTrailingSlash: false)
-              .appendSegment(identificador),
-          body: activo);
+  Future<JsonMap> guardarActivo(
+      String identificador, JsonMap activo, String method) {
+    final uri = method == 'POST'
+        ? _apiUri.appendSegment('activos')
+        : _apiUri
+            .appendSegment('activos', addTrailingSlash: false)
+            .appendSegment(identificador);
+    return _client.request(method, uri, body: activo);
+  }
 
   @override
   Future<void> borrarActivo(String activoId) => _client.request(

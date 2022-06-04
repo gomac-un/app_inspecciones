@@ -23,6 +23,8 @@ class ActivoController {
   late final idControl =
       fb.control<String>(_activo.identificador, [Validators.required]);
 
+  late final identificador = fb.control<String>(_activo.id);
+
   late final tagsControl = fb.control<Set<Etiqueta>>(_activo.etiquetas.toSet());
 
   late final control = fb.group({
@@ -32,8 +34,10 @@ class ActivoController {
 
   ActivoController(this._activo);
 
-  ActivoEnLista guardar() =>
-      ActivoEnLista(_uuid.v4(), idControl.value!, tagsControl.value!.toList());
+  ActivoEnLista guardar() => ActivoEnLista(
+      identificador.value!.isEmpty ? _uuid.v4() : identificador.value!,
+      idControl.value!,
+      tagsControl.value!.toList());
 
   List<Etiqueta> getEtiquetasDisponibles(List<Jerarquia> todas) {
     final usadas = tagsControl.value!;
@@ -95,8 +99,11 @@ class ListaDeActivosViewModel
 
   Future<Either<ApiFailure, Unit>> finEdicionActivo(
       ActivoController controller) {
+    final method = controller.identificador.value!.isEmpty ? "POST" : "PUT";
     final activoActualizado = controller.guardar();
-    return _organizacionRepository.guardarActivo(activoActualizado).map((_) {
+    return _organizacionRepository
+        .guardarActivo(activoActualizado, method)
+        .map((_) {
       state = state
           .map((a) => a.controller == controller
               ? ActivoEnListaConController(activoActualizado, null)
@@ -258,7 +265,7 @@ class ListaDeActivosPage extends ConsumerWidget {
               content: Text(
                 await viewModel.finEdicionActivo(controller).then(
                       (r) =>
-                          r.fold((l) => l.toString(), (r) => "activo guardado"),
+                          r.fold((l) => l.toString(), (r) => "Activo guardado"),
                     ),
               ),
             ),
